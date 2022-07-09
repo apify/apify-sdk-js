@@ -1,0 +1,10 @@
+{
+    "extends": "./tsconfig.build.json",
+    "compilerOptions": {
+        "baseUrl": ".",
+        "paths": {
+            "apify": ["packages/apify/src"],
+            "@apify/scraper-tools": ["packages/scraper-tools/src"]
+        }
+    }
+}

@@ -1,0 +1,58 @@
+{
+    "name": "@apify/scraper-tools",
+    "version": "3.0.0",
+    "private": true,
+    "description": "Tools shared by Apify actor-scrapers.",
+    "types": "dist/index.d.ts",
+    "exports": {
+        ".": {
+            "import": "./dist/index.mjs",
+            "require": "./dist/index.js"
+        }
+    },
+    "author": {
+        "name": "Apify Technologies",
+        "email": "support@apify.com",
+        "url": "https://apify.com"
+    },
+    "contributors": [
+        "Marek Trunkat <marek@apify.com>",
+        "Ondra Urban <ondra@apify.com>"
+    ],
+    "license": "Apache-2.0",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/apify/apify-ts"
+    },
+    "homepage": "https://github.com/apify/apify-ts",
+    "scripts": {
+        "build": "npm run clean && npm run compile && npm run copy",
+        "clean": "rimraf ./dist",
+        "compile": "tsc -p tsconfig.build.json && gen-esm-wrapper ./dist/index.js ./dist/index.mjs",
+        "copy": "ts-node -T ../../scripts/copy.ts"
+    },
+    "publishConfig": {
+        "access": "public"
+    },
+    "dependencies": {
+        "ajv": "^6.12.6",
+        "content-type": "^1.0.4"
+    },
+    "peerDependencies": {
+        "apify": ">=3.x || >=3.0.0-beta.76",
+        "@crawlee/core": ">=3.x || >=3.0.0-beta.78",
+        "@crawlee/utils": ">=3.x || >=3.0.0-beta.78",
+        "@crawlee/puppeteer": ">=3.x || >=3.0.0-beta.78"
+    },
+    "devDependencies": {
+        "apify": "^3.0.0",
+        "@crawlee/core": "^3.0.0-beta.78",
+        "@crawlee/utils": "^3.0.0-beta.78",
+        "@crawlee/puppeteer": "^3.0.0-beta.78"
+    },
+    "peerDependenciesMeta": {
+        "@crawlee/puppeteer": {
+            "optional": true
+        }
+    }
+}

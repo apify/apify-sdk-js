@@ -1,0 +1,1532 @@
+import ow from 'ow';
+import { ENV_VARS, INTEGER_ENV_VARS } from '@apify/consts';
+import { addTimeoutToPromise } from '@apify/timeout';
+import log from '@apify/log';
+import type {
+    ActorStartOptions,
+    ApifyClientOptions,
+    RunAbortOptions,
+    TaskStartOptions,
+    Webhook,
+    WebhookEventType,
+} from 'apify-client';
+import {
+    ActorRun as ClientActorRun,
+    ApifyClient,
+} from 'apify-client';
+import type {
+    ConfigurationOptions,
+    EventManager,
+    EventTypeName,
+    IStorage,
+    RecordOptions,
+} from '@crawlee/core';
+import {
+    Configuration as CoreConfiguration,
+    Dataset,
+    EventType,
+    RequestQueue,
+    StorageManager,
+    purgeDefaultStorages,
+} from '@crawlee/core';
+import type { Awaitable, Constructor, Dictionary, StorageClient } from '@crawlee/types';
+import { sleep, snakeCaseToCamelCase } from '@crawlee/utils';
+import { logSystemInfo, printOutdatedSdkWarning } from './utils';
+import { PlatformEventManager } from './platform_event_manager';
+import type { ProxyConfigurationOptions } from './proxy_configuration';
+import { ProxyConfiguration } from './proxy_configuration';
+import { KeyValueStore } from './key_value_store';
+import { Configuration } from './configuration';
+
+/**
+ * `Apify` class serves as an alternative approach to the static helpers exported from the package. It allows to pass configuration
+ * that will be used on the instance methods. Environment variables will have precedence over this configuration.
+ * See {@link Configuration} for details about what can be configured and what are the default values.
+ */
+export class Actor<Data extends Dictionary = Dictionary> {
+    /** @internal */
+    static _instance: Actor;
+
+    /**
+     * Configuration of this SDK instance (provided to its constructor). See {@link Configuration} for details.
+     * @internal
+     */
+    readonly config: Configuration;
+
+    /**
+     * Default {@link ApifyClient} instance.
+     * @internal
+     */
+    readonly apifyClient: ApifyClient;
+
+    /**
+     * Default {@link EventManager} instance.
+     * @internal
+     */
+    readonly eventManager: EventManager;
+
+    constructor(options: ConfigurationOptions = {}) {
+        // use default configuration object if nothing overridden (it fallbacks to env vars)
+        this.config = Object.keys(options).length === 0 ? Configuration.getGlobalConfig() : new Configuration(options);
+        this.apifyClient = this.newClient();
+        this.eventManager = new PlatformEventManager(this.config);
+    }
+
+    /**
+     * Runs the main user function that performs the job of the actor
+     * and terminates the process when the user function finishes.
+     *
+     * **The `Actor.main()` function is optional** and is provided merely for your convenience.
+     * It is mainly useful when you're running your code as an actor on the [Apify platform](https://apify.com/actors).
+     * However, if you want to use Apify SDK tools directly inside your existing projects, e.g.
+     * running in an [Express](https://expressjs.com/) server, on
+     * [Google Cloud functions](https://cloud.google.com/functions)
+     * or [AWS Lambda](https://aws.amazon.com/lambda/), it's better to avoid
+     * it since the function terminates the main process when it finishes!
+     *
+     * The `Actor.main()` function performs the following actions:
+     *
+     * - When running on the Apify platform (i.e. `APIFY_IS_AT_HOME` environment variable is set),
+     *   it sets up a connection to listen for platform events.
+     *   For example, to get a notification about an imminent migration to another server.
+     *   See {@link Actor.events} for details.
+     * - It checks that either `APIFY_TOKEN` or `APIFY_LOCAL_STORAGE_DIR` environment variable
+     *   is defined. If not, the functions sets `APIFY_LOCAL_STORAGE_DIR` to `./apify_storage`
+     *   inside the current working directory. This is to simplify running code examples.
+     * - It invokes the user function passed as the `userFunc` parameter.
+     * - If the user function returned a promise, waits for it to resolve.
+     * - If the user function throws an exception or some other error is encountered,
+     *   prints error details to console so that they are stored to the log.
+     * - Exits the Node.js process, with zero exit code on success and non-zero on errors.
+     *
+     * The user function can be synchronous:
+     *
+     * ```javascript
+     * await Actor.main(() => {
+     *   // My synchronous function that returns immediately
+     *   console.log('Hello world from actor!');
+     * });
+     * ```
+     *
+     * If the user function returns a promise, it is considered asynchronous:
+     * ```javascript
+     * import { gotScraping } from 'got-scraping';
+     *
+     * await Actor.main(() => {
+     *   // My asynchronous function that returns a promise
+     *   return gotScraping('http://www.example.com').then((html) => {
+     *     console.log(html);
+     *   });
+     * });
+     * ```
+     *
+     * To simplify your code, you can take advantage of the `async`/`await` keywords:
+     *
+     * ```javascript
+     * import { gotScraping } from 'got-scraping';
+     *
+     * await Actor.main(async () => {
+     *   // My asynchronous function
+     *   const html = await request('http://www.example.com');
+     *   console.log(html);
+     * });
+     * ```
+     *
+     * @param userFunc User function to be executed. If it returns a promise,
+     * the promise will be awaited. The user function is called with no arguments.
+     * @param options
+     * @ignore
+     */
+    main<T>(userFunc: UserFunc, options?: MainOptions): Promise<T> {
+        if (!userFunc || typeof userFunc !== 'function') {
+            throw new Error(`First parameter for Actor.main() must be a function (was '${userFunc === null ? 'null' : typeof userFunc}').`);
+        }
+
+        return (async () => {
+            await this.init(options);
+            let ret: T;
+
+            try {
+                ret = await userFunc() as T;
+                await this.exit(options);
+            } catch (err: any) {
+                log.exception(err, err.message);
+                await this.exit({ exitCode: EXIT_CODES.ERROR_USER_FUNCTION_THREW });
+            }
+
+            return ret!;
+        })();
+    }
+
+    /**
+     * @ignore
+     */
+    async init(options: InitOptions = {}): Promise<void> {
+        logSystemInfo();
+        printOutdatedSdkWarning();
+
+        // reset global config instance to respect APIFY_ prefixed env vars
+        CoreConfiguration.globalConfig = Configuration.getGlobalConfig();
+
+        await this.eventManager.init();
+
+        if (this.isAtHome()) {
+            this.config.set('availableMemoryRatio', 1);
+            this.config.set('disableBrowserSandbox', true); // for browser launcher, adds `--no-sandbox` to args
+            this.config.useStorageClient(this.apifyClient);
+            this.config.useEventManager(this.eventManager);
+        } else if (options.storage) {
+            this.config.useStorageClient(options.storage);
+        }
+
+        await purgeDefaultStorages(this.config);
+        Configuration.storage.enterWith(this.config);
+    }
+
+    /**
+     * @ignore
+     */
+    async exit(messageOrOptions?: string | ExitOptions, options: ExitOptions = {}): Promise<void> {
+        options = typeof messageOrOptions === 'string' ? { ...options, statusMessage: messageOrOptions } : { ...messageOrOptions, ...options };
+        options.exit ??= true;
+        options.exitCode ??= EXIT_CODES.SUCCESS;
+        options.timeoutSecs ??= 30;
+
+        // Close the event manager and emit the final PERSIST_STATE event
+        await this.eventManager.close();
+
+        // Emit the exit event
+        this.eventManager.emit(EventType.EXIT, options);
+
+        // Wait for all event listeners to be processed
+        log.debug(`Waiting for all event listeners to complete their execution (with ${options.timeoutSecs} seconds timeout)`);
+        await addTimeoutToPromise(
+            () => this.eventManager.waitForAllListenersToComplete(),
+            options.timeoutSecs * 1000,
+            `Waiting for all event listeners to complete their execution timed out after ${options.timeoutSecs} seconds`,
+        );
+
+        if (options.exitCode > 0) {
+            options.statusMessage ??= `Actor finished with an error (exit code ${options.exitCode})`;
+            log.error(options.statusMessage);
+        } else {
+            options.statusMessage ??= `Actor finished successfully (exit code ${options.exitCode})`;
+            log.info(options.statusMessage);
+        }
+
+        if (!options.exit) {
+            return;
+        }
+
+        process.exit(options.exitCode);
+    }
+
+    /**
+     * @ignore
+     */
+    async fail(messageOrOptions?: string | ExitOptions, options: ExitOptions = {}): Promise<void> {
+        return this.exit(messageOrOptions, { exitCode: 1, ...options });
+    }
+
+    /**
+     * @ignore
+     */
+    on(event: EventTypeName, listener: (...args: any[]) => any): void {
+        this.eventManager.on(event, listener);
+    }
+
+    /**
+     * @ignore
+     */
+    off(event: EventTypeName, listener?: (...args: any[]) => any): void {
+        this.eventManager.off(event, listener);
+    }
+
+    /**
+     * Runs an actor on the Apify platform using the current user account (determined by the `APIFY_TOKEN` environment variable),
+     * waits for the actor to finish and fetches its output.
+     *
+     * By passing the `waitSecs` option you can reduce the maximum amount of time to wait for the run to finish.
+     * If the value is less than or equal to zero, the function returns immediately after the run is started.
+     *
+     * The result of the function is an {@link ActorRun} object
+     * that contains details about the actor run and its output (if any).
+     *
+     * If you want to run an actor task rather than an actor, please use the
+     * {@link Actor.callTask} function instead.
+     *
+     * For more information about actors, read the
+     * [documentation](https://docs.apify.com/actor).
+     *
+     * **Example usage:**
+     *
+     * ```javascript
+     * const run = await Actor.call('apify/hello-world', { myInput: 123 });
+     * console.log(`Received message: ${run.output.body.message}`);
+     * ```
+     *
+     * Internally, the `call()` function invokes the
+     * [Run actor](https://apify.com/docs/api/v2#/reference/actors/run-collection/run-actor)
+     * and several other API endpoints to obtain the output.
+     *
+     * @param actorId
+     *  Allowed formats are `username/actor-name`, `userId/actor-name` or actor ID.
+     * @param [input]
+     *  Input for the actor. If it is an object, it will be stringified to
+     *  JSON and its content type set to `application/json; charset=utf-8`.
+     *  Otherwise the `options.contentType` parameter must be provided.
+     * @param [options]
+     * @ignore
+     */
+    async call(actorId: string, input?: unknown, options: CallOptions = {}): Promise<ClientActorRun> {
+        const { token, ...rest } = options;
+        const client = token ? this.newClient({ token }) : this.apifyClient;
+
+        return client.actor(actorId).call(input, rest);
+    }
+
+    /**
+     * Runs an actor on the Apify platform using the current user account (determined by the `APIFY_TOKEN` environment variable),
+     * unlike `Actor.call`, this method just starts the run without waiting for finish.
+     *
+     * The result of the function is an {@link ActorRun} object that contains details about the actor run.
+     *
+     * For more information about actors, read the
+     * [documentation](https://docs.apify.com/actor).
+     *
+     * **Example usage:**
+     *
+     * ```javascript
+     * const run = await Actor.start('apify/hello-world', { myInput: 123 });
+     * ```
+     *
+     * @param actorId
+     *  Allowed formats are `username/actor-name`, `userId/actor-name` or actor ID.
+     * @param [input]
+     *  Input for the actor. If it is an object, it will be stringified to
+     *  JSON and its content type set to `application/json; charset=utf-8`.
+     *  Otherwise the `options.contentType` parameter must be provided.
+     * @param [options]
+     * @ignore
+     */
+    async start(actorId: string, input?: unknown, options: CallOptions = {}): Promise<ClientActorRun> {
+        const { token, ...rest } = options;
+        const client = token ? this.newClient({ token }) : this.apifyClient;
+
+        return client.actor(actorId).start(input, rest);
+    }
+
+    /**
+     * Aborts given actor run on the Apify platform using the current user account (determined by the `APIFY_TOKEN` environment variable).
+     *
+     * The result of the function is an {@link ActorRun} object that contains details about the actor run.
+     *
+     * For more information about actors, read the
+     * [documentation](https://docs.apify.com/actor).
+     *
+     * **Example usage:**
+     *
+     * ```javascript
+     * const run = await Actor.abort(runId);
+     * ```
+     * @ignore
+     */
+    async abort(runId: string, options: AbortOptions = {}): Promise<ClientActorRun> {
+        const { token, ...rest } = options;
+        const client = token ? this.newClient({ token }) : this.apifyClient;
+
+        return client.run(runId).abort(rest);
+    }
+
+    /**
+     * Runs an actor task on the Apify platform using the current user account (determined by the `APIFY_TOKEN` environment variable),
+     * waits for the task to finish and fetches its output.
+     *
+     * By passing the `waitSecs` option you can reduce the maximum amount of time to wait for the run to finish.
+     * If the value is less than or equal to zero, the function returns immediately after the run is started.
+     *
+     * The result of the function is an {@link ActorRun} object
+     * that contains details about the actor run and its output (if any).
+     *
+     * Note that an actor task is a saved input configuration and options for an actor.
+     * If you want to run an actor directly rather than an actor task, please use the
+     * {@link Actor.call} function instead.
+     *
+     * For more information about actor tasks, read the [documentation](https://docs.apify.com/tasks).
+     *
+     * **Example usage:**
+     *
+     * ```javascript
+     * const run = await Actor.callTask('bob/some-task');
+     * console.log(`Received message: ${run.output.body.message}`);
+     * ```
+     *
+     * Internally, the `callTask()` function calls the
+     * [Run task](https://apify.com/docs/api/v2#/reference/actor-tasks/run-collection/run-task)
+     * and several other API endpoints to obtain the output.
+     *
+     * @param taskId
+     *  Allowed formats are `username/task-name`, `userId/task-name` or task ID.
+     * @param [input]
+     *  Input overrides for the actor task. If it is an object, it will be stringified to
+     *  JSON and its content type set to `application/json; charset=utf-8`.
+     *  Provided input will be merged with actor task input.
+     * @param [options]
+     * @ignore
+     */
+    async callTask(taskId: string, input?: Dictionary, options: CallTaskOptions = {}): Promise<ClientActorRun> {
+        const { token, ...rest } = options;
+        const client = token ? this.newClient({ token }) : this.apifyClient;
+
+        return client.task(taskId).call(input, rest);
+    }
+
+    /**
+     * Transforms this actor run to an actor run of a given actor. The system stops the current container and starts
+     * the new container instead. All the default storages are preserved and the new input is stored under the `INPUT-METAMORPH-1` key
+     * in the same default key-value store.
+     *
+     * @param targetActorId
+     *  Either `username/actor-name` or actor ID of an actor to which we want to metamorph.
+     * @param [input]
+     *  Input for the actor. If it is an object, it will be stringified to
+     *  JSON and its content type set to `application/json; charset=utf-8`.
+     *  Otherwise, the `options.contentType` parameter must be provided.
+     * @param [options]
+     * @ignore
+     */
+    async metamorph(targetActorId: string, input?: unknown, options: MetamorphOptions = {}): Promise<void> {
+        if (!this.isAtHome()) {
+            log.warning('Actor.metamorph() is only supported when running on the Apify platform.');
+            return;
+        }
+
+        const {
+            customAfterSleepMillis = this.config.get('metamorphAfterSleepMillis'),
+            ...metamorphOpts
+        } = options;
+        const runId = this.config.get('actorRunId')!;
+        await this.apifyClient.run(runId).metamorph(targetActorId, input, metamorphOpts);
+
+        // Wait some time for container to be stopped.
+        await sleep(customAfterSleepMillis);
+    }
+
+    /**
+     * Internally reboots this actor. The system stops the current container and starts
+     * a new container with the same run ID.
+     *
+     * @ignore
+     */
+    async reboot(): Promise<void> {
+        if (!this.isAtHome()) {
+            log.warning('Actor.reboot() is only supported when running on the Apify platform.');
+            return;
+        }
+
+        // Waiting for all the listeners to finish, as `.metamorph()` kills the container.
+        await Promise.all([
+            // `persistState` for individual RequestLists, RequestQueue... instances to be persisted
+            ...this.config.getEventManager().listeners(EventType.PERSIST_STATE).map((x) => x()),
+            // `migrating` to pause Apify crawlers
+            ...this.config.getEventManager().listeners(EventType.MIGRATING).map((x) => x()),
+        ]);
+
+        const actorId = this.config.get('actorId')!;
+        await this.metamorph(actorId);
+    }
+
+    /**
+     * Creates an ad-hoc webhook for the current actor run, which lets you receive a notification when the actor run finished or failed.
+     * For more information about Apify actor webhooks, please see the [documentation](https://docs.apify.com/webhooks).
+     *
+     * Note that webhooks are only supported for actors running on the Apify platform.
+     * In local environment, the function will print a warning and have no effect.
+     *
+     * @param options
+     * @returns The return value is the Webhook object.
+     * For more information, see the [Get webhook](https://apify.com/docs/api/v2#/reference/webhooks/webhook-object/get-webhook) API endpoint.
+     * @ignore
+     */
+    async addWebhook(options: WebhookOptions): Promise<Webhook | undefined> {
+        ow(options, ow.object.exactShape({
+            eventTypes: ow.array.ofType<WebhookEventType>(ow.string),
+            requestUrl: ow.string,
+            payloadTemplate: ow.optional.string,
+            idempotencyKey: ow.optional.string,
+        }));
+
+        const { eventTypes, requestUrl, payloadTemplate, idempotencyKey } = options;
+
+        if (!this.isAtHome()) {
+            log.warning('Actor.addWebhook() is only supported when running on the Apify platform. The webhook will not be invoked.');
+            return undefined;
+        }
+
+        const runId = this.config.get('actorRunId')!;
+        if (!runId) {
+            throw new Error(`Environment variable ${ENV_VARS.ACTOR_RUN_ID} is not set!`);
+        }
+
+        return this.apifyClient.webhooks().create({
+            isAdHoc: true,
+            eventTypes,
+            condition: {
+                actorRunId: runId,
+            },
+            requestUrl,
+            payloadTemplate,
+            idempotencyKey,
+        });
+    }
+
+    /**
+     * Sets the status message for the current actor run.
+     *
+     * @param options
+     * @returns The return value is the Run object.
+     * For more information, see the [Actor Runs](https://docs.apify.com/api/v2#/reference/actor-runs/) API endpoints.
+     * @ignore
+     */
+    async setStatusMessage(statusMessage: string): Promise<ClientActorRun> {
+        ow(statusMessage, ow.string);
+
+        const runId = this.config.get('actorRunId')!;
+        if (!runId) {
+            throw new Error(`Environment variable ${ENV_VARS.ACTOR_RUN_ID} is not set!`);
+        }
+
+        return this.apifyClient.run(runId).update({ statusMessage });
+    }
+
+    /**
+     * Stores an object or an array of objects to the default {@link Dataset} of the current actor run.
+     *
+     * This is just a convenient shortcut for {@link Dataset.pushData}.
+     * For example, calling the following code:
+     * ```javascript
+     * await Actor.pushData({ myValue: 123 });
+     * ```
+     *
+     * is equivalent to:
+     * ```javascript
+     * const dataset = await Actor.openDataset();
+     * await dataset.pushData({ myValue: 123 });
+     * ```
+     *
+     * For more information, see {@link Actor.openDataset} and {@link Dataset.pushData}
+     *
+     * **IMPORTANT**: Make sure to use the `await` keyword when calling `pushData()`,
+     * otherwise the actor process might finish before the data are stored!
+     *
+     * @param item Object or array of objects containing data to be stored in the default dataset.
+     * The objects must be serializable to JSON and the JSON representation of each object must be smaller than 9MB.
+     * @ignore
+     */
+    async pushData(item: Data | Data[]): Promise<void> {
+        const dataset = await this.openDataset();
+        return dataset.pushData(item);
+    }
+
+    /**
+     * Opens a dataset and returns a promise resolving to an instance of the {@link Dataset} class.
+     *
+     * Datasets are used to store structured data where each object stored has the same attributes,
+     * such as online store products or real estate offers.
+     * The actual data is stored either on the local filesystem or in the cloud.
+     *
+     * For more details and code examples, see the {@link Dataset} class.
+     *
+     * @param [datasetIdOrName]
+     *   ID or name of the dataset to be opened. If `null` or `undefined`,
+     *   the function returns the default dataset associated with the actor run.
+     * @param [options]
+     * @ignore
+     */
+    async openDataset(
+        datasetIdOrName?: string | null,
+        options: OpenStorageOptions = {},
+    ): Promise<Dataset<Data>> {
+        ow(datasetIdOrName, ow.optional.string);
+        ow(options, ow.object.exactShape({
+            forceCloud: ow.optional.boolean,
+        }));
+
+        return this._openStorage<Dataset<Data>>(Dataset, datasetIdOrName, options);
+    }
+
+    /**
+     * Gets a value from the default {@link KeyValueStore} associated with the current actor run.
+     *
+     * This is just a convenient shortcut for {@link KeyValueStore.getValue}.
+     * For example, calling the following code:
+     * ```javascript
+     * const value = await Actor.getValue('my-key');
+     * ```
+     *
+     * is equivalent to:
+     * ```javascript
+     * const store = await Actor.openKeyValueStore();
+     * const value = await store.getValue('my-key');
+     * ```
+     *
+     * To store the value to the default key-value store, you can use the {@link Actor.setValue} function.
+     *
+     * For more information, see  {@link Actor.openKeyValueStore}
+     * and  {@link KeyValueStore.getValue}.
+     *
+     * @param key Unique record key.
+     * @returns
+     *   Returns a promise that resolves to an object, string
+     *   or [`Buffer`](https://nodejs.org/api/buffer.html), depending
+     *   on the MIME content type of the record, or `null`
+     *   if the record is missing.
+     * @ignore
+     */
+    async getValue<T = unknown>(key: string): Promise<T | null> {
+        const store = await this.openKeyValueStore();
+        return store.getValue<T>(key);
+    }
+
+    /**
+     * Stores or deletes a value in the default {@link KeyValueStore} associated with the current actor run.
+     *
+     * This is just a convenient shortcut for  {@link KeyValueStore.setValue}.
+     * For example, calling the following code:
+     * ```javascript
+     * await Actor.setValue('OUTPUT', { foo: "bar" });
+     * ```
+     *
+     * is equivalent to:
+     * ```javascript
+     * const store = await Actor.openKeyValueStore();
+     * await store.setValue('OUTPUT', { foo: "bar" });
+     * ```
+     *
+     * To get a value from the default key-value store, you can use the  {@link Actor.getValue} function.
+     *
+     * For more information, see  {@link Actor.openKeyValueStore}
+     * and  {@link KeyValueStore.getValue}.
+     *
+     * @param key
+     *   Unique record key.
+     * @param value
+     *   Record data, which can be one of the following values:
+     *    - If `null`, the record in the key-value store is deleted.
+     *    - If no `options.contentType` is specified, `value` can be any JavaScript object, and it will be stringified to JSON.
+     *    - If `options.contentType` is set, `value` is taken as is, and it must be a `String` or [`Buffer`](https://nodejs.org/api/buffer.html).
+     *   For any other value an error will be thrown.
+     * @param [options]
+     * @ignore
+     */
+    async setValue<T>(key: string, value: T | null, options: RecordOptions = {}): Promise<void> {
+        const store = await this.openKeyValueStore();
+        return store.setValue(key, value, options);
+    }
+
+    /**
+     * Gets the actor input value from the default {@link KeyValueStore} associated with the current actor run.
+     *
+     * This is just a convenient shortcut for [`keyValueStore.getValue('INPUT')`](core/class/KeyValueStore#getValue).
+     * For example, calling the following code:
+     * ```javascript
+     * const input = await Actor.getInput();
+     * ```
+     *
+     * is equivalent to:
+     * ```javascript
+     * const store = await Actor.openKeyValueStore();
+     * await store.getValue('INPUT');
+     * ```
+     *
+     * Note that the `getInput()` function does not cache the value read from the key-value store.
+     * If you need to use the input multiple times in your actor,
+     * it is far more efficient to read it once and store it locally.
+     *
+     * For more information, see  {@link Actor.openKeyValueStore}
+     * and {@link KeyValueStore.getValue}.
+     *
+     * @returns
+     *   Returns a promise that resolves to an object, string
+     *   or [`Buffer`](https://nodejs.org/api/buffer.html), depending
+     *   on the MIME content type of the record, or `null`
+     *   if the record is missing.
+     * @ignore
+     */
+    async getInput<T = Dictionary | string | Buffer>(): Promise<T | null> {
+        return this.getValue<T>(this.config.get('inputKey'));
+    }
+
+    /**
+     * Opens a key-value store and returns a promise resolving to an instance of the {@link KeyValueStore} class.
+     *
+     * Key-value stores are used to store records or files, along with their MIME content type.
+     * The records are stored and retrieved using a unique key.
+     * The actual data is stored either on a local filesystem or in the Apify cloud.
+     *
+     * For more details and code examples, see the {@link KeyValueStore} class.
+     *
+     * @param [storeIdOrName]
+     *   ID or name of the key-value store to be opened. If `null` or `undefined`,
+     *   the function returns the default key-value store associated with the actor run.
+     * @param [options]
+     * @ignore
+     */
+    async openKeyValueStore(storeIdOrName?: string | null, options: OpenStorageOptions = {}): Promise<KeyValueStore> {
+        ow(storeIdOrName, ow.optional.string);
+        ow(options, ow.object.exactShape({
+            forceCloud: ow.optional.boolean,
+        }));
+
+        return this._openStorage(KeyValueStore, storeIdOrName, options);
+    }
+
+    /**
+     * Opens a request queue and returns a promise resolving to an instance
+     * of the {@link RequestQueue} class.
+     *
+     * {@link RequestQueue} represents a queue of URLs to crawl, which is stored either on local filesystem or in the cloud.
+     * The queue is used for deep crawling of websites, where you start with several URLs and then
+     * recursively follow links to other pages. The data structure supports both breadth-first
+     * and depth-first crawling orders.
+     *
+     * For more details and code examples, see the {@link RequestQueue} class.
+     *
+     * @param [queueIdOrName]
+     *   ID or name of the request queue to be opened. If `null` or `undefined`,
+     *   the function returns the default request queue associated with the actor run.
+     * @param [options]
+     * @ignore
+     */
+    async openRequestQueue(queueIdOrName?: string | null, options: OpenStorageOptions = {}): Promise<RequestQueue> {
+        ow(queueIdOrName, ow.optional.string);
+        ow(options, ow.object.exactShape({
+            forceCloud: ow.optional.boolean,
+        }));
+
+        return this._openStorage(RequestQueue, queueIdOrName, options);
+    }
+
+    /**
+     * Creates a proxy configuration and returns a promise resolving to an instance
+     * of the {@link ProxyConfiguration} class that is already initialized.
+     *
+     * Configures connection to a proxy server with the provided options. Proxy servers are used to prevent target websites from blocking
+     * your crawlers based on IP address rate limits or blacklists. Setting proxy configuration in your crawlers automatically configures
+     * them to use the selected proxies for all connections.
+     *
+     * For more details and code examples, see the {@link ProxyConfiguration} class.
+     *
+     * ```javascript
+     *
+     * // Returns initialized proxy configuration class
+     * const proxyConfiguration = await Actor.createProxyConfiguration({
+     *     groups: ['GROUP1', 'GROUP2'] // List of Apify proxy groups
+     *     countryCode: 'US'
+     * });
+     *
+     * const crawler = new CheerioCrawler({
+     *   // ...
+     *   proxyConfiguration,
+     *   requestHandler({ proxyInfo }) {
+     *       const usedProxyUrl = proxyInfo.url; // Getting the proxy URL
+     *   }
+     * })
+     *
+     * ```
+     *
+     * For compatibility with existing Actor Input UI (Input Schema), this function
+     * returns `undefined` when the following object is passed as `proxyConfigurationOptions`.
+     *
+     * ```
+     * { useApifyProxy: false }
+     * ```
+     * @ignore
+     */
+    async createProxyConfiguration(
+        proxyConfigurationOptions: ProxyConfigurationOptions & { useApifyProxy?: boolean } = {},
+    ): Promise<ProxyConfiguration | undefined> {
+        // Compatibility fix for Input UI where proxy: None returns { useApifyProxy: false }
+        // Without this, it would cause proxy to use the zero config / auto mode.
+        const { useApifyProxy, ...options } = proxyConfigurationOptions;
+        const dontUseApifyProxy = useApifyProxy === false;
+        const dontUseCustomProxies = !proxyConfigurationOptions.proxyUrls;
+
+        if (dontUseApifyProxy && dontUseCustomProxies) {
+            return undefined;
+        }
+
+        const proxyConfiguration = new ProxyConfiguration(options, this.config);
+        await proxyConfiguration.initialize();
+
+        return proxyConfiguration;
+    }
+
+    /**
+     * Returns a new {@link ApifyEnv} object which contains information parsed from all the `APIFY_XXX` environment variables.
+     *
+     * For the list of the `APIFY_XXX` environment variables, see
+     * [Actor documentation](https://docs.apify.com/actor/run#environment-variables).
+     * If some variables are not defined or are invalid, the corresponding value in the resulting object will be null.
+     * @ignore
+     */
+    getEnv(): ApifyEnv {
+        // NOTE: Don't throw if env vars are invalid to simplify local development and debugging of actors
+        const env = process.env || {};
+        const envVars = {} as ApifyEnv;
+
+        for (const [shortName, fullName] of Object.entries(ENV_VARS)) {
+            const camelCaseName = snakeCaseToCamelCase(shortName) as keyof ApifyEnv;
+            let value: string | number | Date | undefined = env[fullName];
+
+            // Parse dates and integers.
+            if (value && fullName.endsWith('_AT')) {
+                const unix = Date.parse(value);
+                value = unix > 0 ? new Date(unix) : undefined;
+            } else if ((INTEGER_ENV_VARS as readonly string[]).includes(fullName)) {
+                value = parseInt(value!, 10);
+            }
+
+            Reflect.set(envVars, camelCaseName, value || value === 0 ? value : null);
+        }
+
+        return envVars;
+    }
+
+    /**
+     * Returns a new instance of the Apify API client. The `ApifyClient` class is provided
+     * by the [apify-client](https://www.npmjs.com/package/apify-client)
+     * NPM package, and it is automatically configured using the `APIFY_API_BASE_URL`, and `APIFY_TOKEN`
+     * environment variables. You can override the token via the available options. That's useful
+     * if you want to use the client as a different Apify user than the SDK internals are using.
+     * @ignore
+     */
+    newClient(options: ApifyClientOptions = {}): ApifyClient {
+        const { storageDir, ...storageClientOptions } = this.config.get('storageClientOptions') as Dictionary;
+        return new ApifyClient({
+            baseUrl: this.config.get('apiBaseUrl'),
+            token: this.config.get('token'),
+            ...storageClientOptions,
+            ...options, // allow overriding the instance configuration
+        });
+    }
+
+    /**
+     * Returns `true` when code is running on Apify platform and `false` otherwise (for example locally).
+     * @ignore
+     */
+    isAtHome(): boolean {
+        return !!process.env[ENV_VARS.IS_AT_HOME];
+    }
+
+    /**
+     * Runs the main user function that performs the job of the actor
+     * and terminates the process when the user function finishes.
+     *
+     * **The `Actor.main()` function is optional** and is provided merely for your convenience.
+     * It is mainly useful when you're running your code as an actor on the [Apify platform](https://apify.com/actors).
+     * However, if you want to use Apify SDK tools directly inside your existing projects, e.g.
+     * running in an [Express](https://expressjs.com/) server, on
+     * [Google Cloud functions](https://cloud.google.com/functions)
+     * or [AWS Lambda](https://aws.amazon.com/lambda/), it's better to avoid
+     * it since the function terminates the main process when it finishes!
+     *
+     * The `Actor.main()` function performs the following actions:
+     *
+     * - When running on the Apify platform (i.e. `APIFY_IS_AT_HOME` environment variable is set),
+     *   it sets up a connection to listen for platform events.
+     *   For example, to get a notification about an imminent migration to another server.
+     *   See {@link Actor.events} for details.
+     * - It checks that either `APIFY_TOKEN` or `APIFY_LOCAL_STORAGE_DIR` environment variable
+     *   is defined. If not, the functions sets `APIFY_LOCAL_STORAGE_DIR` to `./apify_storage`
+     *   inside the current working directory. This is to simplify running code examples.
+     * - It invokes the user function passed as the `userFunc` parameter.
+     * - If the user function returned a promise, waits for it to resolve.
+     * - If the user function throws an exception or some other error is encountered,
+     *   prints error details to console so that they are stored to the log.
+     * - Exits the Node.js process, with zero exit code on success and non-zero on errors.
+     *
+     * The user function can be synchronous:
+     *
+     * ```javascript
+     * await Actor.main(() => {
+     *   // My synchronous function that returns immediately
+     *   console.log('Hello world from actor!');
+     * });
+     * ```
+     *
+     * If the user function returns a promise, it is considered asynchronous:
+     * ```javascript
+     * import { gotScraping } from 'got-scraping';
+     *
+     * await Actor.main(() => {
+     *   // My asynchronous function that returns a promise
+     *   return gotScraping('http://www.example.com').then((html) => {
+     *     console.log(html);
+     *   });
+     * });
+     * ```
+     *
+     * To simplify your code, you can take advantage of the `async`/`await` keywords:
+     *
+     * ```javascript
+     * import { gotScraping } from 'got-scraping';
+     *
+     * await Actor.main(async () => {
+     *   // My asynchronous function
+     *   const html = await gotScraping('http://www.example.com');
+     *   console.log(html);
+     * });
+     * ```
+     *
+     * @param userFunc User function to be executed. If it returns a promise,
+     * the promise will be awaited. The user function is called with no arguments.
+     * @param options
+     */
+    static main<T>(userFunc: UserFunc<T>, options?: MainOptions): Promise<T> {
+        return Actor.getDefaultInstance().main<T>(userFunc, options);
+    }
+
+    static async init(options: InitOptions = {}): Promise<void> {
+        return Actor.getDefaultInstance().init(options);
+    }
+
+    static async exit(messageOrOptions?: string | ExitOptions, options: ExitOptions = {}): Promise<void> {
+        return Actor.getDefaultInstance().exit(messageOrOptions, options);
+    }
+
+    static async fail(messageOrOptions?: string | ExitOptions, options: ExitOptions = {}): Promise<void> {
+        return Actor.getDefaultInstance().fail(messageOrOptions, options);
+    }
+
+    static on(event: EventTypeName, listener: (...args: any[]) => any): void {
+        Actor.getDefaultInstance().on(event, listener);
+    }
+
+    static off(event: EventTypeName, listener?: (...args: any[]) => any): void {
+        Actor.getDefaultInstance().off(event, listener);
+    }
+
+    /**
+     * Runs an actor on the Apify platform using the current user account (determined by the `APIFY_TOKEN` environment variable),
+     * waits for the actor to finish and fetches its output.
+     *
+     * By passing the `waitSecs` option you can reduce the maximum amount of time to wait for the run to finish.
+     * If the value is less than or equal to zero, the function returns immediately after the run is started.
+     *
+     * The result of the function is an {@link ActorRun} object
+     * that contains details about the actor run and its output (if any).
+     *
+     * If you want to run an actor task rather than an actor, please use the
+     * {@link Actor.callTask} function instead.
+     *
+     * For more information about actors, read the
+     * [documentation](https://docs.apify.com/actor).
+     *
+     * **Example usage:**
+     *
+     * ```javascript
+     * const run = await Actor.call('apify/hello-world', { myInput: 123 });
+     * console.log(`Received message: ${run.output.body.message}`);
+     * ```
+     *
+     * Internally, the `call()` function invokes the
+     * [Run actor](https://apify.com/docs/api/v2#/reference/actors/run-collection/run-actor)
+     * and several other API endpoints to obtain the output.
+     *
+     * @param actorId
+     *  Allowed formats are `username/actor-name`, `userId/actor-name` or actor ID.
+     * @param [input]
+     *  Input for the actor. If it is an object, it will be stringified to
+     *  JSON and its content type set to `application/json; charset=utf-8`.
+     *  Otherwise the `options.contentType` parameter must be provided.
+     * @param [options]
+     */
+    static async call(actorId: string, input?: unknown, options: CallOptions = {}): Promise<ClientActorRun> {
+        return Actor.getDefaultInstance().call(actorId, input, options);
+    }
+
+    /**
+     * Runs an actor task on the Apify platform using the current user account (determined by the `APIFY_TOKEN` environment variable),
+     * waits for the task to finish and fetches its output.
+     *
+     * By passing the `waitSecs` option you can reduce the maximum amount of time to wait for the run to finish.
+     * If the value is less than or equal to zero, the function returns immediately after the run is started.
+     *
+     * The result of the function is an {@link ActorRun} object
+     * that contains details about the actor run and its output (if any).
+     *
+     * Note that an actor task is a saved input configuration and options for an actor.
+     * If you want to run an actor directly rather than an actor task, please use the
+     * {@link Actor.call} function instead.
+     *
+     * For more information about actor tasks, read the [documentation](https://docs.apify.com/tasks).
+     *
+     * **Example usage:**
+     *
+     * ```javascript
+     * const run = await Actor.callTask('bob/some-task');
+     * console.log(`Received message: ${run.output.body.message}`);
+     * ```
+     *
+     * Internally, the `callTask()` function calls the
+     * [Run task](https://apify.com/docs/api/v2#/reference/actor-tasks/run-collection/run-task)
+     * and several other API endpoints to obtain the output.
+     *
+     * @param taskId
+     *  Allowed formats are `username/task-name`, `userId/task-name` or task ID.
+     * @param [input]
+     *  Input overrides for the actor task. If it is an object, it will be stringified to
+     *  JSON and its content type set to `application/json; charset=utf-8`.
+     *  Provided input will be merged with actor task input.
+     * @param [options]
+     */
+    static async callTask(taskId: string, input?: Dictionary, options: CallTaskOptions = {}): Promise<ClientActorRun> {
+        return Actor.getDefaultInstance().callTask(taskId, input, options);
+    }
+
+    /**
+     * Runs an actor on the Apify platform using the current user account (determined by the `APIFY_TOKEN` environment variable),
+     * unlike `Actor.call`, this method just starts the run without waiting for finish.
+     *
+     * The result of the function is an {@link ActorRun} object that contains details about the actor run.
+     *
+     * For more information about actors, read the
+     * [documentation](https://docs.apify.com/actor).
+     *
+     * **Example usage:**
+     *
+     * ```javascript
+     * const run = await Actor.start('apify/hello-world', { myInput: 123 });
+     * ```
+     *
+     * @param actorId
+     *  Allowed formats are `username/actor-name`, `userId/actor-name` or actor ID.
+     * @param [input]
+     *  Input for the actor. If it is an object, it will be stringified to
+     *  JSON and its content type set to `application/json; charset=utf-8`.
+     *  Otherwise the `options.contentType` parameter must be provided.
+     * @param [options]
+     */
+    static async start(actorId: string, input?: Dictionary, options: CallOptions = {}): Promise<ClientActorRun> {
+        return Actor.getDefaultInstance().start(actorId, input, options);
+    }
+
+    /**
+     * Aborts given actor run on the Apify platform using the current user account (determined by the `APIFY_TOKEN` environment variable).
+     *
+     * The result of the function is an {@link ActorRun} object that contains details about the actor run.
+     *
+     * For more information about actors, read the
+     * [documentation](https://docs.apify.com/actor).
+     *
+     * **Example usage:**
+     *
+     * ```javascript
+     * const run = await Actor.abort(runId);
+     * ```
+     */
+    static async abort(runId: string, options: AbortOptions = {}): Promise<ClientActorRun> {
+        return Actor.getDefaultInstance().abort(runId, options);
+    }
+
+    /**
+     * Transforms this actor run to an actor run of a given actor. The system stops the current container and starts
+     * the new container instead. All the default storages are preserved and the new input is stored under the `INPUT-METAMORPH-1` key
+     * in the same default key-value store.
+     *
+     * @param targetActorId
+     *  Either `username/actor-name` or actor ID of an actor to which we want to metamorph.
+     * @param [input]
+     *  Input for the actor. If it is an object, it will be stringified to
+     *  JSON and its content type set to `application/json; charset=utf-8`.
+     *  Otherwise, the `options.contentType` parameter must be provided.
+     * @param [options]
+     */
+    static async metamorph(targetActorId: string, input?: unknown, options: MetamorphOptions = {}): Promise<void> {
+        return Actor.getDefaultInstance().metamorph(targetActorId, input, options);
+    }
+
+    /**
+     * Internally reboots this actor run. The system stops the current container and starts
+     * a new container with the same run id.
+     */
+    static async reboot(): Promise<void> {
+        return Actor.getDefaultInstance().reboot();
+    }
+
+    /**
+     * Creates an ad-hoc webhook for the current actor run, which lets you receive a notification when the actor run finished or failed.
+     * For more information about Apify actor webhooks, please see the [documentation](https://docs.apify.com/webhooks).
+     *
+     * Note that webhooks are only supported for actors running on the Apify platform.
+     * In local environment, the function will print a warning and have no effect.
+     *
+     * @param options
+     * @returns The return value is the Webhook object.
+     * For more information, see the [Get webhook](https://apify.com/docs/api/v2#/reference/webhooks/webhook-object/get-webhook) API endpoint.
+     */
+    static async addWebhook(options: WebhookOptions): Promise<Webhook | undefined> {
+        return Actor.getDefaultInstance().addWebhook(options);
+    }
+
+    /**
+     * Sets the status message for the current actor run.
+     *
+     * @param options
+     * @returns The return value is the Run object.
+     * For more information, see the [Actor Runs](https://docs.apify.com/api/v2#/reference/actor-runs/) API endpoints.
+     */
+    static async setStatusMessage(statusMessage: string): Promise<ClientActorRun> {
+        return Actor.getDefaultInstance().setStatusMessage(statusMessage);
+    }
+
+    /**
+     * Stores an object or an array of objects to the default {@link Dataset} of the current actor run.
+     *
+     * This is just a convenient shortcut for {@link Dataset.pushData}.
+     * For example, calling the following code:
+     * ```javascript
+     * await Actor.pushData({ myValue: 123 });
+     * ```
+     *
+     * is equivalent to:
+     * ```javascript
+     * const dataset = await Actor.openDataset();
+     * await dataset.pushData({ myValue: 123 });
+     * ```
+     *
+     * For more information, see {@link Actor.openDataset} and {@link Dataset.pushData}
+     *
+     * **IMPORTANT**: Make sure to use the `await` keyword when calling `pushData()`,
+     * otherwise the actor process might finish before the data are stored!
+     *
+     * @param item Object or array of objects containing data to be stored in the default dataset.
+     * The objects must be serializable to JSON and the JSON representation of each object must be smaller than 9MB.
+     */
+    static async pushData<Data extends Dictionary = Dictionary>(item: Data | Data[]): Promise<void> {
+        return Actor.getDefaultInstance().pushData(item);
+    }
+
+    /**
+     * Opens a dataset and returns a promise resolving to an instance of the {@link Dataset} class.
+     *
+     * Datasets are used to store structured data where each object stored has the same attributes,
+     * such as online store products or real estate offers.
+     * The actual data is stored either on the local filesystem or in the cloud.
+     *
+     * For more details and code examples, see the {@link Dataset} class.
+     *
+     * @param [datasetIdOrName]
+     *   ID or name of the dataset to be opened. If `null` or `undefined`,
+     *   the function returns the default dataset associated with the actor run.
+     * @param [options]
+     */
+    static async openDataset<Data extends Dictionary = Dictionary>(
+        datasetIdOrName?: string | null, options: OpenStorageOptions = {},
+    ): Promise<Dataset<Data>> {
+        return Actor.getDefaultInstance().openDataset(datasetIdOrName, options);
+    }
+
+    /**
+     * Gets a value from the default {@link KeyValueStore} associated with the current actor run.
+     *
+     * This is just a convenient shortcut for {@link KeyValueStore.getValue}.
+     * For example, calling the following code:
+     * ```javascript
+     * const value = await Actor.getValue('my-key');
+     * ```
+     *
+     * is equivalent to:
+     * ```javascript
+     * const store = await Actor.openKeyValueStore();
+     * const value = await store.getValue('my-key');
+     * ```
+     *
+     * To store the value to the default key-value store, you can use the {@link Actor.setValue} function.
+     *
+     * For more information, see  {@link Actor.openKeyValueStore}
+     * and  {@link KeyValueStore.getValue}.
+     *
+     * @param key Unique record key.
+     * @returns
+     *   Returns a promise that resolves to an object, string
+     *   or [`Buffer`](https://nodejs.org/api/buffer.html), depending
+     *   on the MIME content type of the record, or `null`
+     *   if the record is missing.
+     */
+    static async getValue<T = unknown>(key: string): Promise<T | null> {
+        return Actor.getDefaultInstance().getValue(key);
+    }
+
+    /**
+     * Stores or deletes a value in the default {@link KeyValueStore} associated with the current actor run.
+     *
+     * This is just a convenient shortcut for  {@link KeyValueStore.setValue}.
+     * For example, calling the following code:
+     * ```javascript
+     * await Actor.setValue('OUTPUT', { foo: "bar" });
+     * ```
+     *
+     * is equivalent to:
+     * ```javascript
+     * const store = await Actor.openKeyValueStore();
+     * await store.setValue('OUTPUT', { foo: "bar" });
+     * ```
+     *
+     * To get a value from the default key-value store, you can use the  {@link Actor.getValue} function.
+     *
+     * For more information, see  {@link Actor.openKeyValueStore}
+     * and  {@link KeyValueStore.getValue}.
+     *
+     * @param key
+     *   Unique record key.
+     * @param value
+     *   Record data, which can be one of the following values:
+     *    - If `null`, the record in the key-value store is deleted.
+     *    - If no `options.contentType` is specified, `value` can be any JavaScript object, and it will be stringified to JSON.
+     *    - If `options.contentType` is set, `value` is taken as is, and it must be a `String` or [`Buffer`](https://nodejs.org/api/buffer.html).
+     *   For any other value an error will be thrown.
+     * @param [options]
+     */
+    static async setValue<T>(key: string, value: T | null, options: RecordOptions = {}): Promise<void> {
+        return Actor.getDefaultInstance().setValue(key, value, options);
+    }
+
+    /**
+     * Gets the actor input value from the default {@link KeyValueStore} associated with the current actor run.
+     *
+     * This is just a convenient shortcut for {@link KeyValueStore.getValue | `keyValueStore.getValue('INPUT')`}.
+     * For example, calling the following code:
+     * ```javascript
+     * const input = await Actor.getInput();
+     * ```
+     *
+     * is equivalent to:
+     * ```javascript
+     * const store = await Actor.openKeyValueStore();
+     * await store.getValue('INPUT');
+     * ```
+     *
+     * Note that the `getInput()` function does not cache the value read from the key-value store.
+     * If you need to use the input multiple times in your actor,
+     * it is far more efficient to read it once and store it locally.
+     *
+     * For more information, see {@link Actor.openKeyValueStore} and {@link KeyValueStore.getValue}.
+     *
+     * @returns
+     *   Returns a promise that resolves to an object, string
+     *   or [`Buffer`](https://nodejs.org/api/buffer.html), depending
+     *   on the MIME content type of the record, or `null`
+     *   if the record is missing.
+     */
+    static async getInput<T = Dictionary | string | Buffer>(): Promise<T | null> {
+        return Actor.getDefaultInstance().getInput();
+    }
+
+    /**
+     * Opens a key-value store and returns a promise resolving to an instance of the {@link KeyValueStore} class.
+     *
+     * Key-value stores are used to store records or files, along with their MIME content type.
+     * The records are stored and retrieved using a unique key.
+     * The actual data is stored either on a local filesystem or in the Apify cloud.
+     *
+     * For more details and code examples, see the {@link KeyValueStore} class.
+     *
+     * @param [storeIdOrName]
+     *   ID or name of the key-value store to be opened. If `null` or `undefined`,
+     *   the function returns the default key-value store associated with the actor run.
+     * @param [options]
+     */
+    static async openKeyValueStore(storeIdOrName?: string | null, options: OpenStorageOptions = {}): Promise<KeyValueStore> {
+        return Actor.getDefaultInstance().openKeyValueStore(storeIdOrName, options);
+    }
+
+    /**
+     * Opens a request queue and returns a promise resolving to an instance
+     * of the {@link RequestQueue} class.
+     *
+     * {@link RequestQueue} represents a queue of URLs to crawl, which is stored either on local filesystem or in the cloud.
+     * The queue is used for deep crawling of websites, where you start with several URLs and then
+     * recursively follow links to other pages. The data structure supports both breadth-first
+     * and depth-first crawling orders.
+     *
+     * For more details and code examples, see the {@link RequestQueue} class.
+     *
+     * @param [queueIdOrName]
+     *   ID or name of the request queue to be opened. If `null` or `undefined`,
+     *   the function returns the default request queue associated with the actor run.
+     * @param [options]
+     */
+    static async openRequestQueue(queueIdOrName?: string | null, options: OpenStorageOptions = {}): Promise<RequestQueue> {
+        return Actor.getDefaultInstance().openRequestQueue(queueIdOrName, options);
+    }
+
+    /**
+     * Creates a proxy configuration and returns a promise resolving to an instance
+     * of the {@link ProxyConfiguration} class that is already initialized.
+     *
+     * Configures connection to a proxy server with the provided options. Proxy servers are used to prevent target websites from blocking
+     * your crawlers based on IP address rate limits or blacklists. Setting proxy configuration in your crawlers automatically configures
+     * them to use the selected proxies for all connections.
+     *
+     * For more details and code examples, see the {@link ProxyConfiguration} class.
+     *
+     * ```javascript
+     *
+     * // Returns initialized proxy configuration class
+     * const proxyConfiguration = await Actor.createProxyConfiguration({
+     *     groups: ['GROUP1', 'GROUP2'] // List of Apify proxy groups
+     *     countryCode: 'US'
+     * });
+     *
+     * const crawler = new CheerioCrawler({
+     *   // ...
+     *   proxyConfiguration,
+     *   requestHandler({ proxyInfo }) {
+     *       const usedProxyUrl = proxyInfo.url; // Getting the proxy URL
+     *   }
+     * })
+     *
+     * ```
+     *
+     * For compatibility with existing Actor Input UI (Input Schema), this function
+     * returns `undefined` when the following object is passed as `proxyConfigurationOptions`.
+     *
+     * ```
+     * { useApifyProxy: false }
+     * ```
+     */
+    static async createProxyConfiguration(
+        proxyConfigurationOptions: ProxyConfigurationOptions & { useApifyProxy?: boolean } = {},
+    ): Promise<ProxyConfiguration | undefined> {
+        return Actor.getDefaultInstance().createProxyConfiguration(proxyConfigurationOptions);
+    }
+
+    /**
+     * Returns a new {@link ApifyEnv} object which contains information parsed from all the `APIFY_XXX` environment variables.
+     *
+     * For the list of the `APIFY_XXX` environment variables, see
+     * [Actor documentation](https://docs.apify.com/actor/run#environment-variables).
+     * If some of the variables are not defined or are invalid, the corresponding value in the resulting object will be null.
+     */
+    static getEnv(): ApifyEnv {
+        return Actor.getDefaultInstance().getEnv();
+    }
+
+    /**
+     * Returns a new instance of the Apify API client. The `ApifyClient` class is provided
+     * by the [apify-client](https://www.npmjs.com/package/apify-client)
+     * NPM package, and it is automatically configured using the `APIFY_API_BASE_URL`, and `APIFY_TOKEN`
+     * environment variables. You can override the token via the available options. That's useful
+     * if you want to use the client as a different Apify user than the SDK internals are using.
+     */
+    static newClient(options: ApifyClientOptions = {}): ApifyClient {
+        return Actor.getDefaultInstance().newClient(options);
+    }
+
+    /**
+     * Returns `true` when code is running on Apify platform and `false` otherwise (for example locally).
+     */
+    static isAtHome(): boolean {
+        return Actor.getDefaultInstance().isAtHome();
+    }
+
+    /** Default {@link ApifyClient} instance. */
+    static get apifyClient(): ApifyClient {
+        return Actor.getDefaultInstance().apifyClient;
+    }
+
+    /** Default {@link Configuration} instance. */
+    static get config(): Configuration {
+        return Actor.getDefaultInstance().config;
+    }
+
+    /** @internal */
+    static getDefaultInstance(): Actor {
+        this._instance ??= new Actor();
+        return this._instance;
+    }
+
+    private _openStorage<T extends IStorage>(storageClass: Constructor<T>, id?: string, options: OpenStorageOptions = {}) {
+        const client = options.forceCloud ? this.apifyClient : undefined;
+        return StorageManager.openStorage<T>(storageClass, id, client, this.config);
+    }
+}
+
+export interface InitOptions {
+    storage?: StorageClient;
+}
+
+export interface MainOptions extends ExitOptions, InitOptions {}
+
+/**
+ * Parsed representation of the `APIFY_XXX` environmental variables.
+ * This object is returned by the {@link Actor.getEnv} function.
+ */
+export interface ApifyEnv {
+    /**
+     * ID of the actor (APIFY_ACTOR_ID)
+     */
+    actorId: string | null;
+
+    /**
+     * ID of the actor run (APIFY_ACTOR_RUN_ID)
+     */
+    actorRunId: string | null;
+
+    /**
+     * ID of the actor task (APIFY_ACTOR_TASK_ID)
+     */
+    actorTaskId: string | null;
+
+    /**
+     * ID of the user who started the actor - note that it might be
+     * different than the owner ofthe actor (APIFY_USER_ID)
+     */
+    userId: string | null;
+
+    /**
+     * Authentication token representing privileges given to the actor run,
+     * it can be passed to various Apify APIs (APIFY_TOKEN)
+     */
+    token: string | null;
+
+    /**
+     * Date when the actor was started (APIFY_STARTED_AT)
+     */
+    startedAt: Date | null;
+
+    /**
+     * Date when the actor will time out (APIFY_TIMEOUT_AT)
+     */
+    timeoutAt: Date | null;
+
+    /**
+     * ID of the key-value store where input and output data of this
+     * actor is stored (APIFY_DEFAULT_KEY_VALUE_STORE_ID)
+     */
+    defaultKeyValueStoreId: string | null;
+
+    /**
+     * ID of the dataset where input and output data of this
+     * actor is stored (APIFY_DEFAULT_DATASET_ID)
+     */
+    defaultDatasetId: string | null;
+
+    /**
+     * Amount of memory allocated for the actor,
+     * in megabytes (APIFY_MEMORY_MBYTES)
+     */
+    memoryMbytes: number | null;
+}
+
+export type UserFunc<T = unknown> = () => Awaitable<T>;
+
+export interface CallOptions extends ActorStartOptions {
+    /**
+     * User API token that is used to run the actor. By default, it is taken from the `APIFY_TOKEN` environment variable.
+     */
+    token?: string;
+}
+
+export interface CallTaskOptions extends TaskStartOptions {
+    /**
+     * User API token that is used to run the actor. By default, it is taken from the `APIFY_TOKEN` environment variable.
+     */
+    token?: string;
+}
+
+export interface AbortOptions extends RunAbortOptions {
+    /**
+     * User API token that is used to run the actor. By default, it is taken from the `APIFY_TOKEN` environment variable.
+     */
+    token?: string;
+}
+
+export interface WebhookOptions {
+    /**
+     * Array of event types, which you can set for actor run, see
+     * the [actor run events](https://docs.apify.com/webhooks/events#actor-run) in the Apify doc.
+     */
+    eventTypes: readonly WebhookEventType[];
+
+    /**
+     * URL which will be requested using HTTP POST request, when actor run will reach the set event type.
+     */
+    requestUrl: string;
+
+    /**
+     * Payload template is a JSON-like string that describes the structure of the webhook POST request payload.
+     * It uses JSON syntax, extended with a double curly braces syntax for injecting variables `{{variable}}`.
+     * Those variables are resolved at the time of the webhook's dispatch, and a list of available variables with their descriptions
+     * is available in the [Apify webhook documentation](https://docs.apify.com/webhooks).
+     * If `payloadTemplate` is omitted, the default payload template is used
+     * ([view docs](https://docs.apify.com/webhooks/actions#payload-template)).
+     */
+    payloadTemplate?: string;
+
+    /**
+     * Idempotency key enables you to ensure that a webhook will not be added multiple times in case of
+     * an actor restart or other situation that would cause the `addWebhook()` function to be called again.
+     * We suggest using the actor run ID as the idempotency key. You can get the run ID by calling
+     * {@link Actor.getEnv} function.
+     */
+    idempotencyKey?: string;
+}
+
+export interface MetamorphOptions {
+    /**
+     * Content type for the `input`. If not specified,
+     * `input` is expected to be an object that will be stringified to JSON and content type set to
+     * `application/json; charset=utf-8`. If `options.contentType` is specified, then `input` must be a
+     * `String` or `Buffer`.
+     */
+    contentType?: string;
+
+    /**
+     * Tag or number of the target actor build to metamorph into (e.g. `beta` or `1.2.345`).
+     * If not provided, the run uses build tag or number from the default actor run configuration (typically `latest`).
+     */
+    build?: string;
+
+    /** @internal */
+    customAfterSleepMillis?: number;
+}
+
+export interface ExitOptions {
+    /** Exit with given status message */
+    statusMessage?: string;
+    /**
+     * Amount of time, in seconds, to wait for all event handlers to finish before exiting the process.
+     * @default 30
+     */
+    timeoutSecs?: number;
+    /** Exit code, defaults to 0 */
+    exitCode?: number;
+    /** Call `process.exit()`? Defaults to true */
+    exit?: boolean;
+}
+
+export interface OpenStorageOptions {
+    /**
+     * If set to `true` then the cloud storage is used even if the `APIFY_LOCAL_STORAGE_DIR`
+     * environment variable is set. This way it is possible to combine local and cloud storage.
+     * @default false
+     */
+    forceCloud?: boolean;
+}
+
+export { ClientActorRun as ActorRun };
+
+/**
+ * Exit codes for the actor process.
+ * The error codes must be in the range 1-128, to avoid collision with signal exits
+ * and to ensure Docker will handle them correctly!
+ * @internal should be removed if we decide to remove `Actor.main()`
+ */
+export const EXIT_CODES = {
+    SUCCESS: 0,
+    ERROR_USER_FUNCTION_THREW: 91,
+    ERROR_UNKNOWN: 92,
+};
