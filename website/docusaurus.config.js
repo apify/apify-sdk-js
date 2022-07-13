@@ -221,15 +221,15 @@ module.exports = {
                 height: '60px',
             },
         },
-        algolia: {
-            // FIXME those are crawlee.dev credentials, we will need new one for this monorepo
-            appId: 'UXG5NIR52R',
-            apiKey: '83302bb4196d8377aa5b3526c6d904fb', // search only (public) API key
-            indexName: 'apify_sdk', // FIXME wrong index name
-            algoliaOptions: {
-                facetFilters: ['version:VERSION'],
-            },
-        },
+        // algolia: {
+        //     // FIXME those are crawlee.dev credentials, we will need new one for this monorepo
+        //     appId: 'UXG5NIR52R',
+        //     apiKey: '83302bb4196d8377aa5b3526c6d904fb', // search only (public) API key
+        //     indexName: 'apify_sdk', // FIXME wrong index name
+        //     algoliaOptions: {
+        //         facetFilters: ['version:VERSION'],
+        //     },
+        // },
         gaGtag: {
             // FIXME we might want different tracking id?
             trackingID: 'UA-67003981-4',
