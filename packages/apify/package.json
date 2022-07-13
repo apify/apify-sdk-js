@@ -1,6 +1,6 @@
 {
     "name": "apify",
-    "version": "3.0.0",
+    "version": "3.0.1",
     "description": "The scalable web crawling and scraping library for JavaScript/Node.js. Enables development of data extraction and web automation jobs (not only) with headless Chrome and Puppeteer.",
     "engines": {
         "node": ">=16.0.0"
@@ -37,12 +37,12 @@
     "license": "Apache-2.0",
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/apify/apify-ts"
+        "url": "git+https://github.com/apify/apify-sdk-js"
     },
     "bugs": {
-        "url": "https://github.com/apify/apify-ts/issues"
+        "url": "https://github.com/apify/apify-sdk-js/issues"
     },
-    "homepage": "https://apify.github.io/apify-ts/",
+    "homepage": "https://apify.github.io/apify-sdk-js/",
     "scripts": {
         "build": "npm run clean && npm run compile && npm run copy && npm run fixApifyExport",
         "clean": "rimraf ./dist",
@@ -57,9 +57,9 @@
         "@apify/consts": "^2.0.0",
         "@apify/log": "^2.1.0",
         "@apify/utilities": "^2.1.1",
-        "@crawlee/core": "^3.0.0-beta.78",
-        "@crawlee/types": "^3.0.0-beta.78",
-        "@crawlee/utils": "^3.0.0-beta.78",
+        "@crawlee/core": "^3.0.0",
+        "@crawlee/types": "^3.0.0",
+        "@crawlee/utils": "^3.0.0",
         "semver": "^7.3.7",
         "apify-client": "^2.6.0-beta.1",
         "ow": "^0.28.1",
