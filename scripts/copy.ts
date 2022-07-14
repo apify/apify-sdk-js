@@ -14,18 +14,23 @@ function copy(filename: string, from: string, to: string): void {
 }
 
 function rewrite(path: string, replacer: (from: string) => string): void {
-    const file = readFileSync(path).toString();
-    const replaced = replacer(file);
-    writeFileSync(path, replaced);
+    try {
+        const file = readFileSync(path).toString();
+        const replaced = replacer(file);
+        writeFileSync(path, replaced);
+    } catch {
+        // not found
+    }
 }
 
 /**
- * Checks next dev version number via `npm show`.
+ * Checks next dev version number based on the `@crawlee/core` package via `npm show`.
+ * We always use this package, so we ensure the version is the same for each package in the monorepo.
  */
 function getNextVersion() {
     const versions: string[] = [];
     // eslint-disable-next-line @typescript-eslint/no-var-requires,import/no-dynamic-require,global-require
-    const pkgJson = require(resolve('.', 'package.json'));
+    const pkgJson = require(resolve(root, 'package.json'));
 
     try {
         const versionString = execSync(`npm show ${pkgJson.name} versions --json`, { encoding: 'utf8', stdio: 'pipe' });
@@ -41,11 +46,11 @@ function getNextVersion() {
         process.exit(1);
     }
 
+    const preid = options.preid ?? 'alpha';
     const prereleaseNumbers = versions
-        .filter((v) => (v.startsWith(pkgJson.version) && v.includes('-')))
+        .filter((v) => v.startsWith(`${pkgJson.version}-${preid}.`))
         .map((v) => Number(v.match(/\.(\d+)$/)?.[1]));
     const lastPrereleaseNumber = Math.max(-1, ...prereleaseNumbers);
-    const preid = options.preid ?? 'alpha';
 
     return `${pkgJson.version}-${preid}.${lastPrereleaseNumber + 1}`;
 }
@@ -68,8 +73,9 @@ if (options.canary) {
             pkgJson.dependencies[dep] = prefix + nextVersion;
         }
     }
+
     // eslint-disable-next-line no-console
-    console.log(`before-deploy: Setting version to ${nextVersion}`, pkgJson);
+    console.info(`canary: setting version to ${nextVersion}`);
 
     writeFileSync(pkgPath, `${JSON.stringify(pkgJson, null, 4)}\n`);
 }
@@ -77,4 +83,7 @@ if (options.canary) {
 copy('README.md', root, target);
 copy('LICENSE.md', root, target);
 copy('package.json', process.cwd(), target);
-rewrite(resolve(target, 'package.json'), (pkg) => pkg.replace(/dist\//g, ''));
+rewrite(resolve(target, 'package.json'), (pkg) => {
+    return pkg.replace(/dist\//g, '').replace(/src\/(.*)\.ts/g, '$1.js');
+});
+rewrite(resolve(target, 'utils.js'), (pkg) => pkg.replace('../package.json', './package.json'));
