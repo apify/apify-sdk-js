@@ -47,7 +47,7 @@
         "build": "npm run clean && npm run compile && npm run copy && npm run fixApifyExport",
         "clean": "rimraf ./dist",
         "compile": "tsc -p tsconfig.build.json && gen-esm-wrapper ./dist/index.js ./dist/index.mjs",
-        "copy": "ts-node -T ../../scripts/copy.ts",
+        "copy": "ts-node -T ../../scripts/copy.ts --readme=local",
         "fixApifyExport": "ts-node -T ../../scripts/temp_fix_apify_exports.ts"
     },
     "publishConfig": {
