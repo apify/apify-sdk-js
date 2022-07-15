@@ -8,7 +8,7 @@
 The Actor SDK provides the tools required to run your own Apify Actors! Previously known as the Apify SDK, the crawlers part has been split into
 a brand new module - [`crawlee`](https://npmjs.org/crawlee) (which you can use outside of Apify too!), while keeping the Apify specific parts in this module!
 
-> Would you like to work with us on Crawlee, the Apify SDK or similar projects? [We are hiring!](https://apify.com/jobs#senior-node.js-engineer)
+> Would you like to work with us on Crawlee, the Actor SDK or similar projects? [We are hiring!](https://apify.com/jobs#senior-node.js-engineer)
 
 ## Upgrading from v2
 
@@ -36,6 +36,37 @@ npm install apify crawlee playwright
 > by the Apify SDK. If you don't plan on writing crawlers in your actors, then you don't need to install it!
 > Keep in mind that neither `playwright` nor `puppeteer` are bundled with `crawlee` in order to reduce install size and allow greater
 > flexibility. That's why we manually install it with NPM. You can choose one, both, or neither.
+
+There are two ways to initialize your actor: by using the `Actor.main()` function you're probably used to, or by calling `Actor.init()` and `Actor.exit()` manually,
+which also helps reduce the indentation level of your code, to keep it readable.
+
+#### Using `Actor.init()` and `Actor.exit()`
+
+```typescript
+import { Actor } from 'apify';
+import { PlaywrightCrawler } from 'crawlee';
+
+await Actor.init()
+
+const crawler = new PlaywrightCrawler({
+    async requestHandler({ request, page, enqueueLinks }) {
+        // Extract HTML title of the page.
+        const title = await page.title();
+        console.log(`Title of ${request.url}: ${title}`);
+
+        // Add URLs that match the provided pattern.
+        await enqueueLinks({
+            globs: ['https://www.iana.org/**'],
+        });
+    },
+});
+
+await crawler.run(['https://www.iana.org/']);
+
+await Actor.exit();
+```
+
+#### Using `Actor.main()`
 
 ```typescript
 import { Actor } from 'apify';
