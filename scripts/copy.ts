@@ -80,7 +80,19 @@ if (options.canary) {
     writeFileSync(pkgPath, `${JSON.stringify(pkgJson, null, 4)}\n`);
 }
 
-copy('README.md', root, target);
+switch (options.readme) {
+    case 'false': {
+        break;
+    }
+    case 'local': {
+        copy('README.md', resolve(process.cwd()), target);
+        break;
+    }
+    default: {
+        copy('README.md', root, target);
+    }
+}
+
 copy('LICENSE.md', root, target);
 copy('package.json', process.cwd(), target);
 rewrite(resolve(target, 'package.json'), (pkg) => {
