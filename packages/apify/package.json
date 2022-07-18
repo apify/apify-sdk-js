@@ -61,7 +61,7 @@
         "@crawlee/types": "^3.0.0",
         "@crawlee/utils": "^3.0.0",
         "semver": "^7.3.7",
-        "apify-client": "^2.6.0-beta.1",
+        "apify-client": "^2.6.0",
         "ow": "^0.28.1",
         "ws": "^7.5.8"
     }
