@@ -1,4 +1,4 @@
-# Actor SDK monorepo
+# Apify SDK monorepo
 
 [![npm version](https://badge.fury.io/js/apify.svg)](https://www.npmjs.com/package/apify)
 [![Downloads](https://img.shields.io/npm/dm/apify.svg)](https://www.npmjs.com/package/apify)
