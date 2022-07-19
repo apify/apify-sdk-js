@@ -1,7 +1,6 @@
 {
     "name": "apify-sdk-js",
     "private": true,
-    "version": "3.0.0",
     "description": "Apify SDK monorepo. Contains the Actor SDK.",
     "workspaces": [
         "packages/*",
