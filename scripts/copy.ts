@@ -68,7 +68,8 @@ if (options.canary) {
     pkgJson.version = nextVersion;
 
     for (const dep of Object.keys(pkgJson.dependencies)) {
-        if (dep.startsWith('@crawlee/') || dep === 'crawlee') {
+        // TODO we might need to adjust this logic after we add more packages, it was not designed for independent versioning
+        if (dep === 'apify') {
             const prefix = pkgJson.dependencies[dep].startsWith('^') ? '^' : '';
             pkgJson.dependencies[dep] = prefix + nextVersion;
         }
