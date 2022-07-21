@@ -1,7 +1,7 @@
 {
     "name": "apify-sdk-js",
     "private": true,
-    "description": "Apify SDK monorepo. Contains the Actor SDK.",
+    "description": "Apify SDK monorepo",
     "workspaces": [
         "packages/*",
         "packages/actor-scraper/*"

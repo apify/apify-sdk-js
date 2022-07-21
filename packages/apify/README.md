@@ -1,20 +1,20 @@
-# Actor SDK
+# Apify SDK
 
 [![npm version](https://badge.fury.io/js/apify.svg)](https://www.npmjs.com/package/apify)
 [![Downloads](https://img.shields.io/npm/dm/apify.svg)](https://www.npmjs.com/package/apify)
 [![Chat on discord](https://img.shields.io/discord/801163717915574323?label=discord)](https://discord.gg/jyEM2PRvMU)
 [![Build Status](https://github.com/apify/apify-sdk-js/actions/workflows/test-and-release.yml/badge.svg?branch=master)](https://github.com/apify/apify-sdk-js/actions/workflows/test-and-release.yml)
 
-The Actor SDK provides the tools required to run your own Apify Actors! Previously known as the Apify SDK, the crawlers part has been split into
-a brand new module - [`crawlee`](https://npmjs.org/crawlee) (which you can use outside of Apify too!), while keeping the Apify specific parts in this module!
+Apify SDK provides the tools required to run your own Apify Actors! The crawlers and scraping related tools, previously included in Apify SDK (v2), have been split into
+a brand-new module - [`crawlee`](https://npmjs.org/crawlee) (which you can use outside Apify too!), while keeping the Apify specific parts in this module!
 
-> Would you like to work with us on Crawlee, the Actor SDK or similar projects? [We are hiring!](https://apify.com/jobs#senior-node.js-engineer)
+> Would you like to work with us on Crawlee, Apify SDK or similar projects? [We are hiring!](https://apify.com/jobs#senior-node.js-engineer)
 
 ## Upgrading from v2
 
 A lot of things have changed since version 2 of the Apify SDK, including the split of the crawlers to the new [`crawlee`](https://npmjs.org/crawlee) module.
 But fear not, as we've written a guide to help you easily migrate from v2 to v3! Visit the [Upgrading Guide](https://crawlee.dev/docs/upgrading/upgrading-to-v3)
-to find out what changes you need to make (especially the section related to this very [Actor SDK](https://crawlee.dev/docs/upgrading/upgrading-to-v3#actor-sdk)),
+to find out what changes you need to make (especially the section related to this very [Apify SDK](https://crawlee.dev/docs/upgrading/upgrading-to-v3#apify-sdk)),
 and, if you encounter any issues, join our [Discord server](https://discord.gg/jyEM2PRvMU) for help!
 
 ## Quick Start
@@ -25,20 +25,20 @@ guide that will take you step by step through running your actor on Apify's plat
 
 ### Basic Example
 
-Actor SDK requires [Node.js](https://nodejs.org/en/) 16 or later.
-Add Actor SDK to any Node.js project by running:
+Apify SDK requires [Node.js](https://nodejs.org/en/) 16 or later.
+Add Apify SDK to any Node.js project by running:
 
 ```bash
 npm install apify crawlee playwright
 ```
 
 > For this example, we'll also install the [`crawlee`](https://npmjs.org/crawlee) module, as it now provides the crawlers that were previously exported
-> by the Apify SDK. If you don't plan on writing crawlers in your actors, then you don't need to install it!
+> by Apify SDK. If you don't plan to use crawlers in your actors, then you don't need to install it!
 > Keep in mind that neither `playwright` nor `puppeteer` are bundled with `crawlee` in order to reduce install size and allow greater
 > flexibility. That's why we manually install it with NPM. You can choose one, both, or neither.
 
 There are two ways to initialize your actor: by using the `Actor.main()` function you're probably used to, or by calling `Actor.init()` and `Actor.exit()` manually,
-which also helps reduce the indentation level of your code, to keep it readable.
+which also helps reduce the indentation level of your code, to keep it more readable.
 
 #### Using `Actor.init()` and `Actor.exit()`
 
@@ -97,7 +97,7 @@ For questions, you can ask on [Stack Overflow](https://stackoverflow.com/questio
 
 ## Contributing
 
-Your code contributions are welcome and you'll be praised to eternity!
+Your code contributions are welcome, and you'll be praised to eternity!
 If you have any ideas for improvements, either submit an issue or create a pull request.
 For contribution guidelines and the code of conduct,
 see [CONTRIBUTING.md](https://github.com/apify/apify-sdk-js/blob/master/CONTRIBUTING.md).
