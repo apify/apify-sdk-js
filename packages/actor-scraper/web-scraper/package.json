@@ -15,8 +15,8 @@
     },
     "devDependencies": {
         "@apify/tsconfig": "^0.1.0",
-        "@types/jest": "^27.4.0",
-        "jest": "^27.4.7",
+        "@types/jest": "^28.1.5",
+        "jest": "^28.1.2",
         "markdown-toc": "^1.2.0"
     },
     "scripts": {
