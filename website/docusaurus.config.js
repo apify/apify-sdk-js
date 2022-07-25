@@ -20,9 +20,9 @@ module.exports = {
         repoUrl: 'https://github.com/apify/apify-sdk-js',
     },
     onBrokenLinks:
-    /** @type {import('@docusaurus/types').ReportingSeverity} */ ('error'),
+    /** @type {import('@docusaurus/types').ReportingSeverity} */ ('throw'),
     onBrokenMarkdownLinks:
-    /** @type {import('@docusaurus/types').ReportingSeverity} */ ('error'),
+    /** @type {import('@docusaurus/types').ReportingSeverity} */ ('throw'),
     presets: /** @type {import('@docusaurus/types').PresetConfig[]} */ ([
         [
             '@docusaurus/preset-classic',
