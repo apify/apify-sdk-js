@@ -35,7 +35,7 @@
         "access": "public"
     },
     "dependencies": {
-        "ajv": "^6.12.6",
+        "ajv": "^8.0.0",
         "content-type": "^1.0.4"
     },
     "peerDependencies": {
