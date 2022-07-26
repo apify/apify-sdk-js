@@ -6,9 +6,13 @@
 [![Build Status](https://github.com/apify/apify-sdk-js/actions/workflows/test-and-release.yml/badge.svg?branch=master)](https://github.com/apify/apify-sdk-js/actions/workflows/test-and-release.yml)
 
 Apify SDK is the core set of tools and utilities that we've built to help make your interaction with the [Apify Platform](https://apify.com) easier.
-This monorepository holds all the components and tools that we've created for it!
+This monorepo holds all the components and tools that we've created for it!
 
 > Would you like to work with us on Crawlee, Apify SDK or similar projects? [We are hiring!](https://apify.com/jobs#senior-node.js-engineer)
+
+| package                               | version                                                                                       |
+|---------------------------------------|-----------------------------------------------------------------------------------------------|
+| [`apify`](./packages/apify/README.md) | [![NPM version](https://img.shields.io/npm/v/apify.svg)](https://www.npmjs.com/package/apify) |
 
 ## Apify SDK
 
