@@ -206,6 +206,19 @@ export class Actor<Data extends Dictionary = Dictionary> {
             `Waiting for all event listeners to complete their execution timed out after ${options.timeoutSecs} seconds`,
         );
 
+        const client = this.config.getStorageClient();
+
+        if (client.teardown) {
+            let finished = false;
+            setTimeout(() => {
+                if (!finished) {
+                    log.info('Waiting for the storage to write its state to file system.');
+                }
+            }, 1000);
+            await client.teardown();
+            finished = true;
+        }
+
         if (options.exitCode > 0) {
             options.statusMessage ??= `Actor finished with an error (exit code ${options.exitCode})`;
             log.error(options.statusMessage);
