@@ -42,8 +42,15 @@ export interface ConfigurationOptions extends CoreConfigurationOptions {
  *    ```javascript
  *    import { BasicCrawler, Configuration } from 'crawlee';
  *
- *    const config = new Configuration({ persistStateIntervalMillis: 30_000 });
- *    const crawler = new BasicCrawler({ ... }, config);
+ *    // Get the global configuration
+ *    const config = Configuration.getGlobalConfig();
+ *    // Set the 'persistStateIntervalMillis' option
+ *    // of global configuration to 30 seconds
+ *    config.set('persistStateIntervalMillis', 30_000);
+ *
+ *    // No need to pass the configuration to the crawler,
+ *    // as it's using the global configuration by default
+ *    const crawler = new BasicCrawler();
  *    ```
  *
  * ## Supported Configuration Options
