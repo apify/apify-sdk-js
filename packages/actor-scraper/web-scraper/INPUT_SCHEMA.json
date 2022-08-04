@@ -56,21 +56,7 @@
             "title": "Page function",
             "type": "string",
             "description": "JavaScript (ES6) function that is executed in the context of every page loaded in the Chrome browser. Use it to scrape data from the page, perform actions or add new URLs to the request queue.<br><br>For details, see <a href='https://apify.com/apify/web-scraper#page-function' target='_blank' rel='noopener'>Page function</a> in README.",
-            "prefill": "// The function accepts a single argument: the \"context\" object.\n// For a complete list of its properties and functions,\n// see https://apify.com/apify/web-scraper#page-function \nasync function pageFunction(context) {\n    // This statement works as a breakpoint when you're trying to debug your code. Works only with Run mode: DEVELOPMENT!\n    // debugger; \n\n    // jQuery is handy for finding DOM elements and extracting data from them.\n    // To use it, make sure to enable the \"Inject jQuery\" option.\n    const $ = context.jQuery;\n    const pageTitle = $('title').first().text();\n\n    // Print some information to actor log\n    context.log.info(`URL: ${context.request.url}, TITLE: ${pageTitle}`);\n\n    // Manually add a new page to the queue for scraping.\n    await context.enqueueRequest({ url: 'http://www.example.com' });\n\n    // Return an object with the data extracted from the page.\n    // It will be stored to the resulting dataset.\n    return {\n        url: context.request.url,\n        pageTitle\n    };\n}",
-            "editor": "javascript"
-        },
-        "preNavigationHooks": {
-            "title": "Pre-navigation hooks",
-            "type": "string",
-            "description": "Async functions that are sequentially evaluated before the navigation. Good for setting additional cookies or browser properties before navigation. The function accepts two parameters, `crawlingContext` and `gotoOptions`, which are passed to the `page.goto()` function the crawler calls to navigate.",
-            "prefill": "// We need to return array of (possibly async) functions here.\n// The functions accept two arguments: the \"crawlingContext\" object\n// and \"gotoOptions\".\n[\n    async (crawlingContext, gotoOptions) => {\n        // ...\n    },\n]\n",
-            "editor": "javascript"
-        },
-        "postNavigationHooks": {
-            "title": "Post-navigation hooks",
-            "type": "string",
-            "description": "Async functions that are sequentially evaluated after the navigation. Good for checking if the navigation was successful. The function accepts `crawlingContext` as the only parameter.",
-            "prefill": "// We need to return array of (possibly async) functions here.\n// The functions accept a single argument: the \"crawlingContext\" object.\n[\n    async (crawlingContext) => {\n        // ...\n    },\n]",
+            "prefill": "// The function accepts a single argument: the \"context\" object.\n// For a complete list of its properties and functions,\n// see https://apify.com/apify/web-scraper#page-function \nasync function pageFunction(context) {\n    // This statement works as a breakpoint when you're trying to debug your code. Works only with Run mode: DEVELOPMENT!\n    // debugger; \n\n    // jQuery is handy for finding DOM elements and extracting data from them.\n    // To use it, make sure to enable the \"Inject jQuery\" option.\n    const $ = context.jQuery;\n    const pageTitle = $('title').first().text();\n\n    // Print some information to actor log\n    context.log.info(`URL: ${context.request.url}, TITLE: ${pageTitle}`);\n\n    // Manually add a new page to the queue for scraping.\n   await context.enqueueRequest({ url: 'http://www.example.com' });\n\n    // Return an object with the data extracted from the page.\n    // It will be stored to the resulting dataset.\n    return {\n        url: context.request.url,\n        pageTitle\n    };\n}",
             "editor": "javascript"
         },
         "injectJQuery": {
@@ -78,6 +64,12 @@
             "type": "boolean",
             "description": "If enabled, the scraper will inject the <a href='http://jquery.com' target='_blank' rel='noopener'>jQuery</a> library into every web page loaded, before <b>Page function</b> is invoked. Note that the jQuery object (<code>$</code>) will not be registered into global namespace in order to avoid conflicts with libraries used by the web page. It can only be accessed through <code>context.jQuery</code> in <b>Page function</b>.",
             "default": true
+        },
+        "injectUnderscore": {
+            "title": "Inject Underscore.js",
+            "type": "boolean",
+            "description": "If enabled, the scraper will inject the <a href='http://underscorejs.org' target='_blank' rel='noopener'>Underscore.js</a> library into every web page loaded, before <b>Page function</b> is invoked. Note that the Underscore.js object (<code>_</code>) will not be registered into global namespace in order to avoid conflicts with libraries used by the web page. It can only be accessed through <code>context.underscoreJs</code> in <b>Page function</b>.",
+            "default": false
         },
         "proxyConfiguration": {
             "sectionCaption": "Proxy and browser configuration",
@@ -128,6 +120,12 @@
             "description": "If enabled, the scraper will use a real Chrome browser instead of Chromium bundled with Puppeteer. This option may help bypass certain anti-scraping protections, but might make the scraper unstable. Use at your own risk \uD83D\uDE42",
             "default": false,
             "groupCaption": "Browser masking"
+        },
+        "useStealth": {
+            "title": "Use stealth mode",
+            "type": "boolean",
+            "description": "If enabled, the scraper will apply various browser emulation techniques to match a real user's browser as closely as possible, in order to bypass around certain anti-scraping protections. This feature works best in conjunction with the <b>Use Chrome</b> option, but it also carries a risk of making the scraper unstable.",
+            "default": false
         },
         "ignoreSslErrors": {
             "title": "Ignore SSL errors",
@@ -215,8 +213,22 @@
             "prefill": ["networkidle2"],
             "editor": "json"
         },
-        "breakpointLocation": {
+        "preNavigationHooks": {
             "sectionCaption": "Advanced configuration",
+            "title": "Pre-navigation hooks",
+            "type": "string",
+            "description": "Async functions that are sequentially evaluated before the navigation. Good for setting additional cookies or browser properties before navigation. The function accepts two parameters, `crawlingContext` and `gotoOptions`, which are passed to the `page.goto()` function the crawler calls to navigate.",
+            "prefill": "// We need to return array of (possibly async) functions here.\n// The functions accept two arguments: the \"crawlingContext\" object\n// and \"gotoOptions\".\n[\n    async (crawlingContext, gotoOptions) => {\n        // ...\n    },\n]\n",
+            "editor": "javascript"
+        },
+        "postNavigationHooks": {
+            "title": "Post-navigation hooks",
+            "type": "string",
+            "description": "Async functions that are sequentially evaluated after the navigation. Good for checking if the navigation was successful. The function accepts `crawlingContext` as the only parameter.",
+            "prefill": "// We need to return array of (possibly async) functions here.\n// The functions accept a single argument: the \"crawlingContext\" object.\n[\n    async (crawlingContext) => {\n        // ...\n    },\n]",
+            "editor": "javascript"
+        },
+        "breakpointLocation": {
             "title": "Insert breakpoint",
             "type": "string",
             "description": "This property has no effect if Run mode is set to PRODUCTION. When set to DEVELOPMENT it inserts a breakpoint at the selected location in every page the scraper visits. Execution of code stops at the breakpoint until manually resumed in the DevTools window accessible via Live View tab or Container URL. Additional breakpoints can be added by adding <code>debugger;</code> statements within your Page function. <br><br>See <a href='https://apify.com/apify/web-scraper#run-mode' target='_blank' rel='noopener'>Run mode</a> in README for details.",

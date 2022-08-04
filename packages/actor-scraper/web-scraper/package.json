@@ -1,14 +1,14 @@
 {
     "name": "actor-web-scraper",
-    "version": "2.0.0",
+    "version": "3.0.0",
     "private": true,
     "description": "Crawl web pages using Apify, headless Chrome and Puppeteer",
     "main": "dist/main.js",
     "type": "module",
     "dependencies": {
-        "@apify/scraper-tools": "^3.0.0",
+        "@apify/scraper-tools": "^1.0.0",
         "apify": "^3.0.0",
-        "@crawlee/puppeteer": "^3.0.0-beta.78",
+        "@crawlee/puppeteer": "^3.0.0",
         "content-type": "^1.0.4",
         "devtools-server": "^0.0.2",
         "puppeteer": "*"
@@ -28,18 +28,17 @@
     },
     "repository": {
         "type": "git",
-        "url": "https://github.com/apify/apify-ts"
+        "url": "https://github.com/apify/apify-sdk-js"
     },
     "author": {
         "name": "Apify Technologies",
         "email": "support@apify.com",
         "url": "https://apify.com"
     },
-    "private": true,
     "contributors": [
         "Marek Trunkat <marek@apify.com>",
         "Ondra Urban <ondra@apify.com>"
     ],
     "license": "Apache-2.0",
-    "homepage": "https://github.com/apify/apify-ts"
+    "homepage": "https://github.com/apify/apify-sdk-js"
 }

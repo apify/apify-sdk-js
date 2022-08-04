@@ -1,7 +1,6 @@
 {
     "name": "@apify/scraper-tools",
-    "version": "3.0.0",
-    "private": true,
+    "version": "1.0.0",
     "description": "Tools shared by Apify actor-scrapers.",
     "types": "dist/index.d.ts",
     "exports": {
@@ -22,9 +21,9 @@
     "license": "Apache-2.0",
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/apify/apify-ts"
+        "url": "git+https://github.com/apify/apify-sdk-js"
     },
-    "homepage": "https://github.com/apify/apify-ts",
+    "homepage": "https://github.com/apify/apify-sdk-js",
     "scripts": {
         "build": "npm run clean && npm run compile && npm run copy",
         "clean": "rimraf ./dist",
@@ -39,16 +38,16 @@
         "content-type": "^1.0.4"
     },
     "peerDependencies": {
-        "apify": ">=3.x || >=3.0.0-beta.76",
-        "@crawlee/core": ">=3.x || >=3.0.0-beta.78",
-        "@crawlee/utils": ">=3.x || >=3.0.0-beta.78",
-        "@crawlee/puppeteer": ">=3.x || >=3.0.0-beta.78"
+        "apify": ">=3.x",
+        "@crawlee/core": ">=3.x",
+        "@crawlee/utils": ">=3.x",
+        "@crawlee/puppeteer": ">=3.x"
     },
     "devDependencies": {
         "apify": "^3.0.0",
-        "@crawlee/core": "^3.0.0-beta.78",
-        "@crawlee/utils": "^3.0.0-beta.78",
-        "@crawlee/puppeteer": "^3.0.0-beta.78"
+        "@crawlee/core": "^3.0.0",
+        "@crawlee/utils": "^3.0.0",
+        "@crawlee/puppeteer": "^3.0.0"
     },
     "peerDependenciesMeta": {
         "@crawlee/puppeteer": {
