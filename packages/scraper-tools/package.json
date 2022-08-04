@@ -38,10 +38,10 @@
         "content-type": "^1.0.4"
     },
     "peerDependencies": {
-        "apify": ">=3.x",
-        "@crawlee/core": ">=3.x",
-        "@crawlee/utils": ">=3.x",
-        "@crawlee/puppeteer": ">=3.x"
+        "apify": "^3.0.0",
+        "@crawlee/core": "^3.0.0",
+        "@crawlee/utils": "^3.0.0",
+        "@crawlee/puppeteer": "^3.0.0"
     },
     "devDependencies": {
         "apify": "^3.0.0",
