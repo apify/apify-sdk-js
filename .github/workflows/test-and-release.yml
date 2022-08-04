@@ -142,9 +142,6 @@ jobs:
                 run: |
                     git config --global user.name 'Apify Release Bot'
                     git config --global user.email 'noreply@apify.com'
-                    npx turbo run copy --force -- -- --canary --preid=beta
-                    git commit -am 'chore: bump canary versions [skip ci]'
-
                     echo "access=public" >> .npmrc
                     echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" >> .npmrc
                     npm run publish:next -- --yes --no-verify-access
