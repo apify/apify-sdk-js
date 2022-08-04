@@ -12,7 +12,6 @@ import {
     CheerioCrawlingContext,
     Dataset,
     KeyValueStore,
-    // PrepareRequestInputs,
     ProxyConfiguration,
     Request,
     RequestList,
@@ -22,7 +21,7 @@ import {
     Awaitable,
 } from '@crawlee/cheerio';
 import { Actor, ApifyEnv } from 'apify';
-import cheerio from 'cheerio';
+import { load } from 'cheerio';
 import { readFile } from 'node:fs/promises';
 import { IncomingMessage } from 'node:http';
 import { dirname } from 'node:path';
@@ -159,13 +158,12 @@ export class CrawlerSetup implements CrawlerSetupOptions {
         const options: CheerioCrawlerOptions = {
             proxyConfiguration: this.proxyConfiguration,
             requestHandler: this._requestHandler.bind(this),
-            preNavigationHooks: this.evaledPreNavigationHooks,
-            postNavigationHooks: this.evaledPostNavigationHooks,
+            preNavigationHooks: this._runHookWithEnhancedContext(this.evaledPreNavigationHooks),
+            postNavigationHooks: this._runHookWithEnhancedContext(this.evaledPostNavigationHooks),
             requestList: this.requestList,
             requestQueue: this.requestQueue,
             navigationTimeoutSecs: this.input.pageLoadTimeoutSecs,
             requestHandlerTimeoutSecs: this.input.pageFunctionTimeoutSecs,
-            // prepareRequestFunction: this._prepareRequestFunction.bind(this),
             ignoreSslErrors: this.input.ignoreSslErrors,
             failedRequestHandler: this._failedRequestHandler.bind(this),
             maxRequestRetries: this.input.maxRequestRetries,
@@ -190,6 +188,8 @@ export class CrawlerSetup implements CrawlerSetupOptions {
             },
         };
 
+        this._createNavigationHooks(options);
+
         if (this.input.proxyRotation === ProxyRotation.UntilFailure) {
             options.sessionPoolOptions!.maxPoolSize = 1;
         }
@@ -207,27 +207,38 @@ export class CrawlerSetup implements CrawlerSetupOptions {
         return this.crawler;
     }
 
-    // TODO this was always used, we need to convert it to nav hooks, not just comment it out
-    // private async _prepareRequestFunction({ request, session }: PrepareRequestInputs) {
-    //     // Normalize headers
-    //     request.headers = Object
-    //         .entries(request.headers ?? {})
-    //         .reduce((newHeaders, [key, value]) => {
-    //             newHeaders[key.toLowerCase()] = value;
-    //             return newHeaders;
-    //         }, {} as Dictionary<string>);
-    //
-    //     // Add initial cookies, if any.
-    //     if (this.input.initialCookies && this.input.initialCookies.length) {
-    //         const cookiesToSet = session
-    //             ? tools.getMissingCookiesFromSession(session, this.input.initialCookies, request.url)
-    //             : this.input.initialCookies;
-    //         if (cookiesToSet?.length) {
-    //             // setting initial cookies that are not already in the session and page
-    //             session?.setPuppeteerCookies(cookiesToSet, request.url);
-    //         }
-    //     }
-    // }
+    private _createNavigationHooks(options: CheerioCrawlerOptions) {
+        options.preNavigationHooks!.push(async ({ request, session }) => {
+            // Normalize headers
+            request.headers = Object
+                .entries(request.headers ?? {})
+                .reduce((newHeaders, [key, value]) => {
+                    newHeaders[key.toLowerCase()] = value;
+                    return newHeaders;
+                }, {} as Dictionary<string>);
+
+            // Add initial cookies, if any.
+            if (this.input.initialCookies && this.input.initialCookies.length) {
+                const cookiesToSet = session
+                    ? tools.getMissingCookiesFromSession(session, this.input.initialCookies, request.url)
+                    : this.input.initialCookies;
+                if (cookiesToSet?.length) {
+                    // setting initial cookies that are not already in the session and page
+                    session?.setCookies(cookiesToSet, request.url);
+                }
+            }
+        });
+
+        options.preNavigationHooks!.push(...this.evaledPreNavigationHooks);
+        options.postNavigationHooks!.push(...this.evaledPostNavigationHooks);
+    }
+
+    private _runHookWithEnhancedContext(hooks: ((...args: unknown[]) => Awaitable<void>)[]) {
+        return hooks.map((hook) => (ctx: Dictionary, ...args: unknown[]) => {
+            const { customData } = this.input;
+            return hook({ ...ctx, Apify: Actor, Actor, customData }, ...args);
+        });
+    }
 
     private _failedRequestHandler({ request }: CheerioCrawlingContext) {
         const lastError = request.errorMessages[request.errorMessages.length - 1];
@@ -257,7 +268,7 @@ export class CrawlerSetup implements CrawlerSetupOptions {
         });
         Object.defineProperties(pageFunctionArguments, props);
 
-        pageFunctionArguments.cheerio = cheerio;
+        pageFunctionArguments.cheerio = load([]);
         pageFunctionArguments.response = {
             status: response!.statusCode,
             headers: response!.headers,

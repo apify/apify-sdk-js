@@ -45,10 +45,6 @@ export class CrawlerSetup implements CrawlerSetupOptions {
     input: Input;
     maxSessionUsageCount: number;
     evaledPageFunction: (...args: unknown[]) => unknown;
-    /**
-     * @deprecated
-     */
-    evaledPreGotoFunction?: (...args: unknown[]) => unknown;
     evaledPreNavigationHooks: ((...args: unknown[]) => Awaitable<void>)[];
     evaledPostNavigationHooks: ((...args: unknown[]) => Awaitable<void>)[];
     blockedUrlPatterns: string[] = [];
@@ -100,11 +96,6 @@ export class CrawlerSetup implements CrawlerSetupOptions {
 
         // Functions need to be evaluated.
         this.evaledPageFunction = tools.evalFunctionOrThrow(this.input.pageFunction);
-
-        if (this.input.preGotoFunction) {
-            this.evaledPreGotoFunction = tools.evalFunctionOrThrow(this.input.preGotoFunction);
-            log.deprecated('`preGotoFunction` is deprecated, use `pre/postNavigationHooks` instead');
-        }
 
         if (this.input.preNavigationHooks) {
             this.evaledPreNavigationHooks = tools.evalFunctionArrayOrThrow(this.input.preNavigationHooks, 'preNavigationHooks');
@@ -247,16 +238,6 @@ export class CrawlerSetup implements CrawlerSetupOptions {
             // Disable content security policy.
             if (this.input.ignoreCorsAndCsp) await page.setBypassCSP(true);
 
-            // Enable pre-processing before navigation is initiated.
-            if (this.evaledPreGotoFunction) {
-                try {
-                    await this.evaledPreGotoFunction({ request, page, Actor });
-                } catch (err) {
-                    log.error('User provided Pre goto function failed.');
-                    throw err;
-                }
-            }
-
             if (gotoOptions) {
                 gotoOptions.timeout = (this.devtools ? DEVTOOLS_TIMEOUT_SECS : this.input.pageLoadTimeoutSecs) * 1000;
                 gotoOptions.waitUntil = this.input.waitUntil;
@@ -265,6 +246,15 @@ export class CrawlerSetup implements CrawlerSetupOptions {
 
         options.preNavigationHooks!.push(...this.evaledPreNavigationHooks);
         options.postNavigationHooks!.push(...this.evaledPostNavigationHooks);
+        options.preNavigationHooks = this._runHookWithEnhancedContext(this.evaledPreNavigationHooks);
+        options.postNavigationHooks = this._runHookWithEnhancedContext(this.evaledPostNavigationHooks);
+    }
+
+    private _runHookWithEnhancedContext(hooks: ((...args: unknown[]) => Awaitable<void>)[]) {
+        return hooks.map((hook) => (ctx: Dictionary, ...args: unknown[]) => {
+            const { customData } = this.input;
+            return hook({ ...ctx, Apify: Actor, Actor, customData }, ...args);
+        });
     }
 
     private _failedRequestHandler({ request }: PuppeteerCrawlingContext) {

@@ -1,20 +1,20 @@
 {
     "name": "actor-cheerio-scraper",
-    "version": "2.0.0",
+    "version": "3.0.0",
     "private": true,
     "description": "Crawl web pages using HTTP requests and Cheerio",
     "main": "dist/main.js",
     "type": "module",
     "dependencies": {
-        "@apify/scraper-tools": "^3.0.0",
-        "@crawlee/cheerio": "^3.0.0-beta.78",
+        "@apify/scraper-tools": "^1.0.0",
+        "@crawlee/cheerio": "^3.0.0",
         "apify": "^3.0.0"
     },
     "devDependencies": {
         "markdown-toc": "^1.2.0"
     },
     "peerDependencies": {
-        "cheerio": "^1.0.0-rc.3"
+        "cheerio": "^1.0.0-rc.12"
     },
     "scripts": {
         "start": "node dist/main.js",
@@ -25,18 +25,17 @@
     },
     "repository": {
         "type": "git",
-        "url": "https://github.com/apify/apify-ts"
+        "url": "https://github.com/apify/apify-sdk-js"
     },
     "author": {
         "name": "Apify Technologies",
         "email": "support@apify.com",
         "url": "https://apify.com"
     },
-    "private": true,
     "contributors": [
         "Marek Trunkat <marek@apify.com>",
         "Ondra Urban <ondra@apify.com>"
     ],
     "license": "Apache-2.0",
-    "homepage": "https://github.com/apify/apify-ts"
+    "homepage": "https://github.com/apify/apify-sdk-js"
 }

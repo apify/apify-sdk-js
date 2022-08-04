@@ -62,6 +62,7 @@ class Context<Options extends ContextOptions = ContextOptions, ExtraFields = Opt
     private readonly [internalState]: InternalState;
 
     readonly Actor = Actor;
+    readonly Apify = Actor; // for back compatibility
     readonly log = log;
     readonly puppeteerUtils = puppeteerUtils;
     readonly input: any;

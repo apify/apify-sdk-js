@@ -18,30 +18,33 @@ you might prefer to start with the  [**Web scraping tutorial**](https://apify.co
 - [Content types](#content-types)
 - [Limitations](#limitations)
 - [Input configuration](#input-configuration)
-  - [Start URLs](#start-urls)
-  - [Link selector](#link-selector)
-  - [Pseudo-URLs](#pseudo-urls)
-  - [Page function](#page-function)
-    - [**`$: Function`**](#function)
-    - [**`Apify: Object`**](#apify-object)
-    - [**`crawler: Object`**](#crawler-object)
-    - [**`body: String|Buffer`**](#body-string-buffer)
-    - [**`cheerio: Object`**](#cheerio-object)
-    - [**`contentType: Object`**](#contenttype-object)
-    - [**`customData: Object`**](#customdata-object)
-    - [**`enqueueRequest(request, [options]): AsyncFunction`**](#enqueuerequest-request-options-asyncfunction)
-    - [**`env: Object`**](#env-object)
-    - [**`getValue(key): AsyncFunction`**](#getvalue-key-asyncfunction)
-    - [**`globalStore: Object`**](#globalstore-object)
-    - [**`input: Object`**](#input-object)
-    - [**`json: Object`**](#json-object)
-    - [**`log: Object`**](#log-object)
-    - [**`saveSnapshot(): AsyncFunction`**](#savesnapshot-asyncfunction)
-    - [**`setValue(key, data, options): AsyncFunction`**](#setvalue-key-data-options-asyncfunction)
-    - [**`skipLinks(): AsyncFunction`**](#skiplinks-asyncfunction)
-    - [**`request: Object`**](#request-object)
-    - [**`response: Object`**](#response-object)
+    - [Start URLs](#start-urls)
+    - [Link selector](#link-selector)
+    - [Pseudo-URLs](#pseudo-urls)
+    - [Page function](#page-function)
+        - [**`$: Function`**](#function)
+        - [**`Apify: Object`**](#apify-object)
+        - [**`crawler: Object`**](#crawler-object)
+        - [**`body: String|Buffer`**](#body-string-buffer)
+        - [**`cheerio: Object`**](#cheerio-object)
+        - [**`contentType: Object`**](#contenttype-object)
+        - [**`customData: Object`**](#customdata-object)
+        - [**`enqueueRequest(request, [options]): AsyncFunction`**](#enqueuerequest-request-options-asyncfunction)
+        - [**`env: Object`**](#env-object)
+        - [**`getValue(key): AsyncFunction`**](#getvalue-key-asyncfunction)
+        - [**`globalStore: Object`**](#globalstore-object)
+        - [**`input: Object`**](#input-object)
+        - [**`json: Object`**](#json-object)
+        - [**`log: Object`**](#log-object)
+        - [**`saveSnapshot(): AsyncFunction`**](#savesnapshot-asyncfunction)
+        - [**`setValue(key, data, options): AsyncFunction`**](#setvalue-key-data-options-asyncfunction)
+        - [**`skipLinks(): AsyncFunction`**](#skiplinks-asyncfunction)
+        - [**`request: Object`**](#request-object)
+        - [**`response: Object`**](#response-object)
 - [Proxy configuration](#proxy-configuration)
+- [Advanced configuration](#advanced-configuration)
+    - [Pre-navigation hooks](#pre-navigation-hooks)
+    - [Post-navigation hooks](#post-navigation-hooks)
 - [Results](#results)
 - [Additional resources](#additional-resources)
 - [Upgrading](#upgrading)
@@ -186,9 +189,9 @@ async function pageFunction(context) {
     // for querying DOM elements and extracting data from them.
     const pageTitle = $('title').first().text();
 
-    // The "request" property contains various information about the web page loaded. 
+    // The "request" property contains various information about the web page loaded.
     const url = request.url;
-    
+
     // Use "log" object to print information to actor log.
     log.info('Page scraped', { url, pageTitle });
 
@@ -214,7 +217,7 @@ visit the [Mozilla documentation](https://developer.mozilla.org/en-US/docs/Web/J
 
   A reference to the [Cheerio](https://cheerio.js.org/)'s function representing the root scope of the DOM
   of the current HTML page.
-  
+
   This function is the starting point for traversing the DOM document and extracting data from it.
   Like with [jQuery](https://jquery.com/), it is the primary method for selecting elements in the document,
   but unlike jQuery it is built on top of the [`css-select`](https://www.npmjs.com/package/css-select) library,
@@ -245,11 +248,11 @@ visit the [Mozilla documentation](https://developer.mozilla.org/en-US/docs/Web/J
 
   A reference to the main namespace of [Apify SDK](https://sdk.apify.com/docs/api/apify).
   This is equivalent to:
-  
+
   ```javascript
   const Apify = require('apify');
   ```
-  
+
   **Caution:** Since the Cheerio Scraper itself runs using the Apify SDK,
   you should use `Apify` property with caution and avoid making global changes to it, since it can affect the run of scraper itself.
 
@@ -298,13 +301,13 @@ visit the [Mozilla documentation](https://developer.mozilla.org/en-US/docs/Web/J
   This is useful for passing dynamic parameters to your Cheerio Scraper using API.
 
 - ##### **`enqueueRequest(request, [options]): AsyncFunction`**
-  
+
   Adds a new URL to the request queue, if it wasn't already there.
 
   The `request` parameter is an object containing details of the request, with properties such as `url`, `userData`, `headers` etc. For the full list of the supported properties, see the [`Request`](https://sdk.apify.com/docs/api/request) object's constructor in the Apify SDK documentation.
-  
+
   The optional `options` parameter is an object with additional options. Currently, it only supports the `forefront` boolean flag. If `true`, the request is added to the beginning of the queue. By default, requests are added to the end.
-  
+
   Example:
 
   ```javascript
@@ -316,7 +319,7 @@ visit the [Mozilla documentation](https://developer.mozilla.org/en-US/docs/Web/J
 
   A map of all relevant values set by the Apify platform to the actor run via the `APIFY_` environment variable. For example, here you can find information such as actor run ID, timeouts, actor run memory, etc.
   For the full list of available values, see the [`Apify.getEnv()`](https://sdk.apify.com/docs/api/apify#getenv) function in the Apify SDK documentation.
-  
+
   Example:
 
   ```javascript
@@ -326,27 +329,27 @@ visit the [Mozilla documentation](https://developer.mozilla.org/en-US/docs/Web/J
 - ##### **`getValue(key): AsyncFunction`**
 
   Gets a value from the default key-value store associated with the actor run. The key-value store is useful for persisting named data records, such as state objects, files, etc. The function is very similar to the [`Apify.getValue()`](https://sdk.apify.com/docs/api/apify#getvalue) function in the Apify SDK documentation.
-  
+
   To set the value, use the dual function `context.setValue(key, value)`.
-  
+
   Example:
 
   ```javascript
   const value = await context.getValue('my-key');
   console.dir(value);
   ```
-  
+
 - ##### **`globalStore: Object`**
 
   Represents an in-memory store that can be used to share data across page function invocations, e.g. state variables, API responses, or other data. The `globalStore` object has an interface similar to JavaScript's [`Map`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map) object, with a few important differences:
-  - All `globalStore` functions are `async`; use `await` when calling them.
-  - Keys must be strings and values must be JSON stringify-able.
-  - The `forEach()` function is not supported.
-  
+    - All `globalStore` functions are `async`; use `await` when calling them.
+    - Keys must be strings and values must be JSON stringify-able.
+    - The `forEach()` function is not supported.
+
   Note that stored data is not persisted. If the actor run is restarted or migrated to another worker server,
   the content of `globalStore` is reset. Therefore, never depend on a specific value to be present
   in the store.
-  
+
   Example:
 
   ```javascript
@@ -371,7 +374,7 @@ visit the [Mozilla documentation](https://developer.mozilla.org/en-US/docs/Web/J
   An object containing logging functions, with the same interface as provided by the
   [`Apify.utils.log`](https://sdk.apify.com/docs/api/log) object in the Apify SDK. The log messages are written directly to the actor run log, which is useful for monitoring and debugging.
   Note that `log.debug()` only logs messages if the **Debug log** input setting is set.
-  
+
   Example:
 
   ```javascript
@@ -392,7 +395,7 @@ visit the [Mozilla documentation](https://developer.mozilla.org/en-US/docs/Web/J
   Saves the full HTML of the current page to the key-value store
   associated with the actor run, under the `SNAPSHOT-BODY` key.
   This feature is useful when debugging your scraper.
-  
+
   Note that each snapshot overwrites the previous one and the `saveSnapshot()` calls are throttled to at most one call in two seconds, in order to avoid excess consumption of resources and slowdown of the actor.
 
 - ##### **`setValue(key, data, options): AsyncFunction`**
@@ -400,7 +403,7 @@ visit the [Mozilla documentation](https://developer.mozilla.org/en-US/docs/Web/J
   Sets a value to the default key-value store associated with the actor run. The key-value store is useful for persisting named data records, such as state objects, files, etc. The function is very similar to the [`Apify.setValue()`](https://sdk.apify.com/docs/api/apify#setvalue) function in the Apify SDK documentation.
 
   To get the value, use the dual function `context.getValue(key)`.
-  
+
   Example:
 
   ```javascript
@@ -412,18 +415,18 @@ visit the [Mozilla documentation](https://developer.mozilla.org/en-US/docs/Web/J
   Calling this function ensures that page links from the current page will not be added to the request queue, even if they match the [**Link selector**](#link-selector) and/or [**Pseudo-URLs**](#pseudo-urls) settings.  This is useful to programmatically stop recursive crawling, e.g. if you know there are no more interesting links on the current page to follow.
 
 - ##### **`request: Object`**
-  
+
   An object containing information about the currently loaded web page, such as the URL, number of retries, a unique key, etc. Its properties are equivalent to the [`Request`](https://sdk.apify.com/docs/api/request) object in the Apify SDK.
-  
+
 - ##### **`response: Object`**
 
   An object containing information about the HTTP response from the web server. Currently, it only contains the `status` and `headers` properties. For example:
-  
+
   ```javascript
   {
     // HTTP status code
     status: 200,
-    
+
     // HTTP headers
     headers: {
       'content-type': 'text/html; charset=utf-8',
@@ -506,6 +509,34 @@ It accepts a JSON object with the following structure:
 }
 ```
 
+## Advanced Configuration
+
+### Pre-navigation hooks
+
+This is an array of functions that will be executed **BEFORE** the main `pageFunction` is run. A similar `context` object is passed into each of these functions as is passed into the `pageFunction`; however, a second "[RequestAsBrowserOptions](https://sdk.apify.com/docs/typedefs/request-as-browser-options)" object is also passed in.
+
+The available options can be seen here:
+
+```JavaScript
+preNavigationHooks: [
+    async ({ id, request, session, proxyInfo, customData, Apify }, { url, method, headers, proxyUrl }) => {}
+]
+```
+
+Check out the docs for [Pre-navigation hooks](https://sdk.apify.com/docs/typedefs/puppeteer-crawler-options#prenavigationhooks) and the [PuppeteerHook type](https://sdk.apify.com/docs/typedefs/puppeteer-hook) for more info regarding the objects passed into these functions. The available properties are extended with `Apify` and `customData` in this scraper.
+
+### Post-navigation hooks
+
+An array of functions that will be executed **AFTER** the main `pageFunction` is run. The only available parameter is the [CrawlingContext](https://sdk.apify.com/docs/typedefs/crawling-context) object. The available properties are extended with `Apify` and `customData` in this scraper.
+
+```JavaScript
+postNavigationHooks: [
+    async ({ id, request, session, proxyInfo, response, customData, Apify }) => {}
+]
+```
+
+Check out the docs for [Pre-navigation hooks](https://sdk.apify.com/docs/typedefs/puppeteer-crawler-options#prenavigationhooks) for more info regarding the objects passed into these functions.
+
 ## Results
 
 The scraping results returned by [**Page function**](#page-function) are stored in the default dataset associated with the actor run, from where you can export them to formats such as JSON, XML, CSV or Excel.
@@ -565,8 +596,10 @@ You might also want to see these other resources:
   An introduction to web scraping with Apify.
 - [Scraping with Cheerio Scraper](https://docs.apify.com/scraping/cheerio-scraper) -
   A step-by-step tutorial on how to use Cheerio Scraper, with a detailed explanation and examples.
-- **Cheerio Scraper** ([apify/cheerio-scraper](https://apify.com/apify/cheerio-scraper)) -
+- **Web Scraper** ([apify/web-scraper](https://apify.com/apify/web-scraper)) -
   Apify's basic tool for web crawling and scraping. It uses a full Chrome browser to render dynamic content.
+  A similar web scraping actor to Puppeteer Scraper, but is simpler to use and only runs in the context of the browser.
+  Uses the [Puppeteer](https://github.com/GoogleChrome/puppeteer) library.
 - **Puppeteer Scraper** ([apify/puppeteer-scraper](https://apify.com/apify/puppeteer-scraper)) -
   An actor similar to Web Scraper, which provides lower-level control of the underlying
   [Puppeteer](https://github.com/GoogleChrome/puppeteer) library and the ability to use server-side libraries.

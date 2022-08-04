@@ -42,8 +42,8 @@
         "test": "jest --silent",
         "test:e2e": "node test/e2e/run.mjs",
         "coverage": "jest --coverage",
-        "release": "npm run build && lerna version patch && lerna publish from-package --contents dist --force-publish",
-        "publish:next": "lerna publish from-package --contents dist --canary --dist-tag next --force-publish",
+        "release": "npm run build && lerna version patch && lerna publish from-package --contents dist",
+        "publish:next": "lerna publish --canary --preid beta --dist-tag next",
         "release:next": "npm run build && npm run publish:next",
         "lint": "eslint packages/*/src test",
         "lint:fix": "eslint packages/*/src test --fix"
@@ -63,6 +63,7 @@
         "@typescript-eslint/eslint-plugin": "5.32.0",
         "@typescript-eslint/parser": "5.32.0",
         "commitlint": "^17.0.3",
+        "crawlee": "^3.0.2",
         "eslint": "^8.19.0",
         "fs-extra": "^10.1.0",
         "gen-esm-wrapper": "^1.1.3",

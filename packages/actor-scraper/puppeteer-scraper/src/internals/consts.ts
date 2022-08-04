@@ -38,10 +38,6 @@ export interface Input {
     datasetName?: string;
     keyValueStoreName?: string;
     requestQueueName?: string;
-    /**
-     * @deprecated
-     */
-    preGotoFunction?: string;
 }
 
 export const enum ProxyRotation {
