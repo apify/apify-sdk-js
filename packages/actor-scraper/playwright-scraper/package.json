@@ -1,0 +1,38 @@
+{
+    "name": "actor-playwright-scraper",
+    "version": "3.0.0",
+    "private": true,
+    "description": "Crawl web pages using Apify, headless Chrome and Puppeteer",
+    "main": "dist/main.js",
+    "type": "module",
+    "dependencies": {
+        "@apify/scraper-tools": "^1.0.0",
+        "@crawlee/playwright": "^3.0.0",
+        "apify": "^3.0.0",
+        "playwright": "*"
+    },
+    "devDependencies": {
+        "markdown-toc": "^1.2.0"
+    },
+    "scripts": {
+        "start": "node dist/main.js",
+        "build": "rimraf dist && tsc",
+        "build-toc": "./node_modules/.bin/markdown-toc README.md -i",
+        "lint": "eslint src test"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/apify/apify-sdk-js"
+    },
+    "author": {
+        "name": "Apify Technologies",
+        "email": "support@apify.com",
+        "url": "https://apify.com"
+    },
+    "contributors": [
+        "Marek Trunkat <marek@apify.com>",
+        "Ondra Urban <ondra@apify.com>"
+    ],
+    "license": "Apache-2.0",
+    "homepage": "https://github.com/apify/apify-sdk-js"
+}
