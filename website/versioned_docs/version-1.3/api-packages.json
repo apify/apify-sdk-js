@@ -1,1 +1,12 @@
-[{"entryPoints":{"index":{"label":"Index","path":"index.ts"}},"packagePath":"lib","packageSlug":"lib"}]
+[
+    {
+        "entryPoints": {
+            "index": {
+                "label": "Index",
+                "path": "index.ts"
+            }
+        },
+        "packagePath": "apify",
+        "packageSlug": "apify"
+    }
+]

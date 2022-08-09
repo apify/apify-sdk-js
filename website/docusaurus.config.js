@@ -7,11 +7,13 @@ const version = [v1, v2].join('.');
 
 const packages = [
     'apify',
+    'scraper-tools',
 ];
 const packagesOrder = [
     'apify',
+    '@apify/scraper-tools',
 ];
-
+console.log(packages.map((name) => ({ path: `packages/${name}` })));
 /** @type {Partial<import('@docusaurus/types').DocusaurusConfig>} */
 module.exports = {
     title: 'Apify SDK monorepo',
@@ -130,13 +132,13 @@ module.exports = {
                 },
                 {
                     type: 'docsVersion',
-                    to: 'api/core',
+                    to: 'api/apify',
                     label: 'API',
                     position: 'left',
-                    activeBaseRegex: 'api/(?!core/changelog)',
+                    activeBaseRegex: 'api/(?!apify/changelog)',
                 },
                 {
-                    to: 'api/core/changelog',
+                    to: 'api/apify/changelog',
                     label: 'Changelog',
                     position: 'left',
                     className: 'changelog',
@@ -189,7 +191,7 @@ module.exports = {
                         },
                         {
                             label: 'API reference',
-                            to: 'api/core',
+                            to: 'api/apify',
                         },
                         {
                             label: 'Upgrading to v3',
