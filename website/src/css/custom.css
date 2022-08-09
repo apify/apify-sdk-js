@@ -226,6 +226,7 @@ nav.navbar .dropdown__menu {
 
 .navbar__logo {
     height: 3rem;
+    padding: 10px 0;
 }
 
 .main-wrapper a[class*='sidebarLogo'] img {

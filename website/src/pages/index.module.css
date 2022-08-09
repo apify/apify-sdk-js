@@ -39,7 +39,7 @@
 }
 
 .heroBanner h1:nth-child(1) {
-    background: linear-gradient(225deg, #FFB200 0.1%, #FFB100 8.15%, #FFAF02 15.6%, #FEAB04 22.55%, #FDA606 29.08%, #FCA00A 35.28%, #FB980E 41.26%, #FA9013 47.1%, #F98618 52.89%, #F77B1E 58.73%, #F56F24 64.71%, #F3632B 70.91%, #F25532 77.44%, #EF473A 84.39%, #ED3842 91.84%, #EB284B 99.9%),
+    background: linear-gradient(270deg, rgb(235, 40, 75) 0%, rgb(234, 40, 76) 8.07%, rgb(233, 40, 78) 15.54%, rgb(231, 40, 83) 22.5%, rgb(228, 39, 89) 29.04%, rgb(225, 39, 96) 35.26%, rgb(220, 39, 106) 41.25%, rgb(216, 38, 116) 47.1%, rgb(210, 38, 128) 52.9%, rgb(204, 37, 141) 58.75%, rgb(197, 36, 155) 64.74%, rgb(190, 35, 171) 70.96%, rgb(182, 35, 187) 77.5%, rgb(174, 34, 205) 84.46%, rgb(166, 33, 223) 91.93%, rgb(157, 32, 242) 100%),
     linear-gradient(0deg, #41465D, #41465D);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -170,7 +170,7 @@ html[data-theme='dark'] .heroBanner h2 {
     font-size: 18px;
     line-height: 28px;
     padding: 12px 24px;
-    background: #ed3545;
+    background: #7717b5;
     border-radius: 8px;
     color: white;
     font-weight: 600;
@@ -178,7 +178,7 @@ html[data-theme='dark'] .heroBanner h2 {
 
 .getStarted:hover {
     color: white;
-    background: #ad1934;
+    background: #931ce0;
 }
 
 html[data-theme='dark'] .getStarted {
