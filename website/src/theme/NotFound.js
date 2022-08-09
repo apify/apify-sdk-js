@@ -1,5 +1,6 @@
 import React from 'react';
 import useBaseUrl from '@docusaurus/useBaseUrl';
+import BrowserOnly from '@docusaurus/BrowserOnly';
 import { PageMetadata } from '@docusaurus/theme-common';
 import Layout from '@theme/Layout';
 import Link from '@docusaurus/Link';
@@ -9,9 +10,9 @@ export default function NotFound() {
     const redirectedV1Url = useBaseUrl('/docs/1.3.1/api');
     const baseUrlForV2Redirect = useBaseUrl(`/docs/2.3/api/`);
     const baseUrlForV1Redirect = useBaseUrl(`/docs/1.3/api/`);
-    const path = window.location.pathname;
 
-    React.useEffect(() => {
+    const effect = () => {
+        const path = window.location.pathname;
         let href = '';
         let redirect = false;
 
@@ -34,10 +35,15 @@ export default function NotFound() {
         if (redirect && window.location.href !== href) {
             window.location.href = href;
         }
-    }, [baseUrlForV2Redirect, path, redirectedV2Url]);
+    };
 
     return (
         <>
+            <BrowserOnly>
+                {() => {
+                    effect();
+                }}
+            </BrowserOnly>
             <PageMetadata title={'Page Not Found'} />
             <Layout>
                 <main className="container margin-vert--xl">
