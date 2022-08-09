@@ -42,7 +42,6 @@ module.exports = {
             /** @type {import('@docusaurus/preset-classic').Options} */
             ({
                 docs: {
-                    lastVersion: 'current',
                     versions: {
                         current: {
                             label: `v${version}`,
@@ -120,7 +119,7 @@ module.exports = {
             items: [
                 {
                     type: 'docsVersion',
-                    to: 'docs/quick-start',
+                    to: 'docs',
                     label: 'Docs',
                     position: 'left',
                 },
