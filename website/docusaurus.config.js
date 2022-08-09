@@ -40,7 +40,6 @@ module.exports = {
             /** @type {import('@docusaurus/preset-classic').Options} */
             ({
                 docs: {
-                    disableVersioning: true,
                     lastVersion: 'current',
                     versions: {
                         current: {
@@ -145,16 +144,6 @@ module.exports = {
                 {
                     type: 'docsVersionDropdown',
                     position: 'left',
-                    dropdownItemsAfter: [
-                        {
-                            href: 'https://sdk.apify.com/docs/guides/getting-started',
-                            label: '2.2',
-                        },
-                        {
-                            href: 'https://sdk.apify.com/docs/1.3.1/guides/getting-started',
-                            label: '1.3',
-                        },
-                    ],
                 },
                 {
                     href: 'https://github.com/apify/apify-sdk-js',
@@ -255,9 +244,9 @@ module.exports = {
             },
         },
         algolia: {
-            appId: '5JC94MPMLY',
-            apiKey: '267679200b833c2ca1255ab276731869', // search only (public) API key
-            indexName: 'crawlee',
+            appId: 'N8EOCSBQGH',
+            apiKey: 'b43e67a96ed18c7f63f5fd965906a96d', // search only (public) API key
+            indexName: 'apify_sdk',
             algoliaOptions: {
                 facetFilters: ['version:VERSION'],
             },
