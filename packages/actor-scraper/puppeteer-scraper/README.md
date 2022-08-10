@@ -155,16 +155,16 @@ const context = {
 
     // EXPOSED OBJECTS
     page, // Puppeteer.Page object.
-    request, // Apify.Request object.
+    request, // Crawlee.Request object.
     response, // Response object holding the status code and headers.
     crawler, // Reference to the crawler object, with access to `browserPool`, `autoscaledPool`, and more
     globalStore, // Represents an in memory store that can be used to share data across pageFunction invocations
-    log, // Reference to Apify.utils.log
+    log, // Reference to Crawlee.utils.log
     Apify, // Reference to the full power of Apify SDK.
 
     // EXPOSED FUNCTIONS
-    setValue, // Reference to the Apify.setValue() function.
-    getValue, // Reference to the Apify.getValue() function.
+    setValue, // Reference to the Actor.setValue() function.
+    getValue, // Reference to the Actor.getValue() function.
     saveSnapshot, // Saves a screenshot and full HTML of the current page to the key value store.
     skipLinks, // Prevents enqueueing more links via Pseudo URLs on the current page.
     enqueueRequest, // Adds a page to the request queue.
@@ -183,7 +183,7 @@ The actor's input as it was received from the UI. Each `pageFunction` invocation
 
 | Type   | Arguments | Returns                                                                              |
 | ------ | --------- | ------------------------------------------------------------------------------------ |
-| Object | -         | Return value of [`Apify.getEnv()`](https://sdk.apify.com/docs/api/apify#apifygetenv) |
+| Object | -         | Return value of [`Actor.getEnv()`](https://apify.github.io/apify-sdk-js/api/apify/class/Actor/#getEnv) |
 
 A map of all the relevant environment variables that you may want to use.
 
@@ -207,7 +207,7 @@ This is a reference to the Puppeteer Page object, which enables you to use the f
 
 | Type   | Arguments | Returns                                                        |
 | ------ | --------- | -------------------------------------------------------------- |
-| Object | -         | Apify [Request](https://sdk.apify.com/docs/api/request) object |
+| Object | -         | Apify [Request](https://crawlee.dev/api/core/class/Request) object |
 
 An object with metadata about the currently crawled page, such as its URL, headers, and the number of retries.
 
@@ -228,7 +228,7 @@ const request = {
 }
 ```
 
-See the [Request class](https://sdk.apify.com/docs/api/request) for a preview of the structure and full documentation.
+See the [Request class](https://crawlee.dev/api/core/class/Request) for a preview of the structure and full documentation.
 
 #### **`response`**
 
@@ -242,7 +242,7 @@ The response object is produced by Puppeteer. Currently, we only pass the respon
 
 | Type   | Arguments | Returns                                                                                   |
 | ------ | --------- | ----------------------------------------------------------------------------------------- |
-| Object | -         | Apify [PuppeteerCrawler](https://sdk.apify.com/docs/api/puppeteer-crawler#docsNav) object |
+| Object | -         | [PuppeteerCrawler](https://crawlee.dev/api/puppeteer-crawler/class/PuppeteerCrawler) object |
 
 To access the current `AutoscaledPool` or `BrowserPool` instance, we can use the `crawler` object. This object includes the following properties:
 
@@ -258,7 +258,7 @@ const crawler = {
 }
 ```
 
-Refer to the [official documentation](https://sdk.apify.com/docs/api/puppeteer-crawler#docsNav) for more information.
+Refer to the [official documentation](https://crawlee.dev/api/puppeteer-crawler/class/PuppeteerCrawler) for more information.
 
 #### **`globalStore`**
 
@@ -272,7 +272,7 @@ Refer to the [official documentation](https://sdk.apify.com/docs/api/puppeteer-c
 
 | Type   | Arguments | Returns                                                              |
 | ------ | --------- | -------------------------------------------------------------------- |
-| Object | -         | [Apify.utils.log](https://sdk.apify.com/docs/api/log#docsNav) object |
+| Object | -         | [Crawlee.utils.log](https://crawlee.dev/api/core/class/Log) object |
 
 This should be used instead of JavaScript's built in `console.log` when logging in the Node.js context, as it automatically color-tags your logs, as well as allows the toggling of the visibility of log messages using options such as [Debug log](#debug-log) in [Advanced configuration](#advanced-configuration).
 
@@ -288,9 +288,9 @@ The most common `log` methods include:
 
 | Type   | Arguments | Returns                                                    |
 | ------ | --------- | ---------------------------------------------------------- |
-| Object | -         | [Apify class](https://sdk.apify.com/docs/api/apify) object |
+| Object | -         | [Actor class](https://apify.github.io/apify-sdk-js/api/apify/class/Actor/) object |
 
-A reference to the full power of the Apify SDK. See [the docs](https://sdk.apify.com/docs/api/apify) for more information and all the available methods and classes.
+A reference to the full power of the Apify SDK. See [the docs](https://apify.github.io/apify-sdk-js/api/apify/) for more information and all the available methods and classes.
 
 > Caution: Since we're making the full SDK available with this option, and Puppeteer Scraper already runs using the SDK, some edge case manipulations may lead to inconsistencies. Use `Apify` with caution, and avoid making global changes unless you know what you're doing.
 
@@ -310,7 +310,7 @@ Usage:
 await context.setValue('my-value', { message: 'hello' })
 ```
 
-Refer to Apify's [Key-Value store documentation](https://sdk.apify.com/docs/api/key-value-store#keyvaluestoregetvaluekey) for more information.
+Refer to [Apify SDK Documentation](https://apify.github.io/apify-sdk-js/api/apify/class/Actor/#setValue) for more information.
 
 #### **`getValue`**
 
@@ -328,7 +328,7 @@ Usage:
 const { message } = await context.getValue('my-value')
 ```
 
-Refer to Apify's [Key-Value store documentation](https://sdk.apify.com/docs/api/key-value-store#keyvaluestoregetvaluekey) for more information.
+Refer to [Apify SDK Documentation](https://apify.github.io/apify-sdk-js/api/apify/class/Actor/#getValue) for more information.
 
 #### **`saveSnapshot`**
 
@@ -372,7 +372,7 @@ await context.skipLinks()
 
 > This function is async! Don't forget the `await` keyword!
 
-To enqueue a specific URL manually instead of automatically by a combination of a Link selector and a Pseudo URL, use the enqueueRequest function. It accepts a plain object as argument that needs to have the structure to construct a [Request object](https://sdk.apify.com/docs/api/request), but frankly, you just need an object with a `url` key.
+To enqueue a specific URL manually instead of automatically by a combination of a Link selector and a Pseudo URL, use the enqueueRequest function. It accepts a plain object as argument that needs to have the structure to construct a [Request object](https://crawlee.dev/api/core/class/Request), but frankly, you just need an object with a `url` key.
 
 Usage:
 
@@ -429,7 +429,7 @@ The proxy configuration can be set programmatically when calling the actor using
 
 ### Pre-navigation hooks
 
-This is an array of functions that will be executed **BEFORE** the main `pageFunction` is run. A similar `context` object is passed into each of these functions as is passed into the `pageFunction`; however, a second "[DirectNavigationOptions](https://sdk.apify.com/docs/typedefs/direct-navigation-options)" object is also passed in.
+This is an array of functions that will be executed **BEFORE** the main `pageFunction` is run. A similar `context` object is passed into each of these functions as is passed into the `pageFunction`; however, a second "[DirectNavigationOptions](https://crawlee.dev/api/puppeteer-crawler/namespace/puppeteerUtils#DirectNavigationOptions)" object is also passed in.
 
 The available options can be seen here:
 
@@ -439,11 +439,11 @@ preNavigationHooks: [
 ]
 ```
 
-Check out the docs for [Pre-navigation hooks](https://sdk.apify.com/docs/typedefs/puppeteer-crawler-options#prenavigationhooks) and the [PuppeteerHook type](https://sdk.apify.com/docs/typedefs/puppeteer-hook) for more info regarding the objects passed into these functions. The available properties are extended with `Apify` and `customData` in this scraper.
+Check out the docs for [Pre-navigation hooks](https://crawlee.dev/api/puppeteer-crawler/interface/PuppeteerCrawlerOptions#preNavigationHooks) and the [PuppeteerHook type](https://crawlee.dev/api/puppeteer-crawler/interface/PuppeteerHook) for more info regarding the objects passed into these functions. The available properties are extended with `Apify` and `customData` in this scraper.
 
 ### Post-navigation hooks
 
-An array of functions that will be executed **AFTER** the main `pageFunction` is run. The only available parameter is the [CrawlingContext](https://sdk.apify.com/docs/typedefs/crawling-context) object. The available properties are extended with `Apify` and `customData` in this scraper.
+An array of functions that will be executed **AFTER** the main `pageFunction` is run. The only available parameter is the [CrawlingContext](htthttps://crawlee.dev/api/puppeteer-crawler/interface/PuppeteerCrawlingContext) object. The available properties are extended with `Apify` and `customData` in this scraper.
 
 ```JavaScript
 postNavigationHooks: [
@@ -451,7 +451,7 @@ postNavigationHooks: [
 ]
 ```
 
-Check out the docs for [Post-navigation hooks](https://sdk.apify.com/docs/typedefs/puppeteer-crawler-options#postnavigationhooks) and the [PuppeteerHook type](https://sdk.apify.com/docs/typedefs/puppeteer-hook) for more info regarding the objects passed into these functions.
+Check out the docs for [Post-navigation hooks](https://crawlee.dev/api/puppeteer-crawler/interface/PuppeteerCrawlerOptions#preNavigationHooks) and the [PuppeteerHook type](https://crawlee.dev/api/puppeteer-crawler/interface/PuppeteerHook) for more info regarding the objects passed into these functions.
 
 ### Debug log
 
@@ -528,7 +528,7 @@ For more information, see [Datasets](https://apify.com/docs/storage#dataset) in 
 That's it! You might also want to check out these other resources:
 
 -   [Actors documentation](https://apify.com/docs/actor) - Documentation for the Apify Actors cloud computing platform.
--   [Apify SDK](https://sdk.apify.com) - Learn how to build a new web scraping actor from scratch using the world's most popular web crawling and scraping library for Node.js.
+-   [Crawlee](https://crawlee.dev) - Learn how to build a new web scraping actor from scratch using the world's most popular web crawling and scraping library for Node.js.
 -   [Cheerio Scraper](https://apify.com/apify/cheerio-scraper) - Another web scraping actor that downloads and processes pages in raw HTML for much higher performance.
 -   [Web Scraper](https://apify.com/apify/web-scraper) - A similar web scraping actor to Puppeteer Scraper, but is simpler to use and only runs in the context of the browser. Still uses the [Puppeteer](https://github.com/GoogleChrome/puppeteer) library.
 

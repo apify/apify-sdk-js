@@ -118,7 +118,7 @@ of the Chromium browser using the underlying
 you might prefer to use
 [**Puppeteer Scraper**](https://apify.com/apify/puppeteer-scraper) (`apify/puppeteer-scraper`).
 For even more flexibility and control, you might develop
-a new actor from scratch in Node.js using [Apify SDK](https://sdk.apify.com).
+a new actor from scratch in Node.js using [Crawlee](https://crawlee.dev).
 
 ## Input configuration
 
@@ -287,7 +287,7 @@ see <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/S
     The `request` parameter is an object containing details of the request,
     with properties such as `url`, `userData`, `headers` etc.
     For the full list of the supported properties, see the
-    <a href="https://sdk.apify.com/docs/api/request" target="_blank"><code>Request</code></a> object's constructor in Apify SDK
+    <a href="https://crawlee.dev/api/core/class/Request" target="_blank"><code>Request</code></a> object's constructor in Apify SDK
     documentation.
 
     The optional `options` parameter is an object with additional options.
@@ -307,7 +307,7 @@ see <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/S
     via the `APIFY_` environment variables.
     For example, you can find here information such as actor run ID, timeouts, actor run memory, etc.
     For the full list of available values, see
-    <a href="https://sdk.apify.com/docs/api/apify#getenv" target="_blank"><code>Apify.getEnv()</code></a>
+    <a href="https://apify.github.io/apify-sdk-js/api/apify/class/Actor/#getEnv" target="_blank"><code>Actor.getEnv()</code></a>
     function in Apify SDK.
 
     Example:
@@ -320,7 +320,7 @@ see <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/S
 
     Gets a value from the default key-value store associated with the actor run.
     The key-value store is useful for persisting named data records, such as state objects, files, etc.
-    The function is very similar to <a href="https://sdk.apify.com/docs/api/apify#getvalue" target="_blank"><code>Apify.getValue()</code></a>
+    The function is very similar to <a href="https://apify.github.io/apify-sdk-js/api/apify/class/Actor/#getValue" target="_blank"><code>Actor.getValue()</code></a>
     function in Apify SDK.
 
     To set the value, use the dual function `context.setValue(key, value)`.
@@ -387,8 +387,8 @@ see <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/S
 
     An object containing logging functions,
     with the same interface as provided by the
-    <a href="https://sdk.apify.com/docs/api/log" target="_blank"><code>Apify.utils.log</code></a>
-    object in Apify SDK.
+    <a href="https://crawlee.dev/api/core/class/Log" target="_blank"><code>Crawlee.utils.log</code></a>
+    object in Crawlee.
     The log messages are written directly to the actor run log, which is useful for monitoring and debugging.
     Note that <code>log.debug()</code> only prints messages to the log
     if the **Enable debug log** input setting is set.
@@ -412,8 +412,8 @@ see <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/S
 
     An object containing information about the currently loaded web page,
     such as the URL, number of retries, a unique key, etc.
-    Its properties are equivalent to the <a href="https://sdk.apify.com/docs/api/request" target="_blank"><code>Request</code></a>
-    object in Apify SDK.
+    Its properties are equivalent to the <a href="https://crawlee.dev/api/core/class/Request" target="_blank"><code>Request</code></a>
+    object in Crawlee.
 
 -   ##### **`response: Object`**
 
@@ -451,8 +451,8 @@ see <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/S
 
     Sets a value to the default key-value store associated with the actor run.
     The key-value store is useful for persisting named data records, such as state objects, files, etc.
-    The function is very similar to <a href="https://sdk.apify.com/docs/api/apify#setvalue" target="_blank"><code>Apify.setValue()</code></a>
-    function in Apify SDK.
+    The function is very similar to <a href="https://crawlee.dev/api/core/class/KeyValueStore#setValue" target="_blank"><code>KeyValueStore.setValue()</code></a>
+    function in Crawlee.
 
     To get the value, use the dual function `await context.getValue(key)`.
 
@@ -470,6 +470,7 @@ see <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/S
     This is useful to programmatically stop recursive crawling,
     e.g. if you know there are no more interesting links on the current page to follow.
 
+<!-- todo probably nottt -->
 -   ##### **`underscoreJs: Object`**
 
     A reference to the <a href="https://underscorejs.org/" target="_blank">Underscore.js</a> library,
@@ -599,7 +600,8 @@ It accepts a JSON object with the following structure:
 
 ### Pre-navigation hooks
 
-This is an array of functions that will be executed **BEFORE** the main `pageFunction` is run. A similar `context` object is passed into each of these functions as is passed into the `pageFunction`; however, a second "[DirectNavigationOptions](https://sdk.apify.com/docs/typedefs/direct-navigation-options)" object is also passed in.
+<!-- puppeteer direct navigation options? -->
+This is an array of functions that will be executed **BEFORE** the main `pageFunction` is run. A similar `context` object is passed into each of these functions as is passed into the `pageFunction`; however, a second "[DirectNavigationOptions](https://crawlee.dev/api/puppeteer-crawler/namespace/puppeteerUtils#DirectNavigationOptions)" object is also passed in.
 
 The available options can be seen here:
 
@@ -611,11 +613,11 @@ preNavigationHooks: [
 
 > Unlike with puppeteer and cheerio scrapers, in web scraper we don't have the `Apify` object available in the hook parameters, as the hook is executed inside the browser.
 
-Check out the docs for [Pre-navigation hooks](https://sdk.apify.com/docs/typedefs/puppeteer-crawler-options#prenavigationhooks) and the [PuppeteerHook type](https://sdk.apify.com/docs/typedefs/puppeteer-hook) for more info regarding the objects passed into these functions.
+Check out the docs for [Pre-navigation hooks](https://crawlee.dev/api/puppeteer-crawler/interface/PuppeteerCrawlerOptions#preNavigationHooks) and the [PuppeteerHook type](https://crawlee.dev/api/puppeteer-crawler/interface/PuppeteerHook) for more info regarding the objects passed into these functions.
 
 ### Post-navigation hooks
 
-An array of functions that will be executed **AFTER** the main `pageFunction` is run. The only available parameter is the [CrawlingContext](https://sdk.apify.com/docs/typedefs/crawling-context) object.
+An array of functions that will be executed **AFTER** the main `pageFunction` is run. The only available parameter is the `CrawlingContext` object.
 
 ```JavaScript
 postNavigationHooks: [
@@ -625,7 +627,7 @@ postNavigationHooks: [
 
 > Unlike with puppeteer and cheerio scrapers, in web scraper we don't have the `Apify` object available in the hook parameters, as the hook is executed inside the browser.
 
-Check out the docs for [Post-navigation hooks](https://sdk.apify.com/docs/typedefs/puppeteer-crawler-options#postnavigationhooks) and the [PuppeteerHook type](https://sdk.apify.com/docs/typedefs/puppeteer-hook) for more info regarding the objects passed into these functions.
+Check out the docs for [Post-navigation hooks](https://crawlee.dev/api/puppeteer-crawler/interface/PuppeteerCrawlerOptions#postNavigationHooks) and the [PuppeteerHook type](https://crawlee.dev/api/puppeteer-crawler/interface/PuppeteerHook) for more info regarding the objects passed into these functions.
 
 ## Results
 
@@ -701,7 +703,7 @@ You might also want to see these other resources:
     [Puppeteer](https://github.com/GoogleChrome/puppeteer) library and the ability to use server-side libraries.
 -   [Actors documentation](https://apify.com/docs/actor) -
     Documentation for the Apify Actors cloud computing platform.
--   [Apify SDK](https://sdk.apify.com) - Learn how to build a new web scraping actor from scratch using the world's most
+-   [Crawlee](https://crawlee.dev) - Learn how to build a new web scraping actor from scratch using the world's most
     popular web crawling and scraping library for Node.js.
 
 ## Upgrading

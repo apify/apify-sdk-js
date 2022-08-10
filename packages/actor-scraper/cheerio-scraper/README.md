@@ -73,8 +73,8 @@ In summary, Cheerio Scraper works as follows:
 Cheerio Scraper has a number of advanced configuration settings to improve performance, set cookies for login to websites, limit the number of records, etc.
 See their tooltips for more information.
 
-Under the hood, Cheerio Scraper is built using the [`CheerioCrawler`](https://sdk.apify.com/docs/api/cheerio-crawler) class
-from the Apify SDK. If you'd like to learn more about the inner workings of the scraper, see the respective documentation.
+Under the hood, Cheerio Scraper is built using the [`CheerioCrawler`](https://crawlee.dev/api/cheerio-crawler/class/CheerioCrawler) class
+from Crawlee. If you'd like to learn more about the inner workings of the scraper, see the respective documentation.
 
 ## Content types
 
@@ -108,13 +108,13 @@ and the result is stored in the [`context.contentType`](#contenttype-object) obj
 The actor does not employ a full-featured web browser such as Chromium or Firefox, so it will not be sufficient for web pages that render their content dynamically using client-side JavaScript. To scrape such sites, you might prefer to use [**Web Scraper**](https://apify.com/apify/web-scraper) (`apify/web-scraper`), which loads pages in a full browser and renders dynamic content.
 
 Since Cheerio Scraper's **Page function** is executed in the context of the server, it only supports server-side code running in Node.js. If you need to combine client- and server-side libraries in Chromium using the [Puppeteer](https://github.com/GoogleChrome/puppeteer/) library, you might prefer to use
-[**Puppeteer Scraper**](https://apify.com/apify/puppeteer-scraper) (`apify/puppeteer-scraper`). For even more flexibility and control, you might develop a new actor from scratch in Node.js using the [Apify SDK](https://sdk.apify.com).
+[**Puppeteer Scraper**](https://apify.com/apify/puppeteer-scraper) (`apify/puppeteer-scraper`). For even more flexibility and control, you might develop a new actor from scratch in Node.js using [Cheerio](https://cheerio.dev).
 
 In the [**Page function**](#page-function) and **Prepare request function**,
 you can only use NPM modules that are already installed in this actor.
 If you require other modules for your scraping, you'll need to develop a completely new actor.
-You can use the [`CheerioCrawler`](https://sdk.apify.com/docs/api/cheerio-crawler) class
-from Apify SDK to get most of the functionality of Cheerio Scraper out of the box.
+You can use the [`CheerioCrawler`](https://crawlee.dev/api/cheerio-crawler/class/CheerioCrawler) class
+from Crawlee to get most of the functionality of Cheerio Scraper out of the box.
 
 ## Input configuration
 
@@ -246,19 +246,16 @@ visit the [Mozilla documentation](https://developer.mozilla.org/en-US/docs/Web/J
 
 - ##### **`Apify: Object`**
 
-  A reference to the main namespace of [Apify SDK](https://sdk.apify.com/docs/api/apify).
+  A reference to the [Actor](https://apify.github.io/apify-sdk-js/api/apify/class/Actor) object from [Apify SDK](https://apify.github.io/apify-sdk-js/api/apify/).
   This is equivalent to:
 
   ```javascript
-  const Apify = require('apify');
+  const { Actor: Apify } = require('apify');
   ```
-
-  **Caution:** Since the Cheerio Scraper itself runs using the Apify SDK,
-  you should use `Apify` property with caution and avoid making global changes to it, since it can affect the run of scraper itself.
 
 - ##### **`crawler: Object`**
 
-  A reference to the `CheerioCrawler` object, see [Apify SDK docs](https://sdk.apify.com/docs/api/cheerio-crawler) for more information.
+  A reference to the `CheerioCrawler` object, see [Crawlee docs](https://crawlee.dev/api/cheerio-crawler/class/CheerioCrawler) for more information.
 
 - ##### **`body: String|Buffer`**
 
@@ -304,7 +301,7 @@ visit the [Mozilla documentation](https://developer.mozilla.org/en-US/docs/Web/J
 
   Adds a new URL to the request queue, if it wasn't already there.
 
-  The `request` parameter is an object containing details of the request, with properties such as `url`, `userData`, `headers` etc. For the full list of the supported properties, see the [`Request`](https://sdk.apify.com/docs/api/request) object's constructor in the Apify SDK documentation.
+  The `request` parameter is an object containing details of the request, with properties such as `url`, `userData`, `headers` etc. For the full list of the supported properties, see the [`Request`](https://crawlee.dev/api/core/class/Request) object's constructor in Crawlee's documentation.
 
   The optional `options` parameter is an object with additional options. Currently, it only supports the `forefront` boolean flag. If `true`, the request is added to the beginning of the queue. By default, requests are added to the end.
 
@@ -318,7 +315,7 @@ visit the [Mozilla documentation](https://developer.mozilla.org/en-US/docs/Web/J
 - ##### **`env: Object`**
 
   A map of all relevant values set by the Apify platform to the actor run via the `APIFY_` environment variable. For example, here you can find information such as actor run ID, timeouts, actor run memory, etc.
-  For the full list of available values, see the [`Apify.getEnv()`](https://sdk.apify.com/docs/api/apify#getenv) function in the Apify SDK documentation.
+  For the full list of available values, see the [`Actor.getEnv()`](https://apify.github.io/apify-sdk-js/api/apify/class/Actor/#getEnv) function in the Apify SDK documentation.
 
   Example:
 
@@ -328,7 +325,7 @@ visit the [Mozilla documentation](https://developer.mozilla.org/en-US/docs/Web/J
 
 - ##### **`getValue(key): AsyncFunction`**
 
-  Gets a value from the default key-value store associated with the actor run. The key-value store is useful for persisting named data records, such as state objects, files, etc. The function is very similar to the [`Apify.getValue()`](https://sdk.apify.com/docs/api/apify#getvalue) function in the Apify SDK documentation.
+  Gets a value from the default key-value store associated with the actor run. The key-value store is useful for persisting named data records, such as state objects, files, etc. The function is very similar to the [`Actor.getValue()`](https://apify.github.io/apify-sdk-js/api/apify/class/Actor/#getValue) function in Apify SDK.
 
   To set the value, use the dual function `context.setValue(key, value)`.
 
@@ -372,7 +369,7 @@ visit the [Mozilla documentation](https://developer.mozilla.org/en-US/docs/Web/J
 - ##### **`log: Object`**
 
   An object containing logging functions, with the same interface as provided by the
-  [`Apify.utils.log`](https://sdk.apify.com/docs/api/log) object in the Apify SDK. The log messages are written directly to the actor run log, which is useful for monitoring and debugging.
+  [`crawlee.utils.log`](https://crawlee.dev/api/core/class/Log) object in Crawlee. The log messages are written directly to the actor run log, which is useful for monitoring and debugging.
   Note that `log.debug()` only logs messages if the **Debug log** input setting is set.
 
   Example:
@@ -400,7 +397,7 @@ visit the [Mozilla documentation](https://developer.mozilla.org/en-US/docs/Web/J
 
 - ##### **`setValue(key, data, options): AsyncFunction`**
 
-  Sets a value to the default key-value store associated with the actor run. The key-value store is useful for persisting named data records, such as state objects, files, etc. The function is very similar to the [`Apify.setValue()`](https://sdk.apify.com/docs/api/apify#setvalue) function in the Apify SDK documentation.
+  Sets a value to the default key-value store associated with the actor run. The key-value store is useful for persisting named data records, such as state objects, files, etc. The function is very similar to the [`Actor.setValue()`](https://apify.github.io/apify-sdk-js/api/apify/class/Actor/#setValue) function in Apify SDK.
 
   To get the value, use the dual function `context.getValue(key)`.
 
@@ -416,7 +413,7 @@ visit the [Mozilla documentation](https://developer.mozilla.org/en-US/docs/Web/J
 
 - ##### **`request: Object`**
 
-  An object containing information about the currently loaded web page, such as the URL, number of retries, a unique key, etc. Its properties are equivalent to the [`Request`](https://sdk.apify.com/docs/api/request) object in the Apify SDK.
+  An object containing information about the currently loaded web page, such as the URL, number of retries, a unique key, etc. Its properties are equivalent to the [`Request`](https://crawlee.dev/api/core/class/Request) object in Crawlee.
 
 - ##### **`response: Object`**
 
@@ -513,7 +510,8 @@ It accepts a JSON object with the following structure:
 
 ### Pre-navigation hooks
 
-This is an array of functions that will be executed **BEFORE** the main `pageFunction` is run. A similar `context` object is passed into each of these functions as is passed into the `pageFunction`; however, a second "[RequestAsBrowserOptions](https://sdk.apify.com/docs/typedefs/request-as-browser-options)" object is also passed in.
+<!-- todo request as browser is out -->
+This is an array of functions that will be executed **BEFORE** the main `pageFunction` is run. A similar `context` object is passed into each of these functions as is passed into the `pageFunction`; however, a second `gotOptions` object is also passed in.
 
 The available options can be seen here:
 
@@ -523,11 +521,11 @@ preNavigationHooks: [
 ]
 ```
 
-Check out the docs for [Pre-navigation hooks](https://sdk.apify.com/docs/typedefs/puppeteer-crawler-options#prenavigationhooks) and the [PuppeteerHook type](https://sdk.apify.com/docs/typedefs/puppeteer-hook) for more info regarding the objects passed into these functions. The available properties are extended with `Apify` and `customData` in this scraper.
+Check out the docs for [Pre-navigation hooks](https://crawlee.dev/api/cheerio-crawler/interface/CheerioCrawlerOptions#preNavigationHooks) and the [PuppeteerHook type](https://crawlee.dev/api/puppeteer-crawler/interface/PuppeteerHook) for more info regarding the objects passed into these functions. The available properties are extended with `Apify` and `customData` in this scraper.
 
 ### Post-navigation hooks
 
-An array of functions that will be executed **AFTER** the main `pageFunction` is run. The only available parameter is the [CrawlingContext](https://sdk.apify.com/docs/typedefs/crawling-context) object. The available properties are extended with `Apify` and `customData` in this scraper.
+An array of functions that will be executed **AFTER** the main `pageFunction` is run. The only available parameter is the [CrawlingContext](https://crawlee.dev/api/cheerio-crawler/interface/CheerioCrawlingContext) object. The available properties are extended with `Apify` and `customData` in this scraper.
 
 ```JavaScript
 postNavigationHooks: [
@@ -535,7 +533,7 @@ postNavigationHooks: [
 ]
 ```
 
-Check out the docs for [Pre-navigation hooks](https://sdk.apify.com/docs/typedefs/puppeteer-crawler-options#prenavigationhooks) for more info regarding the objects passed into these functions.
+Check out the docs for [Pre-navigation hooks](https://crawlee.dev/api/cheerio-crawler/interface/CheerioCrawlerOptions#preNavigationHooks) for more info regarding the objects passed into these functions.
 
 ## Results
 
@@ -605,9 +603,12 @@ You might also want to see these other resources:
   [Puppeteer](https://github.com/GoogleChrome/puppeteer) library and the ability to use server-side libraries.
 - [Actors documentation](https://apify.com/docs/actor) -
   Documentation for the Apify Actors cloud computing platform.
-- [Apify SDK](https://sdk.apify.com) - Learn how to build a new web scraping actor from scratch using the world's most popular web crawling and scraping library for Node.js.
+- [Crawlee](https://crawlee.dev) - Learn how to build a new web scraping actor from scratch using the world's most popular web crawling and scraping library for Node.js.
 
 ## Upgrading
 
 v2 introduced several minor breaking changes, you can read about those in the
 [migration guide](https://github.com/apify/actor-scraper/blob/master/MIGRATIONS.md).
+
+v3 (Crawlee) introduces even more breaking changes. 
+This [v3 migration guide](https://crawlee.dev/docs/upgrading/upgrading-to-v3) should take you through these.
