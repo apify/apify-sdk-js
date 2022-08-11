@@ -81,11 +81,11 @@ module.exports = {
                 redirects: [
                     {
                         from: '/docs',
-                        to: '/docs/apify-platform',
+                        to: '/docs/guides/apify-platform',
                     },
                     {
                         from: '/docs/next',
-                        to: '/docs/next/apify-platform',
+                        to: '/docs/next/guides/apify-platform',
                     },
                 ],
             },
