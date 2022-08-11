@@ -435,19 +435,19 @@ The available options can be seen here:
 
 ```JavaScript
 preNavigationHooks: [
-    async ({ id, request, session, proxyInfo, customData, Apify }, { timeout, waitUntil, referer }) => {}
+    async ({ id, request, session, proxyInfo, customData, Actor }, { timeout, waitUntil, referer }) => {}
 ]
 ```
 
-Check out the docs for [Pre-navigation hooks](https://crawlee.dev/api/puppeteer-crawler/interface/PuppeteerCrawlerOptions#preNavigationHooks) and the [PuppeteerHook type](https://crawlee.dev/api/puppeteer-crawler/interface/PuppeteerHook) for more info regarding the objects passed into these functions. The available properties are extended with `Apify` and `customData` in this scraper.
+Check out the docs for [Pre-navigation hooks](https://crawlee.dev/api/puppeteer-crawler/interface/PuppeteerCrawlerOptions#preNavigationHooks) and the [PuppeteerHook type](https://crawlee.dev/api/puppeteer-crawler/interface/PuppeteerHook) for more info regarding the objects passed into these functions. The available properties are extended with `Actor` (alternatively `Apify`) and `customData` in this scraper.
 
 ### Post-navigation hooks
 
-An array of functions that will be executed **AFTER** the main `pageFunction` is run. The only available parameter is the [CrawlingContext](htthttps://crawlee.dev/api/puppeteer-crawler/interface/PuppeteerCrawlingContext) object. The available properties are extended with `Apify` and `customData` in this scraper.
+An array of functions that will be executed **AFTER** the main `pageFunction` is run. The only available parameter is the [CrawlingContext](https://crawlee.dev/api/puppeteer-crawler/interface/PuppeteerCrawlingContext) object. The available properties are extended with `Actor` (alternatively `Apify`) and `customData` in this scraper.
 
 ```JavaScript
 postNavigationHooks: [
-    async ({ id, request, session, proxyInfo, response, customData, Apify }) => {}
+    async ({ id, request, session, proxyInfo, response, customData, Actor }) => {}
 ]
 ```
 

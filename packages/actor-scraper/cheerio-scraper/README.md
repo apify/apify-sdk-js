@@ -244,14 +244,18 @@ visit the [Mozilla documentation](https://developer.mozilla.org/en-US/docs/Web/J
   //=> Horror Movie
   ```
 
-- ##### **`Apify: Object`**
+- ##### **`Actor: Object`**
 
   A reference to the [Actor](https://apify.github.io/apify-sdk-js/api/apify/class/Actor) object from [Apify SDK](https://apify.github.io/apify-sdk-js/api/apify/).
   This is equivalent to:
 
   ```javascript
-  const { Actor: Apify } = require('apify');
+  import { Actor } from 'apify';
   ```
+
+- ##### **`Apify: Object`**
+
+  A reference to the [Actor](https://apify.github.io/apify-sdk-js/api/apify/class/Actor) object from [Apify SDK](https://apify.github.io/apify-sdk-js/api/apify/). Included for backward compatibility.
 
 - ##### **`crawler: Object`**
 
@@ -277,7 +281,7 @@ visit the [Mozilla documentation](https://developer.mozilla.org/en-US/docs/Web/J
   This is equivalent to:
 
   ```javascript
-  const cheerio = require('cheerio');
+  import cheerio from 'cheerio';
   ```
 
 - ##### **`contentType: Object`**
@@ -517,19 +521,19 @@ The available options can be seen here:
 
 ```JavaScript
 preNavigationHooks: [
-    async ({ id, request, session, proxyInfo, customData, Apify }, { url, method, headers, proxyUrl }) => {}
+    async ({ id, request, session, proxyInfo, customData, Actor }, { url, method, headers, proxyUrl }) => {}
 ]
 ```
 
-Check out the docs for [Pre-navigation hooks](https://crawlee.dev/api/cheerio-crawler/interface/CheerioCrawlerOptions#preNavigationHooks) and the [PuppeteerHook type](https://crawlee.dev/api/puppeteer-crawler/interface/PuppeteerHook) for more info regarding the objects passed into these functions. The available properties are extended with `Apify` and `customData` in this scraper.
+Check out the docs for [Pre-navigation hooks](https://crawlee.dev/api/cheerio-crawler/interface/CheerioCrawlerOptions#preNavigationHooks) and the [PuppeteerHook type](https://crawlee.dev/api/puppeteer-crawler/interface/PuppeteerHook) for more info regarding the objects passed into these functions. The available properties are extended with `Actor` (alternatively `Apify`) and `customData` in this scraper.
 
 ### Post-navigation hooks
 
-An array of functions that will be executed **AFTER** the main `pageFunction` is run. The only available parameter is the [CrawlingContext](https://crawlee.dev/api/cheerio-crawler/interface/CheerioCrawlingContext) object. The available properties are extended with `Apify` and `customData` in this scraper.
+An array of functions that will be executed **AFTER** the main `pageFunction` is run. The only available parameter is the [CrawlingContext](https://crawlee.dev/api/cheerio-crawler/interface/CheerioCrawlingContext) object. The available properties are extended with `Actor` (alternatively `Apify`) and `customData` in this scraper.
 
 ```JavaScript
 postNavigationHooks: [
-    async ({ id, request, session, proxyInfo, response, customData, Apify }) => {}
+    async ({ id, request, session, proxyInfo, response, customData, Actor }) => {}
 ]
 ```
 
