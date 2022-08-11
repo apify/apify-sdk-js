@@ -1,0 +1,12 @@
+[
+    {
+        "entryPoints": {
+            "index": {
+                "label": "Index",
+                "path": "index.ts"
+            }
+        },
+        "packagePath": "apify",
+        "packageSlug": "apify"
+    }
+]

@@ -1,13 +1,26 @@
 /* eslint-disable global-require,import/no-extraneous-dependencies */
-const { createHref } = require('./tools/utils/createHref');
 const { externalLinkProcessor } = require('./tools/utils/externalLink');
+const pkg = require('../packages/apify/package.json');
+
+const [v1, v2] = pkg.version.split('.');
+const version = [v1, v2].join('.');
+
+const packages = [
+    'apify',
+    'scraper-tools',
+];
+const packagesOrder = [
+    'apify',
+    '@apify/scraper-tools',
+];
 
 /** @type {Partial<import('@docusaurus/types').DocusaurusConfig>} */
 module.exports = {
     title: 'Apify SDK monorepo',
-    tagline: 'The scalable web crawling, scraping and automation library for JavaScript/Node.js',
+    tagline: 'Apify SDK is a toolkit for building actors',
     url: 'https://apify.github.io',
     baseUrl: '/apify-sdk-js/',
+    trailingSlash: false,
     organizationName: 'apify',
     projectName: 'apify-sdk-js',
     scripts: ['/apify-sdk-js/js/custom.js'],
@@ -29,11 +42,9 @@ module.exports = {
             /** @type {import('@docusaurus/preset-classic').Options} */
             ({
                 docs: {
-                    disableVersioning: true,
-                    lastVersion: 'current',
                     versions: {
                         current: {
-                            label: '3.0.0',
+                            label: `v${version}`,
                         },
                     },
                     showLastUpdateAuthor: true,
@@ -43,7 +54,7 @@ module.exports = {
                     rehypePlugins: [externalLinkProcessor],
                 },
                 theme: {
-                    customCss: '/src/css/customTheme.css',
+                    customCss: '/src/css/custom.css',
                 },
             }),
         ],
@@ -54,16 +65,37 @@ module.exports = {
             {
                 projectRoot: `${__dirname}/..`,
                 changelogs: true,
-                packages: [
-                    {
-                        path: 'packages/apify',
-                    },
-                ],
+                readmes: true,
+                sortPackages: (a, b) => {
+                    return packagesOrder.indexOf(a.packageName) - packagesOrder.indexOf(b.packageName);
+                },
+                packages: packages.map((name) => ({ path: `packages/${name}` })),
                 typedocOptions: {
                     excludeExternals: false,
                 },
             },
         ],
+        [
+            '@docusaurus/plugin-client-redirects',
+            {
+                redirects: [
+                    {
+                        from: '/docs',
+                        to: '/docs/guides/apify-platform',
+                    },
+                    {
+                        from: '/docs/next',
+                        to: '/docs/next/guides/apify-platform',
+                    },
+                ],
+            },
+        ],
+        // [
+        //     'docusaurus-gtm-plugin',
+        //     {
+        //         id: 'GTM-TKBX678',
+        //     },
+        // ],
     ],
     themeConfig:
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */ ({
@@ -81,44 +113,34 @@ module.exports = {
                 srcDark: 'img/apify_sdk_white.svg',
             },
             items: [
-                // {
-                //     type: 'docsVersion',
-                //     to: 'docs/guides',
-                //     label: 'Guides',
-                //     position: 'left',
-                // },
-                // {
-                //     type: 'docsVersion',
-                //     to: 'docs/examples',
-                //     label: 'Examples',
-                //     position: 'left',
-                // },
+                {
+                    type: 'docsVersion',
+                    to: 'docs',
+                    label: 'Docs',
+                    position: 'left',
+                },
+                {
+                    type: 'docsVersion',
+                    to: 'docs/examples',
+                    label: 'Examples',
+                    position: 'left',
+                },
                 {
                     type: 'docsVersion',
                     to: 'api/apify',
-                    label: 'API reference',
+                    label: 'API',
                     position: 'left',
                     activeBaseRegex: 'api/(?!apify/changelog)',
                 },
-                // {
-                //     to: 'api/apify/changelog',
-                //     label: 'Changelog',
-                //     position: 'left',
-                //     className: 'changelog',
-                // },
+                {
+                    to: 'api/apify/changelog',
+                    label: 'Changelog',
+                    position: 'left',
+                    className: 'changelog',
+                },
                 {
                     type: 'docsVersionDropdown',
-                    position: 'right',
-                    dropdownItemsAfter: [
-                        {
-                            href: 'https://sdk.apify.com/docs/guides/getting-started',
-                            label: '2.2',
-                        },
-                        {
-                            href: 'https://sdk.apify.com/docs/1.3.1/guides/getting-started',
-                            label: '1.3',
-                        },
-                    ],
+                    position: 'left',
                 },
                 {
                     href: 'https://github.com/apify/apify-sdk-js',
@@ -154,17 +176,21 @@ module.exports = {
                 {
                     title: 'Docs',
                     items: [
-                        // {
-                        //     label: 'Guides',
-                        //     to: 'docs/guides',
-                        // },
-                        // {
-                        //     label: 'Examples',
-                        //     to: 'docs/examples',
-                        // },
+                        {
+                            label: 'Guides',
+                            to: 'docs/guides',
+                        },
+                        {
+                            label: 'Examples',
+                            to: 'docs/examples',
+                        },
                         {
                             label: 'API reference',
                             to: 'api/apify',
+                        },
+                        {
+                            label: 'Upgrading to v3',
+                            to: 'docs/upgrading/upgrading-to-v3',
                         },
                     ],
                 },
@@ -177,7 +203,7 @@ module.exports = {
                         },
                         {
                             label: 'Stack Overflow',
-                            href: 'https://stackoverflow.com/questions/tagged/apify',
+                            href: 'https://stackoverflow.com/questions/tagged/crawlee',
                         },
                         {
                             label: 'Twitter',
@@ -193,27 +219,20 @@ module.exports = {
                     title: 'More',
                     items: [
                         {
-                            html: createHref(
-                                'https://apify.com',
-                                'Apify Platform',
-                            ),
+                            label: 'Apify Platform',
+                            href: 'https://apify.com',
                         },
                         {
-                            html: createHref(
-                                'https://docusaurus.io',
-                                'Docusaurus',
-                            ),
+                            label: 'Docusaurus',
+                            href: 'https://docusaurus.io',
                         },
                         {
-                            html: createHref(
-                                'https://github.com/apify/apify-sdk-js',
-                                'GitHub',
-                            ),
+                            label: 'GitHub',
+                            href: 'https://github.com/apify/crawlee',
                         },
                     ],
                 },
             ],
-            copyright: `Copyright © ${new Date().getFullYear()} Apify Technologies s.r.o.`,
             logo: {
                 src: 'img/apify_logo.svg',
                 href: '/',
@@ -221,18 +240,13 @@ module.exports = {
                 height: '60px',
             },
         },
-        // algolia: {
-        //     // FIXME those are crawlee.dev credentials, we will need new one for this monorepo
-        //     appId: 'UXG5NIR52R',
-        //     apiKey: '83302bb4196d8377aa5b3526c6d904fb', // search only (public) API key
-        //     indexName: 'apify_sdk', // FIXME wrong index name
-        //     algoliaOptions: {
-        //         facetFilters: ['version:VERSION'],
-        //     },
-        // },
-        gaGtag: {
-            // FIXME we might want different tracking id?
-            trackingID: 'UA-67003981-4',
+        algolia: {
+            appId: 'N8EOCSBQGH',
+            apiKey: 'b43e67a96ed18c7f63f5fd965906a96d', // search only (public) API key
+            indexName: 'apify_sdk',
+            algoliaOptions: {
+                facetFilters: ['version:VERSION'],
+            },
         },
     }),
 };
