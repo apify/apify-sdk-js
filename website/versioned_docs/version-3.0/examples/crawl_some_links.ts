@@ -1,4 +1,7 @@
-import { CheerioCrawler } from '@crawlee/cheerio';
+import { Actor } from 'apify';
+import { CheerioCrawler } from 'crawlee';
+
+await Actor.init();
 
 // Create a CheerioCrawler
 const crawler = new CheerioCrawler({
@@ -14,8 +17,7 @@ const crawler = new CheerioCrawler({
     },
 });
 
-// Define the starting URL
-await crawler.addRequests(['https://apify.com/store']);
+// Define the starting URL and run the crawler
+await crawler.run(['https://apify.com/store']);
 
-// Run the crawler
-await crawler.run();
+await Actor.exit();

@@ -2,7 +2,6 @@
 id: apify-platform
 title: Apify Platform
 description: Apify platform - large-scale and high-performance web scraping
-slug: /
 ---
 
 import ApiLink from '@site/src/components/ApiLink';
@@ -16,7 +15,7 @@ import InitExitSource from '!!raw-loader!./apify_platform_init_exit.ts';
 
 Apify is a [platform](https://apify.com) built to serve large-scale and high-performance web scraping
 and automation needs. It provides easy access to [compute instances (Actors)](#what-is-an-actor),
-convenient [request](../guides/request-storage) and [result](../guides/result-storage) storages, [proxies](../guides/proxy-management),
+convenient [request](./request-storage) and [result](./result-storage) storages, [proxies](./proxy-management),
 [scheduling](https://docs.apify.com/scheduler), [webhooks](https://docs.apify.com/webhooks)
 and [more](https://docs.apify.com/), accessible through a [web interface](https://console.apify.com)
 or an [API](https://docs.apify.com/api).
@@ -217,7 +216,7 @@ or to run an actor on the Apify platform. You can find your API token on the
 
 ### Combinations of `APIFY_TOKEN` and `CRAWLEE_STORAGE_DIR`
 
-> `CRAWLEE_STORAGE_DIR` env variable description could be found in [Environment Variables](../guides/configuration#crawlee_storage_dir) guide.
+> `CRAWLEE_STORAGE_DIR` env variable description could be found in [Environment Variables](./configuration#crawlee_storage_dir) guide.
 
 By combining the env vars in various ways, you can greatly influence the actor's behavior.
 

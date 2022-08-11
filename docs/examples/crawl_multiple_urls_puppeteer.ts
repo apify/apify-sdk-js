@@ -18,4 +18,4 @@ await crawler.run([
     'http://www.example.com/page-3',
 ]);
 
-await Actor.init();
+await Actor.exit();

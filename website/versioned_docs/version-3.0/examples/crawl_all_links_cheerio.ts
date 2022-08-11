@@ -1,4 +1,7 @@
-import { CheerioCrawler } from '@crawlee/cheerio';
+import { Actor } from 'apify';
+import { CheerioCrawler } from 'crawlee';
+
+await Actor.init();
 
 const crawler = new CheerioCrawler({
     async requestHandler({ request, enqueueLinks }) {
@@ -9,7 +12,7 @@ const crawler = new CheerioCrawler({
     maxRequestsPerCrawl: 10, // Limitation for only 10 requests (do not use if you want to crawl all links)
 });
 
-await crawler.addRequests(['https://apify.com/']);
-
 // Run the crawler
-await crawler.run();
+await crawler.run(['https://apify.com/']);
+
+await Actor.exit();

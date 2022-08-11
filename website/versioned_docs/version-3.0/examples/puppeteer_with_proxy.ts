@@ -1,7 +1,10 @@
-import { PuppeteerCrawler, createProxyConfiguration } from '@crawlee/puppeteer';
+import { Actor } from 'apify';
+import { PuppeteerCrawler } from 'crawlee';
+
+await Actor.init();
 
 // Proxy connection is automatically established in the Crawler
-const proxyConfiguration = await createProxyConfiguration();
+const proxyConfiguration = await Actor.createProxyConfiguration();
 
 const crawler = new PuppeteerCrawler({
     proxyConfiguration,
@@ -11,10 +14,10 @@ const crawler = new PuppeteerCrawler({
     },
 });
 
-await crawler.addRequests(['http://proxy.apify.com']);
-
 console.log('Running Puppeteer script...');
 
-await crawler.run();
+await crawler.run(['http://proxy.apify.com']);
 
 console.log('Puppeteer closed.');
+
+await Actor.exit();

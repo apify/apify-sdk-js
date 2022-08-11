@@ -1,4 +1,7 @@
-import { CheerioCrawler, EnqueueStrategy } from '@crawlee/cheerio';
+import { Actor } from 'apify';
+import { CheerioCrawler, EnqueueStrategy } from 'crawlee';
+
+await Actor.init();
 
 const crawler = new CheerioCrawler({
     maxRequestsPerCrawl: 10, // Limitation for only 10 requests (do not use if you want to crawl all links)
@@ -8,14 +11,14 @@ const crawler = new CheerioCrawler({
             // Setting the strategy to 'same-subdomain' will enqueue all links found that are on the same subdomain and hostname
             // as request.loadedUrl or request.url
             // highlight-next-line
-            strategy: EnqueueStrategy.SameSubdomain,
+            strategy: EnqueueStrategy.SameHostname,
             // Alternatively, you can pass in the string 'same-subdomain'
             // strategy: 'same-subdomain',
         });
     },
 });
 
-await crawler.addRequests(['https://apify.com/']);
-
 // Run the crawler
-await crawler.run();
+await crawler.run(['https://apify.com/']);
+
+await Actor.exit();

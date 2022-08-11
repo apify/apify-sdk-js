@@ -1,6 +1,7 @@
-import { Dataset, PuppeteerCrawler } from '@crawlee/puppeteer';
+import { Actor } from 'apify';
+import { PuppeteerCrawler } from 'crawlee';
 
-const dataset = await Dataset.open();
+await Actor.init();
 
 // Create an instance of the PuppeteerCrawler class - a crawler
 // that automatically loads the URLs in headless Chrome / Puppeteer.
@@ -42,7 +43,7 @@ const crawler = new PuppeteerCrawler({
         });
 
         // Store the results to the default dataset.
-        await dataset.pushData(data);
+        await Actor.pushData(data);
 
         // Find a link to the next page and enqueue it if it exists.
         const infos = await enqueueLinks({
@@ -58,9 +59,9 @@ const crawler = new PuppeteerCrawler({
     },
 });
 
-await crawler.addRequests(['https://news.ycombinator.com/']);
-
 // Run the crawler and wait for it to finish.
-await crawler.run();
+await crawler.run(['https://news.ycombinator.com/']);
 
 console.log('Crawler finished.');
+
+await Actor.exit();

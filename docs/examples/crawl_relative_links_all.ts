@@ -1,5 +1,5 @@
-import { CheerioCrawler, EnqueueStrategy } from 'crawlee';
 import { Actor } from 'apify';
+import { CheerioCrawler } from 'crawlee';
 
 await Actor.init();
 
@@ -10,9 +10,7 @@ const crawler = new CheerioCrawler({
         await enqueueLinks({
             // Setting the strategy to 'all' will enqueue all links found
             // highlight-next-line
-            strategy: EnqueueStrategy.All,
-            // Alternatively, you can pass in the string 'all'
-            // strategy: 'all',
+            strategy: 'all',
         });
     },
 });

@@ -1,6 +1,7 @@
-import { Dataset, launchPuppeteer } from '@crawlee/puppeteer';
+import { Actor } from 'apify';
+import { launchPuppeteer } from 'crawlee';
 
-const dataset = await Dataset.open();
+await Actor.init();
 
 // Launch the web browser.
 const browser = await launchPuppeteer();
@@ -33,7 +34,9 @@ const results = await page.$$eval('div.f4.text-normal a', (nodes) => nodes.map((
 console.log('Results:', results);
 
 // Store data in default dataset
-await dataset.pushData(results);
+await Actor.pushData(results);
 
 // Close browser
 await browser.close();
+
+await Actor.exit();

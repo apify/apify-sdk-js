@@ -1,6 +1,4 @@
-import { Dataset, CheerioCrawler, log, LogLevel } from '@crawlee/cheerio';
-
-const dataset = await Dataset.open();
+import { CheerioCrawler, log, LogLevel } from 'crawlee';
 
 // Crawlers come with various utilities, e.g. for logging.
 // Here we use debug level of logging to improve the debugging experience.
@@ -44,8 +42,8 @@ const crawler = new CheerioCrawler({
         });
 
         // Store the results to the dataset. In local configuration,
-        // the data will be stored as JSON files in ./apify_storage/datasets/default
-        await dataset.pushData({
+        // the data will be stored as JSON files in ./storage/datasets/default
+        await Actor.pushData({
             url: request.url,
             title,
             h1texts,

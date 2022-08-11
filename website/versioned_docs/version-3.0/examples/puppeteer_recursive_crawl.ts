@@ -1,4 +1,7 @@
-import { PuppeteerCrawler } from '@crawlee/puppeteer';
+import { Actor } from 'apify';
+import { PuppeteerCrawler } from 'crawlee';
+
+await Actor.init();
 
 const crawler = new PuppeteerCrawler({
     async requestHandler({ request, page, enqueueLinks }) {
@@ -12,6 +15,6 @@ const crawler = new PuppeteerCrawler({
     maxRequestsPerCrawl: 10,
 });
 
-await crawler.addRequests(['https://www.iana.org/']);
+await crawler.run(['https://www.iana.org/']);
 
-await crawler.run();
+await Actor.exit();

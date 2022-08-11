@@ -1,4 +1,7 @@
-import { PlaywrightCrawler } from '@crawlee/playwright';
+import { Actor } from 'apify';
+import { PlaywrightCrawler } from 'crawlee';
+
+await Actor.init();
 
 const crawler = new PlaywrightCrawler({
     async requestHandler({ request, enqueueLinks }) {
@@ -9,7 +12,7 @@ const crawler = new PlaywrightCrawler({
     maxRequestsPerCrawl: 10, // Limitation for only 10 requests (do not use if you want to crawl all links)
 });
 
-await crawler.addRequests(['https://apify.com/']);
-
 // Run the crawler
-await crawler.run();
+await crawler.run(['https://apify.com/']);
+
+await Actor.exit();

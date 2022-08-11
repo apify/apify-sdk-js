@@ -75,25 +75,21 @@ module.exports = {
                 },
             },
         ],
-        // [
-        //     '@docusaurus/plugin-client-redirects',
-        //     {
-        //         redirects: [
-        //             {
-        //                 from: '/docs',
-        //                 to: '/docs/quick-start',
-        //             },
-        //             {
-        //                 from: '/docs/guides/environment-variables',
-        //                 to: '/docs/guides/configuration',
-        //             },
-        //             // {
-        //             //     from: '/docs/next',
-        //             //     to: '/docs/next/quick-start',
-        //             // },
-        //         ],
-        //     },
-        // ],
+        [
+            '@docusaurus/plugin-client-redirects',
+            {
+                redirects: [
+                    {
+                        from: '/docs',
+                        to: '/docs/apify-platform',
+                    },
+                    {
+                        from: '/docs/next',
+                        to: '/docs/next/apify-platform',
+                    },
+                ],
+            },
+        ],
         // [
         //     'docusaurus-gtm-plugin',
         //     {
