@@ -13,11 +13,11 @@ const packagesOrder = [
     'apify',
     '@apify/scraper-tools',
 ];
-console.log(packages.map((name) => ({ path: `packages/${name}` })));
+
 /** @type {Partial<import('@docusaurus/types').DocusaurusConfig>} */
 module.exports = {
     title: 'Apify SDK monorepo',
-    tagline: 'The scalable web crawling, scraping and automation library for JavaScript/Node.js',
+    tagline: 'Apify SDK is a toolkit for building actors',
     url: 'https://apify.github.io',
     baseUrl: '/apify-sdk-js/',
     trailingSlash: false,

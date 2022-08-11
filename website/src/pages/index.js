@@ -15,22 +15,22 @@ function Hero() {
                     <div className={clsx(styles.relative, 'row')}>
                         <div className="col">
                             <h1 className={styles.tagline}>
-                                Crawlee is a web<br /> scraping and browser<br /> automation library
+                                Apify SDK<br /> is a toolkit for<br /> building actors
                             </h1>
                             <h1 className={styles.tagline}>
-                                Crawlee is a <span>web<br /> scraping</span> and <span>browser<br /> automation</span> library
+                                <span>Apify SDK</span><br /> is a toolkit for<br /> <span>building actors</span>
                             </h1>
                         </div>
                     </div>
                     <div className="row">
                         <div className="col">
-                            <h2>It helps you build reliable crawlers. Fast.</h2>
+                            <h2>Actors are serverless microservices running on the Apify platform.</h2>
                         </div>
                     </div>
                     <div className="row">
                         <div className="col">
                             <div className={styles.heroButtons}>
-                                <Link to="docs/introduction" className={styles.getStarted}>Get Started</Link>
+                                <Link to="docs" className={styles.getStarted}>Get Started</Link>
                                 <iframe src="https://ghbtns.com/github-btn.html?user=apify&repo=crawlee&type=star&count=true&size=large" frameBorder="0" scrolling="0" width="170" height="30" title="GitHub"></iframe>
                             </div>
                         </div>
@@ -128,8 +128,8 @@ export default function Home() {
             title={`${siteConfig.title} · ${siteConfig.tagline}`}
             description={siteConfig.description}>
             <Hero />
-            <Hightlights />
-            <Features />
+            {/* <Hightlights /> */}
+            {/* <Features /> */}
             <ActorExample />
             <div className="container">
                 <div className="row">
