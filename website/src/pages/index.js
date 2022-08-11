@@ -31,7 +31,7 @@ function Hero() {
                         <div className="col">
                             <div className={styles.heroButtons}>
                                 <Link to="docs" className={styles.getStarted}>Get Started</Link>
-                                <iframe src="https://ghbtns.com/github-btn.html?user=apify&repo=crawlee&type=star&count=true&size=large" frameBorder="0" scrolling="0" width="170" height="30" title="GitHub"></iframe>
+                                <iframe src="https://ghbtns.com/github-btn.html?user=apify&repo=apify-sdk-js&type=star&count=true&size=large" frameBorder="0" scrolling="0" width="170" height="30" title="GitHub"></iframe>
                             </div>
                         </div>
                     </div>

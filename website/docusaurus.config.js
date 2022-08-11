@@ -16,7 +16,7 @@ const packagesOrder = [
 
 /** @type {Partial<import('@docusaurus/types').DocusaurusConfig>} */
 module.exports = {
-    title: 'Apify SDK monorepo',
+    title: 'Apify SDK',
     tagline: 'Apify SDK is a toolkit for building actors',
     url: 'https://apify.github.io',
     baseUrl: '/apify-sdk-js/',
@@ -203,7 +203,7 @@ module.exports = {
                         },
                         {
                             label: 'Stack Overflow',
-                            href: 'https://stackoverflow.com/questions/tagged/crawlee',
+                            href: 'https://stackoverflow.com/questions/tagged/apify',
                         },
                         {
                             label: 'Twitter',
@@ -223,12 +223,16 @@ module.exports = {
                             href: 'https://apify.com',
                         },
                         {
+                            label: 'Crawlee',
+                            href: 'https://crawlee.dev',
+                        },
+                        {
                             label: 'Docusaurus',
                             href: 'https://docusaurus.io',
                         },
                         {
                             label: 'GitHub',
-                            href: 'https://github.com/apify/crawlee',
+                            href: 'https://github.com/apify/apify-sdk-js',
                         },
                     ],
                 },
