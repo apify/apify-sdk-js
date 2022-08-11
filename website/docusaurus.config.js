@@ -115,7 +115,7 @@ module.exports = {
             items: [
                 {
                     type: 'docsVersion',
-                    to: 'docs',
+                    to: 'docs/guides/apify-platform',
                     label: 'Docs',
                     position: 'left',
                 },
