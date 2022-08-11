@@ -5,7 +5,7 @@ function load() {
     let i = 0;
 
     for (const el of versions) {
-        const match = el.href.match(/\/docs\/(\d+\.\d+(\.\d+)?)$/) || el.href.match(/\/docs\/(\d+\.\d+(\.\d+)?)/);
+        const match = el.href.match(/\/docs\/(\d+\.\d+(\.\d+)?)$/) || el.href.match(/\/docs\/(\d+\.\d+(\.\d+)?)/) || [''];
         const version = (types[i++] || match[0]).replace('/docs', '/api');
 
         if (el.classList.contains('api-version-bound')) {
