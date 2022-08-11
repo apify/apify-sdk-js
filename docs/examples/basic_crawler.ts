@@ -1,9 +1,10 @@
-import { BasicCrawler, Dataset } from '@crawlee/basic';
+import { Actor } from 'apify';
+import { BasicCrawler } from 'crawlee';
 import { gotScraping } from 'got-scraping';
 
-// Create a dataset where we will store the results.
-const dataset = await Dataset.open();
+await Actor.init();
 
+// Create a dataset where we will store the results.
 // Create a BasicCrawler - the simplest crawler that enables
 // users to implement the crawling logic themselves.
 const crawler = new BasicCrawler({
@@ -16,7 +17,7 @@ const crawler = new BasicCrawler({
         const { body } = await gotScraping({ url });
 
         // Store the HTML and URL to the default dataset.
-        await dataset.pushData({
+        await Actor.pushData({
             url: request.url,
             html: body,
         });
@@ -24,14 +25,13 @@ const crawler = new BasicCrawler({
 });
 
 // The initial list of URLs to crawl. Here we use just a few hard-coded URLs.
-await crawler.addRequests([
+await crawler.run([
     { url: 'http://www.google.com/' },
     { url: 'http://www.example.com/' },
     { url: 'http://www.bing.com/' },
     { url: 'http://www.wikipedia.com/' },
 ]);
 
-// Run the crawler and wait for it to finish.
-await crawler.run();
-
 console.log('Crawler finished.');
+
+await Actor.exit();

@@ -1,6 +1,8 @@
-import { KeyValueStore } from '@crawlee/core';
+import { Actor } from 'apify';
 
-const keyValueStore = await KeyValueStore.open();
-const input = await keyValueStore.getValue('INPUT');
+await Actor.init();
 
+const input = await Actor.getInput();
 console.log(input);
+
+await Actor.exit();

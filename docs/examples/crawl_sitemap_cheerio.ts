@@ -1,5 +1,7 @@
-import { CheerioCrawler } from '@crawlee/cheerio';
-import { downloadListOfUrls } from '@crawlee/utils';
+import { Actor } from 'apify';
+import { CheerioCrawler, downloadListOfUrls } from 'crawlee';
+
+await Actor.init();
 
 const crawler = new CheerioCrawler({
     // Function called for each URL
@@ -11,7 +13,7 @@ const crawler = new CheerioCrawler({
 
 const listOfUrls = await downloadListOfUrls({ url: 'https://apify.com/sitemap.xml' });
 
-await crawler.addRequests(listOfUrls);
-
 // Run the crawler
-await crawler.run();
+await crawler.run(listOfUrls);
+
+await Actor.exit();

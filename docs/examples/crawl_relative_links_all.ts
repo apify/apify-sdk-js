@@ -1,4 +1,7 @@
-import { CheerioCrawler, EnqueueStrategy } from '@crawlee/cheerio';
+import { CheerioCrawler, EnqueueStrategy } from 'crawlee';
+import { Actor } from 'apify';
+
+await Actor.init();
 
 const crawler = new CheerioCrawler({
     maxRequestsPerCrawl: 10, // Limitation for only 10 requests (do not use if you want to crawl all links)
@@ -14,7 +17,7 @@ const crawler = new CheerioCrawler({
     },
 });
 
-await crawler.addRequests(['https://apify.com/']);
-
 // Run the crawler
-await crawler.run();
+await crawler.run(['https://apify.com/']);
+
+await Actor.exit();

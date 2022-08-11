@@ -1,7 +1,6 @@
-import { Dataset, KeyValueStore } from '@crawlee/core';
+import { Actor } from 'apify';
 
-const dataset = await Dataset.open();
-const keyValueStore = await KeyValueStore.open();
+const dataset = await Actor.openDataset();
 
 // calling reduce function and using memo to calculate number of headers
 const pagesHeadingCount = await dataset.reduce((memo, value) => {
@@ -9,4 +8,4 @@ const pagesHeadingCount = await dataset.reduce((memo, value) => {
 }, 0);
 
 // saving result of map to default Key-value store
-await keyValueStore.setValue('pages_heading_count', pagesHeadingCount);
+await Actor.setValue('pages_heading_count', pagesHeadingCount);

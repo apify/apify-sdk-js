@@ -1,6 +1,7 @@
-import { PuppeteerCrawler, KeyValueStore } from '@crawlee/puppeteer';
+import { Actor } from 'apify';
+import { PuppeteerCrawler } from 'crawlee';
 
-const keyValueStore = await KeyValueStore.open();
+await Actor.init();
 
 // Create a PuppeteerCrawler
 const crawler = new PuppeteerCrawler({
@@ -10,15 +11,15 @@ const crawler = new PuppeteerCrawler({
         // Convert the URL into a valid key
         const key = request.url.replace(/[:/]/g, '_');
         // Save the screenshot to the default key-value store
-        await keyValueStore.setValue(key, screenshot, { contentType: 'image/png' });
+        await Actor.setValue(key, screenshot, { contentType: 'image/png' });
     },
 });
 
-await crawler.addRequests([
+// Run the crawler
+await crawler.run([
     { url: 'http://www.example.com/page-1' },
     { url: 'http://www.example.com/page-2' },
     { url: 'http://www.example.com/page-3' },
 ]);
 
-// Run the crawler
-await crawler.run();
+await Actor.exit();

@@ -1,10 +1,13 @@
-import { Dataset, KeyValueStore } from '@crawlee/core';
+import { Actor } from 'apify';
 
-const dataset = await Dataset.open<{ headingCount: number }>();
-const keyValueStore = await KeyValueStore.open();
+await Actor.init();
+
+const dataset = await Actor.openDataset<{ headingCount: number }>();
 
 // calling map function and filtering through mapped items
 const moreThan5headers = (await dataset.map((item) => item.headingCount)).filter((count) => count > 5);
 
 // saving result of map to default Key-value store
-await keyValueStore.setValue('pages_with_more_than_5_headers', moreThan5headers);
+await Actor.setValue('pages_with_more_than_5_headers', moreThan5headers);
+
+await Actor.exit();

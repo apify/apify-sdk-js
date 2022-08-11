@@ -1,4 +1,7 @@
-import { PlaywrightCrawler } from '@crawlee/playwright';
+import { Actor } from 'apify';
+import { PlaywrightCrawler } from 'crawlee';
+
+await Actor.init();
 
 const crawler = new PlaywrightCrawler({
     // Function called for each URL
@@ -8,11 +11,11 @@ const crawler = new PlaywrightCrawler({
     },
 });
 
-await crawler.addRequests([
+// Run the crawler
+await crawler.run([
     'http://www.example.com/page-1',
     'http://www.example.com/page-2',
     'http://www.example.com/page-3',
 ]);
 
-// Run the crawler
-await crawler.run();
+await Actor.exit();

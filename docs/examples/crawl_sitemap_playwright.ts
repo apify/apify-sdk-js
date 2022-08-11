@@ -1,5 +1,7 @@
-import { PlaywrightCrawler } from '@crawlee/playwright';
-import { downloadListOfUrls } from '@crawlee/utils';
+import { PlaywrightCrawler, downloadListOfUrls } from 'crawlee';
+import { Actor } from 'apify/src';
+
+await Actor.init();
 
 const crawler = new PlaywrightCrawler({
     // Function called for each URL
@@ -11,7 +13,7 @@ const crawler = new PlaywrightCrawler({
 
 const listOfUrls = await downloadListOfUrls({ url: 'https://apify.com/sitemap.xml' });
 
-await crawler.addRequests(listOfUrls);
-
 // Run the crawler
-await crawler.run();
+await crawler.run(listOfUrls);
+
+await Actor.exit();

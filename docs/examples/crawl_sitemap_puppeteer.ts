@@ -1,5 +1,7 @@
-import { PuppeteerCrawler } from '@crawlee/puppeteer';
-import { downloadListOfUrls } from '@crawlee/utils';
+import { Actor } from 'apify';
+import { PuppeteerCrawler, downloadListOfUrls } from 'crawlee';
+
+await Actor.init();
 
 const crawler = new PuppeteerCrawler({
     // Function called for each URL
@@ -11,7 +13,7 @@ const crawler = new PuppeteerCrawler({
 
 const listOfUrls = await downloadListOfUrls({ url: 'https://apify.com/sitemap.xml' });
 
-await crawler.addRequests(listOfUrls);
-
 // Run the crawler
-await crawler.run();
+await crawler.run(listOfUrls);
+
+await Actor.exit();
