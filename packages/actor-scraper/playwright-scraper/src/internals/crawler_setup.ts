@@ -10,7 +10,6 @@ import {
     PlaywrightCrawlingContext,
     PlaywrightCrawler,
     PlaywrightCrawlerOptions,
-    playwrightUtils,
     BrowserCrawlerEnqueueLinksOptions,
     log,
 } from '@crawlee/playwright';
@@ -183,10 +182,12 @@ export class CrawlerSetup implements CrawlerSetupOptions {
                 useChrome: this.input.useChrome,
                 launchOptions: {
                     ignoreHTTPSErrors: this.input.ignoreSslErrors,
+                    bypassCSP: this.input.ignoreCorsAndCsp,
                     defaultViewport: DEFAULT_VIEWPORT,
                     devtools: this.devtools,
                     args,
-                },
+                } as any,
+                context: {},
             },
             useSessionPool: true,
             persistCookiesPerSession: true,
@@ -231,16 +232,13 @@ export class CrawlerSetup implements CrawlerSetupOptions {
                 if (cookiesToSet?.length) {
                     // setting initial cookies that are not already in the session and page
                     session?.setCookies(cookiesToSet, request.url);
-                    await page.setCookie(...cookiesToSet);
+                    await page.context().addCookies(cookiesToSet);
                 }
             }
 
-            // Disable content security policy.
-            if (this.input.ignoreCorsAndCsp) await page.setBypassCSP(true);
-
             if (gotoOptions) {
                 gotoOptions.timeout = (this.devtools ? DEVTOOLS_TIMEOUT_SECS : this.input.pageLoadTimeoutSecs) * 1000;
-                gotoOptions.waitUntil = this.input.waitUntil;
+                gotoOptions.waitUntil = this.input.waitUntil[0];
             }
         });
 

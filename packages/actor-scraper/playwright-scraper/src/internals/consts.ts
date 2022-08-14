@@ -1,6 +1,6 @@
 import { Session, ProxyConfigurationOptions, PseudoUrlObject, RequestOptions } from '@crawlee/puppeteer';
 import { Dictionary } from '@crawlee/utils';
-import { PuppeteerLifeCycleEvent } from 'puppeteer';
+import { Page } from 'playwright';
 
 /**
  * Replicates the INPUT_SCHEMA with TypeScript types for quick reference
@@ -30,7 +30,7 @@ export interface Input {
     maxConcurrency: number;
     pageLoadTimeoutSecs: number;
     pageFunctionTimeoutSecs: number;
-    waitUntil: PuppeteerLifeCycleEvent[];
+    waitUntil: NonNullable<NonNullable<Parameters<Page['goto']>[1]>['waitUntil']>[];
     debugLog: boolean;
     browserLog: boolean;
     customData: Dictionary;

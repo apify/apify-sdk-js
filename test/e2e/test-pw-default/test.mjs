@@ -17,7 +17,6 @@ await run(import.meta.url, 'playwright-scraper', {
     proxyConfiguration: { useApifyProxy: false },
     proxyRotation: 'RECOMMENDED',
     useChrome: false,
-    useStealth: false,
     ignoreSslErrors: false,
     ignoreCorsAndCsp: false,
     downloadMedia: true,

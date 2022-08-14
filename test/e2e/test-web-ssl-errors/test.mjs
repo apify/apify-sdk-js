@@ -36,7 +36,6 @@ await run(import.meta.url, 'web-scraper', {
     injectUnderscore: false,
     proxyConfiguration: { useApifyProxy: false },
     useChrome: false,
-    useStealth: false,
     ignoreSslErrors: true,
     ignoreCorsAndCsp: false,
     downloadMedia: true,

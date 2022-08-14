@@ -51,7 +51,6 @@ await run(import.meta.url, 'web-scraper', {
         value: 'value market place',
     }],
     useChrome: false,
-    useStealth: false,
     ignoreSslErrors: false,
     ignoreCorsAndCsp: false,
     downloadMedia: true,

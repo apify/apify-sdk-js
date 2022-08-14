@@ -2,7 +2,7 @@
 
 Playwright Scraper is the most powerful scraper tool in our arsenal (aside from developing your own actors).
 
-It uses the Playwright library to programmatically control a headless Chrome browser and it can make it do almost anything. If using [Web Scraper](https://apify.com/apify/web-scraper) doesn't cut it for your use case, then Playwright Scraper is what you need.
+It uses the Playwright library to programmatically control a headless Chromium browser and it can make it do almost anything. If using [Web Scraper](https://apify.com/apify/web-scraper) doesn't cut it for your use case, then Playwright Scraper is what you need.
 
 [Playwright](https://github.com/microsoft/playwright) is a Node.js library, so knowledge of Node.js and its paradigms is expected when working with this actor.
 
@@ -452,7 +452,7 @@ postNavigationHooks: [
 ]
 ```
 
-Check out the docs for [Post-navigation hooks](https://sdk.apify.com/docs/typedefs/puppeteer-crawler-options#postnavigationhooks) and the [PlaywrightHook type](https://sdk.apify.com/docs/typedefs/puppeteer-hook) for more info regarding the objects passed into these functions.
+Check out the docs for [Post-navigation hooks](https://crawlee.dev/api/playwright-crawler/interface/PlaywrightCrawlerOptions#postNavigationHooks) and the [PlaywrightHook type](https://crawlee.dev/api/playwright-crawler/interface/PlaywrightHook) for more info regarding the objects passed into these functions.
 
 ### Debug log
 

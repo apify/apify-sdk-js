@@ -23,7 +23,6 @@ await run(import.meta.url, 'web-scraper', {
     linkSelector: 'a[href]',
     injectJQuery: true,
     useChrome: false,
-    useStealth: false,
     ignoreCorsAndCsp: false,
     downloadMedia: true,
     downloadCss: true,
