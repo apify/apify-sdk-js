@@ -1,5 +1,5 @@
 {
-	"name": "puppeteer-scraper",
+	"name": "playwright-scraper",
 	"version": "0.1",
 	"buildTag": "latest",
 	"env": null
