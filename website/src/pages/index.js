@@ -206,7 +206,7 @@ function ActorExample() {
                         See <a href="https://nodejs.org/dist/latest-v16.x/docs/api/esm.html#enabling" target="_blank" rel="noreferrer">Node.js docs</a> for
                         more information.
                     </Admonition>
-                    <CodeBlock language="javascript" title="main.js">
+                    <CodeBlock language="javascript">
                         {crawleeExample}
                     </CodeBlock>
                 </div>
@@ -241,7 +241,7 @@ function ActorExample() {
             </div>
             <div className="row">
                 <div className="col">
-                    <CodeBlock language="javascript" title="main.mjs">
+                    <CodeBlock language="javascript">
                         {standaloneExample}
                     </CodeBlock>
                 </div>
