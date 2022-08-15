@@ -201,13 +201,12 @@ function ActorExample() {
             <div className="row">
                 <div className="col">
                     <Admonition type="caution" title="Don't forget about module imports">
-                        To run the example, copy it into a file with an <code>.mjs</code> suffix or
-                        add a <code>"type": "module"</code> clause into your <code>package.json</code>. This
-                        enables <code>import</code> statements in Node.js.
+                        To run the example, add a <code>"type": "module"</code> clause into your <code>package.json</code> or
+                        copy it into a file with an <code>.mjs</code> suffix. This enables <code>import</code> statements in Node.js.
                         See <a href="https://nodejs.org/dist/latest-v16.x/docs/api/esm.html#enabling" target="_blank" rel="noreferrer">Node.js docs</a> for
                         more information.
                     </Admonition>
-                    <CodeBlock language="javascript" title="main.mjs">
+                    <CodeBlock language="javascript" title="main.js">
                         {crawleeExample}
                     </CodeBlock>
                 </div>
