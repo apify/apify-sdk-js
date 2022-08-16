@@ -7,8 +7,8 @@
     "type": "module",
     "dependencies": {
         "@apify/scraper-tools": "^1.0.0",
-        "@crawlee/puppeteer": "^3.0.0",
-        "apify": "^3.0.0",
+        "@crawlee/puppeteer": "^3.0.3",
+        "apify": "^3.0.2",
         "puppeteer": "*"
     },
     "devDependencies": {
