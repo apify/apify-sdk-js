@@ -63,10 +63,6 @@ class Context<Options extends ContextOptions = ContextOptions, ExtraFields = Opt
     readonly Actor = Actor;
     readonly Apify = Actor; // for back compatibility
     readonly log = log;
-    // @ts-expect-error // TODO
-    readonly puppeteerUtils;
-    // @ts-expect-error // TODO
-    readonly playwrightUtils;
     readonly input: any;
     readonly env: ApifyEnv;
     readonly customData: unknown;
