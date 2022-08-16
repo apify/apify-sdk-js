@@ -7,8 +7,8 @@ import { createRandomHash } from './tools';
 
 // TODO
 export interface Page extends CommonPage {
-    exposeFunction(name: string, callback: unknown): Promise<void>;
-    on(eventName: string, handler: unknown): unknown;
+    exposeFunction(name: string, callback: () => unknown): Promise<void>;
+    on(eventName: string, handler: () => unknown): unknown;
     content(): unknown;
     screenshot(): unknown;
 }

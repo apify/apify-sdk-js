@@ -8,7 +8,6 @@ import type {
     RequestQueue,
     RequestQueueOperationOptions,
 } from '@crawlee/core';
-import { puppeteerUtils } from '@crawlee/puppeteer';
 import type { Dictionary } from '@crawlee/utils';
 import log from '@apify/log';
 import type { MediaType } from 'content-type';
@@ -64,7 +63,10 @@ class Context<Options extends ContextOptions = ContextOptions, ExtraFields = Opt
     readonly Actor = Actor;
     readonly Apify = Actor; // for back compatibility
     readonly log = log;
-    readonly puppeteerUtils = puppeteerUtils;
+    // @ts-expect-error // TODO
+    readonly puppeteerUtils;
+    // @ts-expect-error // TODO
+    readonly playwrightUtils;
     readonly input: any;
     readonly env: ApifyEnv;
     readonly customData: unknown;
