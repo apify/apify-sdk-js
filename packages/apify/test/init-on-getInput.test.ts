@@ -26,7 +26,7 @@ describe('Should read from env on first actor method calls', () => {
             const actor = new Actor();
             const store = await actor.openKeyValueStore();
 
-            expect(store.name).toBeUndefined();
+            expect(store.name).toEqual('undefined');
         });
     });
 });
