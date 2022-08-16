@@ -65,6 +65,12 @@ export class Actor<Data extends Dictionary = Dictionary> {
      */
     readonly eventManager: EventManager;
 
+    /**
+     * If this actor instance has been initialized already.
+     * @internal
+     */
+    initialized = false;
+
     constructor(options: ConfigurationOptions = {}) {
         // use default configuration object if nothing overridden (it fallbacks to env vars)
         this.config = Object.keys(options).length === 0 ? Configuration.getGlobalConfig() : new Configuration(options);
@@ -162,6 +168,12 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @ignore
      */
     async init(options: InitOptions = {}): Promise<void> {
+        if (this.initialized) {
+            return;
+        }
+
+        this.initialized = true;
+
         logSystemInfo();
         printOutdatedSdkWarning();
 
@@ -496,7 +508,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
     /**
      * Sets the status message for the current actor run.
      *
-     * @param options
+     * @param statusMessage
      * @returns The return value is the Run object.
      * For more information, see the [Actor Runs](https://docs.apify.com/api/v2#/reference/actor-runs/) API endpoints.
      * @ignore
@@ -537,6 +549,8 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @ignore
      */
     async pushData(item: Data | Data[]): Promise<void> {
+        await this.init();
+
         const dataset = await this.openDataset();
         return dataset.pushData(item);
     }
@@ -564,6 +578,8 @@ export class Actor<Data extends Dictionary = Dictionary> {
         ow(options, ow.object.exactShape({
             forceCloud: ow.optional.boolean,
         }));
+
+        await this.init();
 
         return this._openStorage<Dataset<Data>>(Dataset, datasetIdOrName, options);
     }
@@ -597,6 +613,8 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @ignore
      */
     async getValue<T = unknown>(key: string): Promise<T | null> {
+        await this.init();
+
         const store = await this.openKeyValueStore();
         return store.getValue<T>(key);
     }
@@ -633,6 +651,8 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @ignore
      */
     async setValue<T>(key: string, value: T | null, options: RecordOptions = {}): Promise<void> {
+        await this.init();
+
         const store = await this.openKeyValueStore();
         return store.setValue(key, value, options);
     }
@@ -667,6 +687,8 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @ignore
      */
     async getInput<T = Dictionary | string | Buffer>(): Promise<T | null> {
+        await this.init();
+
         return this.getValue<T>(this.config.get('inputKey'));
     }
 
@@ -690,6 +712,8 @@ export class Actor<Data extends Dictionary = Dictionary> {
         ow(options, ow.object.exactShape({
             forceCloud: ow.optional.boolean,
         }));
+
+        await this.init();
 
         return this._openStorage(KeyValueStore, storeIdOrName, options);
     }
@@ -716,6 +740,8 @@ export class Actor<Data extends Dictionary = Dictionary> {
         ow(options, ow.object.exactShape({
             forceCloud: ow.optional.boolean,
         }));
+
+        await this.init();
 
         return this._openStorage(RequestQueue, queueIdOrName, options);
     }
@@ -1086,7 +1112,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
     /**
      * Sets the status message for the current actor run.
      *
-     * @param options
+     * @param statusMessage
      * @returns The return value is the Run object.
      * For more information, see the [Actor Runs](https://docs.apify.com/api/v2#/reference/actor-runs/) API endpoints.
      */
