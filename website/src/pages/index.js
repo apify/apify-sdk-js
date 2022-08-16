@@ -65,7 +65,7 @@ function Features() {
             <div className="row">
                 <div className="col col--6">
                     <p>
-                        Four years ago, Apify released its <b>open source Node.js</b> library for web scraping and automation, <b>Apify SDK</b>.
+                        Four years ago, Apify released its <b>open-source Node.js</b> library for web scraping and automation, <b>Apify SDK</b>.
                         It became popular among the community, but there was a problem. Despite being open-source, <b>the library's name
                         caused users to think its features were restricted to the Apify platform</b>, which was never the case.
                     </p>
@@ -92,7 +92,7 @@ function Features() {
 }
 
 const crawleeExample = `// Apify SDK v3 uses named exports instead of the Apify object.
-// You can import Dataset, createProxyConfiguration and more.
+// You can import Dataset, KeyValueStore and more.
 import { Actor } from 'apify';
 // We moved all the crawling components to Crawlee.
 // See the documentation on https://crawlee.dev
@@ -113,6 +113,7 @@ const crawler = new PlaywrightCrawler({
         await Actor.pushData({ title, url: request.loadedUrl });
 
         // We simplified enqueuing links a lot, see the docs.
+        // This way the function adds only links to same hostname.
         await enqueueLinks();
     }
 });
