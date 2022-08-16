@@ -1,9 +1,17 @@
 import { Actor } from 'apify';
 import log from '@apify/log';
-import type { Page } from 'puppeteer';
+import type { CommonPage } from '@crawlee/browser-pool';
 import { inspect } from 'util';
 import { RESOURCE_LOAD_ERROR_MESSAGE, SNAPSHOT } from './consts';
 import { createRandomHash } from './tools';
+
+// TODO
+export interface Page extends CommonPage {
+    exposeFunction(name: string, callback: unknown): Promise<void>;
+    on(eventName: string, handler: unknown): unknown;
+    content(): unknown;
+    screenshot(): unknown;
+}
 
 /**
  * Creates a string with an appended pageFunction to be evaluated in
@@ -100,6 +108,7 @@ export interface DumpConsoleOptions {
  * Chromium messages, usually internal errors, occuring in page.
  */
 export function dumpConsole(page: Page, options: DumpConsoleOptions = {}) {
+    // @ts-expect-error Parameter 'msg' implicitly has an 'any' type. // TODO
     page.on('console', async (msg) => {
         const msgType = msg.type();
 
@@ -116,9 +125,10 @@ export function dumpConsole(page: Page, options: DumpConsoleOptions = {}) {
         // Otherwise, just use the text immediately.
         let message;
         if (hasJSHandles) {
+            // @ts-expect-error Parameter 'msg' implicitly has an 'jsh' type. // TODO
             const msgPromises = msg.args().map((jsh) => {
                 return jsh.jsonValue()
-                    .catch((e) => log.exception(e, `Stringification of console.${msgType} in browser failed.`));
+                    .catch((e: Error) => log.exception(e, `Stringification of console.${msgType} in browser failed.`));
             });
             message = (await Promise.all(msgPromises))
                 .map((m) => inspect(m))
