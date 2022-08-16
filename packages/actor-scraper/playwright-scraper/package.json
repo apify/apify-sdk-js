@@ -6,10 +6,10 @@
     "type": "module",
     "dependencies": {
         "@apify/scraper-tools": "^1.0.0",
-        "@crawlee/core": "^3.0.0",
-        "@crawlee/playwright": "^3.0.0",
-        "@crawlee/utils": "^3.0.0",
-        "apify": "^3.0.0",
+        "@crawlee/core": "^3.0.3",
+        "@crawlee/playwright": "^3.0.3",
+        "@crawlee/utils": "^3.0.3",
+        "apify": "^3.0.2",
         "playwright": "*"
     },
     "devDependencies": {
