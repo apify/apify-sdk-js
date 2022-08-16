@@ -1,4 +1,4 @@
-import { Session, ProxyConfigurationOptions, PseudoUrlObject, RequestOptions } from '@crawlee/puppeteer';
+import { Session, ProxyConfigurationOptions, PseudoUrlObject, RequestOptions } from '@crawlee/core';
 import { Dictionary } from '@crawlee/utils';
 import { Page } from 'playwright';
 
