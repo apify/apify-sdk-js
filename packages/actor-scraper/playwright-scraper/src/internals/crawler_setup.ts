@@ -82,6 +82,10 @@ export class CrawlerSetup implements CrawlerSetupOptions {
             if (purl.userData && !tools.isPlainObject(purl.userData)) throw new Error('The userData property of a pseudoUrl must be an Object.');
         });
 
+        if (this.input.useChrome && this.input.launcher !== 'chromium') {
+            throw new Error('useChrome option could only be used with Chromium browser selected.');
+        }
+
         this.input.initialCookies.forEach((cookie) => {
             if (!tools.isPlainObject(cookie)) throw new Error('The initialCookies Array must only contain Objects.');
         });

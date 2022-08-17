@@ -117,7 +117,7 @@
             "default": "chromium"
         },
         "useChrome": {
-            "title": "Use Chrome (could only be used with Chromium Browser)",
+            "title": "Use Chrome (could only be used if Chromium Browser is selected)",
             "type": "boolean",
             "description": "The scraper will use a real Chrome browser instead of a Chromium masking as Chrome. Using this option may help with bypassing certain anti-scraping protections, but risks that the scraper will be unstable or not work at all.",
             "default": false,
