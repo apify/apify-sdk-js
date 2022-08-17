@@ -19,7 +19,7 @@ import { Awaitable, Dictionary } from '@crawlee/utils';
 import { readFile } from 'node:fs/promises';
 import { dirname } from 'node:path';
 import { fileURLToPath, URL } from 'node:url';
-import { Response } from 'playwright';
+import playwright, { Response } from 'playwright';
 import { Input, ProxyRotation } from './consts.js';
 
 const SESSION_STORE_NAME = 'APIFY-PLAYWRIGHT-SCRAPER-SESSION-STORE';
@@ -182,6 +182,7 @@ export class CrawlerSetup implements CrawlerSetupOptions {
             proxyConfiguration: await Actor.createProxyConfiguration(this.input.proxyConfiguration),
             launchContext: {
                 useChrome: this.input.useChrome,
+                launcher: playwright[this.input.launcher],
                 launchOptions: {
                     ignoreHTTPSErrors: this.input.ignoreSslErrors,
                     bypassCSP: this.input.ignoreCorsAndCsp,

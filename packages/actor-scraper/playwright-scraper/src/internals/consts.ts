@@ -20,6 +20,7 @@ export interface Input {
     proxyRotation: ProxyRotation;
     sessionPoolName?: string;
     initialCookies: Parameters<Session['setCookies']>[0];
+    launcher: 'chromium' | 'firefox' | 'webkit';
     useChrome: boolean;
     ignoreSslErrors: boolean;
     ignoreCorsAndCsp: boolean;

@@ -55,7 +55,7 @@
             "editor": "javascript"
         },
         "proxyConfiguration": {
-            "sectionCaption": "Proxy and browser configuration",
+            "sectionCaption": "Proxy configuration",
             "title": "Proxy configuration",
             "type": "object",
             "description": "Choose to use no proxy, Apify Proxy, or provide custom proxy URLs.",
@@ -97,8 +97,27 @@
             "prefill": [],
             "editor": "json"
         },
+        "launcher": {
+            "sectionCaption": "Browser configuration",
+            "title": "Browser Type",
+            "description": "Choose the browser to launch.",
+            "type": "string",
+            "editor": "select",
+            "enum": [
+                "chromium",
+                "firefox",
+                "webkit"
+            ],
+            "enumTitles": [
+                "Chromium",
+                "Firefox",
+                "Webkit"
+            ],
+            "prefill": "chromium",
+            "default": "chromium"
+        },
         "useChrome": {
-            "title": "Use Chrome",
+            "title": "Use Chrome (could only be used with Chromium Browser)",
             "type": "boolean",
             "description": "The scraper will use a real Chrome browser instead of a Chromium masking as Chrome. Using this option may help with bypassing certain anti-scraping protections, but risks that the scraper will be unstable or not work at all.",
             "default": false,
