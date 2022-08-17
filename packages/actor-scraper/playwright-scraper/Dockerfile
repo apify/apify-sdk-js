@@ -7,7 +7,7 @@ COPY src ./src
 RUN npm install --include=dev && npm run build
 
 # Create final image
-FROM apify/actor-node-playwright-chrome:16
+FROM apify/actor-node-playwright:16
 
 # Copy only necessary files (crawlee.json might not exist, so we need the regexp trick with `crawlee?json`)
 COPY --from=builder /usr/src/app/package.json /usr/src/app/crawlee?json ./
