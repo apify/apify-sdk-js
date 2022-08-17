@@ -1,4 +1,4 @@
-import { Session, ProxyConfigurationOptions, PseudoUrlObject, RequestOptions } from '@crawlee/core';
+import { Session, ProxyConfigurationOptions, GlobInput, RegExpInput, PseudoUrlInput, RequestOptions } from '@crawlee/core';
 import { Dictionary } from '@crawlee/utils';
 import { Page } from 'playwright';
 
@@ -8,7 +8,9 @@ import { Page } from 'playwright';
  */
 export interface Input {
     startUrls: RequestOptions[];
-    pseudoUrls: PseudoUrlObject[];
+    globs: GlobInput[];
+    regexps: RegExpInput[];
+    pseudoUrls: PseudoUrlInput[];
     linkSelector?: string;
     keepUrlFragments: boolean;
     pageFunction: string;
