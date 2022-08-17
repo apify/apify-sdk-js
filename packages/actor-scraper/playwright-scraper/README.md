@@ -459,6 +459,18 @@ The proxy configuration can be set programmatically when calling the actor using
 }
 ```
 
+## Browser Configuration
+
+### Browser Type
+
+The actor will use a Chromium browser by default. Alternatively, you can set it to use a Firefox browser instead.
+
+### `useChrome`
+
+In case you're using a default Chromium browser, you can toggle this option to use a full Chrome browser instead.
+
+> This option is only available when using a Chromium browser, and should not be used if Firefox browser is used.
+
 ## Advanced Configuration
 
 ### Pre-navigation hooks
