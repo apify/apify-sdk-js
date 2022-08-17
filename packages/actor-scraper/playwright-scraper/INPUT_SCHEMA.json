@@ -105,13 +105,11 @@
             "editor": "select",
             "enum": [
                 "chromium",
-                "firefox",
-                "webkit"
+                "firefox"
             ],
             "enumTitles": [
                 "Chromium",
-                "Firefox",
-                "Webkit"
+                "Firefox"
             ],
             "prefill": "chromium",
             "default": "chromium"
