@@ -19,7 +19,7 @@
         "globs": {
             "title": "Glob Patterns",
             "type": "array",
-            "description": "Glob patterns to match links in the page that you want to enqueue. Combine with Link selector to tell the scraper where to find links. Omitting the Globs will cause the scraper to enqueue all links matched by the Link selector.",
+            "description": "Glob patterns to match links in the page that you want to enqueue. Combine with Link selector to tell the scraper where to find links. Omitting the Glob patterns will cause the scraper to enqueue all links matched by the Link selector.",
             "editor": "stringList",
             "default": [],
             "prefill": [
