@@ -94,6 +94,13 @@ module.exports = {
                         to: '/docs/next/guides/apify-platform',
                     },
                 ],
+                createRedirects(existingPath) {
+                    if (!existingPath.endsWith('/')) {
+                        return `${existingPath}/`;
+                    }
+
+                    return undefined; // Return a falsy value: no redirect created
+                },
             },
         ],
         // [
