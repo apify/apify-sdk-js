@@ -85,6 +85,14 @@ module.exports = {
                         from: '/docs/next',
                         to: '/docs/next/guides/apify-platform',
                     },
+                    {
+                        from: '/docs/guides/getting-started',
+                        to: '/docs/guides/apify-platform',
+                    },
+                    {
+                        from: '/docs/next/guides/getting-started',
+                        to: '/docs/next/guides/apify-platform',
+                    },
                 ],
             },
         ],
