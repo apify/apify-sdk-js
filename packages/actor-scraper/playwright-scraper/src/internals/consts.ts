@@ -1,6 +1,5 @@
 import { Session, ProxyConfigurationOptions, GlobInput, RegExpInput, PseudoUrlInput, RequestOptions } from '@crawlee/core';
 import { Dictionary } from '@crawlee/utils';
-import { Page } from 'playwright';
 
 /**
  * Replicates the INPUT_SCHEMA with TypeScript types for quick reference
@@ -33,7 +32,7 @@ export interface Input {
     maxConcurrency: number;
     pageLoadTimeoutSecs: number;
     pageFunctionTimeoutSecs: number;
-    waitUntil: NonNullable<NonNullable<Parameters<Page['goto']>[1]>['waitUntil']>[];
+    waitUntil: 'networkidle' | 'load' | 'domcontentloaded';
     debugLog: boolean;
     browserLog: boolean;
     customData: Dictionary;

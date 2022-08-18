@@ -90,11 +90,9 @@ export class CrawlerSetup implements CrawlerSetupOptions {
             if (!tools.isPlainObject(cookie)) throw new Error('The initialCookies Array must only contain Objects.');
         });
 
-        this.input.waitUntil.forEach((event) => {
-            if (!/^(domcontentloaded|load|networkidle2|networkidle0)$/.test(event)) {
-                throw new Error('Navigation wait until events must be valid. See tooltip.');
-            }
-        });
+        if (!/^(domcontentloaded|load|networkidle)$/.test(this.input.waitUntil)) {
+            throw new Error('Navigation wait until event must be valid. See tooltip.');
+        }
 
         // solving proxy rotation settings
         this.maxSessionUsageCount = SESSION_MAX_USAGE_COUNTS[this.input.proxyRotation];
@@ -244,7 +242,7 @@ export class CrawlerSetup implements CrawlerSetupOptions {
 
             if (gotoOptions) {
                 gotoOptions.timeout = (this.devtools ? DEVTOOLS_TIMEOUT_SECS : this.input.pageLoadTimeoutSecs) * 1000;
-                gotoOptions.waitUntil = this.input.waitUntil[0];
+                gotoOptions.waitUntil = this.input.waitUntil;
             }
         });
 
