@@ -210,10 +210,10 @@
             "type": "array",
             "description": "The scraper will wait until the selected events are triggered in the page before executing the page function. Available events are <code>domcontentloaded</code>, <code>load</code> and <code>networkidle</code> <a href=\"https://playwright.dev/docs/api/class-page#page-goto-option-wait-until\" target=\"_blank\">See Playwright docs</a>.",
             "default": [
-                "networkidle2"
+                "networkidle"
             ],
             "prefill": [
-                "networkidle2"
+                "networkidle"
             ],
             "editor": "json"
         },
