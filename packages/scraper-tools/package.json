@@ -39,7 +39,7 @@
         "content-type": "^1.0.4"
     },
     "devDependencies": {
-        "apify": "^3.0.2",
+        "apify": "^3.0.3",
         "@crawlee/core": "^3.0.3",
         "@crawlee/types": "^3.0.3",
         "@crawlee/utils": "^3.0.3",
@@ -47,7 +47,7 @@
         "@crawlee/playwright": "^3.0.3"
     },
     "peerDependencies": {
-        "apify": "^3.0.2",
+        "apify": "^3.0.3",
         "@crawlee/core": "^3.0.3",
         "@crawlee/types": "^3.0.3",
         "@crawlee/utils": "^3.0.3",
