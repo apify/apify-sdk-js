@@ -38,21 +38,27 @@
         "ajv": "^6.12.6",
         "content-type": "^1.0.4"
     },
-    "peerDependencies": {
-        "apify": "^3.0.0",
-        "@crawlee/core": "^3.0.0",
-        "@crawlee/utils": "^3.0.0",
-        "@crawlee/puppeteer": "^3.0.0",
-        "@crawlee/types": "^3.0.0"
-    },
     "devDependencies": {
-        "apify": "^3.0.0",
-        "@crawlee/core": "^3.0.0",
-        "@crawlee/utils": "^3.0.0",
-        "@crawlee/puppeteer": "^3.0.0"
+        "apify": "^3.0.2",
+        "@crawlee/core": "^3.0.3",
+        "@crawlee/types": "^3.0.3",
+        "@crawlee/utils": "^3.0.3",
+        "@crawlee/puppeteer": "^3.0.3",
+        "@crawlee/playwright": "^3.0.3"
+    },
+    "peerDependencies": {
+        "apify": "^3.0.2",
+        "@crawlee/core": "^3.0.3",
+        "@crawlee/types": "^3.0.3",
+        "@crawlee/utils": "^3.0.3",
+        "@crawlee/puppeteer": "^3.0.3",
+        "@crawlee/playwright": "^3.0.3"
     },
     "peerDependenciesMeta": {
         "@crawlee/puppeteer": {
+            "optional": true
+        },
+        "@crawlee/playwright": {
             "optional": true
         }
     }
