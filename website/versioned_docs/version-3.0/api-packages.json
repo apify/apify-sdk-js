@@ -1,1 +1,14 @@
-[{"entryPoints":{"index":{"label":"Index","path":"src/index.ts"}},"packagePath":"packages/apify","packageSlug":"apify","packageName":"apify","packageVersion":"3.0.3"},{"entryPoints":{"index":{"label":"Index","path":"src/index.ts"}},"packagePath":"packages/scraper-tools","packageSlug":"scraper-tools","packageName":"@apify/scraper-tools","packageVersion":"1.0.0"}]
+[
+    {
+        "entryPoints": {
+            "index": {
+                "label": "Index",
+                "path": "src/index.ts"
+            }
+        },
+        "packagePath": "packages/apify",
+        "packageSlug": "apify",
+        "packageName": "apify",
+        "packageVersion": "3.0.3"
+    }
+]

@@ -7,11 +7,9 @@ const version = [v1, v2].join('.');
 
 const packages = [
     'apify',
-    'scraper-tools',
 ];
 const packagesOrder = [
     'apify',
-    '@apify/scraper-tools',
 ];
 
 /** @type {Partial<import('@docusaurus/types').DocusaurusConfig>} */

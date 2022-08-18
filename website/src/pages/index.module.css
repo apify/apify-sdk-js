@@ -35,7 +35,6 @@
 
 .heroBanner {
     padding-top: 100px;
-    padding-bottom: 4rem;
 }
 
 .heroBanner h1:nth-child(1) {
@@ -191,6 +190,11 @@ html[data-theme='dark'] .getStarted {
 
 .try, .features {
     color: #41465d;
+}
+
+.try > * {
+    margin-left: 0;
+    margin-right: 0;
 }
 
 html[data-theme='dark'] .try,
