@@ -67,11 +67,9 @@ export const enum BreakpointLocation {
 
 declare global {
     // eslint-disable-next-line vars-on-top, no-var
-    var window: Window;
+    var window: Window & typeof globalThis;
     // eslint-disable-next-line vars-on-top, no-var
-    var document: {
-        readyState: string;
-    };
+    var document: Document;
 
     interface Window {
         [K: string]: any;

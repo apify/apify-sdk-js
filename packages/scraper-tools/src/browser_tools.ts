@@ -1,14 +1,13 @@
 import { Actor } from 'apify';
 import log from '@apify/log';
 import type { CommonPage } from '@crawlee/browser-pool';
-import { inspect } from 'util';
+import { inspect } from 'node:util';
 import { RESOURCE_LOAD_ERROR_MESSAGE, SNAPSHOT } from './consts';
 import { createRandomHash } from './tools';
 
-// TODO
 export interface Page extends CommonPage {
     exposeFunction(name: string, callback: () => unknown): Promise<void>;
-    on(eventName: string, handler: () => unknown): unknown;
+    on(eventName: string, handler: (msg: any) => Promise<void>): unknown;
     content(): unknown;
     screenshot(): unknown;
 }
@@ -105,11 +104,10 @@ export interface DumpConsoleOptions {
  *
  * This is used instead of the "dumpio" launch option
  * to prevent cluttering the STDOUT with unnecessary
- * Chromium messages, usually internal errors, occuring in page.
+ * Chromium messages, usually internal errors, occurring in page.
  */
 export function dumpConsole(page: Page, options: DumpConsoleOptions = {}) {
-    // @ts-expect-error Parameter 'msg' implicitly has an 'any' type. // TODO
-    page.on('console', async (msg) => {
+    page.on('console', async (msg: any) => {
         const msgType = msg.type();
 
         if (msgType === 'error' && !options.logErrors) return;
@@ -125,13 +123,12 @@ export function dumpConsole(page: Page, options: DumpConsoleOptions = {}) {
         // Otherwise, just use the text immediately.
         let message;
         if (hasJSHandles) {
-            // @ts-expect-error Parameter 'msg' implicitly has an 'jsh' type. // TODO
-            const msgPromises = msg.args().map((jsh) => {
+            const msgPromises = msg.args().map((jsh: any) => {
                 return jsh.jsonValue()
                     .catch((e: Error) => log.exception(e, `Stringification of console.${msgType} in browser failed.`));
             });
             message = (await Promise.all(msgPromises))
-                .map((m) => inspect(m))
+                .map((m: string) => inspect(m))
                 .join(' '); // console.log('a', 'b') produces 'a b'
         } else {
             message = msg.text();

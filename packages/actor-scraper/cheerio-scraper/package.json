@@ -6,7 +6,7 @@
     "main": "dist/main.js",
     "type": "module",
     "dependencies": {
-        "@apify/scraper-tools": "^1.0.1-beta.38",
+        "@apify/scraper-tools": "^1.0.1-beta.43",
         "@crawlee/cheerio": "^3.0.3",
         "apify": "^3.0.2"
     },
