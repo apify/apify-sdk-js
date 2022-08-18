@@ -2,7 +2,7 @@ import { getStats, getDatasetItems, run, expect, validateDataset } from '../tool
 
 await run(import.meta.url, 'playwright-scraper', {
     startUrls: [{ url: 'https://apify.com' }],
-    pseudoUrls: [{ purl: 'https://apify.com[(/[\\w-]+)?]' }],
+    globs: ['https://apify.com/**/*'],
     linkSelector: 'a',
     keepUrlFragments: false,
     pageFunction: async function pageFunction(context) {
@@ -16,12 +16,13 @@ await run(import.meta.url, 'playwright-scraper', {
     },
     proxyConfiguration: { useApifyProxy: false },
     proxyRotation: 'RECOMMENDED',
+    launcher: 'chromium',
     useChrome: false,
     ignoreSslErrors: false,
     ignoreCorsAndCsp: false,
     downloadMedia: true,
     downloadCss: true,
-    waitUntil: ['networkidle2'],
+    waitUntil: 'networkidle',
     debugLog: false,
     browserLog: false
 });
