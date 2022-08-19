@@ -1,6 +1,6 @@
 {
-    "title": "Puppeteer Scraper Input",
-    "description": "Use the following form to configure Puppeteer Scraper. The Start URLs and Page function are required and all other fields are optional. To learn more about the different options, click on their title or on the nearby question marks. For details about the Page function visit the actor's README in the ACTOR INFO tab.",
+    "title": "Playwright Scraper Input",
+    "description": "Use the following form to configure Playwright Scraper. The Start URLs and Page function are required and all other fields are optional. To learn more about the different options, click on their title or on the nearby question marks. For details about the Page function visit the actor's README in the ACTOR INFO tab.",
     "type": "object",
     "schemaVersion": 1,
     "properties": {
@@ -16,17 +16,23 @@
             ],
             "editor": "requestListSources"
         },
+        "globs": {
+            "title": "Glob Patterns",
+            "type": "array",
+            "description": "Glob patterns to match links in the page that you want to enqueue. Combine with Link selector to tell the scraper where to find links. Omitting the Glob patterns will cause the scraper to enqueue all links matched by the Link selector.",
+            "editor": "stringList",
+            "default": [],
+            "prefill": [
+                "https://apify.com/**/*"
+            ]
+        },
         "pseudoUrls": {
-            "title": "Pseudo-URLs",
+            "title": "Pseudo-URLs (deprecated)",
             "type": "array",
             "description": "Pseudo-URLs to match links in the page that you want to enqueue. Combine with Link selector to tell the scraper where to find links. Omitting the Pseudo-URLs will cause the scraper to enqueue all links matched by the Link selector.",
             "editor": "pseudoUrls",
             "default": [],
-            "prefill": [
-                {
-                    "purl": "https://apify.com[(/[\\w-]+)?]"
-                }
-            ]
+            "prefill": []
         },
         "linkSelector": {
             "title": "Link selector",
@@ -34,12 +40,6 @@
             "description": "CSS selector matching elements with 'href' attributes that should be enqueued. To enqueue urls from <code><div class=\"my-class\" href=...></code> tags, you would enter <strong>div.my-class</strong>. Leave empty to ignore all links.",
             "editor": "textfield",
             "prefill": "a"
-        },
-        "clickableElementsSelector": {
-            "title": "Clickable elements selector",
-            "type": "string",
-            "description": "For pages where simple 'href' links are not available, this attribute allows you to specify a CSS selector matching elements that the scraper will mouse click after the page function finishes. Any triggered requests, navigations or open tabs will be intercepted and the target URLs will be filtered using Pseudo URLs and subsequently added to the request queue. Leave empty to prevent the scraper from clicking in the page. Using this setting will have a performance impact.",
-            "editor": "textfield"
         },
         "keepUrlFragments": {
             "title": "Keep URL fragments",
@@ -55,7 +55,7 @@
             "editor": "javascript"
         },
         "proxyConfiguration": {
-            "sectionCaption": "Proxy and browser configuration",
+            "sectionCaption": "Proxy configuration",
             "title": "Proxy configuration",
             "type": "object",
             "description": "Choose to use no proxy, Apify Proxy, or provide custom proxy URLs.",
@@ -97,8 +97,25 @@
             "prefill": [],
             "editor": "json"
         },
+        "launcher": {
+            "sectionCaption": "Browser configuration",
+            "title": "Browser Type",
+            "description": "Choose the browser to launch.",
+            "type": "string",
+            "editor": "select",
+            "enum": [
+                "chromium",
+                "firefox"
+            ],
+            "enumTitles": [
+                "Chromium",
+                "Firefox"
+            ],
+            "prefill": "chromium",
+            "default": "chromium"
+        },
         "useChrome": {
-            "title": "Use Chrome",
+            "title": "Use Chrome (could only be used if Chromium Browser is selected)",
             "type": "boolean",
             "description": "The scraper will use a real Chrome browser instead of a Chromium masking as Chrome. Using this option may help with bypassing certain anti-scraping protections, but risks that the scraper will be unstable or not work at all.",
             "default": false,
@@ -190,15 +207,16 @@
         },
         "waitUntil": {
             "title": "Navigation wait until",
-            "type": "array",
-            "description": "The scraper will wait until the selected events are triggered in the page before executing the page function. Available events are <code>domcontentloaded</code>, <code>load</code>, <code>networkidle2</code> and <code>networkidle0</code>. <a href=\"https://pptr.dev/#?product=Puppeteer&show=api-pagegotourl-options\" target=\"_blank\">See Puppeteer docs</a>.",
-            "default": [
-                "networkidle2"
+            "description": "The scraper will wait until the selected events are triggered in the page before executing the page function. Available events are <code>domcontentloaded</code>, <code>load</code> and <code>networkidle</code> <a href=\"https://playwright.dev/docs/api/class-page#page-goto-option-wait-until\" target=\"_blank\">See Playwright docs</a>.",
+            "type": "string",
+            "editor": "select",
+            "enum": [
+                "networkidle",
+                "load",
+                "domcontentloaded"
             ],
-            "prefill": [
-                "networkidle2"
-            ],
-            "editor": "json"
+            "prefill": "networkidle",
+            "default": "networkidle"
         },
         "preNavigationHooks": {
             "sectionCaption": "Advanced configuration",

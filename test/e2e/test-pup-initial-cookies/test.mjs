@@ -45,7 +45,6 @@ await run(import.meta.url, 'puppeteer-scraper', {
         value: 'value market place'
     }],
     useChrome: false,
-    useStealth: false,
     ignoreSslErrors: false,
     ignoreCorsAndCsp: false,
     downloadMedia: true,

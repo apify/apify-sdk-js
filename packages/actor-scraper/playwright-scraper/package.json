@@ -1,24 +1,28 @@
 {
-    "name": "actor-puppeteer-scraper",
+    "name": "actor-playwright-scraper",
     "version": "3.0.0",
     "private": true,
-    "description": "Crawl web pages using Apify, headless Chrome and Puppeteer",
-    "main": "dist/main.js",
+    "description": "Crawl web pages using Apify, headless browser and Playwright",
     "type": "module",
     "dependencies": {
         "@apify/scraper-tools": "^1.0.0",
-        "@crawlee/puppeteer": "^3.0.0",
+        "@crawlee/core": "^3.0.0",
+        "@crawlee/playwright": "^3.0.0",
+        "@crawlee/utils": "^3.0.0",
         "apify": "^3.0.0",
-        "puppeteer": "*"
+        "playwright": "*"
     },
     "devDependencies": {
-        "markdown-toc": "^1.2.0"
+        "@apify/tsconfig": "^0.1.0",
+        "@types/node": "^18.6.3",
+        "ts-node": "^10.9.1",
+        "typescript": "^4.7.4"
     },
     "scripts": {
-        "start": "node dist/main.js",
-        "build": "rimraf dist && tsc",
-        "build-toc": "./node_modules/.bin/markdown-toc README.md -i",
-        "lint": "eslint src test"
+        "start": "npm run start:dev",
+        "start:prod": "node dist/main.js",
+        "start:dev": "ts-node-esm -T src/main.ts",
+        "build": "tsc"
     },
     "repository": {
         "type": "git",
@@ -29,10 +33,6 @@
         "email": "support@apify.com",
         "url": "https://apify.com"
     },
-    "contributors": [
-        "Marek Trunkat <marek@apify.com>",
-        "Ondra Urban <ondra@apify.com>"
-    ],
     "license": "Apache-2.0",
     "homepage": "https://github.com/apify/apify-sdk-js"
 }
