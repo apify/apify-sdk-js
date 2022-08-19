@@ -39,20 +39,20 @@
         "content-type": "^1.0.4"
     },
     "devDependencies": {
-        "apify": "^3.0.3",
-        "@crawlee/core": "^3.0.3",
-        "@crawlee/types": "^3.0.3",
-        "@crawlee/utils": "^3.0.3",
-        "@crawlee/puppeteer": "^3.0.3",
-        "@crawlee/playwright": "^3.0.3"
+        "apify": "^3.0.0",
+        "@crawlee/core": "^3.0.0",
+        "@crawlee/types": "^3.0.0",
+        "@crawlee/utils": "^3.0.0",
+        "@crawlee/puppeteer": "^3.0.0",
+        "@crawlee/playwright": "^3.0.0"
     },
     "peerDependencies": {
-        "apify": "^3.0.3",
-        "@crawlee/core": "^3.0.3",
-        "@crawlee/types": "^3.0.3",
-        "@crawlee/utils": "^3.0.3",
-        "@crawlee/puppeteer": "^3.0.3",
-        "@crawlee/playwright": "^3.0.3"
+        "apify": "^3.0.0",
+        "@crawlee/core": "^3.0.0",
+        "@crawlee/types": "^3.0.0",
+        "@crawlee/utils": "^3.0.0",
+        "@crawlee/puppeteer": "^3.0.0",
+        "@crawlee/playwright": "^3.0.0"
     },
     "peerDependenciesMeta": {
         "@crawlee/puppeteer": {
