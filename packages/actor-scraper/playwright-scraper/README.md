@@ -10,55 +10,11 @@ If you need either a faster, or a simpler tool, check out [Cheerio Scraper](http
 
 If you are having any difficulty deciding which of the four main Apify "Scraper" actors to use, check out the [Web Scraper vs Puppeteer Scraper](https://help.apify.com/en/articles/3195646-when-to-use-puppeteer-scraper), [Cheerio Scraper](https://blog.apify.com/how-to-super-efficiently-scrape-any-website-for-beginners/) and [Playwright Scraper](https://blog.apify.com/how-to-scrape-the-web-with-playwright-ece1ced75f73/) articles on the Apify blog.
 
-<!-- toc -->
-
-- [Usage](#usage)
-- [Limitations](#limitations)
-- [Input Configuration](#input-configuration)
-  - [Start URLs](#start-urls)
-  - [Link selector](#link-selector)
-  - [Glob Patterns](#glob-patterns)
-  - [Pseudo-URLs](#pseudo-urls)
-  - [Clickable elements selector](#clickable-elements-selector)
-  - [Page function](#page-function)
-    - [`input`](#input)
-    - [`env`](#env)
-    - [`customData`](#customdata)
-    - [`page`](#page)
-    - [`request`](#request)
-    - [`response`](#response)
-    - [`crawler`](#crawler)
-    - [`globalStore`](#globalstore)
-    - [`log`](#log)
-    - [`playwrightUtils`](#playwrightutils)
-    - [`Actor`](#actor)
-    - [`Apify`](#apify)
-    - [`setValue`](#setvalue)
-    - [`getValue`](#getvalue)
-    - [`saveSnapshot`](#savesnapshot)
-    - [`skipLinks`](#skiplinks)
-    - [`enqueueRequest`](#enqueuerequest)
-- [Proxy Configuration](#proxy-configuration)
-- [Browser Configuration](#browser-configuration)
-  - [Browser Type](#browser-type)
-  - [`useChrome`](#usechrome)
-- [Advanced Configuration](#advanced-configuration)
-  - [Pre-navigation hooks](#pre-navigation-hooks)
-  - [Post-navigation hooks](#post-navigation-hooks)
-  - [Debug log](#debug-log)
-  - [Browser log](#browser-log)
-  - [Custom data](#custom-data)
-  - [Custom namings](#custom-namings)
-- [Results](#results)
-- [Additional Resources](#additional-resources)
-
-<!-- tocstop -->
-
 ## Usage
 
 To get started with Playwright Scraper, you only need a few things. First, with `Start URLs`, tell the scraper which web pages it should load. Then, tell it how to handle each request and extract data from each page.
 
-The scraper starts by loading pages specified in the [**Start URLs**](#start-urls) input setting. You can make the scraper follow page links on the fly by setting a **[Link selector](#link-selector)**, **[Glob Patterns](#glob patterns)** and/or **[Pseudo-URLs](#pseudo-urls)** to tell the scraper which links it should add to the crawler's request queue. This is useful for the recursive crawling of entire websites (e.g. finding all products available in an online store).
+The scraper starts by loading pages specified in the [**Start URLs**](#start-urls) input setting. You can make the scraper follow page links on the fly by setting a **[Link selector](#link-selector)**, **[Glob Patterns](#glob-patterns)** and/or **[Pseudo-URLs](#pseudo-urls)** to tell the scraper which links it should add to the crawler's request queue. This is useful for the recursive crawling of entire websites (e.g. finding all products available in an online store).
 
 To tell the scraper how to handle requests and extra data, you need to provide a **[Page function](#page-function)**, and optionally arrays of **[Pre-navigation hooks](#pre-navigation-hooks)** and **[Post-navigation hooks](#post-navigation-hooks)**. This is JavaScript code that is executed in the Node.js environment. Since the scraper uses the full-featured Chromium or Firefox browser, client-side logic to be executed within the context of the web-page can be done using the **[`page`](#page)** object within the Page function's context.
 
