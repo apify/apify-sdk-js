@@ -39,6 +39,9 @@ jobs:
                     restore-keys: |
                         turbo-${{ github.job }}-${{ github.ref_name }}-
 
+            -   name: Login to Apify
+                run: npx -y apify-cli login -t ${{ secrets.APIFY_TOKEN }}
+
             -   name: Install Dependencies
                 run: npm ci
 
