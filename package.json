@@ -65,7 +65,7 @@
         "commitlint": "^17.0.3",
         "crawlee": "^3.0.0",
         "playwright": "^1.25.0",
-        "puppeteer": "^14.4.1",
+        "puppeteer": "^16.0.0",
         "eslint": "^8.19.0",
         "fs-extra": "^10.1.0",
         "gen-esm-wrapper": "^1.1.3",
