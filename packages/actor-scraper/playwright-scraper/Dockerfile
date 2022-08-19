@@ -1,4 +1,4 @@
-FROM apify/actor-node:16 AS builder
+FROM apify/actor-node-playwright:16 AS builder
 
 COPY package*.json tsconfig.json crawlee?json ./
 COPY src ./src
