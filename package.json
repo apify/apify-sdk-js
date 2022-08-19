@@ -63,7 +63,7 @@
         "@typescript-eslint/eslint-plugin": "5.33.1",
         "@typescript-eslint/parser": "5.33.1",
         "commitlint": "^17.0.3",
-        "crawlee": "^3.0.3",
+        "crawlee": "^3.0.0",
         "playwright": "^1.25.0",
         "puppeteer": "^14.4.1",
         "eslint": "^8.19.0",

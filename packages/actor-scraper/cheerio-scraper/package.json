@@ -7,8 +7,8 @@
     "type": "module",
     "dependencies": {
         "@apify/scraper-tools": "^1.0.0",
-        "@crawlee/cheerio": "^3.0.3",
-        "apify": "^3.0.3"
+        "@crawlee/cheerio": "^3.0.0",
+        "apify": "^3.0.0"
     },
     "devDependencies": {
         "markdown-toc": "^1.2.0"
