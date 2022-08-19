@@ -1,9 +1,5 @@
 /* eslint-disable global-require,import/no-extraneous-dependencies */
 const { externalLinkProcessor } = require('./tools/utils/externalLink');
-const pkg = require('../packages/apify/package.json');
-
-const [v1, v2] = pkg.version.split('.');
-const version = [v1, v2].join('.');
 
 const packages = [
     'apify',
@@ -40,11 +36,6 @@ module.exports = {
             /** @type {import('@docusaurus/preset-classic').Options} */
             ({
                 docs: {
-                    versions: {
-                        current: {
-                            label: `v${version}`,
-                        },
-                    },
                     showLastUpdateAuthor: true,
                     showLastUpdateTime: true,
                     path: '../docs',
@@ -127,29 +118,34 @@ module.exports = {
             },
             items: [
                 {
-                    type: 'docsVersion',
-                    to: 'docs/guides/apify-platform',
+                    type: 'doc',
+                    docId: 'guides/apify-platform',
                     label: 'Docs',
                     position: 'left',
+                    activeBaseRegex: 'guides',
                 },
                 {
-                    type: 'docsVersion',
-                    to: 'docs/examples',
+                    type: 'doc',
+                    docId: 'examples/examples',
                     label: 'Examples',
                     position: 'left',
+                    activeBaseRegex: 'examples',
                 },
                 {
-                    type: 'docsVersion',
-                    to: 'api/apify',
+                    type: 'custom-api',
+                    to: 'apify',
                     label: 'API',
                     position: 'left',
-                    activeBaseRegex: 'api/(?!apify/changelog)',
+                    activeBaseRegex: '(api|typedefs)/(?!.*/changelog)',
                 },
                 {
-                    to: 'api/apify/changelog',
+                    // TODO redirect or hide in older versions? or can we have it somehow there?
+                    type: 'custom-api',
+                    to: 'apify/changelog',
                     label: 'Changelog',
                     position: 'left',
                     className: 'changelog',
+                    activeBaseRegex: 'changelog',
                 },
                 {
                     type: 'docsVersionDropdown',

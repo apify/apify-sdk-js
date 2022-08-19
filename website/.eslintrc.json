@@ -19,5 +19,8 @@
             "version": "detect"
         }
     },
-    "root": true
+    "root": true,
+    "rules": {
+        "quote-props": ["error", "consistent"]
+    }
 }

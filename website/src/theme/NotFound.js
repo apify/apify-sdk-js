@@ -23,7 +23,13 @@ export default function NotFound() {
         }
 
         if (path.match(/\/docs\/2\.\d+\.\d+\/api/)) {
-            href = baseUrlForV1Redirect + path.substring(redirectedV1Url.length + 1);
+            href = baseUrlForV2Redirect + path.substring(redirectedV1Url.length + 1);
+            redirect = true;
+        }
+
+        if (path.match(/\/api\/[12]\.\d+\/\w+/)) {
+            const [, v, id] = path.match(/\/api\/([12])\.\d+\/(.*)/);
+            href = (v === '1' ? baseUrlForV1Redirect : baseUrlForV2Redirect) + id;
             redirect = true;
         }
 
