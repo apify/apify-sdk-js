@@ -4,8 +4,8 @@
   <ShortName>Apify SDK</ShortName>
   <Description>Search Apify SDK</Description>
   <InputEncoding>UTF-8</InputEncoding>
-  <Image width="16" height="16" type="image/x-icon">https://apify.github.io/apify-sdk-js/img/favicon.ico</Image>
-  <Url type="text/html" method="get" template="https://apify.github.io/apify-sdk-js/search?q={searchTerms}"/>
-  <Url type="application/opensearchdescription+xml" rel="self" template="https://apify.github.io/apify-sdk-js/opensearch.xml" />
-  <moz:SearchForm>https://apify.github.io/apify-sdk-js/</moz:SearchForm>
+  <Image width="16" height="16" type="image/x-icon">https://apify.github.io/img/favicon.ico</Image>
+  <Url type="text/html" method="get" template="https://apify.github.io/search?q={searchTerms}"/>
+  <Url type="application/opensearchdescription+xml" rel="self" template="https://apify.github.io/opensearch.xml" />
+  <moz:SearchForm>https://apify.github.io/</moz:SearchForm>
 </OpenSearchDescription>
