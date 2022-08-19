@@ -13,11 +13,11 @@ module.exports = {
     title: 'Apify SDK',
     tagline: 'Apify SDK is a toolkit for building actors',
     url: 'https://apify.github.io',
-    baseUrl: '/apify-sdk-js/',
+    baseUrl: '/',
     trailingSlash: false,
     organizationName: 'apify',
     projectName: 'apify-sdk-js',
-    scripts: ['/apify-sdk-js/js/custom.js'],
+    scripts: ['/js/custom.js'],
     favicon: 'img/favicon.ico',
     customFields: {
         markdownOptions: {
