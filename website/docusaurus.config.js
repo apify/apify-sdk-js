@@ -12,7 +12,7 @@ const packagesOrder = [
 module.exports = {
     title: 'Apify SDK',
     tagline: 'Apify SDK is a toolkit for building actors',
-    url: 'https://apify.github.io',
+    url: 'https://sdk.apify.com',
     baseUrl: '/',
     trailingSlash: false,
     organizationName: 'apify',
@@ -139,7 +139,6 @@ module.exports = {
                     activeBaseRegex: '(api|typedefs)/(?!.*/changelog)',
                 },
                 {
-                    // TODO redirect or hide in older versions? or can we have it somehow there?
                     type: 'custom-api',
                     to: 'apify/changelog',
                     label: 'Changelog',
