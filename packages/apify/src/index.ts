@@ -8,3 +8,4 @@ export {
     RequestQueue, QueueOperationInfo, RequestQueueOperationOptions, RequestQueueOptions, QueueOperationInfoOptions,
     KeyConsumer, KeyValueStoreOptions, RecordOptions, KeyValueStoreIteratorOptions,
 } from '@crawlee/core';
+export { ApifyClient, ApifyClientOptions } from 'apify-client';

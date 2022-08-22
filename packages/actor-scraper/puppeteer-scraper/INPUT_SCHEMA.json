@@ -105,12 +105,6 @@
             "groupCaption": "Browser masking",
             "groupDescription": "Settings that help mask as a real user and prevent scraper detection."
         },
-        "useStealth": {
-            "title": "Use Stealth",
-            "type": "boolean",
-            "description": "The scraper will apply various browser emulation techniques to match a real user as closely as possible. This feature works best in conjunction with the Use Chrome option and also carries the risk of making the scraper unstable.",
-            "default": false
-        },
         "ignoreSslErrors": {
             "title": "Ignore SSL errors",
             "type": "boolean",

@@ -121,12 +121,6 @@
             "default": false,
             "groupCaption": "Browser masking"
         },
-        "useStealth": {
-            "title": "Use stealth mode",
-            "type": "boolean",
-            "description": "If enabled, the scraper will apply various browser emulation techniques to match a real user's browser as closely as possible, in order to bypass around certain anti-scraping protections. This feature works best in conjunction with the <b>Use Chrome</b> option, but it also carries a risk of making the scraper unstable.",
-            "default": false
-        },
         "ignoreSslErrors": {
             "title": "Ignore SSL errors",
             "type": "boolean",

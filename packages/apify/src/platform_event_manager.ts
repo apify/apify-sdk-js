@@ -8,7 +8,7 @@ import { Configuration } from './configuration';
  * Gets an instance of a Node.js'
  * [EventEmitter](https://nodejs.org/api/events.html#events_class_eventemitter)
  * class that emits various events from the SDK or the Apify platform.
- * The event emitter is initialized by calling the {@link Actor.main} function.
+ * The event emitter is initialized by calling the {@apilink Actor.main} function.
  *
  * **Example usage:**
  *
@@ -24,11 +24,11 @@ import { Configuration } from './configuration';
  *   The event is emitted approximately every second
  *   and it indicates whether the actor is using the maximum of available CPU resources.
  *   If that's the case, the actor should not add more workload.
- *   For example, this event is used by the {@link AutoscaledPool} class.
+ *   For example, this event is used by the {@apilink AutoscaledPool} class.
  * - `migrating`: `void`
  *   Emitted when the actor running on the Apify platform is going to be migrated to another worker server soon.
  *   You can use it to persist the state of the actor and abort the run, to speed up migration.
- *   For example, this is used by the {@link RequestList} class.
+ *   For example, this is used by the {@apilink RequestList} class.
  * - `aborting`: `void`
  *   When a user aborts an actor run on the Apify platform, they can choose to abort gracefully to allow
  *   the actor some time before getting killed. This graceful abort emits the `aborting` event which the SDK

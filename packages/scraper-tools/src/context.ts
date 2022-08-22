@@ -8,7 +8,6 @@ import type {
     RequestQueue,
     RequestQueueOperationOptions,
 } from '@crawlee/core';
-import { puppeteerUtils } from '@crawlee/puppeteer';
 import type { Dictionary } from '@crawlee/utils';
 import log from '@apify/log';
 import type { MediaType } from 'content-type';
@@ -25,6 +24,8 @@ export interface CrawlerSetupOptions {
     requestQueue: RequestQueue;
     keyValueStore: KeyValueStore;
     customData: unknown;
+    playwrightUtils?: unknown;
+    puppeteerUtils?: unknown;
 }
 
 export interface MapLike<K, V> extends Omit<Map<K, V>, 'values' | 'keys' | 'entries'| 'set'> {
@@ -64,7 +65,6 @@ class Context<Options extends ContextOptions = ContextOptions, ExtraFields = Opt
     readonly Actor = Actor;
     readonly Apify = Actor; // for back compatibility
     readonly log = log;
-    readonly puppeteerUtils = puppeteerUtils;
     readonly input: any;
     readonly env: ApifyEnv;
     readonly customData: unknown;
@@ -81,6 +81,9 @@ class Context<Options extends ContextOptions = ContextOptions, ExtraFields = Opt
         this[internalState] = {
             skipLinks: false,
         };
+
+        this.playwrightUtils = crawlerSetup?.playwrightUtils;
+        this.puppeteerUtils = crawlerSetup?.puppeteerUtils;
 
         this.input = JSON.parse(crawlerSetup.rawInput);
         this.env = { ...crawlerSetup.env };

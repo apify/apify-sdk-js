@@ -1,9 +1,5 @@
 /* eslint-disable global-require,import/no-extraneous-dependencies */
 const { externalLinkProcessor } = require('./tools/utils/externalLink');
-const pkg = require('../packages/apify/package.json');
-
-const [v1, v2] = pkg.version.split('.');
-const version = [v1, v2].join('.');
 
 const packages = [
     'apify',
@@ -16,12 +12,12 @@ const packagesOrder = [
 module.exports = {
     title: 'Apify SDK',
     tagline: 'Apify SDK is a toolkit for building actors',
-    url: 'https://apify.github.io',
-    baseUrl: '/apify-sdk-js/',
+    url: 'https://sdk.apify.com',
+    baseUrl: '/',
     trailingSlash: false,
     organizationName: 'apify',
     projectName: 'apify-sdk-js',
-    scripts: ['/apify-sdk-js/js/custom.js'],
+    scripts: ['/js/custom.js'],
     favicon: 'img/favicon.ico',
     customFields: {
         markdownOptions: {
@@ -40,11 +36,6 @@ module.exports = {
             /** @type {import('@docusaurus/preset-classic').Options} */
             ({
                 docs: {
-                    versions: {
-                        current: {
-                            label: `v${version}`,
-                        },
-                    },
                     showLastUpdateAuthor: true,
                     showLastUpdateTime: true,
                     path: '../docs',
@@ -94,6 +85,13 @@ module.exports = {
                         to: '/docs/next/guides/apify-platform',
                     },
                 ],
+                createRedirects(existingPath) {
+                    if (!existingPath.endsWith('/')) {
+                        return `${existingPath}/`;
+                    }
+
+                    return undefined; // Return a falsy value: no redirect created
+                },
             },
         ],
         // [
@@ -120,29 +118,33 @@ module.exports = {
             },
             items: [
                 {
-                    type: 'docsVersion',
-                    to: 'docs/guides/apify-platform',
+                    type: 'doc',
+                    docId: 'guides/apify-platform',
                     label: 'Docs',
                     position: 'left',
+                    activeBaseRegex: 'guides',
                 },
                 {
-                    type: 'docsVersion',
-                    to: 'docs/examples',
+                    type: 'doc',
+                    docId: 'examples/examples',
                     label: 'Examples',
                     position: 'left',
+                    activeBaseRegex: 'examples',
                 },
                 {
-                    type: 'docsVersion',
-                    to: 'api/apify',
+                    type: 'custom-api',
+                    to: 'apify',
                     label: 'API',
                     position: 'left',
-                    activeBaseRegex: 'api/(?!apify/changelog)',
+                    activeBaseRegex: '(api|typedefs)/(?!.*/changelog)',
                 },
                 {
-                    to: 'api/apify/changelog',
+                    type: 'custom-api',
+                    to: 'apify/changelog',
                     label: 'Changelog',
                     position: 'left',
                     className: 'changelog',
+                    activeBaseRegex: 'changelog',
                 },
                 {
                     type: 'docsVersionDropdown',

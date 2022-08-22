@@ -23,7 +23,13 @@ export default function NotFound() {
         }
 
         if (path.match(/\/docs\/2\.\d+\.\d+\/api/)) {
-            href = baseUrlForV1Redirect + path.substring(redirectedV1Url.length + 1);
+            href = baseUrlForV2Redirect + path.substring(redirectedV1Url.length + 1);
+            redirect = true;
+        }
+
+        if (path.match(/\/api\/[12]\.\d+\/\w+/)) {
+            const [, v, id] = path.match(/\/api\/([12])\.\d+\/(.*)/);
+            href = (v === '1' ? baseUrlForV1Redirect : baseUrlForV2Redirect) + id;
             redirect = true;
         }
 
@@ -49,12 +55,18 @@ export default function NotFound() {
                                 Page Not Found
                             </h1>
                             <p>
-                                We could not find what you were looking for. Maybe you got redirected from the old website?
-                                Check out the <Link to={'/'}>homepage</Link>!
+                                We could not find what you were looking for 😢
                             </p>
                             <p>
-                                Please contact the owner of the site that linked you to the
-                                original URL and let them know their link is broken.
+                                Recently we <b>released Apify SDK v3 </b>
+                                and we significantly upgraded the documentation.
+                            </p>
+                            <p>
+                                If you're looking for documentation of <b>Apify SDK v2</b>,
+                                <Link to={'/docs/2.3/guides/apify-platform'}> you can find it here</Link>.
+                            </p>
+                            <p>
+                                For <b>Apify SDK v3 docs</b>, go to the <Link to={'/'}>homepage</Link>.
                             </p>
                         </div>
                     </div>

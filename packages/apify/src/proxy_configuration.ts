@@ -59,7 +59,7 @@ export interface ProxyConfigurationOptions extends CoreProxyConfigurationOptions
 /**
  * The main purpose of the ProxyInfo object is to provide information
  * about the current proxy connection used by the crawler for the request.
- * Outside of crawlers, you can get this object by calling {@link ProxyConfiguration.newProxyInfo}.
+ * Outside of crawlers, you can get this object by calling {@apilink ProxyConfiguration.newProxyInfo}.
  *
  * **Example usage:**
  *
@@ -119,13 +119,13 @@ export interface ProxyInfo extends CoreProxyInfo {
  * Configures connection to a proxy server with the provided options. Proxy servers are used to prevent target websites from blocking
  * your crawlers based on IP address rate limits or blacklists. Setting proxy configuration in your crawlers automatically configures
  * them to use the selected proxies for all connections. You can get information about the currently used proxy by inspecting
- * the {@link ProxyInfo} property in your crawler's page function. There, you can inspect the proxy's URL and other attributes.
+ * the {@apilink ProxyInfo} property in your crawler's page function. There, you can inspect the proxy's URL and other attributes.
  *
  * The proxy servers are managed by [Apify Proxy](https://docs.apify.com/proxy). To be able to use Apify Proxy,
  * you need an Apify account and access to the selected proxies. If you provide no configuration option,
  * the proxies will be managed automatically using a smart algorithm.
  *
- * If you want to use your own proxies, use the {@link ProxyConfigurationOptions.proxyUrls} option. Your list of proxy URLs will
+ * If you want to use your own proxies, use the {@apilink ProxyConfigurationOptions.proxyUrls} option. Your list of proxy URLs will
  * be rotated by the configuration if this option is provided.
  *
  * **Example usage:**
@@ -209,7 +209,7 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
      * if Apify Proxy configuration is used.
      * Also checks if country has access to Apify Proxy groups if the country code is provided.
      *
-     * You should use the {@link createProxyConfiguration} function to create a pre-initialized
+     * You should use the {@apilink createProxyConfiguration} function to create a pre-initialized
      * `ProxyConfiguration` instance instead of calling this manually.
      */
     async initialize(): Promise<void> {
@@ -220,16 +220,16 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
     }
 
     /**
-     * This function creates a new {@link ProxyInfo} info object.
+     * This function creates a new {@apilink ProxyInfo} info object.
      * It is used by CheerioCrawler and PuppeteerCrawler to generate proxy URLs and also to allow the user to inspect
      * the currently used proxy via the requestHandler parameter `proxyInfo`.
      * Use it if you want to work with a rich representation of a proxy URL.
-     * If you need the URL string only, use {@link ProxyConfiguration.newUrl}.
+     * If you need the URL string only, use {@apilink ProxyConfiguration.newUrl}.
      * @param [sessionId]
-     *  Represents the identifier of user {@link Session} that can be managed by the {@link SessionPool} or
+     *  Represents the identifier of user {@apilink Session} that can be managed by the {@apilink SessionPool} or
      *  you can use the Apify Proxy [Session](https://docs.apify.com/proxy#sessions) identifier.
      *  When the provided sessionId is a number, it's converted to a string. Property sessionId of
-     *  {@link ProxyInfo} is always returned as a type string.
+     *  {@apilink ProxyInfo} is always returned as a type string.
      *
      *  All the HTTP requests going through the proxy with the same session identifier
      *  will use the same target proxy server (i.e. the same IP address).
@@ -257,7 +257,7 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
     /**
      * Returns a new proxy URL based on provided configuration options and the `sessionId` parameter.
      * @param [sessionId]
-     *  Represents the identifier of user {@link Session} that can be managed by the {@link SessionPool} or
+     *  Represents the identifier of user {@apilink Session} that can be managed by the {@apilink SessionPool} or
      *  you can use the Apify Proxy [Session](https://docs.apify.com/proxy#sessions) identifier.
      *  When the provided sessionId is a number, it's converted to a string.
      *

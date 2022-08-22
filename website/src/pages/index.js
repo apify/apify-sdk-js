@@ -8,7 +8,6 @@ import ThemedImage from '@theme/ThemedImage';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 import useBaseUrl from '@docusaurus/useBaseUrl';
 import styles from './index.module.css';
-import Highlights from '../components/Highlights';
 
 function Hero() {
     return (
@@ -33,7 +32,7 @@ function Hero() {
                     <div className="row">
                         <div className="col">
                             <div className={styles.heroButtons}>
-                                <Link to="docs" className={styles.getStarted}>Get Started</Link>
+                                <Link to="docs/guides/apify-platform" className={styles.getStarted}>Get Started</Link>
                                 <iframe src="https://ghbtns.com/github-btn.html?user=apify&repo=apify-sdk-js&type=star&count=true&size=large" frameBorder="0" scrolling="0" width="170" height="30" title="GitHub"></iframe>
                             </div>
                         </div>
@@ -259,7 +258,6 @@ export default function Home() {
             title={`${siteConfig.title} · ${siteConfig.tagline}`}
             description={siteConfig.description}>
             <Hero />
-            {/* <Highlights /> */}
             <Features />
             <ActorExample />
             <div className="container">
