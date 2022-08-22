@@ -39,7 +39,7 @@ import { KeyValueStore } from './key_value_store';
 import { Configuration } from './configuration';
 
 /**
- * `Apify` class serves as an alternative approach to the static helpers exported from the package. It allows to pass configuration
+ * `Actor` class serves as an alternative approach to the static helpers exported from the package. It allows to pass configuration
  * that will be used on the instance methods. Environment variables will have precedence over this configuration.
  * See {@link Configuration} for details about what can be configured and what are the default values.
  */
