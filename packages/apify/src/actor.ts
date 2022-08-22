@@ -41,26 +41,26 @@ import { Configuration } from './configuration';
 /**
  * `Actor` class serves as an alternative approach to the static helpers exported from the package. It allows to pass configuration
  * that will be used on the instance methods. Environment variables will have precedence over this configuration.
- * See {@link Configuration} for details about what can be configured and what are the default values.
+ * See {@apilink Configuration} for details about what can be configured and what are the default values.
  */
 export class Actor<Data extends Dictionary = Dictionary> {
     /** @internal */
     static _instance: Actor;
 
     /**
-     * Configuration of this SDK instance (provided to its constructor). See {@link Configuration} for details.
+     * Configuration of this SDK instance (provided to its constructor). See {@apilink Configuration} for details.
      * @internal
      */
     readonly config: Configuration;
 
     /**
-     * Default {@link ApifyClient} instance.
+     * Default {@apilink ApifyClient} instance.
      * @internal
      */
     readonly apifyClient: ApifyClient;
 
     /**
-     * Default {@link EventManager} instance.
+     * Default {@apilink EventManager} instance.
      * @internal
      */
     readonly eventManager: EventManager;
@@ -89,7 +89,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * - When running on the Apify platform (i.e. `APIFY_IS_AT_HOME` environment variable is set),
      *   it sets up a connection to listen for platform events.
      *   For example, to get a notification about an imminent migration to another server.
-     *   See {@link Actor.events} for details.
+     *   See {@apilink Actor.events} for details.
      * - It checks that either `APIFY_TOKEN` or `APIFY_LOCAL_STORAGE_DIR` environment variable
      *   is defined. If not, the functions sets `APIFY_LOCAL_STORAGE_DIR` to `./apify_storage`
      *   inside the current working directory. This is to simplify running code examples.
@@ -262,11 +262,11 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * By passing the `waitSecs` option you can reduce the maximum amount of time to wait for the run to finish.
      * If the value is less than or equal to zero, the function returns immediately after the run is started.
      *
-     * The result of the function is an {@link ActorRun} object
+     * The result of the function is an {@apilink ActorRun} object
      * that contains details about the actor run and its output (if any).
      *
      * If you want to run an actor task rather than an actor, please use the
-     * {@link Actor.callTask} function instead.
+     * {@apilink Actor.callTask} function instead.
      *
      * For more information about actors, read the
      * [documentation](https://docs.apify.com/actor).
@@ -302,7 +302,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * Runs an actor on the Apify platform using the current user account (determined by the `APIFY_TOKEN` environment variable),
      * unlike `Actor.call`, this method just starts the run without waiting for finish.
      *
-     * The result of the function is an {@link ActorRun} object that contains details about the actor run.
+     * The result of the function is an {@apilink ActorRun} object that contains details about the actor run.
      *
      * For more information about actors, read the
      * [documentation](https://docs.apify.com/actor).
@@ -332,7 +332,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
     /**
      * Aborts given actor run on the Apify platform using the current user account (determined by the `APIFY_TOKEN` environment variable).
      *
-     * The result of the function is an {@link ActorRun} object that contains details about the actor run.
+     * The result of the function is an {@apilink ActorRun} object that contains details about the actor run.
      *
      * For more information about actors, read the
      * [documentation](https://docs.apify.com/actor).
@@ -358,12 +358,12 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * By passing the `waitSecs` option you can reduce the maximum amount of time to wait for the run to finish.
      * If the value is less than or equal to zero, the function returns immediately after the run is started.
      *
-     * The result of the function is an {@link ActorRun} object
+     * The result of the function is an {@apilink ActorRun} object
      * that contains details about the actor run and its output (if any).
      *
      * Note that an actor task is a saved input configuration and options for an actor.
      * If you want to run an actor directly rather than an actor task, please use the
-     * {@link Actor.call} function instead.
+     * {@apilink Actor.call} function instead.
      *
      * For more information about actor tasks, read the [documentation](https://docs.apify.com/tasks).
      *
@@ -513,9 +513,9 @@ export class Actor<Data extends Dictionary = Dictionary> {
     }
 
     /**
-     * Stores an object or an array of objects to the default {@link Dataset} of the current actor run.
+     * Stores an object or an array of objects to the default {@apilink Dataset} of the current actor run.
      *
-     * This is just a convenient shortcut for {@link Dataset.pushData}.
+     * This is just a convenient shortcut for {@apilink Dataset.pushData}.
      * For example, calling the following code:
      * ```javascript
      * await Actor.pushData({ myValue: 123 });
@@ -527,7 +527,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * await dataset.pushData({ myValue: 123 });
      * ```
      *
-     * For more information, see {@link Actor.openDataset} and {@link Dataset.pushData}
+     * For more information, see {@apilink Actor.openDataset} and {@apilink Dataset.pushData}
      *
      * **IMPORTANT**: Make sure to use the `await` keyword when calling `pushData()`,
      * otherwise the actor process might finish before the data are stored!
@@ -542,13 +542,13 @@ export class Actor<Data extends Dictionary = Dictionary> {
     }
 
     /**
-     * Opens a dataset and returns a promise resolving to an instance of the {@link Dataset} class.
+     * Opens a dataset and returns a promise resolving to an instance of the {@apilink Dataset} class.
      *
      * Datasets are used to store structured data where each object stored has the same attributes,
      * such as online store products or real estate offers.
      * The actual data is stored either on the local filesystem or in the cloud.
      *
-     * For more details and code examples, see the {@link Dataset} class.
+     * For more details and code examples, see the {@apilink Dataset} class.
      *
      * @param [datasetIdOrName]
      *   ID or name of the dataset to be opened. If `null` or `undefined`,
@@ -569,9 +569,9 @@ export class Actor<Data extends Dictionary = Dictionary> {
     }
 
     /**
-     * Gets a value from the default {@link KeyValueStore} associated with the current actor run.
+     * Gets a value from the default {@apilink KeyValueStore} associated with the current actor run.
      *
-     * This is just a convenient shortcut for {@link KeyValueStore.getValue}.
+     * This is just a convenient shortcut for {@apilink KeyValueStore.getValue}.
      * For example, calling the following code:
      * ```javascript
      * const value = await Actor.getValue('my-key');
@@ -583,10 +583,10 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * const value = await store.getValue('my-key');
      * ```
      *
-     * To store the value to the default key-value store, you can use the {@link Actor.setValue} function.
+     * To store the value to the default key-value store, you can use the {@apilink Actor.setValue} function.
      *
-     * For more information, see  {@link Actor.openKeyValueStore}
-     * and  {@link KeyValueStore.getValue}.
+     * For more information, see  {@apilink Actor.openKeyValueStore}
+     * and  {@apilink KeyValueStore.getValue}.
      *
      * @param key Unique record key.
      * @returns
@@ -602,9 +602,9 @@ export class Actor<Data extends Dictionary = Dictionary> {
     }
 
     /**
-     * Stores or deletes a value in the default {@link KeyValueStore} associated with the current actor run.
+     * Stores or deletes a value in the default {@apilink KeyValueStore} associated with the current actor run.
      *
-     * This is just a convenient shortcut for  {@link KeyValueStore.setValue}.
+     * This is just a convenient shortcut for  {@apilink KeyValueStore.setValue}.
      * For example, calling the following code:
      * ```javascript
      * await Actor.setValue('OUTPUT', { foo: "bar" });
@@ -616,10 +616,10 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * await store.setValue('OUTPUT', { foo: "bar" });
      * ```
      *
-     * To get a value from the default key-value store, you can use the  {@link Actor.getValue} function.
+     * To get a value from the default key-value store, you can use the  {@apilink Actor.getValue} function.
      *
-     * For more information, see  {@link Actor.openKeyValueStore}
-     * and  {@link KeyValueStore.getValue}.
+     * For more information, see  {@apilink Actor.openKeyValueStore}
+     * and  {@apilink KeyValueStore.getValue}.
      *
      * @param key
      *   Unique record key.
@@ -638,7 +638,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
     }
 
     /**
-     * Gets the actor input value from the default {@link KeyValueStore} associated with the current actor run.
+     * Gets the actor input value from the default {@apilink KeyValueStore} associated with the current actor run.
      *
      * This is just a convenient shortcut for [`keyValueStore.getValue('INPUT')`](core/class/KeyValueStore#getValue).
      * For example, calling the following code:
@@ -656,8 +656,8 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * If you need to use the input multiple times in your actor,
      * it is far more efficient to read it once and store it locally.
      *
-     * For more information, see  {@link Actor.openKeyValueStore}
-     * and {@link KeyValueStore.getValue}.
+     * For more information, see  {@apilink Actor.openKeyValueStore}
+     * and {@apilink KeyValueStore.getValue}.
      *
      * @returns
      *   Returns a promise that resolves to an object, string
@@ -671,13 +671,13 @@ export class Actor<Data extends Dictionary = Dictionary> {
     }
 
     /**
-     * Opens a key-value store and returns a promise resolving to an instance of the {@link KeyValueStore} class.
+     * Opens a key-value store and returns a promise resolving to an instance of the {@apilink KeyValueStore} class.
      *
      * Key-value stores are used to store records or files, along with their MIME content type.
      * The records are stored and retrieved using a unique key.
      * The actual data is stored either on a local filesystem or in the Apify cloud.
      *
-     * For more details and code examples, see the {@link KeyValueStore} class.
+     * For more details and code examples, see the {@apilink KeyValueStore} class.
      *
      * @param [storeIdOrName]
      *   ID or name of the key-value store to be opened. If `null` or `undefined`,
@@ -696,14 +696,14 @@ export class Actor<Data extends Dictionary = Dictionary> {
 
     /**
      * Opens a request queue and returns a promise resolving to an instance
-     * of the {@link RequestQueue} class.
+     * of the {@apilink RequestQueue} class.
      *
-     * {@link RequestQueue} represents a queue of URLs to crawl, which is stored either on local filesystem or in the cloud.
+     * {@apilink RequestQueue} represents a queue of URLs to crawl, which is stored either on local filesystem or in the cloud.
      * The queue is used for deep crawling of websites, where you start with several URLs and then
      * recursively follow links to other pages. The data structure supports both breadth-first
      * and depth-first crawling orders.
      *
-     * For more details and code examples, see the {@link RequestQueue} class.
+     * For more details and code examples, see the {@apilink RequestQueue} class.
      *
      * @param [queueIdOrName]
      *   ID or name of the request queue to be opened. If `null` or `undefined`,
@@ -722,13 +722,13 @@ export class Actor<Data extends Dictionary = Dictionary> {
 
     /**
      * Creates a proxy configuration and returns a promise resolving to an instance
-     * of the {@link ProxyConfiguration} class that is already initialized.
+     * of the {@apilink ProxyConfiguration} class that is already initialized.
      *
      * Configures connection to a proxy server with the provided options. Proxy servers are used to prevent target websites from blocking
      * your crawlers based on IP address rate limits or blacklists. Setting proxy configuration in your crawlers automatically configures
      * them to use the selected proxies for all connections.
      *
-     * For more details and code examples, see the {@link ProxyConfiguration} class.
+     * For more details and code examples, see the {@apilink ProxyConfiguration} class.
      *
      * ```javascript
      *
@@ -776,7 +776,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
     }
 
     /**
-     * Returns a new {@link ApifyEnv} object which contains information parsed from all the `APIFY_XXX` environment variables.
+     * Returns a new {@apilink ApifyEnv} object which contains information parsed from all the `APIFY_XXX` environment variables.
      *
      * For the list of the `APIFY_XXX` environment variables, see
      * [Actor documentation](https://docs.apify.com/actor/run#environment-variables).
@@ -849,7 +849,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * - When running on the Apify platform (i.e. `APIFY_IS_AT_HOME` environment variable is set),
      *   it sets up a connection to listen for platform events.
      *   For example, to get a notification about an imminent migration to another server.
-     *   See {@link Actor.events} for details.
+     *   See {@apilink Actor.events} for details.
      * - It checks that either `APIFY_TOKEN` or `APIFY_LOCAL_STORAGE_DIR` environment variable
      *   is defined. If not, the functions sets `APIFY_LOCAL_STORAGE_DIR` to `./apify_storage`
      *   inside the current working directory. This is to simplify running code examples.
@@ -927,11 +927,11 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * By passing the `waitSecs` option you can reduce the maximum amount of time to wait for the run to finish.
      * If the value is less than or equal to zero, the function returns immediately after the run is started.
      *
-     * The result of the function is an {@link ActorRun} object
+     * The result of the function is an {@apilink ActorRun} object
      * that contains details about the actor run and its output (if any).
      *
      * If you want to run an actor task rather than an actor, please use the
-     * {@link Actor.callTask} function instead.
+     * {@apilink Actor.callTask} function instead.
      *
      * For more information about actors, read the
      * [documentation](https://docs.apify.com/actor).
@@ -966,12 +966,12 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * By passing the `waitSecs` option you can reduce the maximum amount of time to wait for the run to finish.
      * If the value is less than or equal to zero, the function returns immediately after the run is started.
      *
-     * The result of the function is an {@link ActorRun} object
+     * The result of the function is an {@apilink ActorRun} object
      * that contains details about the actor run and its output (if any).
      *
      * Note that an actor task is a saved input configuration and options for an actor.
      * If you want to run an actor directly rather than an actor task, please use the
-     * {@link Actor.call} function instead.
+     * {@apilink Actor.call} function instead.
      *
      * For more information about actor tasks, read the [documentation](https://docs.apify.com/tasks).
      *
@@ -1002,7 +1002,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * Runs an actor on the Apify platform using the current user account (determined by the `APIFY_TOKEN` environment variable),
      * unlike `Actor.call`, this method just starts the run without waiting for finish.
      *
-     * The result of the function is an {@link ActorRun} object that contains details about the actor run.
+     * The result of the function is an {@apilink ActorRun} object that contains details about the actor run.
      *
      * For more information about actors, read the
      * [documentation](https://docs.apify.com/actor).
@@ -1028,7 +1028,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
     /**
      * Aborts given actor run on the Apify platform using the current user account (determined by the `APIFY_TOKEN` environment variable).
      *
-     * The result of the function is an {@link ActorRun} object that contains details about the actor run.
+     * The result of the function is an {@apilink ActorRun} object that contains details about the actor run.
      *
      * For more information about actors, read the
      * [documentation](https://docs.apify.com/actor).
@@ -1095,9 +1095,9 @@ export class Actor<Data extends Dictionary = Dictionary> {
     }
 
     /**
-     * Stores an object or an array of objects to the default {@link Dataset} of the current actor run.
+     * Stores an object or an array of objects to the default {@apilink Dataset} of the current actor run.
      *
-     * This is just a convenient shortcut for {@link Dataset.pushData}.
+     * This is just a convenient shortcut for {@apilink Dataset.pushData}.
      * For example, calling the following code:
      * ```javascript
      * await Actor.pushData({ myValue: 123 });
@@ -1109,7 +1109,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * await dataset.pushData({ myValue: 123 });
      * ```
      *
-     * For more information, see {@link Actor.openDataset} and {@link Dataset.pushData}
+     * For more information, see {@apilink Actor.openDataset} and {@apilink Dataset.pushData}
      *
      * **IMPORTANT**: Make sure to use the `await` keyword when calling `pushData()`,
      * otherwise the actor process might finish before the data are stored!
@@ -1122,13 +1122,13 @@ export class Actor<Data extends Dictionary = Dictionary> {
     }
 
     /**
-     * Opens a dataset and returns a promise resolving to an instance of the {@link Dataset} class.
+     * Opens a dataset and returns a promise resolving to an instance of the {@apilink Dataset} class.
      *
      * Datasets are used to store structured data where each object stored has the same attributes,
      * such as online store products or real estate offers.
      * The actual data is stored either on the local filesystem or in the cloud.
      *
-     * For more details and code examples, see the {@link Dataset} class.
+     * For more details and code examples, see the {@apilink Dataset} class.
      *
      * @param [datasetIdOrName]
      *   ID or name of the dataset to be opened. If `null` or `undefined`,
@@ -1142,9 +1142,9 @@ export class Actor<Data extends Dictionary = Dictionary> {
     }
 
     /**
-     * Gets a value from the default {@link KeyValueStore} associated with the current actor run.
+     * Gets a value from the default {@apilink KeyValueStore} associated with the current actor run.
      *
-     * This is just a convenient shortcut for {@link KeyValueStore.getValue}.
+     * This is just a convenient shortcut for {@apilink KeyValueStore.getValue}.
      * For example, calling the following code:
      * ```javascript
      * const value = await Actor.getValue('my-key');
@@ -1156,10 +1156,10 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * const value = await store.getValue('my-key');
      * ```
      *
-     * To store the value to the default key-value store, you can use the {@link Actor.setValue} function.
+     * To store the value to the default key-value store, you can use the {@apilink Actor.setValue} function.
      *
-     * For more information, see  {@link Actor.openKeyValueStore}
-     * and  {@link KeyValueStore.getValue}.
+     * For more information, see  {@apilink Actor.openKeyValueStore}
+     * and  {@apilink KeyValueStore.getValue}.
      *
      * @param key Unique record key.
      * @returns
@@ -1173,9 +1173,9 @@ export class Actor<Data extends Dictionary = Dictionary> {
     }
 
     /**
-     * Stores or deletes a value in the default {@link KeyValueStore} associated with the current actor run.
+     * Stores or deletes a value in the default {@apilink KeyValueStore} associated with the current actor run.
      *
-     * This is just a convenient shortcut for  {@link KeyValueStore.setValue}.
+     * This is just a convenient shortcut for  {@apilink KeyValueStore.setValue}.
      * For example, calling the following code:
      * ```javascript
      * await Actor.setValue('OUTPUT', { foo: "bar" });
@@ -1187,10 +1187,10 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * await store.setValue('OUTPUT', { foo: "bar" });
      * ```
      *
-     * To get a value from the default key-value store, you can use the  {@link Actor.getValue} function.
+     * To get a value from the default key-value store, you can use the  {@apilink Actor.getValue} function.
      *
-     * For more information, see  {@link Actor.openKeyValueStore}
-     * and  {@link KeyValueStore.getValue}.
+     * For more information, see  {@apilink Actor.openKeyValueStore}
+     * and  {@apilink KeyValueStore.getValue}.
      *
      * @param key
      *   Unique record key.
@@ -1207,9 +1207,9 @@ export class Actor<Data extends Dictionary = Dictionary> {
     }
 
     /**
-     * Gets the actor input value from the default {@link KeyValueStore} associated with the current actor run.
+     * Gets the actor input value from the default {@apilink KeyValueStore} associated with the current actor run.
      *
-     * This is just a convenient shortcut for {@link KeyValueStore.getValue | `keyValueStore.getValue('INPUT')`}.
+     * This is just a convenient shortcut for {@apilink KeyValueStore.getValue | `keyValueStore.getValue('INPUT')`}.
      * For example, calling the following code:
      * ```javascript
      * const input = await Actor.getInput();
@@ -1225,7 +1225,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * If you need to use the input multiple times in your actor,
      * it is far more efficient to read it once and store it locally.
      *
-     * For more information, see {@link Actor.openKeyValueStore} and {@link KeyValueStore.getValue}.
+     * For more information, see {@apilink Actor.openKeyValueStore} and {@apilink KeyValueStore.getValue}.
      *
      * @returns
      *   Returns a promise that resolves to an object, string
@@ -1238,13 +1238,13 @@ export class Actor<Data extends Dictionary = Dictionary> {
     }
 
     /**
-     * Opens a key-value store and returns a promise resolving to an instance of the {@link KeyValueStore} class.
+     * Opens a key-value store and returns a promise resolving to an instance of the {@apilink KeyValueStore} class.
      *
      * Key-value stores are used to store records or files, along with their MIME content type.
      * The records are stored and retrieved using a unique key.
      * The actual data is stored either on a local filesystem or in the Apify cloud.
      *
-     * For more details and code examples, see the {@link KeyValueStore} class.
+     * For more details and code examples, see the {@apilink KeyValueStore} class.
      *
      * @param [storeIdOrName]
      *   ID or name of the key-value store to be opened. If `null` or `undefined`,
@@ -1257,14 +1257,14 @@ export class Actor<Data extends Dictionary = Dictionary> {
 
     /**
      * Opens a request queue and returns a promise resolving to an instance
-     * of the {@link RequestQueue} class.
+     * of the {@apilink RequestQueue} class.
      *
-     * {@link RequestQueue} represents a queue of URLs to crawl, which is stored either on local filesystem or in the cloud.
+     * {@apilink RequestQueue} represents a queue of URLs to crawl, which is stored either on local filesystem or in the cloud.
      * The queue is used for deep crawling of websites, where you start with several URLs and then
      * recursively follow links to other pages. The data structure supports both breadth-first
      * and depth-first crawling orders.
      *
-     * For more details and code examples, see the {@link RequestQueue} class.
+     * For more details and code examples, see the {@apilink RequestQueue} class.
      *
      * @param [queueIdOrName]
      *   ID or name of the request queue to be opened. If `null` or `undefined`,
@@ -1277,13 +1277,13 @@ export class Actor<Data extends Dictionary = Dictionary> {
 
     /**
      * Creates a proxy configuration and returns a promise resolving to an instance
-     * of the {@link ProxyConfiguration} class that is already initialized.
+     * of the {@apilink ProxyConfiguration} class that is already initialized.
      *
      * Configures connection to a proxy server with the provided options. Proxy servers are used to prevent target websites from blocking
      * your crawlers based on IP address rate limits or blacklists. Setting proxy configuration in your crawlers automatically configures
      * them to use the selected proxies for all connections.
      *
-     * For more details and code examples, see the {@link ProxyConfiguration} class.
+     * For more details and code examples, see the {@apilink ProxyConfiguration} class.
      *
      * ```javascript
      *
@@ -1317,7 +1317,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
     }
 
     /**
-     * Returns a new {@link ApifyEnv} object which contains information parsed from all the `APIFY_XXX` environment variables.
+     * Returns a new {@apilink ApifyEnv} object which contains information parsed from all the `APIFY_XXX` environment variables.
      *
      * For the list of the `APIFY_XXX` environment variables, see
      * [Actor documentation](https://docs.apify.com/actor/run#environment-variables).
@@ -1345,12 +1345,12 @@ export class Actor<Data extends Dictionary = Dictionary> {
         return Actor.getDefaultInstance().isAtHome();
     }
 
-    /** Default {@link ApifyClient} instance. */
+    /** Default {@apilink ApifyClient} instance. */
     static get apifyClient(): ApifyClient {
         return Actor.getDefaultInstance().apifyClient;
     }
 
-    /** Default {@link Configuration} instance. */
+    /** Default {@apilink Configuration} instance. */
     static get config(): Configuration {
         return Actor.getDefaultInstance().config;
     }
@@ -1375,7 +1375,7 @@ export interface MainOptions extends ExitOptions, InitOptions {}
 
 /**
  * Parsed representation of the `APIFY_XXX` environmental variables.
- * This object is returned by the {@link Actor.getEnv} function.
+ * This object is returned by the {@apilink Actor.getEnv} function.
  */
 export interface ApifyEnv {
     /**
@@ -1483,7 +1483,7 @@ export interface WebhookOptions {
      * Idempotency key enables you to ensure that a webhook will not be added multiple times in case of
      * an actor restart or other situation that would cause the `addWebhook()` function to be called again.
      * We suggest using the actor run ID as the idempotency key. You can get the run ID by calling
-     * {@link Actor.getEnv} function.
+     * {@apilink Actor.getEnv} function.
      */
     idempotencyKey?: string;
 }
