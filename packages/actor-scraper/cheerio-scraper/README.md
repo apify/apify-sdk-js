@@ -246,7 +246,7 @@ visit the [Mozilla documentation](https://developer.mozilla.org/en-US/docs/Web/J
 
 - ##### **`Actor: Object`**
 
-  A reference to the [Actor](https://apify.github.io/apify-sdk-js/api/apify/class/Actor) object from [Apify SDK](https://apify.github.io/apify-sdk-js/api/apify/).
+  A reference to the [Actor](https://sdk.apify.com/api/apify/class/Actor) object from [Apify SDK](https://sdk.apify.com/).
   This is equivalent to:
 
   ```javascript
@@ -255,7 +255,7 @@ visit the [Mozilla documentation](https://developer.mozilla.org/en-US/docs/Web/J
 
 - ##### **`Apify: Object`**
 
-  A reference to the [Actor](https://apify.github.io/apify-sdk-js/api/apify/class/Actor) object from [Apify SDK](https://apify.github.io/apify-sdk-js/api/apify/). Included for backward compatibility.
+  A reference to the [Actor](https://sdk.apify.com/api/apify/class/Actor) object from [Apify SDK](https://sdk.apify.com/). Included for backward compatibility.
 
 - ##### **`crawler: Object`**
 
@@ -319,7 +319,7 @@ visit the [Mozilla documentation](https://developer.mozilla.org/en-US/docs/Web/J
 - ##### **`env: Object`**
 
   A map of all relevant values set by the Apify platform to the actor run via the `APIFY_` environment variable. For example, here you can find information such as actor run ID, timeouts, actor run memory, etc.
-  For the full list of available values, see the [`Actor.getEnv()`](https://apify.github.io/apify-sdk-js/api/apify/class/Actor/#getEnv) function in the Apify SDK documentation.
+  For the full list of available values, see the [`Actor.getEnv()`](https://sdk.apify.com/api/apify/class/Actor#getEnv) function in the Apify SDK documentation.
 
   Example:
 
@@ -329,7 +329,7 @@ visit the [Mozilla documentation](https://developer.mozilla.org/en-US/docs/Web/J
 
 - ##### **`getValue(key): AsyncFunction`**
 
-  Gets a value from the default key-value store associated with the actor run. The key-value store is useful for persisting named data records, such as state objects, files, etc. The function is very similar to the [`Actor.getValue()`](https://apify.github.io/apify-sdk-js/api/apify/class/Actor/#getValue) function in Apify SDK.
+  Gets a value from the default key-value store associated with the actor run. The key-value store is useful for persisting named data records, such as state objects, files, etc. The function is very similar to the [`Actor.getValue()`](https://sdk.apify.com/api/apify/class/Actor#getValue) function in Apify SDK.
 
   To set the value, use the dual function `context.setValue(key, value)`.
 
@@ -401,7 +401,7 @@ visit the [Mozilla documentation](https://developer.mozilla.org/en-US/docs/Web/J
 
 - ##### **`setValue(key, data, options): AsyncFunction`**
 
-  Sets a value to the default key-value store associated with the actor run. The key-value store is useful for persisting named data records, such as state objects, files, etc. The function is very similar to the [`Actor.setValue()`](https://apify.github.io/apify-sdk-js/api/apify/class/Actor/#setValue) function in Apify SDK.
+  Sets a value to the default key-value store associated with the actor run. The key-value store is useful for persisting named data records, such as state objects, files, etc. The function is very similar to the [`Actor.setValue()`](https://sdk.apify.com/api/apify/class/Actor#setValue) function in Apify SDK.
 
   To get the value, use the dual function `context.getValue(key)`.
 

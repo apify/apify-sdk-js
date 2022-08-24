@@ -183,7 +183,7 @@ The actor's input as it was received from the UI. Each `pageFunction` invocation
 
 | Type   | Arguments | Returns                                                                              |
 | ------ | --------- | ------------------------------------------------------------------------------------ |
-| Object | -         | Return value of [`Actor.getEnv()`](https://apify.github.io/apify-sdk-js/api/apify/class/Actor/#getEnv) |
+| Object | -         | Return value of [`Actor.getEnv()`](https://sdk.apify.com/api/apify/class/Actor#getEnv) |
 
 A map of all the relevant environment variables that you may want to use.
 
@@ -288,9 +288,9 @@ The most common `log` methods include:
 
 | Type   | Arguments | Returns                                                    |
 | ------ | --------- | ---------------------------------------------------------- |
-| Object | -         | [Actor class](https://apify.github.io/apify-sdk-js/api/apify/class/Actor/) object |
+| Object | -         | [Actor class](https://sdk.apify.com/api/apify/class/Actor/) object |
 
-A reference to the full power of the Apify SDK. See [the docs](https://apify.github.io/apify-sdk-js/api/apify/) for more information and all the available methods and classes.
+A reference to the full power of the Apify SDK. See [the docs](https://sdk.apify.com/api/apify/) for more information and all the available methods and classes.
 
 > Caution: Since we're making the full SDK available with this option, and Puppeteer Scraper already runs using the SDK, some edge case manipulations may lead to inconsistencies. Use `Apify` with caution, and avoid making global changes unless you know what you're doing.
 
@@ -310,7 +310,7 @@ Usage:
 await context.setValue('my-value', { message: 'hello' })
 ```
 
-Refer to [Apify SDK Documentation](https://apify.github.io/apify-sdk-js/api/apify/class/Actor/#setValue) for more information.
+Refer to [Apify SDK Documentation](https://sdk.apify.com/api/apify/class/Actor#setValue) for more information.
 
 #### **`getValue`**
 
@@ -328,7 +328,7 @@ Usage:
 const { message } = await context.getValue('my-value')
 ```
 
-Refer to [Apify SDK Documentation](https://apify.github.io/apify-sdk-js/api/apify/class/Actor/#getValue) for more information.
+Refer to [Apify SDK Documentation](https://sdk.apify.com/api/apify/class/Actor#getValue) for more information.
 
 #### **`saveSnapshot`**
 

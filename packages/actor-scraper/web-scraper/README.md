@@ -307,7 +307,7 @@ see <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/S
     via the `APIFY_` environment variables.
     For example, you can find here information such as actor run ID, timeouts, actor run memory, etc.
     For the full list of available values, see
-    <a href="https://apify.github.io/apify-sdk-js/api/apify/class/Actor/#getEnv" target="_blank"><code>Actor.getEnv()</code></a>
+    <a href="https://sdk.apify.com/api/apify/class/Actor#getEnv" target="_blank"><code>Actor.getEnv()</code></a>
     function in Apify SDK.
 
     Example:
@@ -320,7 +320,7 @@ see <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/S
 
     Gets a value from the default key-value store associated with the actor run.
     The key-value store is useful for persisting named data records, such as state objects, files, etc.
-    The function is very similar to <a href="https://apify.github.io/apify-sdk-js/api/apify/class/Actor/#getValue" target="_blank"><code>Actor.getValue()</code></a>
+    The function is very similar to <a href="https://sdk.apify.com/api/apify/class/Actor#getValue" target="_blank"><code>Actor.getValue()</code></a>
     function in Apify SDK.
 
     To set the value, use the dual function `context.setValue(key, value)`.
