@@ -246,14 +246,14 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @ignore
      */
     on(event: EventTypeName, listener: (...args: any[]) => any): void {
-        this.eventManager.on(event, listener);
+        this.config.getEventManager().on(event, listener);
     }
 
     /**
      * @ignore
      */
     off(event: EventTypeName, listener?: (...args: any[]) => any): void {
-        this.eventManager.off(event, listener);
+        this.config.getEventManager().off(event, listener);
     }
 
     /**
