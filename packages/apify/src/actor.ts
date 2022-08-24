@@ -168,8 +168,6 @@ export class Actor<Data extends Dictionary = Dictionary> {
         // reset global config instance to respect APIFY_ prefixed env vars
         CoreConfiguration.globalConfig = Configuration.getGlobalConfig();
 
-        await this.eventManager.init();
-
         if (this.isAtHome()) {
             this.config.set('availableMemoryRatio', 1);
             this.config.set('disableBrowserSandbox', true); // for browser launcher, adds `--no-sandbox` to args
@@ -178,6 +176,9 @@ export class Actor<Data extends Dictionary = Dictionary> {
         } else if (options.storage) {
             this.config.useStorageClient(options.storage);
         }
+
+        // Init the event manager the config uses
+        await this.config.getEventManager().init();
 
         await purgeDefaultStorages(this.config);
         Configuration.storage.enterWith(this.config);
@@ -193,15 +194,15 @@ export class Actor<Data extends Dictionary = Dictionary> {
         options.timeoutSecs ??= 30;
 
         // Close the event manager and emit the final PERSIST_STATE event
-        await this.eventManager.close();
+        await this.config.getEventManager().close();
 
         // Emit the exit event
-        this.eventManager.emit(EventType.EXIT, options);
+        this.config.getEventManager().emit(EventType.EXIT, options);
 
         // Wait for all event listeners to be processed
         log.debug(`Waiting for all event listeners to complete their execution (with ${options.timeoutSecs} seconds timeout)`);
         await addTimeoutToPromise(
-            () => this.eventManager.waitForAllListenersToComplete(),
+            () => this.config.getEventManager().waitForAllListenersToComplete(),
             options.timeoutSecs * 1000,
             `Waiting for all event listeners to complete their execution timed out after ${options.timeoutSecs} seconds`,
         );
