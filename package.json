@@ -32,7 +32,7 @@
     "bugs": {
         "url": "https://github.com/apify/apify-ts/issues"
     },
-    "homepage": "https://sdk.apify.com/",
+    "homepage": "https://sdk.apify.com",
     "scripts": {
         "postinstall": "npx husky install",
         "prepublishOnly": "turbo run copy",

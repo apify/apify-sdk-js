@@ -42,7 +42,7 @@
     "bugs": {
         "url": "https://github.com/apify/apify-sdk-js/issues"
     },
-    "homepage": "https://apify.github.io/apify-sdk-js/",
+    "homepage": "https://sdk.apify.com",
     "scripts": {
         "build": "npm run clean && npm run compile && npm run copy && npm run fixApifyExport",
         "clean": "rimraf ./dist",
