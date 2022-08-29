@@ -108,7 +108,7 @@ and the result is stored in the [`context.contentType`](#contenttype-object) obj
 The actor does not employ a full-featured web browser such as Chromium or Firefox, so it will not be sufficient for web pages that render their content dynamically using client-side JavaScript. To scrape such sites, you might prefer to use [**Web Scraper**](https://apify.com/apify/web-scraper) (`apify/web-scraper`), which loads pages in a full browser and renders dynamic content.
 
 Since Cheerio Scraper's **Page function** is executed in the context of the server, it only supports server-side code running in Node.js. If you need to combine client- and server-side libraries in Chromium using the [Puppeteer](https://github.com/GoogleChrome/puppeteer/) library, you might prefer to use
-[**Puppeteer Scraper**](https://apify.com/apify/puppeteer-scraper) (`apify/puppeteer-scraper`). For even more flexibility and control, you might develop a new actor from scratch in Node.js using [Cheerio](https://cheerio.dev).
+[**Puppeteer Scraper**](https://apify.com/apify/puppeteer-scraper) (`apify/puppeteer-scraper`). For even more flexibility and control, you might develop a new actor from scratch in Node.js using [Crawlee](https://crawlee.dev).
 
 In the [**Page function**](#page-function) and **Prepare request function**,
 you can only use NPM modules that are already installed in this actor.
