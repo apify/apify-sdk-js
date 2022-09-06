@@ -23,7 +23,7 @@
             "editor": "stringList",
             "default": [],
             "prefill": [
-                "https://apify.com/**/*"
+                "https://apify.com/*/*"
             ]
         },
         "pseudoUrls": {
