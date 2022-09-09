@@ -1,6 +1,8 @@
-import { getStats, getDatasetItems, run, expect, validateDataset } from '../tools.mjs';
+import { getTestDir, getStats, getDatasetItems, run, expect, validateDataset } from '../tools.mjs';
 
-await run(import.meta.url, 'puppeteer-scraper', {
+const testDir = getTestDir(import.meta.url);
+
+await run(testDir, 'puppeteer-scraper', {
     startUrls: [{
         url: 'https://apify.com/store',
         method: 'GET',
@@ -72,15 +74,13 @@ await run(import.meta.url, 'puppeteer-scraper', {
     maxPagesPerCrawl: 750
 });
 
-const stats = await getStats(import.meta.url);
-expect(stats.requestsFinished > 700, 'All requests finished');
+const stats = await getStats(testDir);
+await expect(stats.requestsFinished > 700, 'All requests finished');
 
-const datasetItems = await getDatasetItems(import.meta.url);
-expect(datasetItems.length > 700, 'Minimum number of dataset items');
-await new Promise((resolve) => setTimeout(resolve, 100));
-expect(datasetItems.length < 1000, 'Maximum number of dataset items');
-await new Promise((resolve) => setTimeout(resolve, 100));
-expect(validateDataset(datasetItems, ['title', 'uniqueIdentifier', 'description', 'modifiedDate', 'runCount']),
-    'Dataset items validation');
-
-process.exit(0);
+const datasetItems = await getDatasetItems(testDir);
+await expect(datasetItems.length > 700, 'Minimum number of dataset items');
+await expect(datasetItems.length < 1000, 'Maximum number of dataset items');
+await expect(
+    validateDataset(datasetItems, ['title', 'uniqueIdentifier', 'description', 'modifiedDate', 'runCount']),
+    'Dataset items validation',
+);

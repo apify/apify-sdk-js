@@ -1,6 +1,8 @@
-import { getStats, getDatasetItems, run, expect, validateDataset } from '../tools.mjs';
+import { getTestDir, getStats, getDatasetItems, run, expect, validateDataset } from '../tools.mjs';
 
-await run(import.meta.url, 'web-scraper', {
+const testDir = getTestDir(import.meta.url);
+
+await run(testDir, 'web-scraper', {
     runMode: 'PRODUCTION',
     startUrls: [{
         url: 'https://api.apify.com/v2/browser-info',
@@ -43,12 +45,9 @@ await run(import.meta.url, 'web-scraper', {
     browserLog: false
 });
 
-const stats = await getStats(import.meta.url);
-expect(stats.requestsFinished === 5, 'All requests finished');
+const stats = await getStats(testDir);
+await expect(stats.requestsFinished === 5, 'All requests finished');
 
-const datasetItems = await getDatasetItems(import.meta.url);
-expect(datasetItems.length >= 5, 'Minimum number of dataset items');
-await new Promise((resolve) => setTimeout(resolve, 100));
-expect(validateDataset(datasetItems, ['clientIp']), 'Dataset items validation');
-
-process.exit(0);
+const datasetItems = await getDatasetItems(testDir);
+await expect(datasetItems.length >= 5, 'Minimum number of dataset items');
+await expect(validateDataset(datasetItems, ['clientIp']), 'Dataset items validation');

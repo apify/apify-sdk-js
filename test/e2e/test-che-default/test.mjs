@@ -1,9 +1,11 @@
-import { getStats, getDatasetItems, run, expect, validateDataset } from '../tools.mjs';
+import { getTestDir, getStats, getDatasetItems, run, expect, validateDataset } from '../tools.mjs';
 
-await run(import.meta.url, 'cheerio-scraper', {
-    startUrls: [{ url: 'https://apify.com' }],
+const testDir = getTestDir(import.meta.url);
+
+await run(testDir, 'cheerio-scraper', {
+    startUrls: [{ url: 'https://crawlee.dev' }],
     keepUrlFragments: false,
-    pseudoUrls: [{ purl: 'https://apify.com[(/[\\w-]+)?]' }],
+    globs: ['https://crawlee.dev/*/*'],
     linkSelector: 'a',
     pageFunction: async function pageFunction(context) {
         const { $, request, log } = context;
@@ -21,14 +23,10 @@ await run(import.meta.url, 'cheerio-scraper', {
     debugLog: false,
 });
 
-const stats = await getStats(import.meta.url);
-expect(stats.requestsFinished > 50, 'All requests finished');
+const stats = await getStats(testDir);
+await expect(stats.requestsFinished > 15, 'All requests finished');
 
-const datasetItems = await getDatasetItems(import.meta.url);
-expect(datasetItems.length > 50, 'Minimum number of dataset items');
-await new Promise((resolve) => setTimeout(resolve, 100));
-expect(datasetItems.length < 150, 'Maximum number of dataset items');
-await new Promise((resolve) => setTimeout(resolve, 100));
-expect(validateDataset(datasetItems, ['pageTitle']), 'Dataset items validation');
-
-process.exit(0);
+const datasetItems = await getDatasetItems(testDir);
+await expect(datasetItems.length > 15, 'Minimum number of dataset items');
+await expect(datasetItems.length < 25, 'Maximum number of dataset items');
+await expect(validateDataset(datasetItems, ['pageTitle']), 'Dataset items validation');

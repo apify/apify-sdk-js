@@ -72,7 +72,9 @@ async function run() {
             const taskLogs = allLogs.get(dir.name);
 
             if (code !== 0 && taskLogs?.length > 0) {
-                console.log(taskLogs.join('\n'));
+                // Each log line already end with '\n',
+                // So we join them with an empty string.
+                console.log(taskLogs.join(''));
             }
 
             if (status === 'failure') failure = true;

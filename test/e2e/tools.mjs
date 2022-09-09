@@ -4,7 +4,6 @@ import { existsSync } from 'node:fs';
 import { readdir } from 'node:fs/promises';
 import { homedir } from 'node:os';
 import { setTimeout } from 'node:timers/promises';
-import { execSync } from 'node:child_process';
 import fs from 'fs-extra';
 import { Actor, Configuration } from 'apify';
 import { URL_NO_COMMAS_REGEX } from 'crawlee';
@@ -44,14 +43,13 @@ export async function getStats(dirName) {
 /**
  * @param {string | URL} url
  */
-export function getActorTestDir(url) {
+export function getTestDir(url) {
     const filename = fileURLToPath(url);
-    const actorDirName = dirname(filename);
-    return join(actorDirName, 'actor');
+    return dirname(filename);
 }
 
 export async function run(url, scraper, input) {
-    process.env.APIFY_LOCAL_STORAGE_DIR = getStorage(url);
+    await initialize(url);
 
     await purgeDefaultStorages();
     const inputKey = Configuration.getGlobalConfig().get('inputKey');
@@ -80,7 +78,7 @@ async function isFinished(dir) {
  * @param {string} dirName
  */
 export async function clearStorage(dirName) {
-    const destPackagesDir = join(dirName, 'actor', 'storage');
+    const destPackagesDir = join(dirName, 'storage');
     await fs.remove(destPackagesDir);
 }
 
@@ -128,15 +126,10 @@ export async function getDatasetItems(dirName) {
  * @param {string} dirName
  */
 export async function initialize(dirName) {
-    process.env.STORAGE_IMPLEMENTATION ??= 'MEMORY';
-    if (process.env.STORAGE_IMPLEMENTATION !== 'PLATFORM') {
-        process.env.APIFY_LOCAL_STORAGE_DIR = getStorage(dirName);
-        process.env.APIFY_HEADLESS = '1'; // run browser in headless mode (default on platform)
-        process.env.APIFY_TOKEN ??= await getApifyToken();
-        process.env.APIFY_CONTAINER_URL ??= 'http://127.0.0.1';
-        process.env.APIFY_CONTAINER_PORT ??= '8000';
-    }
-    console.log('[init] Storage directory:', process.env.APIFY_LOCAL_STORAGE_DIR || 'n/a (running on the platform)');
+    process.env.CRAWLEE_STORAGE_DIR = getStorage(dirName);
+    process.env.APIFY_TOKEN ??= await getApifyToken();
+    process.env.APIFY_CONTAINER_URL ??= 'http://127.0.0.1';
+    process.env.APIFY_CONTAINER_PORT ??= '8000';
 }
 
 /**

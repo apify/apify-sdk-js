@@ -1,6 +1,8 @@
-import { getStats, run, expect } from '../tools.mjs';
+import { getTestDir, getStats, run, expect } from '../tools.mjs';
 
-await run(import.meta.url, 'cheerio-scraper', {
+const testDir = getTestDir(import.meta.url);
+
+await run(testDir, 'cheerio-scraper', {
     startUrls: [{
         url: 'https://api.apify.com/v2/browser-info',
         method: 'GET',
@@ -52,6 +54,5 @@ await run(import.meta.url, 'cheerio-scraper', {
     }],
 });
 
-const stats = await getStats(import.meta.url);
-expect(stats.requestsFinished === 1, 'All requests finished');
-process.exit(0);
+const stats = await getStats(testDir);
+await expect(stats.requestsFinished === 1, 'All requests finished');
