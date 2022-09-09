@@ -1,5 +1,4 @@
 import { getTestDir, getStats, getDatasetItems, run, expect, validateDataset } from '../tools.mjs';
-import { setTimeout } from 'node:timers/promises';
 
 const testDir = getTestDir(import.meta.url);
 
@@ -41,8 +40,6 @@ await run(testDir, 'cheerio-scraper', {
     ignoreSslErrors: false,
     debugLog: false
 });
-
-await setTimeout(1e3);
 
 const stats = await getStats(testDir);
 await expect(stats.requestsFinished > 20, 'All requests finished');

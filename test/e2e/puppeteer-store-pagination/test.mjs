@@ -1,5 +1,4 @@
 import { getTestDir, getStats, getDatasetItems, run, expect, validateDataset } from '../tools.mjs';
-import { setTimeout } from 'node:timers/promises';
 
 const testDir = getTestDir(import.meta.url);
 
@@ -85,8 +84,6 @@ await run(testDir, 'puppeteer-scraper', {
     browserLog: false,
     maxPagesPerCrawl: 750,
 });
-
-await setTimeout(1e3);
 
 const stats = await getStats(testDir);
 await expect(stats.requestsFinished > 700, 'All requests finished');
