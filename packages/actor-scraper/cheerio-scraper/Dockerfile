@@ -1,43 +1,30 @@
-FROM apify/actor-node:16 as builder
-
-# Copy everything in the container
-COPY . ./
-
-# Log Node version
-RUN echo "Node.js version:" && node --version
-
-# Log npm version
-RUN echo "NPM version:" && npm --version
-
-# Install default dependencies, print versions of everything
-RUN npm --quiet set progress=false \
-	&& npm install && npm install typescript \
-	&& echo "Installed NPM packages:" \
-	&& (npm list || true)
-
-# Run build script
-RUN npm run build
-
-# Copy the output for easy copying between containers
-RUN mkdir /dist \
-	&& cp -r ./dist/. /dist/
-
-FROM apify/actor-node-puppeteer-chrome:16
+FROM apify/actor-node:16 AS builder
 
 COPY package*.json ./
 
-# Log Node version
-RUN echo "Node.js version:" && node --version
+RUN npm install --include=dev --audit=false
 
-# Log npm version
-RUN echo "NPM version:" && npm --version
+COPY . ./
 
-# Install default dependencies, print versions of everything
+RUN npm run build
+
+FROM apify/actor-node:16
+
+COPY --from=builder /usr/src/app/dist ./dist
+
+COPY package*.json ./
+
 RUN npm --quiet set progress=false \
-	&& npm install --no-optional \
-	&& echo "Installed NPM packages:" \
-	&& (npm list || true)
+    && npm install --omit=dev --omit=optional \
+    && echo "Installed NPM packages:" \
+    && (npm list --omit=dev --all || true) \
+    && echo "Node.js version:" \
+    && node --version \
+    && echo "NPM version:" \
+    && npm --version
 
-COPY --from=builder /dist ./dist
+COPY . ./
 
 ENV APIFY_DISABLE_OUTDATED_WARNING=1
+
+CMD npm run start:prod --silent

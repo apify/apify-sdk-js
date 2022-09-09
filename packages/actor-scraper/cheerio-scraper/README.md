@@ -3,53 +3,12 @@
 Cheerio Scraper is a ready-made solution for crawling websites using plain HTTP requests. It retrieves the HTML pages, parses them using the [Cheerio](https://cheerio.js.org) Node.js library and lets you extract any data from them. Fast.
 
 Cheerio is a server-side version of the popular [jQuery](https://jquery.com) library. It does not require a
-browser but instead constructs a DOM from a HTML string. It then provides the user an API to work with that DOM.
+browser but instead constructs a DOM from an HTML string. It then provides the user an API to work with that DOM.
 
 Cheerio Scraper is ideal for scraping web pages that do not rely on client-side JavaScript to serve their content and can be up to 20 times faster than using a full-browser solution such as Puppeteer.
 
 If you're unfamiliar with web scraping or web development in general,
-you might prefer to start with the  [**Web scraping tutorial**](https://apify.com/docs/scraping/web-scraper-tutorial) from the Apify documentation and then continue with [**Scraping with Cheerio Scraper**](https://docs.apify.com/scraping/cheerio-scraper), a tutorial which will walk you through all the steps and provide a number of examples.
-
-## Table of Contents
-
-<!-- toc -->
-
-- [Usage](#usage)
-- [Content types](#content-types)
-- [Limitations](#limitations)
-- [Input configuration](#input-configuration)
-    - [Start URLs](#start-urls)
-    - [Link selector](#link-selector)
-    - [Pseudo-URLs](#pseudo-urls)
-    - [Page function](#page-function)
-        - [**`$: Function`**](#function)
-        - [**`Apify: Object`**](#apify-object)
-        - [**`crawler: Object`**](#crawler-object)
-        - [**`body: String|Buffer`**](#body-string-buffer)
-        - [**`cheerio: Object`**](#cheerio-object)
-        - [**`contentType: Object`**](#contenttype-object)
-        - [**`customData: Object`**](#customdata-object)
-        - [**`enqueueRequest(request, [options]): AsyncFunction`**](#enqueuerequest-request-options-asyncfunction)
-        - [**`env: Object`**](#env-object)
-        - [**`getValue(key): AsyncFunction`**](#getvalue-key-asyncfunction)
-        - [**`globalStore: Object`**](#globalstore-object)
-        - [**`input: Object`**](#input-object)
-        - [**`json: Object`**](#json-object)
-        - [**`log: Object`**](#log-object)
-        - [**`saveSnapshot(): AsyncFunction`**](#savesnapshot-asyncfunction)
-        - [**`setValue(key, data, options): AsyncFunction`**](#setvalue-key-data-options-asyncfunction)
-        - [**`skipLinks(): AsyncFunction`**](#skiplinks-asyncfunction)
-        - [**`request: Object`**](#request-object)
-        - [**`response: Object`**](#response-object)
-- [Proxy configuration](#proxy-configuration)
-- [Advanced configuration](#advanced-configuration)
-    - [Pre-navigation hooks](#pre-navigation-hooks)
-    - [Post-navigation hooks](#post-navigation-hooks)
-- [Results](#results)
-- [Additional resources](#additional-resources)
-- [Upgrading](#upgrading)
-
-<!-- tocstop -->
+you might prefer to start with [**Scraping with Web Scraper**](https://docs.apify.com/tutorials/apify-scrapers/web-scraper) tutorial from the Apify documentation and then continue with [**Scraping with Cheerio Scraper**](https://docs.apify.com/tutorials/apify-scrapers/cheerio-scraper), a tutorial which will walk you through all the steps and provide a number of examples.
 
 ## Usage
 
@@ -57,7 +16,7 @@ To get started with Cheerio Scraper, you only need two things. First, tell the s
 it should load. Second, tell it how to extract data from each page.
 
 The scraper starts by loading the pages specified in the [**Start URLs**](#start-urls) field.
-You can make the scraper follow page links on the fly by setting a [**Link selector**](#link-selector) and/or [**Pseudo URLs**](#pseudo-urls) to tell the scraper which links it should add to the crawling queue. This is useful for the recursive crawling of entire websites, e.g. to find all products in an online store.
+You can make the scraper follow page links on the fly by setting a [**Link selector**](#link-selector), **[Glob Patterns](#glob-patterns)** and/or **[Pseudo-URLs](#pseudo-urls)** to tell the scraper which links it should add to the crawling queue. This is useful for the recursive crawling of entire websites, e.g. to find all products in an online store.
 
 To tell the scraper how to extract data from web pages, you need to provide a [**Page function**](#page-function). This is JavaScript code that is executed for every web page loaded. Since the scraper does not use the full web browser, writing the **Page function** is equivalent to writing server-side Node.js code - it uses the server-side library [Cheerio](https://cheerio.js.org).
 
@@ -67,19 +26,17 @@ In summary, Cheerio Scraper works as follows:
 2. Fetches the first URL from the queue and constructs a DOM from the fetched HTML string.
 3. Executes the [**Page function**](#page-function) on the loaded page and saves its results.
 4. Optionally, finds all links from the page using the [**Link selector**](#link-selector).
-   If a link matches any of the [**Pseudo URLs**](#pseudo-urls) and has not yet been visited, adds it to the queue.
+   If a link matches any of the **[Glob Patterns](#glob-patterns)** and/or **[Pseudo-URLs](#pseudo-urls)** and has not yet been visited, adds it to the queue.
 5. If there are more items in the queue, repeats step 2, otherwise finishes.
 
-Cheerio Scraper has a number of advanced configuration settings to improve performance, set cookies for login to websites, limit the number of records, etc.
-See their tooltips for more information.
+Cheerio Scraper has a number of advanced configuration settings to improve performance, set cookies for login to websites, limit the number of records, etc. See their tooltips for more information.
 
 Under the hood, Cheerio Scraper is built using the [`CheerioCrawler`](https://crawlee.dev/api/cheerio-crawler/class/CheerioCrawler) class
 from Crawlee. If you'd like to learn more about the inner workings of the scraper, see the respective documentation.
 
 ## Content types
 
-By default, Cheerio Scraper only processes web pages with the `text/html`
-and `application/xhtml+xml` MIME content types (as reported by the `Content-Type` HTTP header),
+By default, Cheerio Scraper only processes web pages with the `text/html`, `application/json`, `application/xml`, `application/xhtml+xml` MIME content types (as reported by the `Content-Type` HTTP header),
 and skips pages with other content types.
 If you want the crawler to process other content types,
 use the **Additional MIME types** (`additionalMimeTypes`) input option.
@@ -93,11 +50,11 @@ either in [**Start URLs**](#start-urls), [**Pseudo URLs**](#pseudo-urls) or in t
 The web pages with various content types are parsed differently and
 thus the `context` parameter of the [**Page function**](#page-function) will have different values:
 
-| **Content types**  | [`context.body`](#body-string-buffer) | [`context.$`](#-function)  | [`context.json`](#json-object)
-|------------|---|---|---|
-| `text/html`, `application/xhtml+xml` or `application/xml` | `String`  | `Function`  |`null`
-| `application/json` |  `String` | `null`  | `Object`
-| Other |  `Buffer` | `null`  | `null`
+| **Content types**                                       | [`context.body`](#body-string-buffer) | [`context.$`](#-function) | [`context.json`](#json-object) |
+|---------------------------------------------------------|---------------------------------------|---------------------------|--------------------------------|
+| `text/html`, `application/xhtml+xml`, `application/xml` | `String`                              | `Function`                | `null`                         |
+| `application/json`                                      | `String`                              | `null`                    | `Object`                       |
+| Other                                                   | `Buffer`                              | `null`                    | `null`                         |
 
 The `Content-Type` HTTP header of the web page is parsed using the
 <a href="https://www.npmjs.com/package/content-type" target="_blank">content-type</a> NPM package
@@ -107,8 +64,8 @@ and the result is stored in the [`context.contentType`](#contenttype-object) obj
 
 The actor does not employ a full-featured web browser such as Chromium or Firefox, so it will not be sufficient for web pages that render their content dynamically using client-side JavaScript. To scrape such sites, you might prefer to use [**Web Scraper**](https://apify.com/apify/web-scraper) (`apify/web-scraper`), which loads pages in a full browser and renders dynamic content.
 
-Since Cheerio Scraper's **Page function** is executed in the context of the server, it only supports server-side code running in Node.js. If you need to combine client- and server-side libraries in Chromium using the [Puppeteer](https://github.com/GoogleChrome/puppeteer/) library, you might prefer to use
-[**Puppeteer Scraper**](https://apify.com/apify/puppeteer-scraper) (`apify/puppeteer-scraper`). For even more flexibility and control, you might develop a new actor from scratch in Node.js using [Crawlee](https://crawlee.dev).
+Since Cheerio Scraper's **Page function** is executed in the context of the server, it only supports server-side code running in Node.js. If you need to combine client- and server-side libraries in Chromium using the [Puppeteer](https://github.com/puppeteer/puppeteer) library, you might prefer to use
+[**Puppeteer Scraper**](https://apify.com/apify/puppeteer-scraper) (`apify/puppeteer-scraper`). If you prefer Firefox and/or [Playwright](https://github.com/microsoft/playwright), check out [**Playwright Scraper**](https://apify.com/apify/playwright-scraper) (`apify/playwright-scraper`). For even more flexibility and control, you might develop a new actor from scratch in Node.js using [Apify SDK](https://sdk.apify.com/) and [Crawlee](https://crawlee.dev).
 
 In the [**Page function**](#page-function) and **Prepare request function**,
 you can only use NPM modules that are already installed in this actor.
@@ -118,26 +75,25 @@ from Crawlee to get most of the functionality of Cheerio Scraper out of the box.
 
 ## Input configuration
 
-As input, Cheerio Scraper actor accepts a number of configurations. These can be entered either manually in the user interface in [Apify Console](https://console.apify.com), or programmatically in a JSON object using the [Apify API](https://apify.com/docs/api/v2#/reference/actors/run-collection/run-actor). For a complete list of input fields and their types, please visit the [Input](https://apify.com/apify/cheerio-scraper?section=input-schema) tab.
+As input, Cheerio Scraper actor accepts a number of configurations. These can be entered either manually in the user interface in [Apify Console](https://console.apify.com), or programmatically in a JSON object using the [Apify API](https://apify.com/docs/api/v2#/reference/actors/run-collection/run-actor). For a complete list of input fields and their types, please visit the [Input](https://apify.com/apify/cheerio-scraper/input-schema) tab.
 
 ### Start URLs
 
 The **Start URLs** (`startUrls`) field represents the initial list of pages that the scraper will visit.
-You can either enter the URLs manually one by one, upload them in a CSV file, or [link URLs from a Google Sheet](https://help.apify.com/en/articles/2906022-scraping-a-list-of-urls-from-google-spreadsheet) document.
+You can either enter the URLs manually one by one, upload them in a CSV file, or [link URLs from a Google Sheet](https://help.apify.com/en/articles/2906022-scraping-a-list-of-urls-from-a-google-sheets-document) document.
 Each URL must start with either a `http://` or `https://` protocol prefix.
 
-The scraper supports adding new URLs to scrape on the fly, either using the [**Link selector**](#link-selector) and [**Pseudo-URLs**](#pseudo-urls) options or by calling `context.enqueueRequest()` inside the [**Page function**](#page-function).
+The scraper supports adding new URLs to scrape on the fly, either using the [**Link selector**](#link-selector) and **[Glob Patterns](#glob-patterns)**/**[Pseudo-URLs](#pseudo-urls)** options or by calling `context.enqueueRequest()` inside the [**Page function**](#page-function).
 
 Optionally, each URL can be associated with custom user data - a JSON object that can be referenced from
 your JavaScript code in the [**Page function**](#page-function) under `context.request.userData`.
-This is useful for determining which start URL is currently loaded, in order to perform some page-specific actions. For example, when crawling an online store, you might want to perform different actions on a page listing the products vs. a product detail page. For details, see the [**Web scraping tutorial**](https://apify.com/docs/scraping/tutorial/introduction#the-start-url)
-in the Apify documentation.
+This is useful for determining which start URL is currently loaded, in order to perform some page-specific actions. For example, when crawling an online store, you might want to perform different actions on a page listing the products vs. a product detail page. For details, see the [**Web scraping tutorial**](https://docs.apify.com/tutorials/apify-scrapers/getting-started#the-start-url) in the Apify documentation.
 
 <!-- TODO: Describe how the queue works, unique key etc. plus link -->
 
 ### Link selector
 
-The **Link selector** (`linkSelector`) field contains a CSS selector that is used to find links to other web pages, i.e. `<a>` elements with the `href` attribute. On every page loaded, the scraper looks for all links matching the **Link selector**. It checks that the target URL matches one of the [**Pseudo-URLs**](#pseudo-urls), and if so then adds the URL to the request queue, to be loaded by the scraper later.
+The **Link selector** (`linkSelector`) field contains a CSS selector that is used to find links to other web pages, i.e. `<a>` elements with the `href` attribute. On every page loaded, the scraper looks for all links matching the **Link selector**. It checks that the target URL matches one of the [**Pseudo-URLs**](#pseudo-urls)/[**Glob Patterns**](#glob-patterns), and if so then adds the URL to the request queue, to be loaded by the scraper later.
 
 By default, new scrapers are created with the following selector that matches all links:
 
@@ -147,19 +103,37 @@ a[href]
 
 If the **Link selector** is empty, page links are ignored, and the scraper only loads pages that were specified in the [**Start URLs**](#start-urls) input or that were manually added to the request queue by calling `context.enqueueRequest()` in the [**Page function**](#page-function).
 
+### Glob Patterns
+
+The **Glob Patterns** (`globs`) field specifies which types of URLs found by **[Link selector](#link-selector)** should be added to the request queue.
+
+A glob pattern is simply a string with wildcard characters.
+
+For example, a glob pattern `http://www.example.com/pages/**/*` will match all the
+following URLs:
+
+-   `http://www.example.com/pages/deeper-level/page`
+-   `http://www.example.com/pages/my-awesome-page`
+-   `http://www.example.com/pages/something`
+
+Note that you don't need to use the **Glob Patterns** setting at all, because you can completely control which pages the scraper will access by calling `await context.enqueueRequest()` from the **[Page function](#page-function)**.
+
 ### Pseudo-URLs
 
-The **Pseudo-URLs** (`pseudoUrls`) field specifies what kind of URLs found by [**Link selector**](#link-selector) should be added to the request queue.
+The **Pseudo-URLs** (`pseudoUrls`) field specifies which types of URLs found by **[Link selector](#link-selector)** should be added to the request queue.
 
-A pseudo-URL is simply a URL with special directives enclosed in `[]` brackets. Currently, the only supported directive is `[regexp]`, which defines a JavaScript-style regular expression to match against the URL.
+A pseudo-URL is simply a URL with special directives enclosed in `[]` brackets.
+Currently, the only supported directive is `[regexp]`, which defines
+a JavaScript-style regular expression to match against the URL.
 
-For example, the pseudo-URL `http://www.example.com/pages/[(\w|-)*]` will match all of the following URLs:
+For example, a pseudo-URL `http://www.example.com/pages/[(\w|-)*]` will match all the
+following URLs:
 
-- `http://www.example.com/pages/`
-- `http://www.example.com/pages/my-awesome-page`
-- `http://www.example.com/pages/something`
+-   `http://www.example.com/pages/`
+-   `http://www.example.com/pages/my-awesome-page`
+-   `http://www.example.com/pages/something`
 
-If either `[` or `]` is part of the normal query string, it must be encoded as `[\x5B]` or `[\x5D]`, respectively. For example, the following pseudo-URL:
+If either "`[`" or "`]`" are part of the normal query string, the symbol must be encoded as `[\x5B]` or `[\x5D]`, respectively. For example, the following pseudo-URL:
 
 ```
 http://www.example.com/search?do[\x5B]load[\x5D]=1
@@ -171,9 +145,12 @@ will match the URL:
 http://www.example.com/search?do[load]=1
 ```
 
-Optionally, each pseudo-URL can be associated with user data that can be referenced from your [**Page function**](#page-function) using `context.request.userData` to determine what kind of page is currently loaded in the browser.
+Optionally, each pseudo-URL can be associated with user data that can be referenced from your **[Page function](#page-function)**
+using `context.request.label` to determine which kind of page is currently loaded in the browser.
 
-Note that you don't have to use the **Pseudo-URLs** setting at all because you can completely control which pages the scraper will access by calling `context.enqueuePage()` from your [**Page function**](#page-function).
+Note that you don't need to use the **Pseudo-URLs** setting at all,
+because you can completely control which pages the scraper will access by calling `await context.enqueueRequest()`
+from the **[Page function](#page-function)**.
 
 ### Page function
 
@@ -204,7 +181,7 @@ async function pageFunction(context) {
 }
 ```
 
-The code runs in [Node.js 12](https://nodejs.org/) and the function accepts a single argument, the `context` object, whose properties are listed below.
+The code runs in [Node.js 16](https://nodejs.org/) and the function accepts a single argument, the `context` object, whose properties are listed below.
 
 The return value of the page function is an object (or an array of objects) representing the data extracted from the web page. The return value must be stringify-able to JSON, i.e. it can only contain basic types and no circular references. If you prefer not to extract any data from the page and skip it in the clean results, simply return `null` or `undefined`.
 
@@ -281,7 +258,7 @@ visit the [Mozilla documentation](https://developer.mozilla.org/en-US/docs/Web/J
   This is equivalent to:
 
   ```javascript
-  import cheerio from 'cheerio';
+  import * as cheerio from 'cheerio';
   ```
 
 - ##### **`contentType: Object`**
@@ -413,7 +390,7 @@ visit the [Mozilla documentation](https://developer.mozilla.org/en-US/docs/Web/J
 
 - ##### **`skipLinks(): AsyncFunction`**
 
-  Calling this function ensures that page links from the current page will not be added to the request queue, even if they match the [**Link selector**](#link-selector) and/or [**Pseudo-URLs**](#pseudo-urls) settings.  This is useful to programmatically stop recursive crawling, e.g. if you know there are no more interesting links on the current page to follow.
+  Calling this function ensures that page links from the current page will not be added to the request queue, even if they match the [**Link selector**](#link-selector) and/or **[Glob Patterns](#glob-patterns)**/**[Pseudo-URLs](#pseudo-urls)** settings. This is useful to programmatically stop recursive crawling, e.g. if you know there are no more interesting links on the current page to follow.
 
 - ##### **`request: Object`**
 
@@ -484,8 +461,7 @@ The following table lists the available options of the proxy configuration setti
             <p>
                 Example:
             </p>
-            <pre><code class="language-none">http://bob:password@proxy1.example.com:8000
-            http://bob:password@proxy2.example.com:8000</code></pre>
+            <pre><code class="language-none">http://bob:password@proxy1.example.com:8000<br>http://bob:password@proxy2.example.com:8000</code></pre>
         </td>
     </tr>
     </tbody>
@@ -525,7 +501,7 @@ preNavigationHooks: [
 ]
 ```
 
-Check out the docs for [Pre-navigation hooks](https://crawlee.dev/api/cheerio-crawler/interface/CheerioCrawlerOptions#preNavigationHooks) and the [PuppeteerHook type](https://crawlee.dev/api/puppeteer-crawler/interface/PuppeteerHook) for more info regarding the objects passed into these functions. The available properties are extended with `Actor` (alternatively `Apify`) and `customData` in this scraper.
+Check out the docs for [Pre-navigation hooks](https://crawlee.dev/api/cheerio-crawler/interface/CheerioCrawlerOptions#preNavigationHooks) and the [CheerioHook type](https://crawlee.dev/api/cheerio-crawler#CheerioHook) for more info regarding the objects passed into these functions. The available properties are extended with `Actor` (alternatively `Apify`) and `customData` in this scraper.
 
 ### Post-navigation hooks
 
@@ -572,7 +548,7 @@ The full object stored in the dataset will look as follows
 ```
 
 To download the results, call the
-[Get dataset items](https://apify.com/docs/api/v2#/reference/datasets/item-collection)
+[Get dataset items](https://docs.apify.com/api/v2#/reference/datasets/item-collection)
 API endpoint:
 
 ```
@@ -585,8 +561,8 @@ To skip the `#error` and `#debug` metadata fields from the results and not inclu
 simply add the `clean=true` query parameter to the API URL, or select the  **Clean items** option when downloading the dataset in Apify Console.
 
 To get the results in other formats, set the `format` query parameter to `xml`, `xlsx`, `csv`, `html`, etc.
-For more information, see [Datasets](https://apify.com/docs/storage#dataset) in documentation
-or the [Get dataset items](https://apify.com/docs/api/v2#/reference/datasets/item-collection)
+For more information, see [Datasets](https://docs.apify.com/storage#dataset) in documentation
+or the [Get dataset items](https://docs.apify.com/api/v2#/reference/datasets/item-collection)
 endpoint in Apify API reference.
 
 ## Additional resources
@@ -594,9 +570,9 @@ endpoint in Apify API reference.
 Congratulations! You've learned how Cheerio Scraper works.
 You might also want to see these other resources:
 
-- [Web scraping tutorial](https://apify.com/docs/scraping) -
+- [Web scraping tutorial](https://docs.apify.com/tutorials/apify-scrapers) -
   An introduction to web scraping with Apify.
-- [Scraping with Cheerio Scraper](https://docs.apify.com/scraping/cheerio-scraper) -
+- [Scraping with Cheerio Scraper](https://docs.apify.com/tutorials/apify-scrapers/cheerio-scraper) -
   A step-by-step tutorial on how to use Cheerio Scraper, with a detailed explanation and examples.
 - **Web Scraper** ([apify/web-scraper](https://apify.com/apify/web-scraper)) -
   Apify's basic tool for web crawling and scraping. It uses a full Chrome browser to render dynamic content.
@@ -605,14 +581,16 @@ You might also want to see these other resources:
 - **Puppeteer Scraper** ([apify/puppeteer-scraper](https://apify.com/apify/puppeteer-scraper)) -
   An actor similar to Web Scraper, which provides lower-level control of the underlying
   [Puppeteer](https://github.com/GoogleChrome/puppeteer) library and the ability to use server-side libraries.
-- [Actors documentation](https://apify.com/docs/actor) -
+- **Playwright Scraper** ([apify/playwright-scraper](https://apify.com/apify/playwright-scraper)) -
+  A similar web scraping actor to Puppeteer Scraper, but using the [Playwright](https://github.com/microsoft/playwright) library instead.
+- [Actors documentation](https://docs.apify.com/actors) -
   Documentation for the Apify Actors cloud computing platform.
-- [Crawlee](https://crawlee.dev) - Learn how to build a new web scraping actor from scratch using the world's most popular web crawling and scraping library for Node.js.
+- [Crawlee](https://crawlee.dev) - Learn how to build a new web scraper from scratch using the world's most popular web crawling and scraping library for Node.js.
 
 ## Upgrading
 
 v2 introduced several minor breaking changes, you can read about those in the
 [migration guide](https://github.com/apify/actor-scraper/blob/master/MIGRATIONS.md).
 
-v3 (Crawlee) introduces even more breaking changes. 
-This [v3 migration guide](https://crawlee.dev/docs/upgrading/upgrading-to-v3) should take you through these.
+v3 introduces even more breaking changes.
+This [v3 migration guide](https://sdk.apify.com/docs/upgrading/upgrading-to-v3) should take you through these.
