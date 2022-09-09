@@ -9,7 +9,7 @@
             "title": "Start URLs",
             "type": "array",
             "description": "A static list of URLs to scrape. <br><br>For details, see the <a href='https://apify.com/apify/cheerio-scraper#start-urls' target='_blank' rel='noopener'>Start URLs</a> section in the README.",
-            "prefill": [ { "url": "https://apify.com" } ],
+            "prefill": [{ "url": "https://apify.com" }],
             "editor": "requestListSources"
         },
         "keepUrlFragments": {
@@ -19,17 +19,23 @@
             "default": false,
             "groupCaption": "Options"
         },
+        "globs": {
+            "title": "Glob Patterns",
+            "type": "array",
+            "description": "Glob patterns to match links in the page that you want to enqueue. Combine with Link selector to tell the scraper where to find links. Omitting the Glob patterns will cause the scraper to enqueue all links matched by the Link selector.",
+            "editor": "stringList",
+            "default": [],
+            "prefill": [
+                "https://apify.com/**/*"
+            ]
+        },
         "pseudoUrls": {
-            "title": "Pseudo-URLs",
+            "title": "Pseudo-URLs (deprecated)",
             "type": "array",
             "description": "Specifies what kind of URLs found by the <b>Link selector</b> should be added to the request queue. A pseudo-URL is a URL with <b>regular expressions</b> enclosed in <code>[]</code> brackets, e.g. <code>http://www.example.com/[.*]</code>. <br><br>If <b>Pseudo-URLs</b> are omitted, the actor enqueues all links matched by the <b>Link selector</b>.<br><br>For details, see <a href='https://apify.com/apify/cheerio-scraper#pseudo-urls' target='_blank' rel='noopener'>Pseudo-URLs</a> in README.",
             "editor": "pseudoUrls",
             "default": [],
-            "prefill": [
-                {
-                    "purl": "https://apify.com[(/[\\w-]+)?]"
-                }
-            ]
+            "prefill": []
         },
         "linkSelector": {
             "title": "Link selector",
