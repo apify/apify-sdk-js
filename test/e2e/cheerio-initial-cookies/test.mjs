@@ -33,7 +33,7 @@ await run(testDir, 'cheerio-scraper', {
         });
 
         if (numberOfSameCookies !== initialCookiesLength) {
-            throw new Error(`The number of the page cookies doeas not match the defined initial cookies number. Number of wrong cookies is ${initialCookiesLength - numberOfSameCookies}`);
+            throw new Error(`The number of the page cookies does not match the defined initial cookies number. Number of wrong cookies is ${initialCookiesLength - numberOfSameCookies}`);
         }
 
         context.log.info('All cookies were successfully checked.');
