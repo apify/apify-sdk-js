@@ -50,11 +50,11 @@ either in [**Start URLs**](#start-urls), [**Pseudo URLs**](#pseudo-urls) or in t
 The web pages with various content types are parsed differently and
 thus the `context` parameter of the [**Page function**](#page-function) will have different values:
 
-| **Content types**                                       | [`context.body`](#body-string-buffer) | [`context.$`](#-function) | [`context.json`](#json-object) |
-|---------------------------------------------------------|---------------------------------------|---------------------------|--------------------------------|
-| `text/html`, `application/xhtml+xml`, `application/xml` | `String`                              | `Function`                | `null`                         |
-| `application/json`                                      | `String`                              | `null`                    | `Object`                       |
-| Other                                                   | `Buffer`                              | `null`                    | `null`                         |
+| **Content types**                                       | [`context.body`](#body-stringbuffer) | [`context.$`](#-function) | [`context.json`](#json-object) |
+|---------------------------------------------------------|--------------------------------------|---------------------------|--------------------------------|
+| `text/html`, `application/xhtml+xml`, `application/xml` | `String`                             | `Function`                | `null`                         |
+| `application/json`                                      | `String`                             | `null`                    | `Object`                       |
+| Other                                                   | `Buffer`                             | `null`                    | `null`                         |
 
 The `Content-Type` HTTP header of the web page is parsed using the
 <a href="https://www.npmjs.com/package/content-type" target="_blank">content-type</a> NPM package
