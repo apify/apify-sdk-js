@@ -59,14 +59,14 @@ export async function run(url, scraper, input) {
     process.exit = () => {};
 
     await import(`../../packages/actor-scraper/${scraper}/dist/main.js`);
-    await waitForFinish(url);
-    process.exit = exit;
+    await waitForFinish(url, exit);
 }
 
-export async function waitForFinish(dir) {
+export async function waitForFinish(dir, exit) {
     while (!await isFinished(dir)) {
-        await setTimeout(1000);
+        await setTimeout(1e3);
     }
+    process.exit = exit;
 }
 
 async function isFinished(dir) {
