@@ -87,7 +87,7 @@ jobs:
                         turbo-${{ github.job }}-${{ github.ref_name }}-
 
             -   name: Install Dependencies
-                run: npm ci
+                run: npm ci --force
 
             -   name: Build & deploy docs
                 run: |
@@ -120,7 +120,7 @@ jobs:
                         turbo-${{ github.job }}-${{ github.ref_name }}-
 
             -   name: Install Dependencies
-                run: npm ci
+                run: npm ci --force
 
             -   name: ESLint
                 run: npm run lint
@@ -154,7 +154,7 @@ jobs:
                         turbo-${{ github.job }}-${{ github.ref_name }}-
 
             -   name: Install Dependencies
-                run: npm ci
+                run: npm ci --force
 
             -   name: Check for changes
                 id: changed_packages
