@@ -9,11 +9,7 @@
             "title": "Start URLs",
             "type": "array",
             "description": "URLs to start with",
-            "prefill": [
-                {
-                    "url": "https://apify.com"
-                }
-            ],
+            "prefill": [{ "url": "https://crawlee.dev" }],
             "editor": "requestListSources"
         },
         "globs": {
@@ -22,9 +18,7 @@
             "description": "Glob patterns to match links in the page that you want to enqueue. Combine with Link selector to tell the scraper where to find links. Omitting the Glob patterns will cause the scraper to enqueue all links matched by the Link selector.",
             "editor": "stringList",
             "default": [],
-            "prefill": [
-                "https://apify.com/**/*"
-            ]
+            "prefill": ["https://crawlee.dev/*/*"]
         },
         "pseudoUrls": {
             "title": "Pseudo-URLs (deprecated)",

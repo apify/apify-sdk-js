@@ -1,4 +1,4 @@
-import { ProxyConfigurationOptions, PseudoUrlInput, RequestOptions, Session, Dictionary } from '@crawlee/cheerio';
+import { ProxyConfigurationOptions, GlobInput, RegExpInput, PseudoUrlInput, RequestOptions, Session, Dictionary } from '@crawlee/cheerio';
 
 /**
  * Replicates the INPUT_SCHEMA with JavaScript types for quick reference
@@ -6,6 +6,8 @@ import { ProxyConfigurationOptions, PseudoUrlInput, RequestOptions, Session, Dic
  */
 export interface Input {
     startUrls: RequestOptions[];
+    globs: GlobInput[];
+    regexps: RegExpInput[];
     pseudoUrls: PseudoUrlInput[];
     keepUrlFragments: boolean;
     linkSelector?: string;
