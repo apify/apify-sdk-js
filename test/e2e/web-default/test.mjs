@@ -4,9 +4,10 @@ const testDir = getTestDir(import.meta.url);
 
 await run(testDir, 'web-scraper', {
     runMode: 'PRODUCTION',
-    startUrls: [{ url: 'https://apify.com' }],
+    startUrls: [{ url: 'https://crawlee.dev' }],
+    pseudoUrls: [{ purl: 'https://crawlee.dev[(/[\\w-]+){2}]' }],
+    linkSelector: 'a[href]',
     keepUrlFragments: false,
-    pseudoUrls: [{ purl: 'https://apify.com[(/[\\w-]+)?]' }],
     pageFunction: async function pageFunction(context) {
         const $ = context.jQuery;
 
@@ -22,7 +23,6 @@ await run(testDir, 'web-scraper', {
     forceResponseEncoding: false,
     ignoreSslErrors: false,
     debugLog: false,
-    linkSelector: 'a[href]',
     injectJQuery: true,
     useChrome: false,
     ignoreCorsAndCsp: false,
@@ -34,9 +34,9 @@ await run(testDir, 'web-scraper', {
 });
 
 const stats = await getStats(testDir);
-await expect(stats.requestsFinished > 50, 'All requests finished');
+await expect(stats.requestsFinished > 15, 'All requests finished');
 
 const datasetItems = await getDatasetItems(testDir);
-await expect(datasetItems.length > 50, 'Minimum number of dataset items');
-await expect(datasetItems.length < 150, 'Maximum number of dataset items');
+await expect(datasetItems.length > 15, 'Minimum number of dataset items');
+await expect(datasetItems.length < 25, 'Maximum number of dataset items');
 await expect(validateDataset(datasetItems, ['pageTitle']), 'Dataset items validation');

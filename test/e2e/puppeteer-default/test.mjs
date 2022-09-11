@@ -3,8 +3,8 @@ import { getTestDir, getStats, getDatasetItems, run, expect, validateDataset } f
 const testDir = getTestDir(import.meta.url);
 
 await run(testDir, 'puppeteer-scraper', {
-    startUrls: [{ url: 'https://apify.com' }],
-    pseudoUrls: [{ purl: 'https://apify.com[(/[\\w-]+)?]' }],
+    startUrls: [{ url: 'https://crawlee.dev' }],
+    pseudoUrls: [{ purl: 'https://crawlee.dev[(/[\\w-]+){2}]' }],
     linkSelector: 'a',
     keepUrlFragments: false,
     pageFunction: async function pageFunction(context) {
@@ -29,9 +29,9 @@ await run(testDir, 'puppeteer-scraper', {
 });
 
 const stats = await getStats(testDir);
-await expect(stats.requestsFinished > 50, 'All requests finished');
+await expect(stats.requestsFinished > 15, 'All requests finished');
 
 const datasetItems = await getDatasetItems(testDir);
-await expect(datasetItems.length > 50, 'Minimum number of dataset items');
-await expect(datasetItems.length < 150, 'Maximum number of dataset items');
-await expect(validateDataset(datasetItems, ['pageTitle']), 'Dataset items validation');
+await expect(datasetItems.length > 15, 'Minimum number of dataset items');
+await expect(datasetItems.length < 25, 'Maximum number of dataset items');
+await expect(validateDataset(datasetItems, ['url', 'pageTitle']), 'Dataset items validation');
