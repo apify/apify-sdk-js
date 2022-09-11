@@ -4,7 +4,7 @@ const testDir = getTestDir(import.meta.url);
 
 await run(testDir, 'cheerio-scraper', {
     startUrls: [{
-        url: 'https://apify.com/store',
+        url: 'https://apify.com/apify',
         method: 'GET',
         userData: { label: 'START' },
     }],
@@ -55,9 +55,8 @@ const stats = await getStats(testDir);
 await expect(stats.requestsFinished === 2, 'All requests finished');
 
 const datasetItems = await getDatasetItems(testDir);
-await expect(datasetItems.length === 1, 'Minimum number of dataset items');
-await expect(datasetItems.length === 1, 'Maximum number of dataset items');
+await expect(datasetItems.length === 1, 'Number of dataset items');
 await expect(
-    validateDataset(datasetItems, ['title', 'uniqueIdentifier', 'description', 'modifiedDate', 'runCount']),
+    validateDataset(datasetItems, ['url', 'title', 'uniqueIdentifier', 'description', 'modifiedDate', 'runCount']),
     'Dataset items validation',
 );

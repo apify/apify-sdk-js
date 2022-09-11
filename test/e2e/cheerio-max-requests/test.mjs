@@ -4,34 +4,23 @@ const testDir = getTestDir(import.meta.url);
 
 await run(testDir, 'cheerio-scraper', {
     startUrls: [{
-        url: 'https://apify.com/store',
+        url: 'https://apify.com/apify',
         method: 'GET',
         userData: { label: 'START' },
     }],
     keepUrlFragments: false,
-    pseudoUrls: [{
-        purl: 'https://apify.com/[.+]/[.+]',
-        method: 'GET',
-        userData: { label: 'DETAIL' }
-    }],
-    linkSelector: 'a',
+    maxPagesPerCrawl: 10,
     pageFunction: async function pageFunction(context) {
         switch (context.request.userData.label) {
             case 'START': return handleStart(context);
             case 'DETAIL': return handleDetail(context);
         }
 
-        async function handleStart({ log, waitFor, $ }) {
-            log.info('Store opened!');
-
-            const dataJson = $('#__NEXT_DATA__').html();
-            const data = JSON.parse(dataJson);
-            const { props: { pageProps: { items } } } = data;
-
-            for (const item of items) {
-                const { name, username } = item;
-                const actorDetailUrl = `https://apify.com/${username}/${name}`;
-                await context.enqueueRequest({
+        async function handleStart({ enqueueRequest, $ }) {
+            const links = $('.ActorStoreItem').toArray().map((item) => $(item).attr('href'));
+            for (const link of links) {
+                const actorDetailUrl = `https://apify.com${link}`;
+                await enqueueRequest({
                     url: actorDetailUrl,
                     userData: { label: 'DETAIL' },
                 });
@@ -64,16 +53,14 @@ await run(testDir, 'cheerio-scraper', {
     forceResponseEncoding: false,
     ignoreSslErrors: false,
     debugLog: false,
-    maxPagesPerCrawl: 750
 });
 
 const stats = await getStats(testDir);
-await expect(stats.requestsFinished > 700, 'All requests finished');
+await expect(stats.requestsFinished > 10, 'All requests finished');
 
 const datasetItems = await getDatasetItems(testDir);
-await expect(datasetItems.length > 700, 'Minimum number of dataset items');
-await expect(datasetItems.length < 1000, 'Maximum number of dataset items');
+await expect(datasetItems.length > 5 && datasetItems.length < 15, 'Number of dataset items');
 await expect(
-    validateDataset(datasetItems, ['title', 'uniqueIdentifier', 'description', 'modifiedDate', 'runCount']),
+    validateDataset(datasetItems, ['url', 'title', 'uniqueIdentifier', 'description', 'modifiedDate', 'runCount']),
     'Dataset items validation',
 );
