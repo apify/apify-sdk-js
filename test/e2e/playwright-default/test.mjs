@@ -3,8 +3,8 @@ import { getTestDir, getStats, getDatasetItems, run, expect, validateDataset } f
 const testDir = getTestDir(import.meta.url);
 
 await run(testDir, 'playwright-scraper', {
-    startUrls: [{ url: 'https://apify.com' }],
-    globs: ['https://apify.com/**/*'],
+    startUrls: [{ url: 'https://crawlee.dev' }],
+    globs: ['https://crawlee.dev/*/*'],
     linkSelector: 'a',
     keepUrlFragments: false,
     pageFunction: async function pageFunction(context) {
@@ -30,9 +30,8 @@ await run(testDir, 'playwright-scraper', {
 });
 
 const stats = await getStats(testDir);
-await expect(stats.requestsFinished > 50, 'All requests finished');
+await expect(stats.requestsFinished > 15, 'All requests finished');
 
 const datasetItems = await getDatasetItems(testDir);
-await expect(datasetItems.length > 50, 'Minimum number of dataset items');
-await expect(datasetItems.length < 150, 'Maximum number of dataset items');
-await expect(validateDataset(datasetItems, ['pageTitle']), 'Dataset items validation');
+await expect(datasetItems.length > 15 && datasetItems.length < 25, 'Number of dataset items');
+await expect(validateDataset(datasetItems, ['url', 'pageTitle']), 'Dataset items validation');

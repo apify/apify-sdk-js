@@ -27,6 +27,5 @@ const stats = await getStats(testDir);
 await expect(stats.requestsFinished > 15, 'All requests finished');
 
 const datasetItems = await getDatasetItems(testDir);
-await expect(datasetItems.length > 15, 'Minimum number of dataset items');
-await expect(datasetItems.length < 25, 'Maximum number of dataset items');
+await expect(datasetItems.length > 15 && datasetItems.length < 25, 'Number of dataset items');
 await expect(validateDataset(datasetItems, ['url', 'pageTitle']), 'Dataset items validation');
