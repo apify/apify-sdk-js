@@ -4,7 +4,7 @@ const testDir = getTestDir(import.meta.url);
 
 await run(testDir, 'puppeteer-scraper', {
     startUrls: [{
-        url: 'https://badssl.com/',
+        url: 'https://badssl.com',
         method: 'GET',
         userData: { label: 'START' },
     }],
@@ -37,7 +37,7 @@ await run(testDir, 'puppeteer-scraper', {
     proxyConfiguration: { useApifyProxy: false },
     proxyRotation: 'RECOMMENDED',
     useChrome: false,
-    ignoreSslErrors: false,
+    ignoreSslErrors: true,
     ignoreCorsAndCsp: false,
     downloadMedia: true,
     downloadCss: true,
@@ -47,8 +47,8 @@ await run(testDir, 'puppeteer-scraper', {
 });
 
 const stats = await getStats(testDir);
-await expect(stats.requestsFinished > 5, 'All requests finished');
+await expect(stats.requestsFinished > 20, 'All requests finished');
 
 const datasetItems = await getDatasetItems(testDir);
-await expect(datasetItems.length > 5, 'Minimum number of dataset items');
-await expect(validateDataset(datasetItems, ['title']), 'Dataset items validation');
+await expect(datasetItems.length > 20, 'Minimum number of dataset items');
+await expect(validateDataset(datasetItems, ['url', 'title']), 'Dataset items validation');

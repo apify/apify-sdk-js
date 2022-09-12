@@ -28,20 +28,20 @@ await run(testDir, 'puppeteer-scraper', {
 
             const uniqueIdentifier = url.split('/').slice(-2).join('/');
 
-            const titleP = page.$eval('header h1', (el => el.textContent));
-            const descriptionP = page.$eval('header span.actor-description', (el => el.textContent));
+            const titleP = page.$eval('header h1', ((el) => el.textContent));
+            const descriptionP = page.$eval('header span.actor-description', ((el) => el.textContent));
             const modifiedTimestampP = page.$eval('ul.ActorHeader-stats time', (el) => el.getAttribute('datetime'));
-            const runCountTextP = page.$eval('ul.ActorHeader-stats > li:nth-of-type(3)', (el => el.textContent));
+            const runCountTextP = page.$eval('ul.ActorHeader-stats > li:nth-of-type(3)', ((el) => el.textContent));
             const [
                 title,
                 description,
                 modifiedTimestamp,
-                runCountText
+                runCountText,
             ] = await Promise.all([
                 titleP,
                 descriptionP,
                 modifiedTimestampP,
-                runCountTextP
+                runCountTextP,
             ]);
 
             const modifiedDate = new Date(Number(modifiedTimestamp));
@@ -66,9 +66,8 @@ const stats = await getStats(testDir);
 await expect(stats.requestsFinished === 2, 'All requests finished');
 
 const datasetItems = await getDatasetItems(testDir);
-await expect(datasetItems.length === 1, 'Minimum number of dataset items');
-await expect(datasetItems.length === 1, 'Maximum number of dataset items');
+await expect(datasetItems.length === 1, 'Number of dataset items');
 await expect(
-    validateDataset(datasetItems, ['title', 'uniqueIdentifier', 'description', 'modifiedDate', 'runCount']),
+    validateDataset(datasetItems, ['url', 'title', 'uniqueIdentifier', 'description', 'modifiedDate', 'runCount']),
     'Dataset items validation',
 );

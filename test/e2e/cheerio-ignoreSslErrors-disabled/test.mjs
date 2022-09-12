@@ -4,7 +4,7 @@ const testDir = getTestDir(import.meta.url);
 
 await run(testDir, 'cheerio-scraper', {
     startUrls: [{
-        url: 'https://badssl.com',
+        url: 'https://badssl.com/',
         method: 'GET',
         userData: { label: 'START' },
     }],
