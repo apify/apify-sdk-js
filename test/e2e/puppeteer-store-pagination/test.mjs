@@ -4,17 +4,10 @@ const testDir = getTestDir(import.meta.url);
 
 await run(testDir, 'puppeteer-scraper', {
     startUrls: [{
-        url: 'https://apify.com/store',
+        url: 'https://apify.com/store?page=1',
         method: 'GET',
         userData: { label: 'START' },
     }],
-    pseudoUrls: [{
-        purl: 'https://apify.com/[.+]/[.+]',
-        method: 'GET',
-        userData: { label: 'DETAIL' },
-    }],
-    linkSelector: 'a',
-    keepUrlFragments: false,
     pageFunction: async function pageFunction(context) {
         const { request: { userData: { label } } } = context;
 
@@ -23,55 +16,51 @@ await run(testDir, 'puppeteer-scraper', {
             case 'DETAIL': return handleDetail(context);
         }
 
-        async function handleStart({ log, page }) {
-            log.info('Store opened!');
-            let timeout;
-            const buttonSelector = 'div.show-more > button';
-            while (true) {
-                log.info('Waiting for the Show more button.');
-                try {
-                    await page.waitForSelector(buttonSelector, { timeout, visible: true });
-                    timeout = 2000;
-                } catch (err) {
-                    log.info(`Could not find the Show more button, we have reached the end.`);
-                    break;
-                }
-
-                log.info('Clicking the Show more button.');
-                await page.evaluate(buttonSelector => document.querySelector(buttonSelector).click(), buttonSelector);
+        async function handleStart({ log, page, enqueueLinks }) {
+            log.info('Store opened');
+            const nextButtonSelector = '[data-test="pagination-button-next"]:not([disabled])';
+            // enqueue actor details from the first three pages of the store
+            for (let pageNo = 1; pageNo <= 3; pageNo++) {
+                // Wait for network events to finish
+                await page.waitForNetworkIdle();
+                // Enqueue all loaded links
+                await enqueueLinks({
+                    selector: 'a.ActorStoreItem',
+                    label: 'DETAIL',
+                    globs: [{ glob: 'https://apify.com/*/*' }],
+                });
+                log.info(`Enqueued actors for page ${pageNo}`);
+                log.info('Loading the next page');
+                await page.evaluate((el) => document.querySelector(el)?.click(), nextButtonSelector);
             }
         }
 
-        async function handleDetail({ request, log, skipLinks, page }) {
-            const { url } = request;
+        async function handleDetail({ request: { url }, log, page }) {
             log.info(`Scraping ${url}`);
-            await skipLinks();
 
             const uniqueIdentifier = url.split('/').slice(-2).join('/');
-
-            const titleP = page.$eval('header h1', (el => el.textContent));
-            const descriptionP = page.$eval('header span.actor-description', (el => el.textContent));
+            const titleP = page.$eval('header h1', ((el) => el.textContent));
+            const descriptionP = page.$eval('header span.actor-description', ((el) => el.textContent));
             const modifiedTimestampP = page.$eval('ul.ActorHeader-stats time', (el) => el.getAttribute('datetime'));
-            const runCountTextP = page.$eval('ul.ActorHeader-stats li:nth-of-type(3)', (el => el.textContent));
-
+            const runCountTextP = page.$eval('ul.ActorHeader-stats li:nth-of-type(3)', ((el) => el.textContent));
             const [
                 title,
                 description,
                 modifiedTimestamp,
-                runCountText
+                runCountText,
             ] = await Promise.all([
                 titleP,
                 descriptionP,
                 modifiedTimestampP,
-                runCountTextP
+                runCountTextP,
             ]);
-
             const modifiedDate = new Date(Number(modifiedTimestamp));
             const runCount = Number(runCountText.match(/[\d,]+/)[0].replace(/,/g, ''));
 
             return { url, uniqueIdentifier, title, description, modifiedDate, runCount };
         }
     },
+    preNavigationHooks: "[\n    ({ session, request }, goToOptions) => {\n        session?.setCookies([{ name: 'OptanonAlertBoxClosed', value: new Date().toISOString() }], request.url);\n        goToOptions.waitUntil = ['networkidle2'];\n    }\n]",
     proxyConfiguration: { useApifyProxy: false },
     proxyRotation: 'RECOMMENDED',
     useChrome: false,
@@ -82,16 +71,15 @@ await run(testDir, 'puppeteer-scraper', {
     waitUntil: ['networkidle2'],
     debugLog: false,
     browserLog: false,
-    maxPagesPerCrawl: 750,
+    maxPagesPerCrawl: 30,
 });
 
 const stats = await getStats(testDir);
-await expect(stats.requestsFinished > 700, 'All requests finished');
+await expect(stats.requestsFinished > 30, 'All requests finished');
 
 const datasetItems = await getDatasetItems(testDir);
-await expect(datasetItems.length > 700, 'Minimum number of dataset items');
-await expect(datasetItems.length < 1000, 'Maximum number of dataset items');
+await expect(datasetItems.length > 25 && datasetItems.length < 35, 'Number of dataset items');
 await expect(
-    validateDataset(datasetItems, ['title', 'uniqueIdentifier', 'description', 'modifiedDate', 'runCount']),
+    validateDataset(datasetItems, ['url', 'title', 'uniqueIdentifier', 'description', 'modifiedDate', 'runCount']),
     'Dataset items validation',
 );
