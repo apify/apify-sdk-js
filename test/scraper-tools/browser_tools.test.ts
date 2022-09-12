@@ -1,5 +1,5 @@
 import { browserTools } from '@apify/scraper-tools';
-import { launchPuppeteer, KeyValueStore } from '@crawlee/puppeteer';
+import { launchPuppeteer, KeyValueStore } from 'crawlee';
 import log from '@apify/log';
 
 describe('browserTools', () => {
