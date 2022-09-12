@@ -9,13 +9,13 @@ await run(testDir, 'web-scraper', {
         method: 'GET',
         userData: { label: 'START' },
     }],
-    keepUrlFragments: false,
-    linkSelector: 'a[href]',
     pseudoUrls: [{
         purl: 'http://httpstat.us/[200|401|403|429|500]',
         method: 'GET',
         userData: { label: 'DETAIL' },
     }],
+    linkSelector: 'a[href]',
+    keepUrlFragments: false,
     pageFunction: async function pageFunction(context) {
         const { request: { userData: { label } } } = context;
 
@@ -57,4 +57,4 @@ await expect(stats.requestsFinished > 5, 'All requests finished');
 
 const datasetItems = await getDatasetItems(testDir);
 await expect(datasetItems.length >= 5, 'Minimum number of dataset items');
-await expect(validateDataset(datasetItems, ['text']), 'Dataset items validation');
+await expect(validateDataset(datasetItems, ['url', 'text']), 'Dataset items validation');
