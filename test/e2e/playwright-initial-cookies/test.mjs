@@ -2,7 +2,7 @@ import { getTestDir, getStats, run, expect, getDatasetItems } from '../tools.mjs
 
 const testDir = getTestDir(import.meta.url);
 
-await run(testDir, 'puppeteer-scraper', {
+await run(testDir, 'playwright-scraper', {
     startUrls: [{
         url: 'https://api.apify.com/v2/browser-info',
         method: 'GET'
@@ -13,7 +13,7 @@ await run(testDir, 'puppeteer-scraper', {
         const initialCookies = input.initialCookies;
         const initialCookiesLength = initialCookies.length;
 
-        const pageCookies = await page.cookies();
+        const pageCookies = await page.context().cookies();
 
         log.info('Checking cookies names and values...');
         let numberOfMatchingCookies = 0;
@@ -45,14 +45,15 @@ await run(testDir, 'puppeteer-scraper', {
         name: 'market_place',
         value: 'value market place',
     }],
+    launcher: 'chromium',
     useChrome: false,
     ignoreSslErrors: false,
     ignoreCorsAndCsp: false,
     downloadMedia: true,
     downloadCss: true,
-    waitUntil: ['networkidle2'],
+    waitUntil: 'networkidle',
     debugLog: false,
-    browserLog: false
+    browserLog: false,
 });
 
 const stats = await getStats(testDir);

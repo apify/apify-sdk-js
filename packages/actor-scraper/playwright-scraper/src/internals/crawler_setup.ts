@@ -175,8 +175,8 @@ export class CrawlerSetup implements CrawlerSetupOptions {
             requestList: this.requestList,
             requestQueue: this.requestQueue,
             requestHandlerTimeoutSecs: this.devtools ? DEVTOOLS_TIMEOUT_SECS : this.input.pageFunctionTimeoutSecs,
-            preNavigationHooks: [],
-            postNavigationHooks: [],
+            preNavigationHooks: this._runHookWithEnhancedContext(this.evaledPreNavigationHooks),
+            postNavigationHooks: this._runHookWithEnhancedContext(this.evaledPostNavigationHooks),
             failedRequestHandler: this._failedRequestHandler.bind(this),
             maxConcurrency: this.input.maxConcurrency,
             maxRequestRetries: this.input.maxRequestRetries,
@@ -248,8 +248,6 @@ export class CrawlerSetup implements CrawlerSetupOptions {
 
         options.preNavigationHooks!.push(...this.evaledPreNavigationHooks);
         options.postNavigationHooks!.push(...this.evaledPostNavigationHooks);
-        options.preNavigationHooks = this._runHookWithEnhancedContext(this.evaledPreNavigationHooks);
-        options.postNavigationHooks = this._runHookWithEnhancedContext(this.evaledPostNavigationHooks);
     }
 
     private _runHookWithEnhancedContext(hooks: ((...args: unknown[]) => Awaitable<void>)[]) {
