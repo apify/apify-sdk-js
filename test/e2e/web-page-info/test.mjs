@@ -9,13 +9,13 @@ await run(testDir, 'web-scraper', {
         method: 'GET',
         userData: { label: 'START' },
     }],
-    keepUrlFragments: false,
-    linkSelector: 'div.item > a',
     pseudoUrls: [{
         purl: 'https://apify.com/apify/web-scraper',
         method: 'GET',
         userData: { label: 'DETAIL' },
     }],
+    linkSelector: 'a',
+    keepUrlFragments: false,
     pageFunction: async function pageFunction(context) {
         const { request, log, skipLinks, jQuery: $ } = context;
 
@@ -29,6 +29,7 @@ await run(testDir, 'web-scraper', {
             await skipLinks();
 
             const uniqueIdentifier = url.split('/').slice(-2).join('/');
+
             const title = $('header h1').text();
             const description = $('header span.actor-description').text();
             const modifiedDate = $('ul.ActorHeader-stats time').attr('datetime');
@@ -63,9 +64,8 @@ const stats = await getStats(testDir);
 await expect(stats.requestsFinished === 2, 'All requests finished');
 
 const datasetItems = await getDatasetItems(testDir);
-await expect(datasetItems.length === 1, 'Minimum number of dataset items');
-await expect(datasetItems.length === 1, 'Maximum number of dataset items');
+await expect(datasetItems.length === 1, 'Number of dataset items');
 await expect(
-    validateDataset(datasetItems, ['title', 'uniqueIdentifier', 'description', 'modifiedDate', 'runCount']),
+    validateDataset(datasetItems, ['url', 'title', 'uniqueIdentifier', 'description', 'modifiedDate', 'runCount']),
     'Dataset items validation',
 );

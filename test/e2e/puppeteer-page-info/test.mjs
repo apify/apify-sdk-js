@@ -21,6 +21,7 @@ await run(testDir, 'puppeteer-scraper', {
         if (request.userData.label === 'START') {
             log.info('Store opened!');
         }
+
         if (request.userData.label === 'DETAIL') {
             const { url } = request;
             log.info(`Scraping ${url}`);
@@ -32,6 +33,7 @@ await run(testDir, 'puppeteer-scraper', {
             const descriptionP = page.$eval('header span.actor-description', ((el) => el.textContent));
             const modifiedTimestampP = page.$eval('ul.ActorHeader-stats time', (el) => el.getAttribute('datetime'));
             const runCountTextP = page.$eval('ul.ActorHeader-stats > li:nth-of-type(3)', ((el) => el.textContent));
+
             const [
                 title,
                 description,

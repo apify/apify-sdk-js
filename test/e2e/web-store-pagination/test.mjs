@@ -5,39 +5,31 @@ const testDir = getTestDir(import.meta.url);
 await run(testDir, 'web-scraper', {
     runMode: 'PRODUCTION',
     startUrls: [{
-        url: 'https://apify.com/store',
+        url: 'https://apify.com/store?page=1',
         method: 'GET',
-        userData: { label: 'START' }
+        userData: { label: 'START' },
     }],
-    keepUrlFragments: false,
-    linkSelector: 'div.item > a',
     pseudoUrls: [{
-        purl: 'https://apify.com/[.+]/[.+]',
+        purl: 'https://apify.com/store?page=[2|3]',
         method: 'GET',
-        userData: { label: 'DETAIL' }
+        userData: { label: 'START' },
     }],
+    linkSelector: 'a',
     pageFunction: async function pageFunction(context) {
         switch (context.request.userData.label) {
             case 'START': return handleStart(context);
             case 'DETAIL': return handleDetail(context);
         }
 
-        async function handleStart({ log, waitFor, jQuery: $ }) {
-            log.info('Store opened!');
-
-            let timeoutMillis;
-            const buttonSelector = 'div.show-more > button';
-            while (true) {
-                log.info('Waiting for the Show more button.');
-                try {
-                    await waitFor(buttonSelector, { timeoutMillis });
-                    timeoutMillis = 2000;
-                } catch (err) {
-                    log.info(`Could not find the Show more button, we\'ve reached the end.`, err.message);
-                    break;
-                }
-                log.info('Clicking the Show more button.');
-                $(buttonSelector).click();
+        async function handleStart({ log, request, enqueueRequest, waitFor, jQuery: $ }) {
+            log.info(`${request.url} opened!`);
+            await waitFor('.ActorStoreItem');
+            const urls = $('.ActorStoreItem')
+                .toArray()
+                .map((link) => `https://apify.com/${$(link).attr('href')}`);
+            log.info(`${request.url} | Enqueueing ${urls.length} actor pages`);
+            for (const url of urls) {
+                await enqueueRequest({ url, label: 'DETAIL' });
             }
         }
 
@@ -49,8 +41,8 @@ await run(testDir, 'web-scraper', {
             const uniqueIdentifier = url.split('/').slice(-2).join('/');
             const title = $('header h1').text();
             const description = $('header span.actor-description').text();
-            const modifiedDate = $('ul.ActorHeader-stats time').attr('datetime')
-            const runCount = $('ul.ActorHeader-stats li:nth-of-type(3)').text().match(/[\d,]+/)[0].replace(/,/g, '');
+            const modifiedDate = $('ul.ActorHeader-stats time').attr('datetime');
+            const runCount = $('ul.ActorHeader-stats > li:nth-of-type(3)').text().match(/[\d,]+/)[0].replace(/,/g, '');
 
             return {
                 url,
@@ -64,6 +56,7 @@ await run(testDir, 'web-scraper', {
     },
     injectJQuery: true,
     injectUnderscore: false,
+    preNavigationHooks: "[\n    ({ session, request }) => {\n        session?.setCookies([{ name: 'OptanonAlertBoxClosed', value: new Date().toISOString() }], request.url);\n    }\n]",
     proxyConfiguration: { useApifyProxy: false },
     proxyRotation: 'RECOMMENDED',
     useChrome: false,
@@ -75,16 +68,15 @@ await run(testDir, 'web-scraper', {
     breakpointLocation: 'NONE',
     debugLog: false,
     browserLog: false,
-    maxPagesPerCrawl: 750,
+    maxPagesPerCrawl: 30,
 });
 
 const stats = await getStats(testDir);
-await expect(stats.requestsFinished > 700, 'All requests finished');
+await expect(stats.requestsFinished > 30, 'All requests finished');
 
 const datasetItems = await getDatasetItems(testDir);
-await expect(datasetItems.length > 700, 'Minimum number of dataset items');
-await expect(datasetItems.length < 1000, 'Maximum number of dataset items');
+await expect(datasetItems.length > 25 && datasetItems.length < 35, 'Number of dataset items');
 await expect(
-    validateDataset(datasetItems, ['title', 'uniqueIdentifier', 'description', 'modifiedDate', 'runCount']),
+    validateDataset(datasetItems, ['url', 'title', 'uniqueIdentifier', 'description', 'modifiedDate', 'runCount']),
     'Dataset items validation',
 );
