@@ -43,7 +43,7 @@ jobs:
                 run: npx -y apify-cli login -t ${{ secrets.APIFY_TOKEN }}
 
             -   name: Install Dependencies
-                run: npm ci
+                run: npm ci --force
 
             -   name: Build
                 run: npm run ci:build
