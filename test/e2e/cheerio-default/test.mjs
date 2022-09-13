@@ -2,6 +2,9 @@ import { getTestDir, getStats, getDatasetItems, run, expect, validateDataset } f
 
 const testDir = getTestDir(import.meta.url);
 
+const exit = process.exit;
+process.exit = () => {};
+
 await run(testDir, 'cheerio-scraper', {
     startUrls: [{ url: 'https://crawlee.dev' }],
     keepUrlFragments: false,
@@ -23,9 +26,13 @@ await run(testDir, 'cheerio-scraper', {
     debugLog: false,
 });
 
+process.exit = exit;
+
 const stats = await getStats(testDir);
 await expect(stats.requestsFinished > 15, 'All requests finished');
 
 const datasetItems = await getDatasetItems(testDir);
 await expect(datasetItems.length > 15 && datasetItems.length < 25, 'Number of dataset items');
 await expect(validateDataset(datasetItems, ['url', 'pageTitle']), 'Dataset items validation');
+
+process.exit(0);

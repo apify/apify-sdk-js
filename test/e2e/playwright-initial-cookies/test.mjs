@@ -2,6 +2,9 @@ import { getTestDir, getStats, run, expect, getDatasetItems } from '../tools.mjs
 
 const testDir = getTestDir(import.meta.url);
 
+const exit = process.exit;
+process.exit = () => {};
+
 await run(testDir, 'playwright-scraper', {
     startUrls: [{
         url: 'https://api.apify.com/v2/browser-info',
@@ -56,6 +59,8 @@ await run(testDir, 'playwright-scraper', {
     browserLog: false,
 });
 
+process.exit = exit;
+
 const stats = await getStats(testDir);
 await expect(stats.requestsFinished === 1, 'All requests finished');
 
@@ -67,3 +72,4 @@ await expect(
     + `${datasetItems[0].initialCookiesLength - datasetItems[0].numberOfMatchingCookies}`,
 );
 
+process.exit(0);

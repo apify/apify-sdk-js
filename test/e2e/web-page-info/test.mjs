@@ -2,6 +2,9 @@ import { getTestDir, getStats, getDatasetItems, run, expect, validateDataset } f
 
 const testDir = getTestDir(import.meta.url);
 
+const exit = process.exit;
+process.exit = () => {};
+
 await run(testDir, 'web-scraper', {
     runMode: 'PRODUCTION',
     startUrls: [{
@@ -60,6 +63,8 @@ await run(testDir, 'web-scraper', {
     browserLog: false
 });
 
+process.exit = exit;
+
 const stats = await getStats(testDir);
 await expect(stats.requestsFinished === 2, 'All requests finished');
 
@@ -69,3 +74,5 @@ await expect(
     validateDataset(datasetItems, ['url', 'title', 'uniqueIdentifier', 'description', 'modifiedDate', 'runCount']),
     'Dataset items validation',
 );
+
+process.exit(0);

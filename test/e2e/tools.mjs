@@ -55,12 +55,17 @@ export async function run(url, scraper, input) {
     const inputKey = Configuration.getGlobalConfig().get('inputKey');
     await Actor.setValue(inputKey, input);
 
-    const exit = process.exit;
-    process.exit = () => {};
-
     await import(`../../packages/actor-scraper/${scraper}/dist/main.js`);
-    await waitForFinish(url);
-    process.exit = exit;
+    // Some runs don't save the final stats, and stats.crawlerFinishedAt
+    // is always null, therefore waitForFinish never resolves.
+    // However, logs do say that actor finished with exit code 0,
+    // i.e. dataset items are there, etc. Honestly, no idea why -
+    // hanging test is always random. So adding Promise.race()
+    // to make sure all tests will run and finish.
+    await Promise.race([
+        waitForFinish(url),
+        setTimeout(60e3),
+    ]);
 }
 
 export async function waitForFinish(dir) {
