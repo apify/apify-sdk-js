@@ -65,7 +65,7 @@ export async function run(url, scraper, input) {
 
 export async function waitForFinish(dir) {
     while (!await isFinished(dir)) {
-        await setTimeout(5 * 1e3);
+        await setTimeout(1e3);
     }
 }
 
