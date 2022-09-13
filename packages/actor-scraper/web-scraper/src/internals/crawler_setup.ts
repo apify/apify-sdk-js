@@ -319,8 +319,8 @@ export class CrawlerSetup implements CrawlerSetupOptions {
             }
         });
 
-        options.preNavigationHooks!.push(...this.evaledPreNavigationHooks);
-        options.postNavigationHooks!.push(...this.evaledPostNavigationHooks);
+        options.preNavigationHooks!.push(...this._runHookWithEnhancedContext(this.evaledPreNavigationHooks));
+        options.postNavigationHooks!.push(...this._runHookWithEnhancedContext(this.evaledPostNavigationHooks));
 
         options.postNavigationHooks!.push(async ({ request, page, response }) => {
             await this._waitForLoadEventWhenXml(page, response);
@@ -335,6 +335,13 @@ export class CrawlerSetup implements CrawlerSetupOptions {
 
             tools.logPerformance(request, 'gotoFunction INJECTION DELAY', delayStart);
             tools.logPerformance(request, 'gotoFunction EXECUTION', pageContext.timers.start);
+        });
+    }
+
+    private _runHookWithEnhancedContext(hooks: ((...args: unknown[]) => Awaitable<void>)[]) {
+        return hooks.map((hook) => (ctx: Dictionary, ...args: unknown[]) => {
+            const { customData } = this.input;
+            return hook({ ...ctx, customData }, ...args);
         });
     }
 

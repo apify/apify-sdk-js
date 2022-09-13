@@ -158,8 +158,8 @@ export class CrawlerSetup implements CrawlerSetupOptions {
         const options: CheerioCrawlerOptions = {
             proxyConfiguration: this.proxyConfiguration,
             requestHandler: this._requestHandler.bind(this),
-            preNavigationHooks: this._runHookWithEnhancedContext(this.evaledPreNavigationHooks),
-            postNavigationHooks: this._runHookWithEnhancedContext(this.evaledPostNavigationHooks),
+            preNavigationHooks: [],
+            postNavigationHooks: [],
             requestList: this.requestList,
             requestQueue: this.requestQueue,
             navigationTimeoutSecs: this.input.pageLoadTimeoutSecs,
@@ -229,8 +229,8 @@ export class CrawlerSetup implements CrawlerSetupOptions {
             }
         });
 
-        options.preNavigationHooks!.push(...this.evaledPreNavigationHooks);
-        options.postNavigationHooks!.push(...this.evaledPostNavigationHooks);
+        options.preNavigationHooks!.push(...this._runHookWithEnhancedContext(this.evaledPreNavigationHooks));
+        options.postNavigationHooks!.push(...this._runHookWithEnhancedContext(this.evaledPostNavigationHooks));
     }
 
     private _runHookWithEnhancedContext(hooks: ((...args: unknown[]) => Awaitable<void>)[]) {
