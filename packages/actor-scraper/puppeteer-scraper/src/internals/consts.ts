@@ -1,4 +1,4 @@
-import { Session, ProxyConfigurationOptions, PseudoUrlObject, RequestOptions } from '@crawlee/puppeteer';
+import { Session, ProxyConfigurationOptions, GlobInput, RegExpInput, PseudoUrlInput, RequestOptions } from '@crawlee/puppeteer';
 import { Dictionary } from '@crawlee/utils';
 import { PuppeteerLifeCycleEvent } from 'puppeteer';
 
@@ -8,7 +8,9 @@ import { PuppeteerLifeCycleEvent } from 'puppeteer';
  */
 export interface Input {
     startUrls: RequestOptions[];
-    pseudoUrls: PseudoUrlObject[];
+    globs: GlobInput[];
+    regexps: RegExpInput[];
+    pseudoUrls: PseudoUrlInput[];
     linkSelector?: string;
     clickableElementsSelector?: string;
     keepUrlFragments: boolean;
