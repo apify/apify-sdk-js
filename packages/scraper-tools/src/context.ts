@@ -24,8 +24,6 @@ export interface CrawlerSetupOptions {
     requestQueue: RequestQueue;
     keyValueStore: KeyValueStore;
     customData: unknown;
-    playwrightUtils?: unknown;
-    puppeteerUtils?: unknown;
 }
 
 export interface MapLike<K, V> extends Omit<Map<K, V>, 'values' | 'keys' | 'entries'| 'set'> {
@@ -81,9 +79,6 @@ class Context<Options extends ContextOptions = ContextOptions, ExtraFields = Opt
         this[internalState] = {
             skipLinks: false,
         };
-
-        this.playwrightUtils = crawlerSetup?.playwrightUtils;
-        this.puppeteerUtils = crawlerSetup?.puppeteerUtils;
 
         this.input = JSON.parse(crawlerSetup.rawInput);
         this.env = { ...crawlerSetup.env };

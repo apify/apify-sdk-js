@@ -40,19 +40,17 @@
     },
     "devDependencies": {
         "apify": "^3.0.0",
+        "@crawlee/browser-pool": "^3.0.0",
         "@crawlee/core": "^3.0.0",
         "@crawlee/types": "^3.0.0",
-        "@crawlee/utils": "^3.0.0",
-        "@crawlee/puppeteer": "^3.0.0",
-        "@crawlee/playwright": "^3.0.0"
+        "@crawlee/utils": "^3.0.0"
     },
     "peerDependencies": {
         "apify": "^3.0.0",
+        "@crawlee/browser-pool": "^3.0.0",
         "@crawlee/core": "^3.0.0",
         "@crawlee/types": "^3.0.0",
-        "@crawlee/utils": "^3.0.0",
-        "@crawlee/puppeteer": "^3.0.0",
-        "@crawlee/playwright": "^3.0.0"
+        "@crawlee/utils": "^3.0.0"
     },
     "peerDependenciesMeta": {
         "@crawlee/puppeteer": {

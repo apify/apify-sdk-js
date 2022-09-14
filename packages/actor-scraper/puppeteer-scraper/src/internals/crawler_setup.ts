@@ -11,7 +11,6 @@ import {
     PuppeteerCrawlingContext,
     PuppeteerCrawler,
     PuppeteerCrawlerOptions,
-    puppeteerUtils,
     BrowserCrawlerEnqueueLinksOptions,
     log,
 } from '@crawlee/puppeteer';
@@ -211,15 +210,13 @@ export class CrawlerSetup implements CrawlerSetupOptions {
     }
 
     private _createNavigationHooks(options: PuppeteerCrawlerOptions) {
-        options.preNavigationHooks!.push(async ({ request, page, session }, gotoOptions) => {
+        options.preNavigationHooks!.push(async ({ request, page, session, blockRequests }, gotoOptions) => {
             // Attach a console listener to get all logs from Browser context.
             if (this.input.browserLog) browserTools.dumpConsole(page);
 
             // Prevent download of stylesheets and media, unless selected otherwise
             if (this.blockedUrlPatterns.length) {
-                await puppeteerUtils.blockRequests(page, {
-                    urlPatterns: this.blockedUrlPatterns,
-                });
+                await blockRequests({ urlPatterns: this.blockedUrlPatterns });
             }
 
             // Add initial cookies, if any.
@@ -335,7 +332,7 @@ export class CrawlerSetup implements CrawlerSetupOptions {
         return true;
     }
 
-    private async _handleLinks({ request, enqueueLinks }: PuppeteerCrawlingContext) {
+    private async _handleLinks({ request, enqueueLinks, enqueueLinksByClickingElements }: PuppeteerCrawlingContext) {
         if (!this.requestQueue) return;
         const currentDepth = (request.userData![META_KEY] as RequestMetadata).depth;
         const hasReachedMaxDepth = this.input.maxCrawlingDepth && currentDepth >= this.input.maxCrawlingDepth;
@@ -365,7 +362,7 @@ export class CrawlerSetup implements CrawlerSetupOptions {
         }
 
         if (this.input.clickableElementsSelector) {
-            await puppeteerUtils.enqueueLinksByClickingElements({
+            await enqueueLinksByClickingElements({
                 ...enqueueOptions,
                 selector: this.input.clickableElementsSelector,
             } as EnqueueLinksByClickingElementsOptions);
