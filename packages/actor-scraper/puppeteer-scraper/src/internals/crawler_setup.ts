@@ -244,10 +244,8 @@ export class CrawlerSetup implements CrawlerSetupOptions {
             }
         });
 
-        options.preNavigationHooks!.push(...this.evaledPreNavigationHooks);
-        options.postNavigationHooks!.push(...this.evaledPostNavigationHooks);
-        options.preNavigationHooks = this._runHookWithEnhancedContext(this.evaledPreNavigationHooks);
-        options.postNavigationHooks = this._runHookWithEnhancedContext(this.evaledPostNavigationHooks);
+        options.preNavigationHooks!.push(...this._runHookWithEnhancedContext(this.evaledPreNavigationHooks));
+        options.postNavigationHooks!.push(...this._runHookWithEnhancedContext(this.evaledPostNavigationHooks));
     }
 
     private _runHookWithEnhancedContext(hooks: ((...args: unknown[]) => Awaitable<void>)[]) {

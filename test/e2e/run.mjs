@@ -3,13 +3,9 @@ import { fileURLToPath } from 'node:url';
 import { once } from 'node:events';
 import { readdir } from 'node:fs/promises';
 import { isMainThread, Worker, workerData } from 'node:worker_threads';
-import { colors, getApifyToken, clearStorage, SKIPPED_TEST_CLOSE_CODE } from './tools.mjs';
+import { colors, clearStorage, SKIPPED_TEST_CLOSE_CODE } from './tools.mjs';
 
 const basePath = dirname(fileURLToPath(import.meta.url));
-
-process.env.APIFY_TOKEN ??= await getApifyToken();
-process.env.APIFY_CONTAINER_URL ??= 'http://127.0.0.1';
-process.env.APIFY_CONTAINER_PORT ??= '8000';
 
 // If any of the tests failed - we want to exit with a non-zero code
 // so that the CI knows that e2e test suite has failed
@@ -72,7 +68,9 @@ async function run() {
             const taskLogs = allLogs.get(dir.name);
 
             if (code !== 0 && taskLogs?.length > 0) {
-                console.log(taskLogs.join('\n'));
+                // Each log line already end with '\n',
+                // So we join them with an empty string.
+                console.log(taskLogs.join(''));
             }
 
             if (status === 'failure') failure = true;
