@@ -136,10 +136,11 @@ const context = {
     page, // Playwright.Page object.
     request, // Request object.
     response, // Response object holding the status code and headers.
+    session, // Reference to the currently used session.
+    proxyInfo, // Object holding the url and other information about currently used Proxy.
     crawler, // Reference to the crawler object, with access to `browserPool`, `autoscaledPool`, and more.
     globalStore, // Represents an in memory store that can be used to share data across pageFunction invocations.
     log, // Reference to log object.
-    playwrightUtils, // Reference to playwrightUtils namespace, containing various utilities for Playwright.
     Actor, // Reference to the Actor class of Apify SDK.
     Apify, // Alias to the Actor class for back compatibility.
 
@@ -149,6 +150,11 @@ const context = {
     saveSnapshot, // Saves a screenshot and full HTML of the current page to the key value store.
     skipLinks, // Prevents enqueueing more links via glob patterns/Pseudo URLs on the current page.
     enqueueRequest, // Adds a page to the request queue.
+
+    // PLAYWRIGHT CONTEXT-AWARE UTILITY FUNCTIONS
+    injectJQuery, // Injects the jQuery library into a Playwright page.
+    sendRequest, // Sends request using got-scraping.
+    parseWithCheerio, // Returns Cheerio handle for page.content(), allowing to work with the data same way as with CheerioCrawler.
 };
 ```
 
@@ -186,8 +192,8 @@ This is a reference to the Playwright Page object, which enables you to use the 
 
 #### **`request`**
 
-| Type   | Arguments | Returns                                                        |
-| ------ | --------- | -------------------------------------------------------------- |
+| Type   | Arguments | Returns                                                      |
+| ------ | --------- |--------------------------------------------------------------|
 | Object | -         | [Request](https://crawlee.dev/api/core/class/Request) object |
 
 An object with metadata about the currently crawled page, such as its URL, headers, and the number of retries.
@@ -218,6 +224,22 @@ See the [Request class](https://crawlee.dev/api/core/class/Request) for a previe
 | Object | -         | Response object |
 
 The response object is produced by Playwright. Currently, we only pass the response's HTTP status code and headers to the `response` object.
+
+#### **`session`**
+
+| Type   | Arguments | Returns                                                       |
+| ------ | --------- |---------------------------------------------------------------|
+| Object | -         | [Session](https://crawlee.dev/api/core/class/Session) object  |
+
+Reference to the currently used session. See the [official documentation](https://crawlee.dev/api/core/class/Session) for more information.
+
+#### **`proxyInfo`**
+
+| Type   | Arguments | Returns                                                              |
+| ------ | --------- |----------------------------------------------------------------------|
+| Object | -         | [ProxyInfo](https://crawlee.dev/api/core/interface/ProxyInfo) object |
+
+Object holding the url and other information about currently used Proxy. See the [official documentation](https://crawlee.dev/api/core/interface/ProxyInfo) for more information.
 
 #### **`crawler`**
 
@@ -264,14 +286,6 @@ The most common `log` methods include:
 -   `context.log.warning()`
 -   `context.log.error()`
 -   `context.log.exception()`
-
-#### **`playwrightUtils`**
-
-| Type   | Arguments | Returns                                                                                        |
-| ------ | --------- |------------------------------------------------------------------------------------------------|
-| Object | -         | [playwrightUtils](https://crawlee.dev/api/playwright-crawler/namespace/playwrightUtils) object |
-
-This is a namespace containing various utility functions for Playwright. Refer to the [official documentation](https://crawlee.dev/api/playwright-crawler/namespace/playwrightUtils) for more information.
 
 #### **`Actor`**
 
@@ -377,6 +391,55 @@ This method is a nice shorthand for
 
 ```JavaScript
 await context.crawler.requestQueue.addRequest({ url: 'https://foo.bar/baz' })
+```
+
+#### **`injectJQuery`**
+
+| Type     | Arguments | Returns          |
+| -------- |-----------|------------------|
+| Function | ()        | _Promise\<void>_ |
+
+> This function is async! Don't forget the `await` keyword!
+
+Injects the [jQuery](https://jquery.com/) library into a Playwright page. The injected jQuery will be set to the `window.$` variable, and will survive page navigations and reloads. Note that `injectJQuery()` does not affect the Playwright [`page.$()`](https://playwright.dev/docs/api/class-page#page-query-selector) function in any way.
+
+Usage:
+
+```JavaScript
+await context.injectJQuery();
+```
+
+#### **`sendRequest`**
+
+| Type     | Arguments                                    | Returns          |
+| -------- |----------------------------------------------|------------------|
+| Function | (overrideOptions?: Partial\<GotOptionsInit>) | _Promise\<void>_ |
+
+> This function is async! Don't forget the `await` keyword!
+
+This is a helper function that allows processing the context bound `Request` object through [`got-scraping`](https://github.com/apify/got-scraping). Some options, such as `url` or `method` could be overridden by providing `overrideOptions`. See the [official documentation](https://crawlee.dev/docs/guides/got-scraping#sendrequest-api) for full list of possible `overrideOptions` and more information.
+
+Usage:
+
+```JavaScript
+// Without overrideOptions
+await context.sendRequest();
+// With overrideOptions.url
+await context.sendRequest({ url: 'https://www.example.com' });
+```
+
+#### **`parseWithCheerio`**
+
+| Type     | Arguments | Returns                 |
+| -------- |-----------|-------------------------|
+| Function | ()        | _Promise\<CheerioRoot>_ |
+
+Returns Cheerio handle for `page.content()`, allowing to work with the data same way as with CheerioCrawler.
+
+Usage:
+
+```JavaScript
+const $ = await context.parseWithCheerio();
 ```
 
 ## Proxy Configuration
