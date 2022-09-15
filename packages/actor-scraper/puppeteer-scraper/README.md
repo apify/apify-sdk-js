@@ -1,51 +1,51 @@
 # Puppeteer Scraper
 
-Puppeteer Scraper is the most powerful scraper tool in our arsenal (aside from developing your own actors).
+Puppeteer Scraper is one of the most powerful scraper tools in our arsenal (aside from developing your own actors).
 
-It uses the Puppeteer library to programmatically control a headless Chrome browser and it can make it do almost anything. If using [Web Scraper](https://apify.com/apify/web-scraper) doesn't cut it for your use case, then Puppeteer Scraper is what you need.
+It uses the Puppeteer library to programmatically control a headless Chrome browser, and it can make it do almost anything. If using [Web Scraper](https://apify.com/apify/web-scraper) doesn't cut it for your use case, then Puppeteer Scraper is what you need.
 
-[Puppeteer](https://github.com/GoogleChrome/puppeteer/) is a Node.js library, so knowledge of Node.js and its paradigms is expected when working with this actor.
+[Puppeteer](https://github.com/puppeteer/puppeteer) is a Node.js library, so knowledge of Node.js and its paradigms is expected when working with this actor.
 
 If you need either a faster, or a simpler tool, check out [Cheerio Scraper](https://apify.com/apify/cheerio-scraper) for optimization and speed, or [Web Scraper](https://apify.com/apify/web-scraper) for simplicity.
 
-If you are having any difficulty deciding which of the three main Apify "Scraper" actors to use, check out the [Web-Scraper vs Puppeteer-Scraper](https://help.apify.com/en/articles/3195646-when-to-use-puppeteer-scraper) and [Cheerio-Scraper](https://blog.apify.com/how-to-super-efficiently-scrape-any-website-for-beginners/) articles on the Apify blog.
+If you are having any difficulty deciding which of the four main Apify "Scraper" actors to use, check out the [Web Scraper vs Puppeteer Scraper](https://help.apify.com/en/articles/3195646-when-to-use-puppeteer-scraper), [Cheerio Scraper](https://blog.apify.com/how-to-super-efficiently-scrape-any-website-for-beginners/) and [Playwright Scraper](https://blog.apify.com/how-to-scrape-the-web-with-playwright-ece1ced75f73/) articles on the Apify blog.
 
 <!-- toc -->
 
 -   [Usage](#usage)
--   [Limitations](#limitations)
--   [Input Configuration](#input-configuration)
-    -   [Start URLs](#start-urls)
-    -   [Link selector](#link-selector)
-    -   [Pseudo-URLs](#pseudo-urls)
-    -   [Clickable elements selector](#clickable-elements-selector)
-    -   [Page function](#page-function)
-        -   [`input`](#input)
-        -   [`env`](#env)
-        -   [`customData`](#customdata)
-        -   [`page`](#page)
-        -   [`request`](#request)
-        -   [`response`](#response)
-        -   [`crawler`](#crawler)
-        -   [`globalStore`](#globalStore)
-        -   [`log`](#log)
-        -   [`Apify`](#apify)
-        -   [`setValue`](#setvalue)
-        -   [`getValue`](#getvalue)
-        -   [`saveSnapshot`](#savesnapshot)
-        -   [`skipLinks`](#skiplinks)
-        -   [`enqueueRequest`](#enqueuerequest)
--   [Proxy and browser configuration](#proxy-and-browser-configuration)
--   [Advanced configuration](#advanced-configuration)
-    -   [Pre-navigation hooks](#pre-navigation-hooks)
-    -   [Post-navigation hooks](#post-navigation-hooks)
-    -   [Debug log](#debug-log)
-    -   [Browser log](#browser-log)
-    -   [Custom data](#custom-data)
-    -   [Custom namings](#custom-namings)
--   [Results](#results)
--   [Additional Resources](#additional-resources)
--   [Upgrading](#upgrading)
+  -   [Limitations](#limitations)
+    -   [Input Configuration](#input-configuration)
+        -   [Start URLs](#start-urls)
+        -   [Link selector](#link-selector)
+        -   [Pseudo-URLs](#pseudo-urls)
+        -   [Clickable elements selector](#clickable-elements-selector)
+        -   [Page function](#page-function)
+            -   [`input`](#input)
+            -   [`env`](#env)
+            -   [`customData`](#customdata)
+            -   [`page`](#page)
+            -   [`request`](#request)
+            -   [`response`](#response)
+            -   [`crawler`](#crawler)
+            -   [`globalStore`](#globalStore)
+            -   [`log`](#log)
+            -   [`Apify`](#apify)
+            -   [`setValue`](#setvalue)
+            -   [`getValue`](#getvalue)
+            -   [`saveSnapshot`](#savesnapshot)
+            -   [`skipLinks`](#skiplinks)
+            -   [`enqueueRequest`](#enqueuerequest)
+    -   [Proxy and browser configuration](#proxy-and-browser-configuration)
+    -   [Advanced configuration](#advanced-configuration)
+        -   [Pre-navigation hooks](#pre-navigation-hooks)
+        -   [Post-navigation hooks](#post-navigation-hooks)
+        -   [Debug log](#debug-log)
+        -   [Browser log](#browser-log)
+        -   [Custom data](#custom-data)
+        -   [Custom namings](#custom-namings)
+    -   [Results](#results)
+    -   [Additional Resources](#additional-resources)
+    -   [Upgrading](#upgrading)
 
 <!-- tocstop -->
 
@@ -53,7 +53,7 @@ If you are having any difficulty deciding which of the three main Apify "Scraper
 
 To get started with Puppeteer Scraper, you only need a few things. First, with `Start URLs`, tell the scraper which web pages it should load. Then, tell it how to handle each request and extract data from each page.
 
-The scraper starts by loading pages specified in the [**Start URLs**](#start-urls) input setting. You can make the scraper follow page links on the fly by setting a **[Link selector](#link-selector)** and/or **[Pseudo-URLs](#pseudo-urls)** to tell the scraper which links it should add to the crawler's request queue. This is useful for the recursive crawling of entire websites (e.g. finding all products available in an online store).
+The scraper starts by loading pages specified in the [**Start URLs**](#start-urls) input setting. You can make the scraper follow page links on the fly by setting a **[Link selector](#link-selector)**, **[Glob Patterns](#glob-patterns)** and/or **[Pseudo-URLs](#pseudo-urls)** to tell the scraper which links it should add to the crawler's request queue. This is useful for the recursive crawling of entire websites (e.g. finding all products available in an online store).
 
 To tell the scraper how to handle requests and extra data, you need to provide a **[Page function](#page-function)**, and optionally arrays of **[Pre-navigation hooks](#pre-navigation-hooks)** and **[Post-navigation hooks](#post-navigation-hooks)**. This is JavaScript code that is executed in the Node.js environment. Since the scraper uses the full-featured Chromium browser, client-side logic to be executed within the context of the web-page can be done using the **[`page`](#page)** object within the Page function's context.
 
@@ -63,29 +63,29 @@ In summary, Puppeteer Scraper works as follows:
 2. For each request:
     - Evaluates all hooks in [Pre-navigation hooks](#pre-navigation-hooks)
     - Executes the [Page function](#page-function) on the loaded page
-    - Optionally, finds all links from the page using [Link selector](#link-selector). If a link matches any of the [Pseudo URLs](#pseudo-urls) and has not yet been requested, it is added to the queue.
+    - Optionally, finds all links from the page using [Link selector](#link-selector). If a link matches any of the [Glob Patterns](#glob-patterns) and/or [Pseudo URLs](#pseudo-urls) and has not yet been requested, it is added to the queue.
     - Evaluates [Post-navigation hooks](#post-navigation-hooks)
 3. If there are more items in the queue, repeats step 2. Otherwise, finishes the crawl.
 
-Puppeteer Scraper has a number of other configuration settings to improve performance, set cookies for login to websites, mask the web browser, etc.. See [Advanced configuration](#advanced-configuration) below for the complete list of settings.
+Puppeteer Scraper has a number of other configuration settings to improve performance, set cookies for login to websites, mask the web browser, etc... See [Advanced configuration](#advanced-configuration) below for the complete list of settings.
 
 ## Limitations
 
-The actor employs a fully-featured Chromium web browser, which is resource-intensive and might be overkill for websites that do not render the content dynamically using client-side JavaScript. To achieve better performance for scraping such sites, you might prefer to use [**Cheerio Scraper**](https://apify.com/apify/cheerio-scraper), which downloads and processes raw HTML pages without the overheads of a web browser.
+The actor employs a fully-featured Chromium web browser, which is resource-intensive and might be an overkill for websites that do not render the content dynamically using client-side JavaScript. To achieve better performance for scraping such sites, you might prefer to use [**Cheerio Scraper**](https://apify.com/apify/cheerio-scraper), which downloads and processes raw HTML pages without the overheads of a web browser.
 
 For non-seasoned developers, Puppeteer Scraper may be too complex. For a simpler setup process check out [Web Scraper](https://apify.com/apify/web-scraper), which also uses Puppeteer under the hood.
 
 ## Input Configuration
 
-On input, the Puppeteer Scraper actor accepts a number of configuration settings. These can be entered either manually in the user interface in [Apify Console](https://console.apify.com), or programmatically in a JSON object using the [Apify API](https://apify.com/docs/api/v2#/reference/actors/run-collection/run-actor). For a complete list of input fields and their types, please see the outline of the actor's [Input-schema](https://apify.com/apify/puppeteer-scraper/input-schema).
+On input, the Puppeteer Scraper actor accepts a number of configuration settings. These can be entered either manually in the user interface in [Apify Console](https://console.apify.com), or programmatically in a JSON object using the [Apify API](https://docs.apify.com/api/v2#/reference/actors/run-collection/run-actor). For a complete list of input fields and their types, please see the outline of the actor's [Input-schema](https://apify.com/apify/puppeteer-scraper/input-schema).
 
 ### Start URLs
 
-The **Start URLs** (`startUrls`) field represent the initial list of URLs of pages that the scraper will visit. You can either enter these URLs manually one by one, upload them in a CSV file or [link URLs from a Google Sheet](https://help.apify.com/en/articles/2906022-scraping-a-list-of-urls-from-google-spreadsheet) document. Note that each URL must start with either a `http://` or `https://` protocol prefix.
+The **Start URLs** (`startUrls`) field represent the initial list of URLs of pages that the scraper will visit. You can either enter these URLs manually one by one, upload them in a CSV file or [link URLs from a Google Sheet](https://help.apify.com/en/articles/2906022-scraping-a-list-of-urls-from-a-google-sheets-document) document. Note that each URL must start with either a `http://` or `https://` protocol prefix.
 
-The scraper supports adding new URLs to scrape on the fly, either using the **[Link selector](#link-selector)** and **[Pseudo-URLs](#pseudo-urls)** options, or by calling `await context.enqueueRequest()`inside the **[Page function](#page-function)**.
+The scraper supports adding new URLs to scrape on the fly, either using the **[Link selector](#link-selector)** and **[Glob Patterns](#glob-patterns)**/**[Pseudo-URLs](#pseudo-urls)** options, or by calling `await context.enqueueRequest()`inside the **[Page function](#page-function)**.
 
-Optionally, each URL can be associated with custom user data - a JSON object that can be referenced from your JavaScript code in **[Page function](#page-function)** under `context.request.userData`. This is useful for determining which start URL is currently loaded, allowing the ability to perform some page-specific actions. For example, when crawling an online store, you might want to perform different actions on a page listing the products vs. a product detail page. For details, refer to **[Web scraping tutorial](https://apify.com/docs/scraping/tutorial/introduction#the-start-url)** within the Apify documentation.
+Optionally, each URL can be associated with custom user data - a JSON object that can be referenced from your JavaScript code in **[Page function](#page-function)** under `context.request.userData`. This is useful for determining which start URL is currently loaded, allowing the ability to perform some page-specific actions. For example, when crawling an online store, you might want to perform different actions on a page listing the products vs. a product detail page. For details, refer to **[Web scraping tutorial](https://docs.apify.com/tutorials/apify-scrapers/getting-started#the-start-url)** within the Apify documentation.
 
 <!-- TODO: Describe how the queue works, unique key etc. plus link -->
 
@@ -93,7 +93,7 @@ Optionally, each URL can be associated with custom user data - a JSON object tha
 
 The **Link selector** (`linkSelector`) field contains a CSS selector that is used to find links to other web pages (items with `href` attributes, e.g. `<div class="my-class" href="...">`).
 
-On every page loaded, the scraper looks for all links matching **Link selector**, and checks that the target URL matches one of the [**Pseudo-URLs**](#pseudo-urls). If it is a match, it then adds the URL to the request queue so that it's loaded by the scraper later on.
+On every page loaded, the scraper looks for all links matching **Link selector**, and checks that the target URL matches one of the [**Glob Patterns**](#glob-patterns)/[**Pseudo-URLs**](#pseudo-urls). If it is a match, it then adds the URL to the request queue so that it's loaded by the scraper later on.
 
 By default, new scrapers are created with the following selector that matches all links on any page:
 
@@ -102,6 +102,21 @@ a[href]
 ```
 
 If **Link selector** is empty, the page links are ignored, and the scraper only loads pages that were specified in **[Start URLs](#start-urls)** or that were manually added to the request queue by calling `await context.enqueueRequest()` in **[Page function](#page-function)**.
+
+### Glob Patterns
+
+The **Glob Patterns** (`globs`) field specifies which types of URLs found by **[Link selector](#link-selector)** should be added to the request queue.
+
+A glob pattern is simply a string with wildcard characters.
+
+For example, a glob pattern `http://www.example.com/pages/**/*` will match all the
+following URLs:
+
+-   `http://www.example.com/pages/deeper-level/page`
+-   `http://www.example.com/pages/my-awesome-page`
+-   `http://www.example.com/pages/something`
+
+Note that you don't need to use the **Glob Patterns** setting at all, because you can completely control which pages the scraper will access by calling `await context.enqueueRequest()` from the **[Page function](#page-function)**.
 
 ### Pseudo URLs
 
@@ -130,7 +145,7 @@ will match the URL:
 http://www.example.com/search?do[load]=1
 ```
 
-Optionally, each pseudo-URL can be associated with user data that can be referenced from your **[Page function](#page-function)** using `context.request.userData` to determine which kind of page is currently loaded in the browser.
+Optionally, each pseudo-URL can be associated with user data that can be referenced from your **[Page function](#page-function)** using `context.request.label` to determine which kind of page is currently loaded in the browser.
 
 Note that you don't need to use the **Pseudo-URLs** setting at all, because you can completely control which pages the scraper will access by calling `await context.enqueueRequest()` from the **[Page function](#page-function)**.
 
@@ -138,7 +153,7 @@ Note that you don't need to use the **Pseudo-URLs** setting at all, because you 
 
 For pages where the links you want to add to the crawler's request queue aren't included in elements with `href` attributes, you can pass a CSS Selector to the **Clickable elements selector**. This CSS selector should match elements that lead to the URL you want to queue up.
 
-The scraper will mouse click the specified CSS selector after the page function finishes. Any triggered requests, navigations, or open tabs will be intercepted, and the target URLs will be filtered using Pseudo URLs. Finally, these filtered URLs will be added to the request queue. Leave this field empty empty to prevent the scraper from clicking in the page.
+The scraper will mouse click the specified CSS selector after the page function finishes. Any triggered requests, navigations, or open tabs will be intercepted, and the target URLs will be filtered using Globs and/or Pseudo URLs. Finally, these filtered URLs will be added to the request queue. Leave this field empty to prevent the scraper from clicking in the page.
 
 It's important to note that _using this setting can impact performance._
 
@@ -149,18 +164,21 @@ Page function `context` as it appears within `Page function`:
 ```JavaScript
 const context = {
     // USEFUL DATA
-    input, // Input data in JSON format
-    env, // Contains information about the run, such as actorId and runId
+    input, // Input data in JSON format.
+    env, // Contains information about the run, such as actorId and runId.
     customData, // Value of the 'Custom data' scraper option.
 
     // EXPOSED OBJECTS
     page, // Puppeteer.Page object.
     request, // Crawlee.Request object.
     response, // Response object holding the status code and headers.
-    crawler, // Reference to the crawler object, with access to `browserPool`, `autoscaledPool`, and more
-    globalStore, // Represents an in memory store that can be used to share data across pageFunction invocations
-    log, // Reference to Crawlee.utils.log
-    Apify, // Reference to the full power of Apify SDK.
+    session, // Reference to the currently used session.
+    proxyInfo, // Object holding the url and other information about currently used Proxy.
+    crawler, // Reference to the crawler object, with access to `browserPool`, `autoscaledPool`, and more.
+    globalStore, // Represents an in memory store that can be used to share data across pageFunction invocations.
+    log, // Reference to Crawlee.utils.log.
+    Actor, // Reference to the Actor class of Apify SDK.
+    Apify, // Alias to the Actor class for back compatibility.
 
     // EXPOSED FUNCTIONS
     setValue, // Reference to the Actor.setValue() function.
@@ -168,6 +186,11 @@ const context = {
     saveSnapshot, // Saves a screenshot and full HTML of the current page to the key value store.
     skipLinks, // Prevents enqueueing more links via Pseudo URLs on the current page.
     enqueueRequest, // Adds a page to the request queue.
+
+    // PUPPETEER CONTEXT-AWARE UTILITY FUNCTIONS
+    injectJQuery, // Injects the jQuery library into a Puppeteer page.
+    sendRequest, // Sends request using got-scraping.
+    parseWithCheerio, // Returns Cheerio handle for page.content(), allowing to work with the data same way as with CheerioCrawler.
 };
 ```
 
@@ -197,16 +220,16 @@ Since the input UI is fixed, it does not support adding of other fields that may
 
 #### **`page`**
 
-| Type   | Arguments | Returns                                                                           |
-| ------ | --------- | --------------------------------------------------------------------------------- |
-| Object | -         | [Puppeteer Page](https://pptr.dev/#?product=Puppeteer&show=api-class-page) object |
+| Type   | Arguments | Returns                                                      |
+| ------ | --------- | ------------------------------------------------------------ |
+| Object | -         | [Puppeteer Page](https://pptr.dev/api/puppeteer.page) object |
 
-This is a reference to the Puppeteer Page object, which enables you to use the full power of Puppeteer in your Page functions. If you are not familiar with the Page API already, you can refer to [their documentation](https://pptr.dev/#?product=Puppeteer&show=api-class-page).
+This is a reference to the Puppeteer Page object, which enables you to use the full power of Puppeteer in your Page functions. If you are not familiar with the Page API already, you can refer to [their documentation](https://pptr.dev/api/puppeteer.page).
 
 #### **`request`**
 
-| Type   | Arguments | Returns                                                        |
-| ------ | --------- | -------------------------------------------------------------- |
+| Type   | Arguments | Returns                                                            |
+| ------ | --------- |--------------------------------------------------------------------|
 | Object | -         | Apify [Request](https://crawlee.dev/api/core/class/Request) object |
 
 An object with metadata about the currently crawled page, such as its URL, headers, and the number of retries.
@@ -238,10 +261,26 @@ See the [Request class](https://crawlee.dev/api/core/class/Request) for a previe
 
 The response object is produced by Puppeteer. Currently, we only pass the response's HTTP status code and headers to the `response` object.
 
+#### **`session`**
+
+| Type   | Arguments | Returns                                                       |
+| ------ | --------- |---------------------------------------------------------------|
+| Object | -         | [Session](https://crawlee.dev/api/core/class/Session) object  |
+
+Reference to the currently used session. See the [official documentation](https://crawlee.dev/api/core/class/Session) for more information.
+
+#### **`proxyInfo`**
+
+| Type   | Arguments | Returns                                                              |
+| ------ | --------- |----------------------------------------------------------------------|
+| Object | -         | [ProxyInfo](https://crawlee.dev/api/core/interface/ProxyInfo) object |
+
+Object holding the url and other information about currently used Proxy. See the [official documentation](https://crawlee.dev/api/core/interface/ProxyInfo) for more information.
+
 #### **`crawler`**
 
-| Type   | Arguments | Returns                                                                                   |
-| ------ | --------- | ----------------------------------------------------------------------------------------- |
+| Type   | Arguments | Returns                                                                                     |
+| ------ | --------- |---------------------------------------------------------------------------------------------|
 | Object | -         | [PuppeteerCrawler](https://crawlee.dev/api/puppeteer-crawler/class/PuppeteerCrawler) object |
 
 To access the current `AutoscaledPool` or `BrowserPool` instance, we can use the `crawler` object. This object includes the following properties:
@@ -284,15 +323,19 @@ The most common `log` methods include:
 -   `context.log.error()`
 -   `context.log.exception()`
 
+#### **`Actor`**
+
+| Type   | Arguments | Returns                                                           |
+| ------ | --------- |-------------------------------------------------------------------|
+| Object | -         | [Actor class](https://sdk.apify.com/api/apify/class/Actor) object |
+
+A reference to the full power of the Actor class of Apify SDK. See [the docs](https://sdk.apify.com/api/apify/class/Actor) for more information.
+
+> Caution: Since we're making the Actor class available with this option, and Puppeteer Scraper already runs using the Actor class, some edge case manipulations may lead to inconsistencies. Use `Actor` class with caution, and avoid making global changes unless you know what you're doing.
+
 #### **`Apify`**
 
-| Type   | Arguments | Returns                                                    |
-| ------ | --------- | ---------------------------------------------------------- |
-| Object | -         | [Actor class](https://sdk.apify.com/api/apify/class/Actor/) object |
-
-A reference to the full power of the Apify SDK. See [the docs](https://sdk.apify.com/api/apify/) for more information and all the available methods and classes.
-
-> Caution: Since we're making the full SDK available with this option, and Puppeteer Scraper already runs using the SDK, some edge case manipulations may lead to inconsistencies. Use `Apify` with caution, and avoid making global changes unless you know what you're doing.
+An alias for [`Actor`](#actor) class for back compatibility.
 
 #### **`setValue`**
 
@@ -302,7 +345,7 @@ A reference to the full power of the Apify SDK. See [the docs](https://sdk.apify
 
 > This function is async! Don't forget the `await` keyword!
 
-Allows you to save data to the default key-value store. The `key` is the name of the item in the store (which can later be used to retrieve this storeddata), and the `data` is an object containing all of the data you want to store.
+Allows you to save data to the default key-value store. The `key` is the name of the item in the store (which can later be used to retrieve this stored data), and the `data` is an object containing all the data you want to store.
 
 Usage:
 
@@ -310,7 +353,7 @@ Usage:
 await context.setValue('my-value', { message: 'hello' })
 ```
 
-Refer to [Apify SDK Documentation](https://sdk.apify.com/api/apify/class/Actor#setValue) for more information.
+Refer to [Key-Value store documentation](https://crawlee.dev/api/core/class/KeyValueStore#setValue) for more information.
 
 #### **`getValue`**
 
@@ -328,7 +371,7 @@ Usage:
 const { message } = await context.getValue('my-value')
 ```
 
-Refer to [Apify SDK Documentation](https://sdk.apify.com/api/apify/class/Actor#getValue) for more information.
+Refer to [Key-Value store documentation](https://crawlee.dev/api/core/class/KeyValueStore#getValue) for more information.
 
 #### **`saveSnapshot`**
 
@@ -356,7 +399,7 @@ You can find the latest screenshot under the `SNAPSHOT-SCREENSHOT` key and the H
 
 > This function is async! Don't forget the `await` keyword!
 
-With each invocation of the pageFunction, the scraper attempts to extract new URLs from the page using the Link selector and PseudoURLs provided in the input UI. If you want to prevent this behavior in certain cases, call the `skipLinks` function, and no URLs will be added to the queue for the given page.
+With each invocation of the pageFunction, the scraper attempts to extract new URLs from the page using the Link selector and glob patterns/Pseudo-URLs provided in the input UI. If you want to prevent this behavior in certain cases, call the `skipLinks` function, and no URLs will be added to the queue for the given page.
 
 Usage:
 
@@ -386,11 +429,61 @@ This method is a nice shorthand for
 await context.crawler.requestQueue.addRequest({ url: 'https://foo.bar/baz' })
 ```
 
+#### **`injectJQuery`**
+
+| Type     | Arguments | Returns          |
+| -------- |-----------|------------------|
+| Function | ()        | _Promise\<void>_ |
+
+> This function is async! Don't forget the `await` keyword!
+
+Injects the [jQuery](https://jquery.com/) library into a Puppeteer page. The injected jQuery will be set to the `window.$` variable, and will survive page navigations and reloads. Note that `injectJQuery()` does not affect the Puppeteer [`page.$()`](https://pptr.dev/api/puppeteer.page._) function in any way.
+
+Usage:
+
+```JavaScript
+await context.injectJQuery();
+```
+
+#### **`sendRequest`**
+
+| Type     | Arguments                                    | Returns          |
+| -------- |----------------------------------------------|------------------|
+| Function | (overrideOptions?: Partial\<GotOptionsInit>) | _Promise\<void>_ |
+
+> This function is async! Don't forget the `await` keyword!
+
+This is a helper function that allows processing the context bound `Request` object through [`got-scraping`](https://github.com/apify/got-scraping). Some options, such as `url` or `method` could be overridden by providing `overrideOptions`. See the [official documentation](https://crawlee.dev/docs/guides/got-scraping#sendrequest-api) for full list of possible `overrideOptions` and more information.
+
+Usage:
+
+```JavaScript
+// Without overrideOptions
+await context.sendRequest();
+// With overrideOptions.url
+await context.sendRequest({ url: 'https://www.example.com' });
+```
+
+#### **`parseWithCheerio`**
+
+| Type     | Arguments | Returns                 |
+| -------- |-----------|-------------------------|
+| Function | ()        | _Promise\<CheerioRoot>_ |
+
+Returns Cheerio handle for `page.content()`, allowing to work with the data same way as with CheerioCrawler.
+
+Usage:
+
+```JavaScript
+const $ = await context.parseWithCheerio();
+```
+
 ## Proxy Configuration
 
-The **Proxy configuration** (`proxyConfiguration`) option enables you to set proxies that will be used by the scraper in order to prevent its detection by target websites.
+The **Proxy configuration** (`proxyConfiguration`) option enables you to set proxies
+that will be used by the scraper in order to prevent its detection by target websites.
 You can use both [Apify Proxy](https://apify.com/proxy)
-as well as custom HTTP or SOCKS5 proxy servers.
+and custom HTTP or SOCKS5 proxy servers.
 
 The following table lists the available options of the proxy configuration setting:
 
@@ -429,25 +522,25 @@ The proxy configuration can be set programmatically when calling the actor using
 
 ### Pre-navigation hooks
 
-This is an array of functions that will be executed **BEFORE** the main `pageFunction` is run. A similar `context` object is passed into each of these functions as is passed into the `pageFunction`; however, a second "[DirectNavigationOptions](https://crawlee.dev/api/puppeteer-crawler/namespace/puppeteerUtils#DirectNavigationOptions)" object is also passed in.
+This is an array of functions that will be executed **BEFORE** the main `pageFunction` is run. A similar `context` object is passed into each of these functions as is passed into the `pageFunction`; however, a second "[DirectNavigationOptions](https://crawlee.dev/api/puppeteer-crawler/namespace/puppeteerUtils#DirectNavigationOptions)" object is also passed in. `Apify` is an alias for `Actor` class in this case.
 
 The available options can be seen here:
 
 ```JavaScript
 preNavigationHooks: [
-    async ({ id, request, session, proxyInfo, customData, Actor }, { timeout, waitUntil, referer }) => {}
+    async ({ id, request, session, proxyInfo, customData, Actor, Apify }, { timeout, waitUntil, referer }) => {}
 ]
 ```
 
-Check out the docs for [Pre-navigation hooks](https://crawlee.dev/api/puppeteer-crawler/interface/PuppeteerCrawlerOptions#preNavigationHooks) and the [PuppeteerHook type](https://crawlee.dev/api/puppeteer-crawler/interface/PuppeteerHook) for more info regarding the objects passed into these functions. The available properties are extended with `Actor` (alternatively `Apify`) and `customData` in this scraper.
+Check out the docs for [Pre-navigation hooks](https://crawlee.dev/api/puppeteer-crawler/interface/PuppeteerCrawlerOptions#preNavigationHooks) and the [PuppeteerHook type](https://crawlee.dev/api/puppeteer-crawler/interface/PuppeteerHook) for more info regarding the objects passed into these functions. The available properties are extended with `Actor` (previously `Apify`) class and `customData` in this scraper.
 
 ### Post-navigation hooks
 
-An array of functions that will be executed **AFTER** the main `pageFunction` is run. The only available parameter is the [CrawlingContext](https://crawlee.dev/api/puppeteer-crawler/interface/PuppeteerCrawlingContext) object. The available properties are extended with `Actor` (alternatively `Apify`) and `customData` in this scraper.
+An array of functions that will be executed **AFTER** the main `pageFunction` is run. The only available parameter is the [PuppeteerCrawlingContext](https://crawlee.dev/api/puppeteer-crawler/interface/PuppeteerCrawlingContext) object. The available properties are extended with `Actor` (alternatively `Apify`) and `customData` in this scraper. `Apify` is an alias for `Actor` class in this case.
 
 ```JavaScript
 postNavigationHooks: [
-    async ({ id, request, session, proxyInfo, response, customData, Actor }) => {}
+    async ({ id, request, session, proxyInfo, response, customData, Actor, Apify }) => {}
 ]
 ```
 
@@ -469,15 +562,15 @@ When set to true, console messages from the browser will be included in the acto
 
 Since the input UI is fixed, it does not support adding of other fields that may be needed for all specific use cases. If you need to pass arbitrary data to the scraper, use the [Custom data](#custom-data) input field within [Advanced configuration](#advanced-configuration) and its contents will be available under the `customData` context key as an object within the [pageFunction](#page-function).
 
-### Custom namings:
+### Custom namings
 
 With the final three options in the **Advanced configuration**, you can set custom names for the following:
 
 -   Dataset
-    -   Leave your dataset unnamed if you only want the data within it to be persisted on the Apify platform for 7 days (after which, it will expire). Named datasets are retained indefinitely. Additionally, using a named dataset allows you to share it across multiple runs (e.g. Instead of having 10 different unnamed datasets for 10 different runs, all the data from all 10 runs can be accumulated into a single named dataset). Learn more [here](https://docs.apify.com/storage#named-and-unnamed-storages).
 -   Key-value store
-    -   Similarly to datasets, named key-value stores never expire, and unnamed ones expire after 7 days.
 -   Request queue
+
+Leave the storage unnamed if you only want the data within it to be persisted on the Apify platform for a number of days corresponding to your [plan](https://apify.com/pricing) (after which it will expire). Named storages are retained indefinitely. Additionally, using a named storage allows you to share it across multiple runs (e.g. instead of having 10 different unnamed datasets for 10 different runs, all the data from all 10 runs can be accumulated into a single named dataset). Learn more [here](https://docs.apify.com/storage#named-and-unnamed-storages).
 
 ## Results
 
@@ -510,7 +603,7 @@ The full object stored in the dataset would look as follows (in JSON format, inc
 }
 ```
 
-To download the results, call the [Get dataset items](https://apify.com/docs/api/v2#/reference/datasets/item-collection) API endpoint:
+To download the results, call the [Get dataset items](https://docs.apify.com/api/v2#/reference/datasets/item-collection) API endpoint:
 
 ```
 https://api.apify.com/v2/datasets/[DATASET_ID]/items?format=json
@@ -521,17 +614,22 @@ https://api.apify.com/v2/datasets/[DATASET_ID]/items?format=json
 To skip the `#error` and `#debug` metadata fields from the results and not include empty result records, simply add the `clean=true` query parameter to the API URL, or select the **Clean items** option when downloading the dataset in Apify Console.
 
 To get the results in other formats, set the `format` query parameter to `xml`, `xlsx`, `csv`, `html`, etc.
-For more information, see [Datasets](https://apify.com/docs/storage#dataset) in documentationm or the [Get dataset items](https://apify.com/docs/api/v2#/reference/datasets/item-collection) endpoint in the Apify API reference.
+For more information, see [Datasets](https://apify.com/docs/storage#dataset) in documentation or the [Get dataset items](https://apify.com/docs/api/v2#/reference/datasets/item-collection) endpoint in the Apify API reference.
 
 ## Additional Resources
 
 That's it! You might also want to check out these other resources:
 
 -   [Actors documentation](https://apify.com/docs/actor) - Documentation for the Apify Actors cloud computing platform.
--   [Crawlee](https://crawlee.dev) - Learn how to build a new web scraping actor from scratch using the world's most popular web crawling and scraping library for Node.js.
+-   [Crawlee documentation](https://crawlee.dev) - Learn how to build a new web scraping project from scratch using the world's most popular web crawling and scraping library for Node.js.
+-   [Playwright Scraper](https://apify.com/apify/playwright-scraper) -
+    A similar web scraping actor to Puppeteer Scraper, but using the [Playwright](https://github.com/microsoft/playwright) library instead.
+-   [Web Scraper](https://apify.com/apify/web-scraper) - A similar web scraping actor to Playwright Scraper, but is simpler to use and only runs in the context of the browser. Uses the [Puppeteer](https://github.com/puppeteer/puppeteer) library.
 -   [Cheerio Scraper](https://apify.com/apify/cheerio-scraper) - Another web scraping actor that downloads and processes pages in raw HTML for much higher performance.
--   [Web Scraper](https://apify.com/apify/web-scraper) - A similar web scraping actor to Puppeteer Scraper, but is simpler to use and only runs in the context of the browser. Still uses the [Puppeteer](https://github.com/GoogleChrome/puppeteer) library.
 
 ## Upgrading
 
 v2 introduced several minor breaking changes, you can read about those in the [migration guide](https://github.com/apify/actor-scraper/blob/master/MIGRATIONS.md).
+
+v3 introduces even more breaking changes.
+This [v3 migration guide](https://sdk.apify.com/docs/upgrading/upgrading-to-v3) should take you through these.

@@ -54,7 +54,7 @@ Optionally, each URL can be associated with custom user data - a JSON object tha
 
 The **Link selector** (`linkSelector`) field contains a CSS selector that is used to find links to other web pages (items with `href` attributes, e.g. `<div class="my-class" href="...">`).
 
-On every page loaded, the scraper looks for all links matching **Link selector**, and checks that the target URL matches one of the [**Pseudo-URLs**](#pseudo-urls)/[**Glob Patterns**](#glob-patterns). If it is a match, it then adds the URL to the request queue so that it's loaded by the scraper later on.
+On every page loaded, the scraper looks for all links matching **Link selector**, and checks that the target URL matches one of the [**Glob Patterns**](#glob-patterns)/[**Pseudo-URLs**](#pseudo-urls). If it is a match, it then adds the URL to the request queue so that it's loaded by the scraper later on.
 
 By default, new scrapers are created with the following selector that matches all links on any page:
 
@@ -106,8 +106,7 @@ will match the URL:
 http://www.example.com/search?do[load]=1
 ```
 
-Optionally, each pseudo-URL can be associated with user data that can be referenced from your **[Page function](#page-function)**
-using `context.request.label` to determine which kind of page is currently loaded in the browser.
+Optionally, each pseudo-URL can be associated with user data that can be referenced from your **[Page function](#page-function)** using `context.request.label` to determine which kind of page is currently loaded in the browser.
 
 Note that you don't need to use the **Pseudo-URLs** setting at all,
 because you can completely control which pages the scraper will access by calling `await context.enqueueRequest()`
@@ -134,13 +133,13 @@ const context = {
 
     // EXPOSED OBJECTS
     page, // Playwright.Page object.
-    request, // Request object.
+    request, // Crawlee.Request object.
     response, // Response object holding the status code and headers.
     session, // Reference to the currently used session.
     proxyInfo, // Object holding the url and other information about currently used Proxy.
     crawler, // Reference to the crawler object, with access to `browserPool`, `autoscaledPool`, and more.
     globalStore, // Represents an in memory store that can be used to share data across pageFunction invocations.
-    log, // Reference to log object.
+    log, // Reference to Crawlee.utils.log.
     Actor, // Reference to the Actor class of Apify SDK.
     Apify, // Alias to the Actor class for back compatibility.
 
@@ -273,9 +272,9 @@ Refer to the [official documentation](https://crawlee.dev/api/playwright-crawler
 
 #### **`log`**
 
-| Type   | Arguments | Returns                                              |
-| ------ | --------- |------------------------------------------------------|
-| Object | -         | [log](https://crawlee.dev/api/core/class/Log) object |
+| Type   | Arguments | Returns                                                            |
+| ------ | --------- |--------------------------------------------------------------------|
+| Object | -         | [Crawlee.utils.log](https://crawlee.dev/api/core/class/Log) object |
 
 This should be used instead of JavaScript's built in `console.log` when logging in the Node.js context, as it automatically color-tags your logs, as well as allows the toggling of the visibility of log messages using options such as [Debug log](#debug-log) in [Advanced configuration](#advanced-configuration).
 
@@ -484,7 +483,7 @@ The proxy configuration can be set programmatically when calling the actor using
 
 ## Browser Configuration
 
-### Browser Type
+### `launcher`
 
 The actor will use a Chromium browser by default. Alternatively, you can set it to use a Firefox browser instead.
 
@@ -579,7 +578,7 @@ The full object stored in the dataset would look as follows (in JSON format, inc
 }
 ```
 
-To download the results, call the [Get dataset items](https://apify.com/docs/api/v2#/reference/datasets/item-collection) API endpoint:
+To download the results, call the [Get dataset items](https://docs.apify.com/api/v2#/reference/datasets/item-collection) API endpoint:
 
 ```
 https://api.apify.com/v2/datasets/[DATASET_ID]/items?format=json
@@ -597,7 +596,7 @@ For more information, see [Datasets](https://apify.com/docs/storage#dataset) in 
 That's it! You might also want to check out these other resources:
 
 -   [Actors documentation](https://apify.com/docs/actor) - Documentation for the Apify Actors cloud computing platform.
--   [Crawlee](https://crawlee.dev) - Learn how to build a new web scraping project from scratch using the world's most popular web crawling and scraping library for Node.js.
+-   [Crawlee documentation](https://crawlee.dev) - Learn how to build a new web scraping project from scratch using the world's most popular web crawling and scraping library for Node.js.
 -   [Cheerio Scraper](https://apify.com/apify/cheerio-scraper) - Another web scraping actor that downloads and processes pages in raw HTML for much higher performance.
 -   [Puppeteer Scraper](https://apify.com/apify/puppeteer-scraper) - A similar web scraping actor to Playwright Scraper, but using the [Puppeteer](https://github.com/puppeteer/puppeteer) library instead.
 -   [Web Scraper](https://apify.com/apify/web-scraper) - A similar web scraping actor to Playwright Scraper, but is simpler to use and only runs in the context of the browser. Uses the [Puppeteer](https://github.com/puppeteer/puppeteer) library.
