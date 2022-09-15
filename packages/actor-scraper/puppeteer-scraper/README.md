@@ -10,45 +10,6 @@ If you need either a faster, or a simpler tool, check out [Cheerio Scraper](http
 
 If you are having any difficulty deciding which of the four main Apify "Scraper" actors to use, check out the [Web Scraper vs Puppeteer Scraper](https://help.apify.com/en/articles/3195646-when-to-use-puppeteer-scraper), [Cheerio Scraper](https://blog.apify.com/how-to-super-efficiently-scrape-any-website-for-beginners/) and [Playwright Scraper](https://blog.apify.com/how-to-scrape-the-web-with-playwright-ece1ced75f73/) articles on the Apify blog.
 
-<!-- toc -->
-
--   [Usage](#usage)
-  -   [Limitations](#limitations)
-    -   [Input Configuration](#input-configuration)
-        -   [Start URLs](#start-urls)
-        -   [Link selector](#link-selector)
-        -   [Pseudo-URLs](#pseudo-urls)
-        -   [Clickable elements selector](#clickable-elements-selector)
-        -   [Page function](#page-function)
-            -   [`input`](#input)
-            -   [`env`](#env)
-            -   [`customData`](#customdata)
-            -   [`page`](#page)
-            -   [`request`](#request)
-            -   [`response`](#response)
-            -   [`crawler`](#crawler)
-            -   [`globalStore`](#globalStore)
-            -   [`log`](#log)
-            -   [`Apify`](#apify)
-            -   [`setValue`](#setvalue)
-            -   [`getValue`](#getvalue)
-            -   [`saveSnapshot`](#savesnapshot)
-            -   [`skipLinks`](#skiplinks)
-            -   [`enqueueRequest`](#enqueuerequest)
-    -   [Proxy and browser configuration](#proxy-and-browser-configuration)
-    -   [Advanced configuration](#advanced-configuration)
-        -   [Pre-navigation hooks](#pre-navigation-hooks)
-        -   [Post-navigation hooks](#post-navigation-hooks)
-        -   [Debug log](#debug-log)
-        -   [Browser log](#browser-log)
-        -   [Custom data](#custom-data)
-        -   [Custom namings](#custom-namings)
-    -   [Results](#results)
-    -   [Additional Resources](#additional-resources)
-    -   [Upgrading](#upgrading)
-
-<!-- tocstop -->
-
 ## Usage
 
 To get started with Puppeteer Scraper, you only need a few things. First, with `Start URLs`, tell the scraper which web pages it should load. Then, tell it how to handle each request and extract data from each page.
