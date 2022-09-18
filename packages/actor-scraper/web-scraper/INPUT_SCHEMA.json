@@ -67,12 +67,6 @@
             "description": "If enabled, the scraper will inject the <a href='http://jquery.com' target='_blank' rel='noopener'>jQuery</a> library into every web page loaded, before <b>Page function</b> is invoked. Note that the jQuery object (<code>$</code>) will not be registered into global namespace in order to avoid conflicts with libraries used by the web page. It can only be accessed through <code>context.jQuery</code> in <b>Page function</b>.",
             "default": true
         },
-        "injectUnderscore": {
-            "title": "Inject Underscore.js",
-            "type": "boolean",
-            "description": "If enabled, the scraper will inject the <a href='http://underscorejs.org' target='_blank' rel='noopener'>Underscore.js</a> library into every web page loaded, before <b>Page function</b> is invoked. Note that the Underscore.js object (<code>_</code>) will not be registered into global namespace in order to avoid conflicts with libraries used by the web page. It can only be accessed through <code>context.underscoreJs</code> in <b>Page function</b>.",
-            "default": false
-        },
         "proxyConfiguration": {
             "sectionCaption": "Proxy and browser configuration",
             "title": "Proxy configuration",
@@ -245,14 +239,14 @@
             ]
         },
         "debugLog": {
-            "title": "Enable debug log",
+            "title": "Debug log",
             "type": "boolean",
             "description": "If enabled, the actor log will include debug messages. Beware that this can be quite verbose. Use <code>context.log.debug('message')</code> to log your own debug messages from <b>Page function</b>.",
             "default": false,
             "groupCaption": "Logging"
         },
         "browserLog": {
-            "title": "Enable browser log",
+            "title": "Browser log",
             "type": "boolean",
             "description": "If enabled, the actor log will include console messages produced by JavaScript executed by the web pages (e.g. using <code>console.log()</code>). Beware that this may result in the log being flooded by error messages, warnings and other messages of little value, especially with high concurrency.",
             "default": false

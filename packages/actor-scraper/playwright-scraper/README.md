@@ -596,6 +596,7 @@ For more information, see [Datasets](https://apify.com/docs/storage#dataset) in 
 That's it! You might also want to check out these other resources:
 
 -   [Actors documentation](https://apify.com/docs/actor) - Documentation for the Apify Actors cloud computing platform.
+-   [Apify SDK documentation](https://sdk.apify.com) - Learn more about the tools required to run your own Apify actors.
 -   [Crawlee documentation](https://crawlee.dev) - Learn how to build a new web scraping project from scratch using the world's most popular web crawling and scraping library for Node.js.
 -   [Cheerio Scraper](https://apify.com/apify/cheerio-scraper) - Another web scraping actor that downloads and processes pages in raw HTML for much higher performance.
 -   [Puppeteer Scraper](https://apify.com/apify/puppeteer-scraper) - A similar web scraping actor to Playwright Scraper, but using the [Puppeteer](https://github.com/puppeteer/puppeteer) library instead.

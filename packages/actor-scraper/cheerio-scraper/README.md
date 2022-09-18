@@ -585,7 +585,8 @@ You might also want to see these other resources:
   A similar web scraping actor to Puppeteer Scraper, but using the [Playwright](https://github.com/microsoft/playwright) library instead.
 - [Actors documentation](https://docs.apify.com/actors) -
   Documentation for the Apify Actors cloud computing platform.
-- [Crawlee documentation](https://crawlee.dev) - Learn how to build a new web scraper from scratch using the world's most popular web crawling and scraping library for Node.js.
+- [Apify SDK documentation](https://sdk.apify.com) - Learn more about the tools required to run your own Apify actors.
+- [Crawlee documentation](https://crawlee.dev) - Learn how to build a new web scraping project from scratch using the world's most popular web crawling and scraping library for Node.js.
 
 ## Upgrading
 

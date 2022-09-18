@@ -87,7 +87,7 @@ A pseudo-URL is simply a URL with special directives enclosed in `[]` brackets.
 Currently, the only supported directive is `[regexp]`, which defines
 a JavaScript-style regular expression to match against the URL.
 
-For example, a pseudo-URL `http://www.example.com/pages/[(\w|-)*]` will match all of the
+For example, a pseudo-URL `http://www.example.com/pages/[(\w|-)*]` will match all the
 following URLs:
 
 -   `http://www.example.com/pages/`
@@ -582,6 +582,7 @@ For more information, see [Datasets](https://apify.com/docs/storage#dataset) in 
 That's it! You might also want to check out these other resources:
 
 -   [Actors documentation](https://apify.com/docs/actor) - Documentation for the Apify Actors cloud computing platform.
+-   [Apify SDK documentation](https://sdk.apify.com) - Learn more about the tools required to run your own Apify actors.
 -   [Crawlee documentation](https://crawlee.dev) - Learn how to build a new web scraping project from scratch using the world's most popular web crawling and scraping library for Node.js.
 -   [Playwright Scraper](https://apify.com/apify/playwright-scraper) -
     A similar web scraping actor to Puppeteer Scraper, but using the [Playwright](https://github.com/microsoft/playwright) library instead.
