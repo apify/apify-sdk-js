@@ -14,43 +14,6 @@ a tutorial which will walk you through all the steps and provide a number of exa
 
 [![Watch Web Scraper video](https://img.youtube.com/vi/K76Hib0cY0k/0.jpg)](https://youtu.be/K76Hib0cY0k)
 
-## Table of contents
-
-<!-- toc -->
-
--   [Usage](#usage)
--   [Limitations](#limitations)
--   [Input configuration](#input-configuration)
-    -   [Run mode](#run-mode)
-    -   [Start URLs](#start-urls)
-    -   [Link selector](#link-selector)
-    -   [Pseudo-URLs](#pseudo-urls)
-    -   [Page function](#page-function)
-        -   [**`customData: Object`**](#customdata-object)
-        -   [**`enqueueRequest(request, [options]): AsyncFunction`**](#enqueuerequest-request-options-asyncfunction)
-        -   [**`env: Object`**](#env-object)
-        -   [**`getValue(key): AsyncFunction`**](#getvalue-key-asyncfunction)
-        -   [**`globalStore: Object`**](#globalstore-object)
-        -   [**`input: Object`**](#input-object)
-        -   [**`jQuery: Function`**](#jquery-function)
-        -   [**`log: Object`**](#log-object)
-        -   [**`request: Object`**](#request-object)
-        -   [**`response: Object`**](#response-object)
-        -   [**`saveSnapshot(): AsyncFunction`**](#savesnapshot-asyncfunction)
-        -   [**`setValue(key, data, options): AsyncFunction`**](#setvalue-key-data-options-asyncfunction)
-        -   [**`skipLinks(): AsyncFunction`**](#skiplinks-asyncfunction)
-        -   [**`underscoreJs: Object`**](#underscorejs-object)
-        -   [**`waitFor(task, options): AsyncFunction`**](#waitfor-task-options-asyncfunction)
--   [Proxy configuration](#proxy-configuration)
--   [Advanced configuration](#advanced-configuration)
-    -   [Pre-navigation hooks](#pre-navigation-hooks)
-    -   [Post-navigation hooks](#post-navigation-hooks)
--   [Results](#results)
--   [Additional resources](#additional-resources)
--   [Upgrading](#upgrading)
-
-<!-- tocstop -->
-
 ## Usage
 
 To get started with Web Scraper,
