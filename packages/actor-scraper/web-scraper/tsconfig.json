@@ -3,6 +3,7 @@
 	"compilerOptions": {
 		"outDir": "dist",
 		"module": "ESNext",
+        "lib": ["dom"],
 		"allowJs": true,
 		"skipLibCheck": true
 	},

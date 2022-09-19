@@ -19,7 +19,7 @@ import contentType from 'content-type';
 // @ts-expect-error no typings
 import DevToolsServer from 'devtools-server';
 import { readFile } from 'node:fs/promises';
-import { HTTPResponse, Page, Serializable } from 'puppeteer';
+import { HTTPResponse, Page } from 'puppeteer';
 import { dirname } from 'node:path';
 import { fileURLToPath, URL } from 'node:url';
 import { createBundle } from './bundle.browser.js';
@@ -446,7 +446,7 @@ export class CrawlerSetup implements CrawlerSetupOptions {
             }
 
             return replaceAllDatesInObjectWithISOStrings(output);
-        }, contextOptions as unknown as Serializable, namespace);
+        }, contextOptions, namespace);
 
         tools.logPerformance(request, 'requestHandler USER FUNCTION', startUserFn);
         const finishUserFn = process.hrtime();
