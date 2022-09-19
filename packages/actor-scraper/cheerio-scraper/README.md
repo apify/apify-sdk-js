@@ -93,7 +93,7 @@ This is useful for determining which start URL is currently loaded, in order to 
 
 ### Link selector
 
-The **Link selector** (`linkSelector`) field contains a CSS selector that is used to find links to other web pages, i.e. `<a>` elements with the `href` attribute. On every page loaded, the scraper looks for all links matching the **Link selector**. It checks that the target URL matches one of the [**Pseudo-URLs**](#pseudo-urls)/[**Glob Patterns**](#glob-patterns), and if so then adds the URL to the request queue, to be loaded by the scraper later.
+The **Link selector** (`linkSelector`) field contains a CSS selector that is used to find links to other web pages, i.e. `<a>` elements with the `href` attribute. On every page loaded, the scraper looks for all links matching the **Link selector**. It checks that the target URL matches one of the [**Glob Patterns**](#glob-patterns)/[**Pseudo-URLs**](#pseudo-urls), and if so then adds the URL to the request queue, to be loaded by the scraper later.
 
 By default, new scrapers are created with the following selector that matches all links:
 
@@ -585,7 +585,8 @@ You might also want to see these other resources:
   A similar web scraping actor to Puppeteer Scraper, but using the [Playwright](https://github.com/microsoft/playwright) library instead.
 - [Actors documentation](https://docs.apify.com/actors) -
   Documentation for the Apify Actors cloud computing platform.
-- [Crawlee](https://crawlee.dev) - Learn how to build a new web scraper from scratch using the world's most popular web crawling and scraping library for Node.js.
+- [Apify SDK documentation](https://sdk.apify.com) - Learn more about the tools required to run your own Apify actors.
+- [Crawlee documentation](https://crawlee.dev) - Learn how to build a new web scraping project from scratch using the world's most popular web crawling and scraping library for Node.js.
 
 ## Upgrading
 

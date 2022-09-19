@@ -64,7 +64,7 @@ export function evalFunctionArrayOrThrow(hooksString: string, paramName: string)
  * Validates the INPUT using the AJV library against the schema.
  */
 export function checkInputOrThrow(input: unknown, schema: Dictionary) {
-    const ajv = new Ajv({ allErrors: true, useDefaults: true });
+    const ajv = new Ajv({ allErrors: true, useDefaults: true, strict: false });
     const valid = ajv.validate(schema, input);
     if (!valid) throw new Error(`Invalid input:\n${JSON.stringify(ajv.errors, null, 2)}`);
 }

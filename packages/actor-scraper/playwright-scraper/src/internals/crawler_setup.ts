@@ -12,7 +12,6 @@ import {
     PlaywrightCrawlerOptions,
     PlaywrightLaunchContext,
     BrowserCrawlerEnqueueLinksOptions,
-    playwrightUtils,
     log,
 } from '@crawlee/playwright';
 import { Awaitable, Dictionary } from '@crawlee/utils';
@@ -42,7 +41,6 @@ export class CrawlerSetup implements CrawlerSetupOptions {
     requestQueue: RequestQueue;
     keyValueStore: KeyValueStore;
     customData: unknown;
-    playwrightUtils = playwrightUtils;
     input: Input;
     maxSessionUsageCount: number;
     evaledPageFunction: (...args: unknown[]) => unknown;
@@ -216,15 +214,13 @@ export class CrawlerSetup implements CrawlerSetupOptions {
     }
 
     private _createNavigationHooks(options: PlaywrightCrawlerOptions) {
-        options.preNavigationHooks!.push(async ({ request, page, session }, gotoOptions) => {
+        options.preNavigationHooks!.push(async ({ request, page, session, blockRequests }, gotoOptions) => {
             // Attach a console listener to get all logs from Browser context.
             if (this.input.browserLog) browserTools.dumpConsole(page);
 
             // Prevent download of stylesheets and media, unless selected otherwise
             if (this.blockedUrlPatterns.length) {
-                await playwrightUtils.blockRequests(page, {
-                    urlPatterns: this.blockedUrlPatterns,
-                });
+                await blockRequests({ urlPatterns: this.blockedUrlPatterns });
             }
 
             // Add initial cookies, if any.
@@ -307,7 +303,6 @@ export class CrawlerSetup implements CrawlerSetupOptions {
                 requestQueue: this.requestQueue,
                 keyValueStore: this.keyValueStore,
                 customData: this.input.customData,
-                playwrightUtils: this.playwrightUtils,
             },
             pageFunctionArguments,
         };
