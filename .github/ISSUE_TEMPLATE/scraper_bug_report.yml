@@ -1,4 +1,4 @@
-name: Scraper bug report
+name: Apify scraper bug report
 description: Report incorrect or unexpected behavior of a scraper
 labels: [bug]
 body:
