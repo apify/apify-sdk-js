@@ -8,9 +8,9 @@ body:
         If you have a question, please ask it on [GitHub Discussions](https://github.com/apify/crawlee/discussions) or in our [Discord server](https://discord.gg/jyEM2PRvMU)
 
   - type: dropdown
-    id: package
+    id: scraper
     attributes:
-      label: Which package is this bug report for?
+      label: Which scraper is this bug report for?
       multiple: false
       options:
         - "cheerio-scraper"
@@ -50,35 +50,18 @@ body:
         // ... Reproducible - Test the code you're about to provide to make sure it reproduces the problem
 
   - type: input
-    id: package-version
+    id: scraper-version
     attributes:
-      label: Package version
-      description: Which version of the package are you using? Run `npm list <package>` in your project directory and paste the output.
+      label: Scraper version
+      description: Which version of the scraper are you using? Check it on the Apify console and paste the output.
     validations:
       required: true
-
-  - type: input
-    id: node-version
-    attributes:
-      label: Node.js version
-      description: |
-        Which version of Node.js are you using? Run `node --version` in your project directory and paste the output.
-        If you are using TypeScript, please include its version (`npm list typescript`) as well.
-      placeholder: Node.js version 16+ is required for Crawlee
-    validations:
-      required: true
-
-  - type: input
-    id: os
-    attributes:
-      label: Operating system
-      description: Which OS does your application run on?
 
   - type: input
     id: actor
     attributes:
       label: Run id
-      description: If this happened on an Apify actor and you have the run id that shows this issue, feel free to share it here, as it can help us debug it further
+      description: If you have the run id that shows this issue, feel free to share it here, as it can help us debug it further
 
   - type: dropdown
     id: priority
@@ -92,16 +75,6 @@ body:
         - "High (immediate attention needed)"
     validations:
       required: true
-
-  - type: input
-    id: next-release
-    attributes:
-      label: I have tested this on the `next` release
-      description: |
-        This issue might already be fixed in a development release (tagged as `next` on npm). This is not required, but it helps us greatly.
-        To install the latest development release run `npm i <package>@next` in your project directory.
-        Run `npm list <package>` and provide the full version that is printed.
-      placeholder: 3.0.5-beta.50
 
   - type: textarea
     id: additional-context
