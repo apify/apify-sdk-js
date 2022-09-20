@@ -1,4 +1,4 @@
-name: SDK bug report
+name: Apify SDK bug report
 description: Report incorrect or unexpected behavior of a module
 labels: [bug]
 body:

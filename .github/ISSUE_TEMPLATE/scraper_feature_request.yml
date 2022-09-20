@@ -1,26 +1,19 @@
-name: Feature request
-description: Request a new feature in Crawlee
+name: Apify scrapers feature request
+description: Request a new feature in scrapers
 labels: [feature]
 body:
   - type: dropdown
     id: package
     attributes:
-      label: Which package is the feature request for? If unsure which one to select, leave blank
+      label: Which scraper is the feature request for?
       multiple: false
       options:
-        - "@crawlee/core"
-        - "@crawlee/cheerio (CheerioCrawler)"
-        - "@crawlee/jsdom (JSDOMCrawler)"
-        - "@crawlee/playwright (PlaywrightCrawler)"
-        - "@crawlee/puppeteer (PuppeteerCrawler)"
-        - "@crawlee/basic (BasicCrawler)"
-        - "@crawlee/http (HttpCrawler)"
-        - "@crawlee/browser (BrowserCrawler)"
-        - "@crawlee/utils"
-        - "@crawlee/browser-pool"
-        - "@crawlee/memory-storage"
+        - "cheerio-scraper"
+        - "playwright-scraper"
+        - "puppeteer-scraper"
+        - "web-scraper"
     validations:
-      required: false
+      required: true
 
   - type: textarea
     id: description
@@ -35,7 +28,7 @@ body:
     id: motive
     attributes:
       label: Motivation
-      description: What made you want to suggest this feature? How would you use it in Crawlee and how will it help you?
+      description: What made you want to suggest this feature? How would you use it with the scraper and how will it help you?
     validations:
       required: true
 
