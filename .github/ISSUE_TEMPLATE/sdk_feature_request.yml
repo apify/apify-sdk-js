@@ -2,16 +2,16 @@ name: Apify SDK feature request
 description: Request a new feature in Apify SDK
 labels: [feature]
 body:
-  - type: dropdown
-    id: package
-    attributes:
-      label: Which package is this bug report for? If unsure which one to select, leave blank
-      multiple: false
-      options:
-        - "apify"
-        - "@apify/scraper-tools"
-    validations:
-      required: false
+  # - type: dropdown
+  #   id: package
+  #   attributes:
+  #     label: Which package is this bug report for? If unsure which one to select, leave blank
+  #     multiple: false
+  #     options:
+  #       - "apify"
+  #       - "@apify/scraper-tools"
+  #   validations:
+  #     required: false
 
   - type: textarea
     id: description

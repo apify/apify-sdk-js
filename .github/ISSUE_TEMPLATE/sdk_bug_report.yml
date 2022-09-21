@@ -7,16 +7,16 @@ body:
       value: |
         If you have a question, please ask it on [GitHub Discussions](https://github.com/apify/crawlee/discussions) or in our [Discord server](https://discord.gg/jyEM2PRvMU)
 
-  - type: dropdown
-    id: package
-    attributes:
-      label: Which package is this bug report for? If unsure which one to select, leave blank
-      multiple: false
-      options:
-        - "apify"
-        - "@apify/scraper-tools"
-    validations:
-      required: false
+  # - type: dropdown
+  #   id: package
+  #   attributes:
+  #     label: Which package is this bug report for? If unsure which one to select, leave blank
+  #     multiple: false
+  #     options:
+  #       - "apify"
+  #       - "@apify/scraper-tools"
+  #   validations:
+  #     required: false
 
   - type: textarea
     id: description
@@ -73,23 +73,23 @@ body:
       description: Which OS does your application run on? (if running on Apify, please specify that)
 
   - type: input
-    id: actor
+    id: actor-or-run-link
     attributes:
-      label: Actor id or run id
-      description: If this happened on an Apify actor, or you have the run id that shows this issue, feel free to share those ids here, as it can help us debug it further
+      label: Actor or run link
+      description: If this happened on an Apify actor, or you have the run link that shows this issue, please share them here, as it can help us debug it further
 
-  - type: dropdown
-    id: priority
-    attributes:
-      label: Priority this issue should have
-      description: Make sure you choose something that makes sense! If you need to elaborate on your reasoning, please do so in the Issue description section.
-      multiple: false
-      options:
-        - "Low (slightly annoying)"
-        - "Medium (should be fixed soon)"
-        - "High (immediate attention needed)"
-    validations:
-      required: true
+  # - type: dropdown
+  #   id: priority
+  #   attributes:
+  #     label: Priority this issue should have
+  #     description: Make sure you choose something that makes sense! If you need to elaborate on your reasoning, please do so in the Issue description section.
+  #     multiple: false
+  #     options:
+  #       - "Low (slightly annoying)"
+  #       - "Medium (should be fixed soon)"
+  #       - "High (immediate attention needed)"
+  #   validations:
+  #     required: true
 
   - type: input
     id: next-release
