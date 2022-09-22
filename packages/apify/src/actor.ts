@@ -257,31 +257,19 @@ export class Actor<Data extends Dictionary = Dictionary> {
     }
 
     /**
-     * Runs an actor on the Apify platform using the current user account (determined by the `APIFY_TOKEN` environment variable),
-     * waits for the actor to finish and fetches its output.
+     * Runs an actor on the Apify platform using the current user account (determined by the `APIFY_TOKEN` environment variable).
      *
-     * By passing the `waitSecs` option you can reduce the maximum amount of time to wait for the run to finish.
-     * If the value is less than or equal to zero, the function returns immediately after the run is started.
+     * The result of the function is an {@apilink ActorRun} object that contains details about the actor run.
      *
-     * The result of the function is an {@apilink ActorRun} object
-     * that contains details about the actor run and its output (if any).
+     * If you want to run an actor task rather than an actor, please use the {@apilink Actor.callTask} function instead.
      *
-     * If you want to run an actor task rather than an actor, please use the
-     * {@apilink Actor.callTask} function instead.
-     *
-     * For more information about actors, read the
-     * [documentation](https://docs.apify.com/actor).
+     * For more information about actors, read the [documentation](https://docs.apify.com/actor).
      *
      * **Example usage:**
      *
      * ```javascript
      * const run = await Actor.call('apify/hello-world', { myInput: 123 });
-     * console.log(`Received message: ${run.output.body.message}`);
      * ```
-     *
-     * Internally, the `call()` function invokes the
-     * [Run actor](https://apify.com/docs/api/v2#/reference/actors/run-collection/run-actor)
-     * and several other API endpoints to obtain the output.
      *
      * @param actorId
      *  Allowed formats are `username/actor-name`, `userId/actor-name` or actor ID.
@@ -353,14 +341,9 @@ export class Actor<Data extends Dictionary = Dictionary> {
     }
 
     /**
-     * Runs an actor task on the Apify platform using the current user account (determined by the `APIFY_TOKEN` environment variable),
-     * waits for the task to finish and fetches its output.
+     * Runs an actor task on the Apify platform using the current user account (determined by the `APIFY_TOKEN` environment variable).
      *
-     * By passing the `waitSecs` option you can reduce the maximum amount of time to wait for the run to finish.
-     * If the value is less than or equal to zero, the function returns immediately after the run is started.
-     *
-     * The result of the function is an {@apilink ActorRun} object
-     * that contains details about the actor run and its output (if any).
+     * The result of the function is an {@apilink ActorRun} object that contains details about the actor run.
      *
      * Note that an actor task is a saved input configuration and options for an actor.
      * If you want to run an actor directly rather than an actor task, please use the
@@ -372,12 +355,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      *
      * ```javascript
      * const run = await Actor.callTask('bob/some-task');
-     * console.log(`Received message: ${run.output.body.message}`);
      * ```
-     *
-     * Internally, the `callTask()` function calls the
-     * [Run task](https://apify.com/docs/api/v2#/reference/actor-tasks/run-collection/run-task)
-     * and several other API endpoints to obtain the output.
      *
      * @param taskId
      *  Allowed formats are `username/task-name`, `userId/task-name` or task ID.
@@ -922,31 +900,19 @@ export class Actor<Data extends Dictionary = Dictionary> {
     }
 
     /**
-     * Runs an actor on the Apify platform using the current user account (determined by the `APIFY_TOKEN` environment variable),
-     * waits for the actor to finish and fetches its output.
+     * Runs an actor on the Apify platform using the current user account (determined by the `APIFY_TOKEN` environment variable).
      *
-     * By passing the `waitSecs` option you can reduce the maximum amount of time to wait for the run to finish.
-     * If the value is less than or equal to zero, the function returns immediately after the run is started.
+     * The result of the function is an {@apilink ActorRun} object that contains details about the actor run.
      *
-     * The result of the function is an {@apilink ActorRun} object
-     * that contains details about the actor run and its output (if any).
+     * If you want to run an actor task rather than an actor, please use the {@apilink Actor.callTask} function instead.
      *
-     * If you want to run an actor task rather than an actor, please use the
-     * {@apilink Actor.callTask} function instead.
-     *
-     * For more information about actors, read the
-     * [documentation](https://docs.apify.com/actor).
+     * For more information about actors, read the [documentation](https://docs.apify.com/actor).
      *
      * **Example usage:**
      *
      * ```javascript
      * const run = await Actor.call('apify/hello-world', { myInput: 123 });
-     * console.log(`Received message: ${run.output.body.message}`);
      * ```
-     *
-     * Internally, the `call()` function invokes the
-     * [Run actor](https://apify.com/docs/api/v2#/reference/actors/run-collection/run-actor)
-     * and several other API endpoints to obtain the output.
      *
      * @param actorId
      *  Allowed formats are `username/actor-name`, `userId/actor-name` or actor ID.
@@ -961,14 +927,9 @@ export class Actor<Data extends Dictionary = Dictionary> {
     }
 
     /**
-     * Runs an actor task on the Apify platform using the current user account (determined by the `APIFY_TOKEN` environment variable),
-     * waits for the task to finish and fetches its output.
+     * Runs an actor task on the Apify platform using the current user account (determined by the `APIFY_TOKEN` environment variable).
      *
-     * By passing the `waitSecs` option you can reduce the maximum amount of time to wait for the run to finish.
-     * If the value is less than or equal to zero, the function returns immediately after the run is started.
-     *
-     * The result of the function is an {@apilink ActorRun} object
-     * that contains details about the actor run and its output (if any).
+     * The result of the function is an {@apilink ActorRun} object that contains details about the actor run.
      *
      * Note that an actor task is a saved input configuration and options for an actor.
      * If you want to run an actor directly rather than an actor task, please use the
@@ -980,12 +941,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      *
      * ```javascript
      * const run = await Actor.callTask('bob/some-task');
-     * console.log(`Received message: ${run.output.body.message}`);
      * ```
-     *
-     * Internally, the `callTask()` function calls the
-     * [Run task](https://apify.com/docs/api/v2#/reference/actor-tasks/run-collection/run-task)
-     * and several other API endpoints to obtain the output.
      *
      * @param taskId
      *  Allowed formats are `username/task-name`, `userId/task-name` or task ID.
