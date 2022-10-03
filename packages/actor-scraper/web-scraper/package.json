@@ -11,7 +11,7 @@
         "apify": "^3.0.0",
         "content-type": "^1.0.4",
         "devtools-server": "^0.0.2",
-        "puppeteer": "14.4.1"
+        "puppeteer": "*"
     },
     "devDependencies": {
         "@apify/tsconfig": "^0.1.0",
