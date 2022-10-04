@@ -1,5 +1,5 @@
 import { Actor } from 'apify';
-import { Dictionary, log, sleep } from 'crawlee';
+import { Dictionary, log } from 'crawlee';
 import bluebird from 'bluebird';
 import type { Dataset } from 'apify-client';
 
@@ -8,38 +8,65 @@ import { APIFY_EXTRA_KV_RECORD_PREFIX, APIFY_EXTRA_LOG_PREFIX } from './const.js
 export type DatasetItem = Dictionary<any>;
 
 export interface ParallelPersistedPushDataOptions {
+    /**
+     * Number of items to be pushed in one push call.
+     * Should not be higher than 1000 to ensure each push call finishes when migration happens.
+     *
+     * @default 1000
+     */
     uploadBatchSize?: number;
-    uploadSleepMs?: number;
+    /**
+     * Optional dataset ID or name to push into. If not provided, default dataset is used.
+     */
     outputDatasetIdOrName?: string;
+    /**
+     * Number of push calls to be done in parallel. Apify API should handle up to 30 parallel requests but better be careful.
+     *
+     * @default 10
+     */
     parallelPushes?: number;
+    /**
+     * You must provide idempotency key if you want to call this function multiple times in the saem run.
+     * The key should only contain letters and numbers.
+     */
+    idempotencyKey?: string;
 }
 /**
- * Useful for pushing a large number of items at once
- * where migration could introduce duplicates and consume extra CUs
- * Only first param is mandatory
+ * Pushes items to dataset in parallel while also resuming correctly after Actor migration.
+ * This should be used when you want to push a lot of items to dataset at once.
+ * If you call this function multiple times in the same run,
+ * you must provide different idempotencyKey option for each call.
  */
 export const parallelPersistedPushData = async (items: DatasetItem[], options: ParallelPersistedPushDataOptions = {}) => {
     const {
-        uploadBatchSize = 5000,
-        uploadSleepMs = 500,
+        uploadBatchSize = 1000,
         outputDatasetIdOrName = '',
-        parallelPushes = 1,
+        parallelPushes = 10,
+        idempotencyKey = '',
     } = options;
     let isMigrating = false;
     Actor.on('migrating', () => { isMigrating = true; });
     Actor.on('aborting', () => { isMigrating = true; });
 
-    const kvRecordName = `${APIFY_EXTRA_KV_RECORD_PREFIX}STATE-PUSHED-COUNT-${outputDatasetIdOrName}`;
-    let pushedItemsCount: number = (await Actor.getValue(kvRecordName)) || 0;
+    const sanitizedIdempotencyKey = idempotencyKey.replace(/[^a-zA-Z0-9]/g, '-').slice(0, 30);
+
+    const kvRecordName = `${APIFY_EXTRA_KV_RECORD_PREFIX}STATE-PUSHED-COUNT${outputDatasetIdOrName}${sanitizedIdempotencyKey}`;
+    let pushedItemsCount: number = await Actor.getValue(kvRecordName) || 0;
     const dataset = await Actor.openDataset(outputDatasetIdOrName);
 
-    for (let i = pushedItemsCount; i < items.length; i += uploadBatchSize) {
+    Actor.on('persistState', async () => {
+        await Actor.setValue(kvRecordName, pushedItemsCount);
+    });
+
+    const fullBatchSize = uploadBatchSize * parallelPushes;
+
+    for (let i = pushedItemsCount; i < items.length; i += fullBatchSize) {
         if (isMigrating) {
             log.info(`${APIFY_EXTRA_LOG_PREFIX}[parallelPersistedPushData]: Stopping push because of migration`);
             // Do nothing
             await new Promise(() => {});
         }
-        const itemsToPush = items.slice(i, i + uploadBatchSize);
+        const itemsToPush = items.slice(i, i + fullBatchSize);
 
         const pushPromises: Promise<void>[] = [];
         const parallelizedBatchSize = Math.ceil(itemsToPush.length / parallelPushes);
@@ -52,9 +79,7 @@ export const parallelPersistedPushData = async (items: DatasetItem[], options: P
         // We must update it before awaiting the promises because the push can take time
         // and migration can cut us off but the items will already be on the way to dataset
         pushedItemsCount += itemsToPush.length;
-        await Actor.setValue(kvRecordName, pushedItemsCount);
         await Promise.all(pushPromises);
-        await sleep(uploadSleepMs);
     }
 };
 
