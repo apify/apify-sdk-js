@@ -1,7 +1,7 @@
 import { Actor } from 'apify';
 import { Dictionary, log } from 'crawlee';
+import type { DatasetInfo } from '@crawlee/types';
 import bluebird from 'bluebird';
-import type { Dataset } from 'apify-client';
 
 import { APIFY_EXTRA_KV_RECORD_PREFIX, APIFY_EXTRA_LOG_PREFIX } from './const.js';
 
@@ -219,10 +219,10 @@ export const loadDatasetItemsInParallel = async (
                 processFnLoadingState[datasetId] = {};
             }
             // We get the number of items first and then we precreate request info objects
-            let datasetInfo: Dataset | undefined;
+            let datasetInfo: DatasetInfo | undefined;
             if (loadFromLocalDataset) {
                 const dataset = await Actor.openDataset(datasetId);
-                datasetInfo = await dataset.getInfo() as Dataset;
+                datasetInfo = await dataset.getInfo();
             } else {
                 datasetInfo = await client.dataset(datasetId).get();
             }
