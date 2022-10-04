@@ -1,0 +1,64 @@
+{
+    "name": "apify-extra",
+    "version": "0.0.1",
+    "description": "Advanced and experimental functionality for Apify Actors and Crawlee. Smaller test coverage. Use with caution!",
+    "engines": {
+        "node": ">=16.0.0"
+    },
+    "main": "./dist/index.js",
+    "module": "./dist/index.mjs",
+    "types": "./dist/index.d.ts",
+    "exports": {
+        ".": {
+            "import": "./dist/index.mjs",
+            "require": "./dist/index.js",
+            "types": "./dist/index.d.ts"
+        },
+        "./package.json": "./package.json"
+    },
+    "keywords": [
+        "apify",
+        "headless",
+        "chrome",
+        "puppeteer",
+        "crawler",
+        "scraper"
+    ],
+    "author": {
+        "name": "Apify",
+        "email": "support@apify.com",
+        "url": "https://apify.com"
+    },
+    "contributors": [
+        "Jan Curn <jan@apify.com>",
+        "Marek Trunkat <marek@apify.com>",
+        "Ondra Urban <ondra@apify.com>"
+    ],
+    "license": "Apache-2.0",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/apify/apify-sdk-js"
+    },
+    "bugs": {
+        "url": "https://github.com/apify/apify-sdk-js/issues"
+    },
+    "homepage": "https://sdk.apify.com",
+    "scripts": {
+        "build": "npm run clean && npm run compile && npm run copy && npm run fixApifyExport",
+        "clean": "rimraf ./dist",
+        "compile": "tsc -p tsconfig.build.json && gen-esm-wrapper ./dist/index.js ./dist/index.mjs",
+        "copy": "ts-node -T ../../scripts/copy.ts --readme=local",
+        "fixApifyExport": "ts-node -T ../../scripts/temp_fix_apify_exports.ts"
+    },
+    "publishConfig": {
+        "access": "public"
+    },
+    "dependencies": {
+        "@types/bluebird": "^3.5.37",
+        "bluebird": "^3.7.2"
+    },
+    "peerDependencies": {
+        "apify": ">= 3.0.0",
+        "crawlee": ">= 3.0.0"
+    }
+}
