@@ -1,4 +1,6 @@
 import ow from 'ow';
+import { createPrivateKey } from 'node:crypto';
+import { decryptInputSecrets } from '@apify/input_secrets';
 import { ENV_VARS, INTEGER_ENV_VARS } from '@apify/consts';
 import { addTimeoutToPromise } from '@apify/timeout';
 import log from '@apify/log';
@@ -646,7 +648,17 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @ignore
      */
     async getInput<T = Dictionary | string | Buffer>(): Promise<T | null> {
-        return this.getValue<T>(this.config.get('inputKey'));
+        const inputSecretsPrivateKeyFile = this.config.get('inputSecretsPrivateKeyFile');
+        const inputSecretsPrivateKeyPassphrase = this.config.get('inputSecretsPrivateKeyPassphrase');
+        const input = await this.getValue<T>(this.config.get('inputKey'));
+        if (ow.isValid(input, ow.object.nonEmpty) && inputSecretsPrivateKeyFile && inputSecretsPrivateKeyPassphrase) {
+            const privateKey = createPrivateKey({
+                key: Buffer.from(inputSecretsPrivateKeyFile, 'base64'),
+                passphrase: inputSecretsPrivateKeyPassphrase,
+            });
+            return decryptInputSecrets<T>({ input, privateKey });
+        }
+        return input;
     }
 
     /**
