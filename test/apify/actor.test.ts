@@ -969,20 +969,20 @@ describe('Actor', () => {
             const originalInput = { secret: 'foo', nonSecret: 'bar' };
             const likeInputSchema = { properties: { secret: { type: 'string', isSecret: true } }, nonSecret: { type: 'string' } };
             const encryptedInput = encryptInputSecrets({ input: originalInput, inputSchema: likeInputSchema, publicKey: testingPublicKey });
-            // Checks the encrypts right value
+            // Checks if encrypts the right value
             expect(encryptedInput.secret.startsWith('ENCRYPTED_')).toBe(true);
             expect(encryptedInput.nonSecret).toBe(originalInput.nonSecret);
 
             mockGetValue.mockImplementation(async (key) => encryptedInput);
 
-            process.env.APIFY_INPUT_SECRETS_PRIVATE_KEY_FILE = testingPrivateKeyFile;
-            process.env.APIFY_INPUT_SECRETS_PRIVATE_KEY_PASSPHRASE = testingPrivateKeyPassphrase;
+            process.env[ENV_VARS.INPUT_SECRETS_PRIVATE_KEY_FILE] = testingPrivateKeyFile;
+            process.env[ENV_VARS.INPUT_SECRETS_PRIVATE_KEY_PASSPHRASE] = testingPrivateKeyPassphrase;
             const input = await TestingActor.getInput();
 
             expect(input).toStrictEqual(originalInput);
 
-            delete process.env.APIFY_INPUT_SECRETS_PRIVATE_KEY_FILE;
-            delete process.env.APIFY_INPUT_SECRETS_PRIVATE_KEY_PASSPHRASE;
+            delete process.env[ENV_VARS.INPUT_SECRETS_PRIVATE_KEY_FILE];
+            delete process.env[ENV_VARS.INPUT_SECRETS_PRIVATE_KEY_PASSPHRASE];
             mockGetValue.mockRestore();
         });
     });
@@ -1006,7 +1006,6 @@ describe('Actor', () => {
 
     describe('Actor.getValue', () => {
         test('should work', async () => {
-            const TestingActor = new Actor();
             const defaultStore = await KeyValueStore.open();
 
             const oldGet = defaultStore.getValue;

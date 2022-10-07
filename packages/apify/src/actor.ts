@@ -649,11 +649,12 @@ export class Actor<Data extends Dictionary = Dictionary> {
      */
     async getInput<T = Dictionary | string | Buffer>(): Promise<T | null> {
         const inputSecretsPrivateKeyFile = this.config.get('inputSecretsPrivateKeyFile');
+        const inputSecretsPrivateKeyPassphrase = this.config.get('inputSecretsPrivateKeyPassphrase');
         const input = await this.getValue<T>(this.config.get('inputKey'));
-        if (inputSecretsPrivateKeyFile && ow.isValid(input, ow.object.nonEmpty) && inputSecretsPrivateKeyFile) {
+        if (ow.isValid(input, ow.object.nonEmpty) && inputSecretsPrivateKeyFile && inputSecretsPrivateKeyPassphrase) {
             const privateKey = crypto.createPrivateKey({
                 key: Buffer.from(inputSecretsPrivateKeyFile, 'base64'),
-                passphrase: this.config.get('inputSecretsPrivateKeyPassphrase'),
+                passphrase: inputSecretsPrivateKeyPassphrase,
             });
             return decryptInputSecrets<T>({ input, privateKey });
         }
