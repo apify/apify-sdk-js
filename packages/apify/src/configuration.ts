@@ -18,6 +18,9 @@ export interface ConfigurationOptions extends CoreConfigurationOptions {
     proxyStatusUrl?: string;
     isAtHome?: boolean;
     userId?: string;
+    inputSecretsPrivateKeyPassphrase?: string;
+    inputSecretsPrivateKeyFile?: string;
+    inputKey?: string;
 }
 
 /**
@@ -129,6 +132,8 @@ export class Configuration extends CoreConfiguration {
         APIFY_PROXY_PASSWORD: 'proxyPassword',
         APIFY_PROXY_STATUS_URL: 'proxyStatusUrl',
         APIFY_PROXY_PORT: 'proxyPort',
+        APIFY_INPUT_SECRETS_PRIVATE_KEY_FILE: 'inputSecretsPrivateKeyFile',
+        APIFY_INPUT_SECRETS_PRIVATE_KEY_PASSPHRASE: 'inputSecretsPrivateKeyPassphrase',
     };
 
     protected static override INTEGER_VARS = [...super.INTEGER_VARS, 'proxyPort', 'containerPort', 'metamorphAfterSleepMillis'];
