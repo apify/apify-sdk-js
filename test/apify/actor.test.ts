@@ -1,4 +1,4 @@
-import { createPublicKey } from 'crypto';
+import { createPublicKey } from 'node:crypto';
 import { ACT_JOB_STATUSES, ENV_VARS, KEY_VALUE_STORE_KEYS, WEBHOOK_EVENT_TYPES } from '@apify/consts';
 import log from '@apify/log';
 import { encryptInputSecrets } from '@apify/input_secrets';

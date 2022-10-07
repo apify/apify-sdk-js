@@ -20,7 +20,6 @@ export interface ConfigurationOptions extends CoreConfigurationOptions {
     userId?: string;
     inputSecretsPrivateKeyPassphrase?: string;
     inputSecretsPrivateKeyFile?: string;
-    inputKey?: string;
 }
 
 /**
