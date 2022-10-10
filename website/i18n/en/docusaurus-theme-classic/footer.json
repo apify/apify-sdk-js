@@ -34,9 +34,5 @@
   "link.item.label.Twitter": {
     "message": "Twitter",
     "description": "The label of footer link with label=Twitter linking to https://twitter.com/apify"
-  },
-  "link.item.label.Facebook": {
-    "message": "Facebook",
-    "description": "The label of footer link with label=Facebook linking to https://www.facebook.com/apifytech"
   }
 }
