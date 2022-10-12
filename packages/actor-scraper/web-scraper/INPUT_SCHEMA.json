@@ -73,7 +73,7 @@
             "type": "object",
             "description": "Specifies proxy servers that will be used by the scraper in order to hide its origin.<br><br>For details, see <a href='https://apify.com/apify/web-scraper#proxy-configuration' target='_blank' rel='noopener'>Proxy configuration</a> in README.",
             "prefill": { "useApifyProxy": true },
-            "default": { "useApifyProxy": false },
+            "default": { "useApifyProxy": true },
             "editor": "proxy"
         },
         "proxyRotation": {
@@ -278,5 +278,5 @@
             "editor": "textfield"
         }
     },
-    "required": ["startUrls", "pageFunction"]
+    "required": ["startUrls", "pageFunction", "proxyConfiguration"]
 }

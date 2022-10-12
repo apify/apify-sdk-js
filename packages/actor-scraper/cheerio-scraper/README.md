@@ -429,13 +429,6 @@ The following table lists the available options of the proxy configuration setti
 <table class="table table-bordered table-condensed">
     <tbody>
     <tr>
-        <th><b>None</b></td>
-        <td>
-            The scraper will not use any proxies.
-            All web pages will be loaded directly from IP addresses of Apify servers running on Amazon Web Services.
-        </td>
-    </tr>
-    <tr>
         <th><b>Apify&nbsp;Proxy&nbsp;(automatic)</b></td>
         <td>
             The scraper will load all web pages using the <a href="https://apify.com/proxy">Apify Proxy</a>
