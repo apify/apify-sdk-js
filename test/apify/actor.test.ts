@@ -991,42 +991,36 @@ describe('Actor', () => {
         test('should work', async () => {
             const record = { foo: 'bar' };
             const defaultStore = await KeyValueStore.open();
+            const setValueSpy = jest.spyOn(defaultStore, 'setValue');
 
-            const oldSet = defaultStore.setValue;
-            defaultStore.setValue = async (key, value) => {
-                expect(key).toBe('key-1');
-                expect(value).toBe(record);
-            };
+            setValueSpy.mockImplementation(async (key, value) => {
+                expect(key).toEqual('key-1');
+                expect(value).toEqual(record);
+            });
 
             await Actor.setValue('key-1', record);
-
-            defaultStore.setValue = oldSet;
         });
     });
 
     describe('Actor.getValue', () => {
         test('should work', async () => {
             const defaultStore = await KeyValueStore.open();
+            const getValueSpy = jest.spyOn(defaultStore, 'getValue');
 
-            const oldGet = defaultStore.getValue;
-            defaultStore.getValue = async (key) => expect(key).toBe('key-1');
+            getValueSpy.mockImplementationOnce(async (key) => expect(key).toBe('key-1'));
 
             await Actor.getValue('key-1');
-
-            defaultStore.getValue = oldGet;
         });
     });
 
     describe('Actor.pushData', () => {
         test('should work', async () => {
-            const defaultStore = await KeyValueStore.open();
+            const defaultStore = await Dataset.open();
+            const pushDataSpy = jest.spyOn(defaultStore, 'pushData');
 
-            const oldGet = defaultStore.getValue;
-            defaultStore.getValue = async (key) => expect(key).toBe('key-1');
+            pushDataSpy.mockImplementationOnce(async (data) => expect(data).toStrictEqual({ hello: 'apify' }));
 
-            await Actor.getValue('key-1');
-
-            defaultStore.getValue = oldGet;
+            await Actor.pushData({ hello: 'apify' });
         });
     });
 });
