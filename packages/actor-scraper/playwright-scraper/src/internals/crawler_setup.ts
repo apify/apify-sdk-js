@@ -11,7 +11,7 @@ import {
     PlaywrightCrawler,
     PlaywrightCrawlerOptions,
     PlaywrightLaunchContext,
-    BrowserCrawlerEnqueueLinksOptions,
+    EnqueueLinksOptions,
     log,
 } from '@crawlee/playwright';
 import { Awaitable, Dictionary } from '@crawlee/utils';
@@ -342,7 +342,7 @@ export class CrawlerSetup implements CrawlerSetupOptions {
             return;
         }
 
-        const enqueueOptions: BrowserCrawlerEnqueueLinksOptions = {
+        const enqueueOptions: EnqueueLinksOptions = {
             globs: this.input.globs,
             pseudoUrls: this.input.pseudoUrls,
             transformRequestFunction: (requestOptions) => {
