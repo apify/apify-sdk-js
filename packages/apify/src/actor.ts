@@ -22,6 +22,7 @@ import type {
     EventTypeName,
     IStorage,
     RecordOptions,
+    UseStateOptions,
 } from '@crawlee/core';
 import {
     Configuration as CoreConfiguration,
@@ -821,6 +822,41 @@ export class Actor<Data extends Dictionary = Dictionary> {
      */
     isAtHome(): boolean {
         return !!process.env[ENV_VARS.IS_AT_HOME];
+    }
+
+    /**
+     * Easily create and manage state values. All state values are automatically persisted.
+     *
+     * Values can be modified by simply using the assignment operator.
+     *
+     * @param name The name of the store to use.
+     * @param defaultValue If the store does not yet have a value in it, the value will be initialized with the `defaultValue` you provide.
+     * @param options An optional object parameter where a custom `keyValueStoreName` and `config` can be passed in.
+     */
+    async useState<State extends Dictionary = Dictionary>(
+        name?: string,
+        defaultValue = {} as State,
+        options?: UseStateOptions,
+    ) {
+        const kvStore = await KeyValueStore.open(options?.keyValueStoreName, { config: options?.config || Configuration.getGlobalConfig() });
+        return kvStore.getAutoSavedValue<State>(name || 'APIFY_GLOBAL_STATE', defaultValue);
+    }
+
+    /**
+     * Easily create and manage state values. All state values are automatically persisted.
+     *
+     * Values can be modified by simply using the assignment operator.
+     *
+     * @param name The name of the store to use.
+     * @param defaultValue If the store does not yet have a value in it, the value will be initialized with the `defaultValue` you provide.
+     * @param options An optional object parameter where a custom `keyValueStoreName` and `config` can be passed in.
+     */
+    static async useState<State extends Dictionary = Dictionary>(
+        name?: string,
+        defaultValue = {} as State,
+        options?: UseStateOptions,
+    ) {
+        return Actor.getDefaultInstance().useState<State>(name, defaultValue, options);
     }
 
     /**

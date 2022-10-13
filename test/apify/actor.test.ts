@@ -1009,7 +1009,6 @@ describe('Actor', () => {
             const defaultStore = await KeyValueStore.open();
 
             const oldGet = defaultStore.getValue;
-            // @ts-expect-error TODO use spyOn instead of this
             defaultStore.getValue = async (key) => expect(key).toBe('key-1');
 
             await Actor.getValue('key-1');
@@ -1023,7 +1022,6 @@ describe('Actor', () => {
             const defaultStore = await KeyValueStore.open();
 
             const oldGet = defaultStore.getValue;
-            // @ts-expect-error TODO use spyOn instead of this
             defaultStore.getValue = async (key) => expect(key).toBe('key-1');
 
             await Actor.getValue('key-1');
