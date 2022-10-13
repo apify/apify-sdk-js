@@ -21,7 +21,8 @@ RUN npm --quiet set progress=false \
     && echo "Node.js version:" \
     && node --version \
     && echo "NPM version:" \
-    && npm --version
+    && npm --version \
+    && rm -r ~/.npm
 
 COPY . ./
 
