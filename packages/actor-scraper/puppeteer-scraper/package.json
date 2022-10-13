@@ -6,7 +6,7 @@
     "type": "module",
     "dependencies": {
         "@apify/scraper-tools": "^1.0.0",
-        "@crawlee/puppeteer": "^3.0.0",
+        "@crawlee/puppeteer": "^3.1.0",
         "apify": "^3.0.0",
         "puppeteer": "*"
     },

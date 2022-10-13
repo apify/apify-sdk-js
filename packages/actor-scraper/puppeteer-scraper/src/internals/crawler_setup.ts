@@ -11,7 +11,7 @@ import {
     PuppeteerCrawlingContext,
     PuppeteerCrawler,
     PuppeteerCrawlerOptions,
-    BrowserCrawlerEnqueueLinksOptions,
+    EnqueueLinksOptions,
     log,
 } from '@crawlee/puppeteer';
 import { Awaitable, Dictionary } from '@crawlee/utils';
@@ -341,7 +341,7 @@ export class CrawlerSetup implements CrawlerSetupOptions {
             return;
         }
 
-        const enqueueOptions: BrowserCrawlerEnqueueLinksOptions = {
+        const enqueueOptions: EnqueueLinksOptions = {
             globs: this.input.globs,
             pseudoUrls: this.input.pseudoUrls,
             transformRequestFunction: (requestOptions) => {
