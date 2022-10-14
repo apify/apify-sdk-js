@@ -30,7 +30,7 @@ Each actor run is associated with a **default key-value store**, which is create
 and output is stored in the default key-value store under the `INPUT` and `OUTPUT` key, respectively. Typically the input and output is a JSON file,
 although it can be any other format.
 
-In the Apify SDK, the key-value store is represented by the <ApiLink to="core/class/KeyValueStore">`KeyValueStore`</ApiLink> class. In order to simplify access to the default
+In the Apify SDK, the key-value store is represented by the <ApiLink to="apify/class/KeyValueStore">`KeyValueStore`</ApiLink> class. In order to simplify access to the default
 key-value store, the SDK also provides <ApiLink to="apify/class/Actor#getValue">`Actor.getValue()`</ApiLink> and <ApiLink to="apify/class/Actor#setValue">`Actor.setValue()`</ApiLink> functions.
 
 In local configuration, the data is stored in the directory specified by the `APIFY_LOCAL_STORAGE_DIR` environment variable as follows:
@@ -84,7 +84,7 @@ way you can easily share crawling results.
 Each actor run is associated with a **default dataset**, which is created exclusively for the actor run. Typically, it is used to store crawling
 results specific for the actor run. Its usage is optional.
 
-In the Apify SDK, the dataset is represented by the <ApiLink to="core/class/Dataset">`Dataset`</ApiLink> class. In order to simplify writes to the default dataset, the SDK
+In the Apify SDK, the dataset is represented by the <ApiLink to="apify/class/Dataset">`Dataset`</ApiLink> class. In order to simplify writes to the default dataset, the SDK
 also provides the <ApiLink to="apify/class/Actor#pushData">`Actor.pushData()`</ApiLink> function.
 
 In local configuration, the data is stored in the directory specified by the `APIFY_LOCAL_STORAGE_DIR` environment variable as follows:

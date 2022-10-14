@@ -14,15 +14,15 @@ import SameSubdomainSource from '!!raw-loader!./crawl_relative_links_same_subdom
 
 When crawling a website, you may encounter different types of links present that you may want to crawl.
 To facilitate the easy crawling of such links, we provide the `enqueueLinks()` method on the crawler context, which will
-automatically find links and add them to the crawler's <ApiLink to="core/class/RequestQueue">`RequestQueue`</ApiLink>.
+automatically find links and add them to the crawler's <ApiLink to="apify/class/RequestQueue">`RequestQueue`</ApiLink>.
 
 We provide 3 different strategies for crawling relative links:
 
-- <ApiLink to="core/enum/EnqueueStrategy#All"><inlineCode>All</inlineCode></ApiLink> which will enqueue all links found, regardless of
+- <ApiLink to="apify/enum/EnqueueStrategy#All"><inlineCode>All</inlineCode></ApiLink> which will enqueue all links found, regardless of
 the domain they point to.
-- <ApiLink to="core/enum/EnqueueStrategy#SameHostname"><inlineCode>SameHostname</inlineCode></ApiLink> which will enqueue all links
+- <ApiLink to="apify/enum/EnqueueStrategy#SameHostname"><inlineCode>SameHostname</inlineCode></ApiLink> which will enqueue all links
 found for the same hostname (regardless of any subdomains present).
-- <ApiLink to="core/enum/EnqueueStrategy#SameSubdomain"><inlineCode>SameSubdomain</inlineCode></ApiLink> which will enqueue all links
+- <ApiLink to="apify/enum/EnqueueStrategy#SameSubdomain"><inlineCode>SameSubdomain</inlineCode></ApiLink> which will enqueue all links
 found that have the same subdomain and hostname. This is the default strategy.
 
 :::note

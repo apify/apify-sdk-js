@@ -46,7 +46,7 @@ const proxyUrl = proxyConfiguration.newUrl();
 
 ## Proxy Configuration
 
-All your proxy needs are managed by the <ApiLink to="core/class/ProxyConfiguration">`ProxyConfiguration`</ApiLink> class. You create an instance using the <ApiLink to="apify/class/Actor#createProxyConfiguration">`Actor.createProxyConfiguration()`</ApiLink> function. See the <ApiLink to="core/interface/ProxyConfigurationOptions">`ProxyConfigurationOptions`</ApiLink> for all the possible constructor options.
+All your proxy needs are managed by the <ApiLink to="apify/class/ProxyConfiguration">`ProxyConfiguration`</ApiLink> class. You create an instance using the <ApiLink to="apify/class/Actor#createProxyConfiguration">`Actor.createProxyConfiguration()`</ApiLink> function. See the <ApiLink to="apify/interface/ProxyConfigurationOptions">`ProxyConfigurationOptions`</ApiLink> for all the possible constructor options.
 
 ### Crawler integration
 
@@ -79,7 +79,7 @@ Your crawlers will now use the selected proxies for all connections.
 
 ### IP Rotation and session management
 
-&#8203;<ApiLink to="core/class/ProxyConfiguration#newUrl">`proxyConfiguration.newUrl()`</ApiLink> allows you to pass a `sessionId` parameter. It will then be used to create a `sessionId`-`proxyUrl` pair, and subsequent `newUrl()` calls with the same `sessionId` will always return the same `proxyUrl`. This is extremely useful in scraping, because you want to create the impression of a real user. See the [session management guide](../guides/session-management) and <ApiLink to="core/class/SessionPool">`SessionPool`</ApiLink> class for more information on how keeping a real session helps you avoid blocking.
+&#8203;<ApiLink to="apify/class/ProxyConfiguration#newUrl">`proxyConfiguration.newUrl()`</ApiLink> allows you to pass a `sessionId` parameter. It will then be used to create a `sessionId`-`proxyUrl` pair, and subsequent `newUrl()` calls with the same `sessionId` will always return the same `proxyUrl`. This is extremely useful in scraping, because you want to create the impression of a real user. See the [session management guide](../guides/session-management) and <ApiLink to="apify/class/SessionPool">`SessionPool`</ApiLink> class for more information on how keeping a real session helps you avoid blocking.
 
 When no `sessionId` is provided, your proxy URLs are rotated round-robin, whereas Apify Proxy manages their rotation using black magic to get the best performance.
 
@@ -116,7 +116,7 @@ one would call a super-proxy. It's not a single proxy server, but an API endpoin
 that allows connection through millions of different IP addresses. So the class
 essentially has two modes: Apify Proxy or Your proxy.
 
-The difference is easy to remember. <ApiLink to="core/interface/ProxyConfigurationOptions#proxyUrls">`ProxyConfigurationOptions.proxyUrls`</ApiLink> and <ApiLink to="core/interface/ProxyConfigurationOptions#newUrlFunction">`ProxyConfigurationOptions.newUrlFunction`</ApiLink> enable use of your custom proxy URLs, whereas all the other options are there to configure Apify Proxy. Visit the [Apify Proxy docs](https://docs.apify.com/proxy) for more info on how these parameters work.
+The difference is easy to remember. <ApiLink to="apify/interface/ProxyConfigurationOptions#proxyUrls">`ProxyConfigurationOptions.proxyUrls`</ApiLink> and <ApiLink to="apify/interface/ProxyConfigurationOptions#newUrlFunction">`ProxyConfigurationOptions.newUrlFunction`</ApiLink> enable use of your custom proxy URLs, whereas all the other options are there to configure Apify Proxy. Visit the [Apify Proxy docs](https://docs.apify.com/proxy) for more info on how these parameters work.
 
 ## Apify Proxy Configuration
 
@@ -138,6 +138,6 @@ in the [proxy dashboard](https://console.apify.com/proxy).
 ## Inspecting current proxy in Crawlers
 
 `CheerioCrawler` and `PuppeteerCrawler` grant access to information about the currently used proxy
-in their `handlePageFunction` using a <ApiLink to="core/interface/ProxyInfo">`proxyInfo`</ApiLink> object.
+in their `handlePageFunction` using a <ApiLink to="apify/interface/ProxyInfo">`proxyInfo`</ApiLink> object.
 With the  object, you can easily access the proxy URL. If you're using Apify Proxy, the other
 configuration parameters will also be available in the `proxyInfo` object.
