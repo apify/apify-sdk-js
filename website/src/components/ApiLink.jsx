@@ -5,7 +5,7 @@ import { useDocsVersion } from '@docusaurus/theme-common/internal';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 
 const ApiLink = ({ to, children }) => {
-    const version = useDocsVersion();
+    const { version, isLast } = useDocsVersion();
     const { siteConfig } = useDocusaurusContext();
 
     if (siteConfig.presets[0][1].docs.disableVersioning) {
@@ -14,8 +14,16 @@ const ApiLink = ({ to, children }) => {
         );
     }
 
+    let versionSlug = `${version}/`;
+
+    if (version === 'current') {
+        versionSlug = 'next/';
+    } else if (isLast) {
+        versionSlug = '';
+    }
+
     return (
-        <Link to={`/api/${version.version === 'current' ? 'next' : version.version}/${to}`}>{children}</Link>
+        <Link to={`/api/${versionSlug}${to}`}>{children}</Link>
     );
 };
 
