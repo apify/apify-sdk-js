@@ -65,7 +65,7 @@
         "@typescript-eslint/eslint-plugin": "5.40.0",
         "@typescript-eslint/parser": "5.40.0",
         "commitlint": "^17.0.3",
-        "crawlee": "^3.0.0",
+        "crawlee": "^3.1.0",
         "eslint": "~8.25.0",
         "fs-extra": "^10.1.0",
         "gen-esm-wrapper": "^1.1.3",

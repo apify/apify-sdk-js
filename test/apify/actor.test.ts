@@ -3,10 +3,10 @@ import { ACT_JOB_STATUSES, ENV_VARS, KEY_VALUE_STORE_KEYS, WEBHOOK_EVENT_TYPES }
 import log from '@apify/log';
 import { encryptInputSecrets } from '@apify/input_secrets';
 import type { ApifyEnv } from 'apify';
-import { Actor, ProxyConfiguration } from 'apify';
+import { Actor, ProxyConfiguration, KeyValueStore, Dataset } from 'apify';
 import type { WebhookUpdateData } from 'apify-client';
 import { ActorClient, ApifyClient, RunClient, TaskClient } from 'apify-client';
-import { Configuration, EventType, Dataset, KeyValueStore, RequestList, StorageManager } from '@crawlee/core';
+import { Configuration, EventType, StorageManager } from '@crawlee/core';
 import { sleep } from '@crawlee/utils';
 import { MemoryStorageEmulator } from '../MemoryStorageEmulator';
 
@@ -991,42 +991,39 @@ describe('Actor', () => {
         test('should work', async () => {
             const record = { foo: 'bar' };
             const defaultStore = await KeyValueStore.open();
+            const setValueSpy = jest.spyOn(defaultStore, 'setValue');
 
-            const oldSet = defaultStore.setValue;
-            defaultStore.setValue = async (key, value) => {
-                expect(key).toBe('key-1');
-                expect(value).toBe(record);
-            };
+            setValueSpy.mockImplementation(async () => {});
 
             await Actor.setValue('key-1', record);
 
-            defaultStore.setValue = oldSet;
+            expect(setValueSpy).toHaveBeenCalledWith('key-1', record, {});
         });
     });
 
     describe('Actor.getValue', () => {
         test('should work', async () => {
             const defaultStore = await KeyValueStore.open();
+            const getValueSpy = jest.spyOn(defaultStore, 'getValue');
 
-            const oldGet = defaultStore.getValue;
-            defaultStore.getValue = async (key) => expect(key).toBe('key-1');
+            getValueSpy.mockImplementationOnce(async () => {});
 
             await Actor.getValue('key-1');
 
-            defaultStore.getValue = oldGet;
+            expect(getValueSpy).toHaveBeenCalledWith('key-1');
         });
     });
 
     describe('Actor.pushData', () => {
         test('should work', async () => {
-            const defaultStore = await KeyValueStore.open();
+            const defaultStore = await Dataset.open();
+            const pushDataSpy = jest.spyOn(defaultStore, 'pushData');
 
-            const oldGet = defaultStore.getValue;
-            defaultStore.getValue = async (key) => expect(key).toBe('key-1');
+            pushDataSpy.mockImplementationOnce(async () => {});
 
-            await Actor.getValue('key-1');
+            await Actor.pushData({ hello: 'apify' });
 
-            defaultStore.getValue = oldGet;
+            expect(pushDataSpy).toHaveBeenCalledWith({ hello: 'apify' });
         });
     });
 });
