@@ -3,10 +3,10 @@ import { ACT_JOB_STATUSES, ENV_VARS, KEY_VALUE_STORE_KEYS, WEBHOOK_EVENT_TYPES }
 import log from '@apify/log';
 import { encryptInputSecrets } from '@apify/input_secrets';
 import type { ApifyEnv } from 'apify';
-import { Actor, ProxyConfiguration } from 'apify';
+import { Actor, ProxyConfiguration, KeyValueStore, Dataset } from 'apify';
 import type { WebhookUpdateData } from 'apify-client';
 import { ActorClient, ApifyClient, RunClient, TaskClient } from 'apify-client';
-import { Configuration, EventType, Dataset, KeyValueStore, RequestList, StorageManager } from '@crawlee/core';
+import { Configuration, EventType, StorageManager } from '@crawlee/core';
 import { sleep } from '@crawlee/utils';
 import { MemoryStorageEmulator } from '../MemoryStorageEmulator';
 
@@ -993,12 +993,11 @@ describe('Actor', () => {
             const defaultStore = await KeyValueStore.open();
             const setValueSpy = jest.spyOn(defaultStore, 'setValue');
 
-            setValueSpy.mockImplementation(async (key, value) => {
-                expect(key).toEqual('key-1');
-                expect(value).toEqual(record);
-            });
+            setValueSpy.mockImplementation(async () => {});
 
             await Actor.setValue('key-1', record);
+
+            expect(setValueSpy).toHaveBeenCalledWith('key-1', record, {});
         });
     });
 
@@ -1007,9 +1006,11 @@ describe('Actor', () => {
             const defaultStore = await KeyValueStore.open();
             const getValueSpy = jest.spyOn(defaultStore, 'getValue');
 
-            getValueSpy.mockImplementationOnce(async (key) => expect(key).toBe('key-1'));
+            getValueSpy.mockImplementationOnce(async () => {});
 
             await Actor.getValue('key-1');
+
+            expect(getValueSpy).toHaveBeenCalledWith('key-1');
         });
     });
 
@@ -1018,9 +1019,11 @@ describe('Actor', () => {
             const defaultStore = await Dataset.open();
             const pushDataSpy = jest.spyOn(defaultStore, 'pushData');
 
-            pushDataSpy.mockImplementationOnce(async (data) => expect(data).toStrictEqual({ hello: 'apify' }));
+            pushDataSpy.mockImplementationOnce(async () => {});
 
             await Actor.pushData({ hello: 'apify' });
+
+            expect(pushDataSpy).toHaveBeenCalledWith({ hello: 'apify' });
         });
     });
 });
