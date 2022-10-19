@@ -448,7 +448,7 @@ that will be used by the scraper in order to prevent its detection by target web
 You can use both [Apify Proxy](https://apify.com/proxy)
 and custom HTTP or SOCKS5 proxy servers.
 
-The following table lists the available options of the proxy configuration setting:
+Proxy is required to run the scraper. The following table lists the available options of the proxy configuration setting:
 
 | Option                        | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
 |-------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
