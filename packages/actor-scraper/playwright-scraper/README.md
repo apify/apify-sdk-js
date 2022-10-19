@@ -24,7 +24,7 @@ In summary, Playwright Scraper works as follows:
 2. For each request:
     - Evaluates all hooks in [Pre-navigation hooks](#pre-navigation-hooks)
     - Executes the [Page function](#page-function) on the loaded page
-    - Optionally, finds all links from the page using [Link selector](#link-selector). If a link matches any of the [Pseudo URLs](#pseudo-urls) and has not yet been requested, it is added to the queue.
+    - Optionally, finds all links from the page using [Link selector](#link-selector). If a link matches any of the **[Glob Patterns](#glob-patterns)** and/or **[Pseudo-URLs](#pseudo-urls)** and has not yet been requested, it is added to the queue.
     - Evaluates [Post-navigation hooks](#post-navigation-hooks)
 3. If there are more items in the queue, repeats step 2. Otherwise, finishes the crawl.
 
@@ -147,7 +147,7 @@ const context = {
     setValue, // Reference to the Actor.setValue() function.
     getValue, // Reference to the Actor.getValue() function.
     saveSnapshot, // Saves a screenshot and full HTML of the current page to the key value store.
-    skipLinks, // Prevents enqueueing more links via glob patterns/Pseudo URLs on the current page.
+    skipLinks, // Prevents enqueueing more links via Glob patterns/Pseudo URLs on the current page.
     enqueueRequest, // Adds a page to the request queue.
 
     // PLAYWRIGHT CONTEXT-AWARE UTILITY FUNCTIONS
@@ -362,7 +362,7 @@ You can find the latest screenshot under the `SNAPSHOT-SCREENSHOT` key and the H
 
 > This function is async! Don't forget the `await` keyword!
 
-With each invocation of the pageFunction, the scraper attempts to extract new URLs from the page using the Link selector and glob patterns/Pseudo-URLs provided in the input UI. If you want to prevent this behavior in certain cases, call the `skipLinks` function, and no URLs will be added to the queue for the given page.
+With each invocation of the pageFunction, the scraper attempts to extract new URLs from the page using the Link selector and Glob patterns/Pseudo-URLs provided in the input UI. If you want to prevent this behavior in certain cases, call the `skipLinks` function, and no URLs will be added to the queue for the given page.
 
 Usage:
 
@@ -378,7 +378,7 @@ await context.skipLinks()
 
 > This function is async! Don't forget the `await` keyword!
 
-To enqueue a specific URL manually instead of automatically by a combination of a Link selector and a Pseudo URL, use the enqueueRequest function. It accepts a plain object as argument that needs to have the structure to construct a [Request object](https://crawlee.dev/api/core/class/Request), but frankly, you just need an object with a `url` key.
+To enqueue a specific URL manually instead of automatically by a combination of a Link selector and a Pseudo URL/Glob pattern, use the enqueueRequest function. It accepts a plain object as argument that needs to have the structure to construct a [Request object](https://crawlee.dev/api/core/class/Request), but frankly, you just need an object with a `url` key.
 
 Usage:
 
