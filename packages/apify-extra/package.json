@@ -60,5 +60,8 @@
     "peerDependencies": {
         "apify": ">= 3.0.0",
         "crawlee": ">= 3.0.0"
+    },
+    "devDependencies": {
+        "apify": "^3.0.0"
     }
 }
