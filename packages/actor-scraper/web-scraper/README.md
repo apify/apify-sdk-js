@@ -23,8 +23,8 @@ it should load, and second, tell it how to extract data from each of the pages.
 The scraper starts by loading pages specified in
 the [**Start URLs**](#start-urls) input setting.
 You can make the scraper follow page links on the fly
-setting a [**Link selector**](#link-selector),
-**[Glob Patterns](#glob-patterns)** and/or **[Pseudo-URLs](#pseudo-urls)**
+setting a [**Link selector**](#link-selector) and/or
+**[Glob Patterns](#glob-patterns)**
 to tell the scraper which links it should add to the crawling queue.
 This is useful for the recursive crawling of entire websites,
 e.g. to find all products in an online store.
@@ -45,7 +45,7 @@ In summary, Web Scraper works as follows:
 2. Fetches the first URL from the queue and load it in Chromium browser.
 3. Executes the [**Page function**](#page-function) on the loaded page and saves its results.
 4. Optionally, finds all links from the page using the [**Link selector**](#link-selector).
-   If a link matches any of the **[Glob Patterns](#glob-patterns)** and/or **[Pseudo-URLs](#pseudo-urls)** and has not yet been visited, adds it to the queue.
+   If a link matches any of the **[Glob Patterns](#glob-patterns)** and has not yet been visited, adds it to the queue.
 5. If there are more items in the queue, repeats step 2, otherwise finishes.
 
 Web Scraper has a number of other configuration settings
@@ -112,7 +112,7 @@ document.
 Each URL must start with either a `http://` or `https://` protocol prefix.
 
 The scraper supports adding new URLs to scrape on the fly, either using the
-**[Link selector](#link-selector)** and **[Glob Patterns](#glob-patterns)**/**[Pseudo-URLs](#pseudo-urls)** options
+**[Link selector](#link-selector)** and **[Glob Patterns](#glob-patterns)** option
 or by calling <code>await context.enqueueRequest()</code>
 inside [**Page function**](#page-function).
 
@@ -133,7 +133,7 @@ The **Link selector** (`linkSelector`) field contains a CSS selector that is use
 i.e. `<a>` elements with the `href` attribute.
 
 On every page loaded, the scraper looks for all links matching **Link selector**,
-checks that the target URL matches one of the [**Glob Patterns**](#glob-patterns)/[**Pseudo-URLs**](#pseudo-urls),
+checks that the target URL matches one of the [**Glob Patterns**](#glob-patterns),
 and if so then adds the URL to the request queue, so that it's loaded by the scraper later.
 
 By default, new scrapers are created with the following selector that matches all links:
@@ -161,45 +161,6 @@ following URLs:
 -   `http://www.example.com/pages/something`
 
 Note that you don't need to use the **Glob Patterns** setting at all, because you can completely control which pages the scraper will access by calling `await context.enqueueRequest()` from the **[Page function](#page-function)**.
-
-### Pseudo-URLs
-
-The **Pseudo-URLs** (`pseudoUrls`) field specifies
-what kind of URLs found by [**Link selector**](#link-selector) should be added to the request queue.
-
-A pseudo-URL is simply a URL with special directives enclosed in `[]` brackets.
-Currently, the only supported directive is `[regexp]`, which defines
-a JavaScript-style regular expression to match against the URL.
-
-For example, a pseudo-URL `http://www.example.com/pages/[(\w|-)*]` will match all the
-following URLs:
-
--   `http://www.example.com/pages/`
--   `http://www.example.com/pages/my-awesome-page`
--   `http://www.example.com/pages/something`
-
-If either `[` or `]` is part of the normal query string,
-it must be encoded as `[\x5B]` or `[\x5D]`, respectively. For example,
-the following pseudo-URL:
-
-```
-http://www.example.com/search?do[\x5B]load[\x5D]=1
-```
-
-will match the URL:
-
-```
-http://www.example.com/search?do[load]=1
-```
-
-Optionally, each pseudo-URL can be associated with user data
-that can be referenced from
-your [**Page function**](#page-function) using `context.request.label`
-to determine which kind of page is currently loaded in the browser.
-
-Note that you don't need to use the **Pseudo-URLs** setting at all,
-because you can completely control which pages the scraper will access
-by calling `await context.enqueueRequest()` from [**Page function**](#page-function).
 
 ### Page function
 
@@ -439,7 +400,7 @@ see <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/S
 
     Calling this function ensures that page links from the current page
     will not be added to the request queue, even if they match the [**Link selector**](#link-selector)
-    and/or [**Glob Patterns**](#glob-patterns)/[**Pseudo-URLs**](#pseudo-urls) settings.
+    and/or [**Glob Patterns**](#glob-patterns) setting.
     This is useful to programmatically stop recursive crawling,
     e.g. if you know there are no more interesting links on the current page to follow.
 
@@ -689,3 +650,7 @@ v2 introduced several minor breaking changes, you can read about those in the
 
 v3 introduces even more breaking changes.
 This [v3 migration guide](https://sdk.apify.com/docs/upgrading/upgrading-to-v3) should take you through these.
+
+Scraper-specific breaking changes:
+- Proxy usage is now required.
+- `Pseudo-URLs` option is now deprecated.

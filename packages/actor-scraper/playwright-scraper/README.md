@@ -14,7 +14,7 @@ If you are having any difficulty deciding which of the four main Apify "Scraper"
 
 To get started with Playwright Scraper, you only need a few things. First, with `Start URLs`, tell the scraper which web pages it should load. Then, tell it how to handle each request and extract data from each page.
 
-The scraper starts by loading pages specified in the [**Start URLs**](#start-urls) input setting. You can make the scraper follow page links on the fly by setting a **[Link selector](#link-selector)**, **[Glob Patterns](#glob-patterns)** and/or **[Pseudo-URLs](#pseudo-urls)** to tell the scraper which links it should add to the crawler's request queue. This is useful for the recursive crawling of entire websites (e.g. finding all products available in an online store).
+The scraper starts by loading pages specified in the [**Start URLs**](#start-urls) input setting. You can make the scraper follow page links on the fly by setting a **[Link selector](#link-selector)** and/or **[Glob Patterns](#glob-patterns)** to tell the scraper which links it should add to the crawler's request queue. This is useful for the recursive crawling of entire websites (e.g. finding all products available in an online store).
 
 To tell the scraper how to handle requests and extra data, you need to provide a **[Page function](#page-function)**, and optionally arrays of **[Pre-navigation hooks](#pre-navigation-hooks)** and **[Post-navigation hooks](#post-navigation-hooks)**. This is JavaScript code that is executed in the Node.js environment. Since the scraper uses the full-featured Chromium or Firefox browser, client-side logic to be executed within the context of the web-page can be done using the **[`page`](#page)** object within the Page function's context.
 
@@ -24,7 +24,7 @@ In summary, Playwright Scraper works as follows:
 2. For each request:
     - Evaluates all hooks in [Pre-navigation hooks](#pre-navigation-hooks)
     - Executes the [Page function](#page-function) on the loaded page
-    - Optionally, finds all links from the page using [Link selector](#link-selector). If a link matches any of the [Pseudo URLs](#pseudo-urls) and has not yet been requested, it is added to the queue.
+    - Optionally, finds all links from the page using [Link selector](#link-selector). If a link matches any of the [Glob Patterns](#glob-patterns) and has not yet been requested, it is added to the queue.
     - Evaluates [Post-navigation hooks](#post-navigation-hooks)
 3. If there are more items in the queue, repeats step 2. Otherwise, finishes the crawl.
 
@@ -44,7 +44,7 @@ On input, the Playwright Scraper actor accepts a number of configuration setting
 
 The **Start URLs** (`startUrls`) field represent the initial list of URLs of pages that the scraper will visit. You can either enter these URLs manually one by one, upload them in a CSV file or [link URLs from a Google Sheet](https://help.apify.com/en/articles/2906022-scraping-a-list-of-urls-from-google-spreadsheet) document. Note that each URL must start with either a `http://` or `https://` protocol prefix.
 
-The scraper supports adding new URLs to scrape on the fly, either using the **[Link selector](#link-selector)** and **[Glob Patterns](#glob-patterns)**/**[Pseudo-URLs](#pseudo-urls)** options, or by calling `await context.enqueueRequest()`inside the **[Page function](#page-function)**.
+The scraper supports adding new URLs to scrape on the fly, either using the **[Link selector](#link-selector)** and **[Glob Patterns](#glob-patterns)** option, or by calling `await context.enqueueRequest()`inside the **[Page function](#page-function)**.
 
 Optionally, each URL can be associated with custom user data - a JSON object that can be referenced from your JavaScript code in **[Page function](#page-function)** under `context.request.userData`. This is useful for determining which start URL is currently loaded, allowing the ability to perform some page-specific actions. For example, when crawling an online store, you might want to perform different actions on a page listing the products vs. a product detail page. For details, refer to **[Web scraping tutorial](https://docs.apify.com/tutorials/apify-scrapers/getting-started#the-start-url)** within the Apify documentation.
 
@@ -54,7 +54,7 @@ Optionally, each URL can be associated with custom user data - a JSON object tha
 
 The **Link selector** (`linkSelector`) field contains a CSS selector that is used to find links to other web pages (items with `href` attributes, e.g. `<div class="my-class" href="...">`).
 
-On every page loaded, the scraper looks for all links matching **Link selector**, and checks that the target URL matches one of the [**Glob Patterns**](#glob-patterns)/[**Pseudo-URLs**](#pseudo-urls). If it is a match, it then adds the URL to the request queue so that it's loaded by the scraper later on.
+On every page loaded, the scraper looks for all links matching **Link selector**, and checks that the target URL matches one of the [**Glob Patterns**](#glob-patterns). If it is a match, it then adds the URL to the request queue so that it's loaded by the scraper later on.
 
 By default, new scrapers are created with the following selector that matches all links on any page:
 
@@ -79,44 +79,11 @@ following URLs:
 
 Note that you don't need to use the **Glob Patterns** setting at all, because you can completely control which pages the scraper will access by calling `await context.enqueueRequest()` from the **[Page function](#page-function)**.
 
-### Pseudo-URLs
-
-The **Pseudo-URLs** (`pseudoUrls`) field specifies which types of URLs found by **[Link selector](#link-selector)** should be added to the request queue.
-
-A pseudo-URL is simply a URL with special directives enclosed in `[]` brackets.
-Currently, the only supported directive is `[regexp]`, which defines
-a JavaScript-style regular expression to match against the URL.
-
-For example, a pseudo-URL `http://www.example.com/pages/[(\w|-)*]` will match all the
-following URLs:
-
--   `http://www.example.com/pages/`
--   `http://www.example.com/pages/my-awesome-page`
--   `http://www.example.com/pages/something`
-
-If either "`[`" or "`]`" are part of the normal query string, the symbol must be encoded as `[\x5B]` or `[\x5D]`, respectively. For example, the following pseudo-URL:
-
-```
-http://www.example.com/search?do[\x5B]load[\x5D]=1
-```
-
-will match the URL:
-
-```
-http://www.example.com/search?do[load]=1
-```
-
-Optionally, each pseudo-URL can be associated with user data that can be referenced from your **[Page function](#page-function)** using `context.request.label` to determine which kind of page is currently loaded in the browser.
-
-Note that you don't need to use the **Pseudo-URLs** setting at all,
-because you can completely control which pages the scraper will access by calling `await context.enqueueRequest()`
-from the **[Page function](#page-function)**.
-
 ### Clickable elements selector
 
 For pages where the links you want to add to the crawler's request queue aren't included in elements with `href` attributes, you can pass a CSS Selector to the **Clickable elements selector**. This CSS selector should match elements that lead to the URL you want to queue up.
 
-The scraper will mouse click the specified CSS selector after the page function finishes. Any triggered requests, navigations, or open tabs will be intercepted, and the target URLs will be filtered using Globs and/or Pseudo URLs. Finally, these filtered URLs will be added to the request queue. Leave this field empty to prevent the scraper from clicking in the page.
+The scraper will mouse click the specified CSS selector after the page function finishes. Any triggered requests, navigations, or open tabs will be intercepted, and the target URLs will be filtered using Globs. Finally, these filtered URLs will be added to the request queue. Leave this field empty to prevent the scraper from clicking in the page.
 
 It's important to note that _using this setting can impact performance._
 
@@ -147,7 +114,7 @@ const context = {
     setValue, // Reference to the Actor.setValue() function.
     getValue, // Reference to the Actor.getValue() function.
     saveSnapshot, // Saves a screenshot and full HTML of the current page to the key value store.
-    skipLinks, // Prevents enqueueing more links via glob patterns/Pseudo URLs on the current page.
+    skipLinks, // Prevents enqueueing more links via glob patterns on the current page.
     enqueueRequest, // Adds a page to the request queue.
 
     // PLAYWRIGHT CONTEXT-AWARE UTILITY FUNCTIONS
@@ -362,7 +329,7 @@ You can find the latest screenshot under the `SNAPSHOT-SCREENSHOT` key and the H
 
 > This function is async! Don't forget the `await` keyword!
 
-With each invocation of the pageFunction, the scraper attempts to extract new URLs from the page using the Link selector and glob patterns/Pseudo-URLs provided in the input UI. If you want to prevent this behavior in certain cases, call the `skipLinks` function, and no URLs will be added to the queue for the given page.
+With each invocation of the pageFunction, the scraper attempts to extract new URLs from the page using the Link selector and Glob patterns provided in the input UI. If you want to prevent this behavior in certain cases, call the `skipLinks` function, and no URLs will be added to the queue for the given page.
 
 Usage:
 
@@ -378,7 +345,7 @@ await context.skipLinks()
 
 > This function is async! Don't forget the `await` keyword!
 
-To enqueue a specific URL manually instead of automatically by a combination of a Link selector and a Pseudo URL, use the enqueueRequest function. It accepts a plain object as argument that needs to have the structure to construct a [Request object](https://crawlee.dev/api/core/class/Request), but frankly, you just need an object with a `url` key.
+To enqueue a specific URL manually instead of automatically by a combination of a Link selector and Glob patterns, use the enqueueRequest function. It accepts a plain object as argument that needs to have the structure to construct a [Request object](https://crawlee.dev/api/core/class/Request), but frankly, you just need an object with a `url` key.
 
 Usage:
 

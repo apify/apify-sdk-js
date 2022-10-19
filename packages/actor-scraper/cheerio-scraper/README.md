@@ -16,7 +16,7 @@ To get started with Cheerio Scraper, you only need two things. First, tell the s
 it should load. Second, tell it how to extract data from each page.
 
 The scraper starts by loading the pages specified in the [**Start URLs**](#start-urls) field.
-You can make the scraper follow page links on the fly by setting a [**Link selector**](#link-selector), **[Glob Patterns](#glob-patterns)** and/or **[Pseudo-URLs](#pseudo-urls)** to tell the scraper which links it should add to the crawling queue. This is useful for the recursive crawling of entire websites, e.g. to find all products in an online store.
+You can make the scraper follow page links on the fly by setting a [**Link selector**](#link-selector) and/or **[Glob Patterns](#glob-patterns)** to tell the scraper which links it should add to the crawling queue. This is useful for the recursive crawling of entire websites, e.g. to find all products in an online store.
 
 To tell the scraper how to extract data from web pages, you need to provide a [**Page function**](#page-function). This is JavaScript code that is executed for every web page loaded. Since the scraper does not use the full web browser, writing the **Page function** is equivalent to writing server-side Node.js code - it uses the server-side library [Cheerio](https://cheerio.js.org).
 
@@ -26,7 +26,7 @@ In summary, Cheerio Scraper works as follows:
 2. Fetches the first URL from the queue and constructs a DOM from the fetched HTML string.
 3. Executes the [**Page function**](#page-function) on the loaded page and saves its results.
 4. Optionally, finds all links from the page using the [**Link selector**](#link-selector).
-   If a link matches any of the **[Glob Patterns](#glob-patterns)** and/or **[Pseudo-URLs](#pseudo-urls)** and has not yet been visited, adds it to the queue.
+   If a link matches any of the **[Glob Patterns](#glob-patterns)** and has not yet been visited, adds it to the queue.
 5. If there are more items in the queue, repeats step 2, otherwise finishes.
 
 Cheerio Scraper has a number of advanced configuration settings to improve performance, set cookies for login to websites, limit the number of records, etc. See their tooltips for more information.
@@ -43,9 +43,9 @@ use the **Additional MIME types** (`additionalMimeTypes`) input option.
 
 Note that while the default `Accept` HTTP header will allow any content type to be received,
 HTML and XML are preferred over JSON and other types. Thus, if you're allowing additional MIME
-types and you're still receiving invalid responses, be sure to override the `Accept`
+types, and you're still receiving invalid responses, be sure to override the `Accept`
 HTTP header setting in the requests from the scraper,
-either in [**Start URLs**](#start-urls), [**Pseudo URLs**](#pseudo-urls) or in the **Prepare request function**.
+either in [**Start URLs**](#start-urls) or in the **Prepare request function**.
 
 The web pages with various content types are parsed differently and
 thus the `context` parameter of the [**Page function**](#page-function) will have different values:
@@ -83,7 +83,7 @@ The **Start URLs** (`startUrls`) field represents the initial list of pages that
 You can either enter the URLs manually one by one, upload them in a CSV file, or [link URLs from a Google Sheet](https://help.apify.com/en/articles/2906022-scraping-a-list-of-urls-from-a-google-sheets-document) document.
 Each URL must start with either a `http://` or `https://` protocol prefix.
 
-The scraper supports adding new URLs to scrape on the fly, either using the [**Link selector**](#link-selector) and **[Glob Patterns](#glob-patterns)**/**[Pseudo-URLs](#pseudo-urls)** options or by calling `context.enqueueRequest()` inside the [**Page function**](#page-function).
+The scraper supports adding new URLs to scrape on the fly, either using the [**Link selector**](#link-selector) and **[Glob Patterns](#glob-patterns)** option or by calling `context.enqueueRequest()` inside the [**Page function**](#page-function).
 
 Optionally, each URL can be associated with custom user data - a JSON object that can be referenced from
 your JavaScript code in the [**Page function**](#page-function) under `context.request.userData`.
@@ -93,7 +93,7 @@ This is useful for determining which start URL is currently loaded, in order to 
 
 ### Link selector
 
-The **Link selector** (`linkSelector`) field contains a CSS selector that is used to find links to other web pages, i.e. `<a>` elements with the `href` attribute. On every page loaded, the scraper looks for all links matching the **Link selector**. It checks that the target URL matches one of the [**Glob Patterns**](#glob-patterns)/[**Pseudo-URLs**](#pseudo-urls), and if so then adds the URL to the request queue, to be loaded by the scraper later.
+The **Link selector** (`linkSelector`) field contains a CSS selector that is used to find links to other web pages, i.e. `<a>` elements with the `href` attribute. On every page loaded, the scraper looks for all links matching the **Link selector**. It checks that the target URL matches one of the [**Glob Patterns**](#glob-patterns), and if so then adds the URL to the request queue, to be loaded by the scraper later.
 
 By default, new scrapers are created with the following selector that matches all links:
 
@@ -117,40 +117,6 @@ following URLs:
 -   `http://www.example.com/pages/something`
 
 Note that you don't need to use the **Glob Patterns** setting at all, because you can completely control which pages the scraper will access by calling `await context.enqueueRequest()` from the **[Page function](#page-function)**.
-
-### Pseudo-URLs
-
-The **Pseudo-URLs** (`pseudoUrls`) field specifies which types of URLs found by **[Link selector](#link-selector)** should be added to the request queue.
-
-A pseudo-URL is simply a URL with special directives enclosed in `[]` brackets.
-Currently, the only supported directive is `[regexp]`, which defines
-a JavaScript-style regular expression to match against the URL.
-
-For example, a pseudo-URL `http://www.example.com/pages/[(\w|-)*]` will match all the
-following URLs:
-
--   `http://www.example.com/pages/`
--   `http://www.example.com/pages/my-awesome-page`
--   `http://www.example.com/pages/something`
-
-If either "`[`" or "`]`" are part of the normal query string, the symbol must be encoded as `[\x5B]` or `[\x5D]`, respectively. For example, the following pseudo-URL:
-
-```
-http://www.example.com/search?do[\x5B]load[\x5D]=1
-```
-
-will match the URL:
-
-```
-http://www.example.com/search?do[load]=1
-```
-
-Optionally, each pseudo-URL can be associated with user data that can be referenced from your **[Page function](#page-function)**
-using `context.request.label` to determine which kind of page is currently loaded in the browser.
-
-Note that you don't need to use the **Pseudo-URLs** setting at all,
-because you can completely control which pages the scraper will access by calling `await context.enqueueRequest()`
-from the **[Page function](#page-function)**.
 
 ### Page function
 
@@ -390,7 +356,7 @@ visit the [Mozilla documentation](https://developer.mozilla.org/en-US/docs/Web/J
 
 - ##### **`skipLinks(): AsyncFunction`**
 
-  Calling this function ensures that page links from the current page will not be added to the request queue, even if they match the [**Link selector**](#link-selector) and/or **[Glob Patterns](#glob-patterns)**/**[Pseudo-URLs](#pseudo-urls)** settings. This is useful to programmatically stop recursive crawling, e.g. if you know there are no more interesting links on the current page to follow.
+  Calling this function ensures that page links from the current page will not be added to the request queue, even if they match the [**Link selector**](#link-selector) and/or **[Glob Patterns](#glob-patterns)** setting. This is useful to programmatically stop recursive crawling, e.g. if you know there are no more interesting links on the current page to follow.
 
 - ##### **`request: Object`**
 
@@ -588,3 +554,7 @@ v2 introduced several minor breaking changes, you can read about those in the
 
 v3 introduces even more breaking changes.
 This [v3 migration guide](https://sdk.apify.com/docs/upgrading/upgrading-to-v3) should take you through these.
+
+Scraper-specific breaking changes:
+- Proxy usage is now required.
+- `Pseudo-URLs` option is now deprecated.
