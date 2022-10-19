@@ -1,6 +1,11 @@
 {
     "baseBranch": "origin/master",
     "pipeline": {
+        "apify-extra#build": {
+            "dependsOn": [
+                "apify#build"
+            ]
+        },
         "build": {
             "dependsOn": [
                 "^build"
