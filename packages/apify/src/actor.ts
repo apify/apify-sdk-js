@@ -337,8 +337,12 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @ignore
      */
     async abort(runId: string, options: AbortOptions = {}): Promise<ClientActorRun> {
-        const { token, ...rest } = options;
+        const { token, statusMessage, ...rest } = options;
         const client = token ? this.newClient({ token }) : this.apifyClient;
+
+        if (statusMessage) {
+            await this.setStatusMessage(statusMessage);
+        }
 
         return client.run(runId).abort(rest);
     }
@@ -1460,6 +1464,9 @@ export interface AbortOptions extends RunAbortOptions {
      * User API token that is used to run the actor. By default, it is taken from the `APIFY_TOKEN` environment variable.
      */
     token?: string;
+
+    /** Exit with given status message */
+    statusMessage?: string;
 }
 
 export interface WebhookOptions {
