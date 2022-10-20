@@ -1,11 +1,26 @@
 import { Actor } from 'apify';
 import { Dictionary, log } from 'crawlee';
 import type { DatasetInfo } from '@crawlee/types';
-import bluebird from 'bluebird';
 
-import { APIFY_EXTRA_KV_RECORD_PREFIX, APIFY_EXTRA_LOG_PREFIX } from './const.js';
+import { APIFY_EXTRA_KV_RECORD_PREFIX, APIFY_EXTRA_LOG_PREFIX } from './const';
 
 export type DatasetItem = Dictionary<any>;
+
+async function waitForCompletion(jobs: (() => Promise<any>)[], maxConcurrency: number) : Promise<void> {
+    if (maxConcurrency < 1 || maxConcurrency > 100) {
+        throw new Error('maxConcurrency must be greater than 0 and less than 100');
+    };
+
+    async function worker() {
+        let job;
+        // eslint-disable-next-line no-cond-assign
+        while (job = jobs.shift()) await job();
+    }
+
+    await Promise.all(
+        Array(maxConcurrency).fill(null).map(() => worker()),
+    );
+}
 
 export interface ParallelPersistedPushDataOptions {
     /**
@@ -286,7 +301,7 @@ export const loadDatasetItemsInParallel = async (
     }
 
     //  Now we execute all the requests in parallel (with defined concurrency)
-    await bluebird.map(requestInfoArr, async (requestInfoObj) => {
+    await waitForCompletion(requestInfoArr.map((requestInfoObj) => async () => {
         const { index, datasetId, datasetIndex } = requestInfoObj;
 
         const getDataOptions = {
@@ -336,7 +351,7 @@ export const loadDatasetItemsInParallel = async (
             // Now we correctly assign the items into the main array
             loadedBatchedArr[datasetIndex][index] = items;
         }
-    }, { concurrency: parallelLoads });
+    }), parallelLoads);
 
     if (debugLog) {
         log.info(`Loading took ${Math.round((Date.now() - loadStart) / 1000)} seconds`);

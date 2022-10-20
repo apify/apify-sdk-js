@@ -53,10 +53,6 @@
     "publishConfig": {
         "access": "public"
     },
-    "dependencies": {
-        "@types/bluebird": "^3.5.37",
-        "bluebird": "^3.7.2"
-    },
     "peerDependencies": {
         "apify": ">= 3.0.0",
         "crawlee": ">= 3.0.0"
