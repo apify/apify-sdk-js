@@ -145,7 +145,7 @@ const context = {
     setValue, // Reference to the Actor.setValue() function.
     getValue, // Reference to the Actor.getValue() function.
     saveSnapshot, // Saves a screenshot and full HTML of the current page to the key value store.
-    skipLinks, // Prevents enqueueing more links via Pseudo URLs on the current page.
+    skipLinks, // Prevents enqueueing more links via Glob patterns/Pseudo URLs on the current page.
     enqueueRequest, // Adds a page to the request queue.
 
     // PUPPETEER CONTEXT-AWARE UTILITY FUNCTIONS
@@ -360,7 +360,7 @@ You can find the latest screenshot under the `SNAPSHOT-SCREENSHOT` key and the H
 
 > This function is async! Don't forget the `await` keyword!
 
-With each invocation of the pageFunction, the scraper attempts to extract new URLs from the page using the Link selector and glob patterns/Pseudo-URLs provided in the input UI. If you want to prevent this behavior in certain cases, call the `skipLinks` function, and no URLs will be added to the queue for the given page.
+With each invocation of the pageFunction, the scraper attempts to extract new URLs from the page using the Link selector and Glob patterns/Pseudo-URLs provided in the input UI. If you want to prevent this behavior in certain cases, call the `skipLinks` function, and no URLs will be added to the queue for the given page.
 
 Usage:
 
@@ -376,7 +376,7 @@ await context.skipLinks()
 
 > This function is async! Don't forget the `await` keyword!
 
-To enqueue a specific URL manually instead of automatically by a combination of a Link selector and a Pseudo URL, use the enqueueRequest function. It accepts a plain object as argument that needs to have the structure to construct a [Request object](https://crawlee.dev/api/core/class/Request), but frankly, you just need an object with a `url` key.
+To enqueue a specific URL manually instead of automatically by a combination of a Link selector and a Pseudo URL/Glob pattern, use the enqueueRequest function. It accepts a plain object as argument that needs to have the structure to construct a [Request object](https://crawlee.dev/api/core/class/Request), but frankly, you just need an object with a `url` key.
 
 Usage:
 
@@ -446,7 +446,7 @@ that will be used by the scraper in order to prevent its detection by target web
 You can use both [Apify Proxy](https://apify.com/proxy)
 and custom HTTP or SOCKS5 proxy servers.
 
-The following table lists the available options of the proxy configuration setting:
+Proxy is required to run the scraper. The following table lists the available options of the proxy configuration setting:
 
 | Option                        | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
 |-------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -594,3 +594,6 @@ v2 introduced several minor breaking changes, you can read about those in the [m
 
 v3 introduces even more breaking changes.
 This [v3 migration guide](https://sdk.apify.com/docs/upgrading/upgrading-to-v3) should take you through these.
+
+Scraper-specific breaking changes:
+- Proxy usage is now required.

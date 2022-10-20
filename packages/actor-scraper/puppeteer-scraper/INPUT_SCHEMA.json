@@ -21,7 +21,7 @@
             "prefill": ["https://crawlee.dev/*/*"]
         },
         "pseudoUrls": {
-            "title": "Pseudo-URLs (deprecated)",
+            "title": "Pseudo-URLs",
             "type": "array",
             "description": "Pseudo-URLs to match links in the page that you want to enqueue. Combine with Link selector to tell the scraper where to find links. Omitting the Pseudo-URLs will cause the scraper to enqueue all links matched by the Link selector.",
             "editor": "pseudoUrls",
@@ -38,7 +38,7 @@
         "clickableElementsSelector": {
             "title": "Clickable elements selector",
             "type": "string",
-            "description": "For pages where simple 'href' links are not available, this attribute allows you to specify a CSS selector matching elements that the scraper will mouse click after the page function finishes. Any triggered requests, navigations or open tabs will be intercepted and the target URLs will be filtered using Pseudo URLs and subsequently added to the request queue. Leave empty to prevent the scraper from clicking in the page. Using this setting will have a performance impact.",
+            "description": "For pages where simple 'href' links are not available, this attribute allows you to specify a CSS selector matching elements that the scraper will mouse click after the page function finishes. Any triggered requests, navigations or open tabs will be intercepted and the target URLs will be filtered using Pseudo URLs and/or Glob patterns and subsequently added to the request queue. Leave empty to prevent the scraper from clicking in the page. Using this setting will have a performance impact.",
             "editor": "textfield"
         },
         "keepUrlFragments": {

@@ -43,7 +43,7 @@ use the **Additional MIME types** (`additionalMimeTypes`) input option.
 
 Note that while the default `Accept` HTTP header will allow any content type to be received,
 HTML and XML are preferred over JSON and other types. Thus, if you're allowing additional MIME
-types and you're still receiving invalid responses, be sure to override the `Accept`
+types, and you're still receiving invalid responses, be sure to override the `Accept`
 HTTP header setting in the requests from the scraper,
 either in [**Start URLs**](#start-urls), [**Pseudo URLs**](#pseudo-urls) or in the **Prepare request function**.
 
@@ -424,7 +424,7 @@ The **Proxy configuration** (`proxyConfiguration`) option enables you to set
 proxies that will be used by the scraper in order to prevent its detection by target web pages.
 You can use both the [Apify Proxy](https://apify.com/proxy) and custom HTTP or SOCKS5 proxy servers.
 
-The following table lists the available options of the proxy configuration setting:
+Proxy is required to run the scraper. The following table lists the available options of the proxy configuration setting:
 
 <table class="table table-bordered table-condensed">
     <tbody>
@@ -588,3 +588,6 @@ v2 introduced several minor breaking changes, you can read about those in the
 
 v3 introduces even more breaking changes.
 This [v3 migration guide](https://sdk.apify.com/docs/upgrading/upgrading-to-v3) should take you through these.
+
+Scraper-specific breaking changes:
+- Proxy usage is now required.

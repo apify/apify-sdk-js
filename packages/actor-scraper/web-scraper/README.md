@@ -481,7 +481,7 @@ proxies that will be used by the scraper in order to prevent its detection by ta
 You can use both [Apify Proxy](https://apify.com/proxy)
 and custom HTTP or SOCKS5 proxy servers.
 
-The following table lists the available options of the proxy configuration setting:
+Proxy is required to run the scraper. The following table lists the available options of the proxy configuration setting:
 
 <table class="table table-bordered table-condensed">
     <tbody>
@@ -689,3 +689,6 @@ v2 introduced several minor breaking changes, you can read about those in the
 
 v3 introduces even more breaking changes.
 This [v3 migration guide](https://sdk.apify.com/docs/upgrading/upgrading-to-v3) should take you through these.
+
+Scraper-specific breaking changes:
+- Proxy usage is now required.
