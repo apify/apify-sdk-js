@@ -1,6 +1,5 @@
 import { Actor } from 'apify';
 import { Dictionary, log } from 'crawlee';
-import type { DatasetInfo } from '@crawlee/types';
 
 import { APIFY_EXTRA_KV_RECORD_PREFIX, APIFY_EXTRA_LOG_PREFIX } from './const';
 
@@ -20,6 +19,13 @@ async function waitForCompletion(jobs: (() => Promise<any>)[], maxConcurrency: n
     await Promise.all(
         Array(maxConcurrency).fill(null).map(() => worker()),
     );
+}
+
+function sliceToMaxNBlocks<T>(data: T[], blockCount: number) : T[][] {
+    const blockSize = Math.ceil(data.length / blockCount);
+    return Array(blockCount).fill(null).map((_, i) => {
+        return data.slice(i * blockSize, (i + 1) * blockSize);
+    }).filter((x) => x.length !== 0);
 }
 
 export interface ParallelPersistedPushDataOptions {
@@ -82,15 +88,7 @@ export const parallelPersistedPushData = async (items: DatasetItem[], options: P
             await new Promise(() => {});
         }
         const itemsToPush = items.slice(i, i + fullBatchSize);
-
-        const pushPromises: Promise<void>[] = [];
-        const parallelizedBatchSize = Math.ceil(itemsToPush.length / parallelPushes);
-        for (let j = 0; j < parallelPushes; j++) {
-            const start = j * parallelizedBatchSize;
-            const end = (j + 1) * parallelizedBatchSize;
-            const parallelPushChunk = itemsToPush.slice(start, end);
-            pushPromises.push(dataset.pushData(parallelPushChunk));
-        }
+        const pushPromises = sliceToMaxNBlocks(itemsToPush, parallelPushes).map(dataset.pushData);
         // We must update it before awaiting the promises because the push can take time
         // and migration can cut us off but the items will already be on the way to dataset
         pushedItemsCount += itemsToPush.length;
@@ -204,7 +202,6 @@ export const loadDatasetItemsInParallel = async (
         limit = 999999999,
         concatItems = true,
         concatDatasets = true,
-        debugLog = false,
         persistLoadingStateForProcesFn = false,
         fields,
         // Figure out better name since this is useful for datasets by name on platform
@@ -212,17 +209,23 @@ export const loadDatasetItemsInParallel = async (
     } = options;
 
     const LOG_PREFIX = `${APIFY_EXTRA_LOG_PREFIX}[loadDatasetItemsInParallel]:`;
-
     if (!Actor.isAtHome() && loadFromLocalDataset && fields) {
         log.warning(`${LOG_PREFIX} fields option does not work on local datasets`);
     }
 
-    const client = Actor.newClient();
+    const processFnLoadingState: any = persistLoadingStateForProcesFn
+        ? (await Actor.getValue(PROCESS_FN_LOADING_STATE_KV_RECORD_KEY) || {})
+        : null;
 
+    Actor.on('persistState', async () => {
+        await Actor.setValue(PROCESS_FN_LOADING_STATE_KV_RECORD_KEY, processFnLoadingState);
+    });
+
+    const client = Actor.newClient();
     const loadStart = Date.now();
 
     // If we use processFnLoadingState, we skip requests that are done
-    const createRequestArray = async (processFnLoadingState: any) => {
+    const createRequestArray = async () => {
         // We increment for each dataset so we remember their order
         let datasetIndex = 0;
 
@@ -234,20 +237,17 @@ export const loadDatasetItemsInParallel = async (
                 processFnLoadingState[datasetId] = {};
             }
             // We get the number of items first and then we precreate request info objects
-            let datasetInfo: DatasetInfo | undefined;
-            if (loadFromLocalDataset) {
-                const dataset = await Actor.openDataset(datasetId);
-                datasetInfo = await dataset.getInfo();
-            } else {
-                datasetInfo = await client.dataset(datasetId).get();
-            }
+            const datasetInfo = await (loadFromLocalDataset
+                ? (await Actor.openDataset(datasetId)).getInfo()
+                : client.dataset(datasetId).get());
+
             if (!datasetInfo) {
                 throw new Error(`${LOG_PREFIX} Dataset ${datasetId} was not found`);
             }
+
             const { itemCount } = datasetInfo;
-            if (debugLog) {
-                log.info(`Dataset ${datasetId} has ${itemCount} items`);
-            }
+            log.debug(`Dataset ${datasetId} has ${itemCount} items`);
+
             const numberOfBatches = Math.ceil(itemCount / batchSize);
 
             for (let i = 0; i < numberOfBatches; i++) {
@@ -260,9 +260,7 @@ export const loadDatasetItemsInParallel = async (
                     if (!processFnLoadingState[datasetId][localOffsetLimit.offset]) {
                         processFnLoadingState[datasetId][localOffsetLimit.offset] = { done: false };
                     } else if (processFnLoadingState[datasetId][localOffsetLimit.offset].done) {
-                        if (debugLog) {
-                            log.info(`Batch for dataset ${datasetId}, offset: ${localOffsetLimit.offset} was already processed, skipping...`);
-                        }
+                        log.debug(`Batch for dataset ${datasetId}, offset: ${localOffsetLimit.offset} was already processed, skipping...`);
                         continue;
                     }
                 }
@@ -287,18 +285,8 @@ export const loadDatasetItemsInParallel = async (
     let totalLoaded = 0;
     const totalLoadedPerDataset: Record<string, number> = {};
 
-    const processFnLoadingState: any = persistLoadingStateForProcesFn
-        ? (await Actor.getValue(PROCESS_FN_LOADING_STATE_KV_RECORD_KEY) || {})
-        : null;
-
-    Actor.on('persistState', async () => {
-        await Actor.setValue(PROCESS_FN_LOADING_STATE_KV_RECORD_KEY, processFnLoadingState);
-    });
-
-    const requestInfoArr = await createRequestArray(processFnLoadingState);
-    if (debugLog) {
-        log.info(`Number of requests to do: ${requestInfoArr.length}`);
-    }
+    const requestInfoArr = await createRequestArray();
+    log.debug(`Number of requests to do: ${requestInfoArr.length}`);
 
     //  Now we execute all the requests in parallel (with defined concurrency)
     await waitForCompletion(requestInfoArr.map((requestInfoObj) => async () => {
@@ -331,13 +319,10 @@ export const loadDatasetItemsInParallel = async (
         totalLoadedPerDataset[datasetId] += items.length;
         totalLoaded += items.length;
 
-        if (debugLog) {
-            log.info(
-                `Items loaded from dataset ${datasetId}: ${items.length}, offset: ${requestInfoObj.offset},
+        log.debug(`Items loaded from dataset ${datasetId}: ${items.length}, offset: ${requestInfoObj.offset},
        total loaded from dataset ${datasetId}: ${totalLoadedPerDataset[datasetId]},
-       total loaded: ${totalLoaded}`,
-            );
-        }
+       total loaded: ${totalLoaded}`);
+
         // We either collect the data or we process them on the fly
         if (processFn) {
             await processFn(items, { datasetId, datasetOffset: requestInfoObj.offset });
@@ -353,9 +338,7 @@ export const loadDatasetItemsInParallel = async (
         }
     }), parallelLoads);
 
-    if (debugLog) {
-        log.info(`Loading took ${Math.round((Date.now() - loadStart) / 1000)} seconds`);
-    }
+    log.debug(`Loading took ${Math.round((Date.now() - loadStart) / 1000)} seconds`);
 
     if (processFnLoadingState) {
         await Actor.setValue(PROCESS_FN_LOADING_STATE_KV_RECORD_KEY, processFnLoadingState);
