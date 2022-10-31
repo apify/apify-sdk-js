@@ -28,9 +28,9 @@
         "rimraf": "^3.0.2"
     },
     "dependencies": {
-        "@docusaurus/core": "2.1.0",
+        "@docusaurus/core": "2.2.0",
         "@docusaurus/plugin-client-redirects": "^2.0.1",
-        "@docusaurus/preset-classic": "2.1.0",
+        "@docusaurus/preset-classic": "2.2.0",
         "clsx": "^1.1.1",
         "docusaurus-plugin-typedoc-api": "2.4.1",
         "prop-types": "^15.8.1",
