@@ -8,7 +8,6 @@ import ThemedImage from '@theme/ThemedImage';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 import useBaseUrl from '@docusaurus/useBaseUrl';
 import styles from './index.module.css';
-import ProductHuntCard from '../components/ProductHuntCard';
 
 function Hero() {
     return (
@@ -85,40 +84,6 @@ function Features() {
                             dark: useBaseUrl('/img/sdk-split-dark.png'),
                         }}
                         className={clsx(styles.hideSmall)} />
-                </div>
-            </div>
-        </section>
-    );
-}
-
-function TopBanner() {
-    const HNLogo = require('../../static/img/logo-hn.svg').default;
-    const PHLogo = require('../../static/img/logo-ph.svg').default;
-    const GHLogo = require('../../static/img/logo-gh.svg').default;
-    return (
-        <section className={clsx('container', styles.topBanner)}>
-            <div className="row">
-                <div className="col col--8">
-                    <h1>🎉 Crawlee is out!</h1>
-                    <div className={styles.textRow}>
-                        Check Crawlee on{' '}
-                        <Link to="https://github.com/apify/crawlee">
-                            <GHLogo className={styles.ghLogoSmall} />
-                            GitHub
-                        </Link>,{' '}
-                        <Link to="https://news.ycombinator.com/item?id=32561127">
-                            <HNLogo className={styles.hnLogoSmall} />
-                            Hacker News
-                        </Link>{' '}
-                        and{' '}
-                        <Link to="https://www.producthunt.com/posts/crawlee">
-                            <PHLogo className={styles.phLogoSmall} />
-                            Product Hunt
-                        </Link>!
-                    </div>
-                </div>
-                <div className={clsx('col col--4', styles.phcard)}>
-                    <ProductHuntCard />
                 </div>
             </div>
         </section>
@@ -292,7 +257,6 @@ export default function Home() {
         <Layout
             title={`${siteConfig.title} · ${siteConfig.tagline}`}
             description={siteConfig.description}>
-            <TopBanner />
             <Hero />
             <Features />
             <ActorExample />
