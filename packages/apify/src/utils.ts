@@ -6,6 +6,8 @@ import semver from 'semver';
 // @ts-expect-error if we enable resolveJsonModule, we end up with `src` folder in `dist`
 import { version as apifyClientVersion } from 'apify-client/package.json';
 // @ts-expect-error if we enable resolveJsonModule, we end up with `src` folder in `dist`
+import { version as crawleeVersion } from '@crawlee/core/package.json';
+// @ts-expect-error if we enable resolveJsonModule, we end up with `src` folder in `dist`
 import { version as apifyVersion } from '../package.json';
 
 /**
@@ -16,6 +18,7 @@ export function logSystemInfo() {
     log.info('System info', {
         apifyVersion,
         apifyClientVersion,
+        crawleeVersion,
         osType: type(),
         nodeVersion: process.version,
     });
