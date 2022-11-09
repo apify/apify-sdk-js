@@ -69,7 +69,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
     readonly eventManager: EventManager;
 
     /**
-     * Whether the actor instance was initialized. This is set by calling {@apilink Actor.init}
+     * Whether the actor instance was initialized. This is set by calling {@apilink Actor.init}.
      */
     initialized = false;
 
@@ -77,7 +77,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * Set if the actor called a method that requires the instance to be initialized, but did not do so.
      * A call to `init` after this warning is emitted is considered  an invalid state and will throw an error.
      */
-    warnedAboutMissingInitCall = false;
+    private warnedAboutMissingInitCall = false;
 
     constructor(options: ConfigurationOptions = {}) {
         // use default configuration object if nothing overridden (it fallbacks to env vars)
@@ -177,7 +177,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      */
     async init(options: InitOptions = {}): Promise<void> {
         if (this.initialized) {
-            log.warning(`Actor#init() was called multiple times. This will have no effect.`);
+            log.warning("Actor#init() was called multiple times. This will have no effect.");
             return;
         }
 
@@ -549,7 +549,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @ignore
      */
     async pushData(item: Data | Data[]): Promise<void> {
-        this._ensureActorInit('pushData', false);
+        this._ensureActorInit('pushData');
 
         const dataset = await this.openDataset();
         return dataset.pushData(item);
@@ -579,7 +579,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
             forceCloud: ow.optional.boolean,
         }));
 
-        this._ensureActorInit('openDataset', false);
+        this._ensureActorInit('openDataset');
 
         return this._openStorage<Dataset<Data>>(Dataset, datasetIdOrName, options);
     }
@@ -613,7 +613,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @ignore
      */
     async getValue<T = unknown>(key: string): Promise<T | null> {
-        this._ensureActorInit('getValue', false);
+        this._ensureActorInit('getValue');
 
         const store = await this.openKeyValueStore();
         return store.getValue<T>(key);
@@ -651,7 +651,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @ignore
      */
     async setValue<T>(key: string, value: T | null, options: RecordOptions = {}): Promise<void> {
-        this._ensureActorInit('setValue', false);
+        this._ensureActorInit('setValue');
 
         const store = await this.openKeyValueStore();
         return store.setValue(key, value, options);
@@ -687,7 +687,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @ignore
      */
     async getInput<T = Dictionary | string | Buffer>(): Promise<T | null> {
-        this._ensureActorInit('getInput', false);
+        this._ensureActorInit('getInput');
 
         const inputSecretsPrivateKeyFile = this.config.get('inputSecretsPrivateKeyFile');
         const inputSecretsPrivateKeyPassphrase = this.config.get('inputSecretsPrivateKeyPassphrase');
@@ -723,7 +723,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
             forceCloud: ow.optional.boolean,
         }));
 
-        this._ensureActorInit('openKeyValueStore', false);
+        this._ensureActorInit('openKeyValueStore');
 
         return this._openStorage(KeyValueStore, storeIdOrName, options);
     }
@@ -751,7 +751,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
             forceCloud: ow.optional.boolean,
         }));
 
-        this._ensureActorInit('openRequestQueue', false);
+        this._ensureActorInit('openRequestQueue');
 
         return this._openStorage(RequestQueue, queueIdOrName, options);
     }
@@ -1167,9 +1167,6 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * The objects must be serializable to JSON and the JSON representation of each object must be smaller than 9MB.
      */
     static async pushData<Data extends Dictionary = Dictionary>(item: Data | Data[]): Promise<void> {
-        // eslint-disable-next-line no-underscore-dangle
-        Actor._ensureDefaultInstanceInit('pushData');
-
         return Actor.getDefaultInstance().pushData(item);
     }
 
@@ -1190,9 +1187,6 @@ export class Actor<Data extends Dictionary = Dictionary> {
     static async openDataset<Data extends Dictionary = Dictionary>(
         datasetIdOrName?: string | null, options: OpenStorageOptions = {},
     ): Promise<Dataset<Data>> {
-        // eslint-disable-next-line no-underscore-dangle
-        Actor._ensureDefaultInstanceInit('openDataset');
-
         return Actor.getDefaultInstance().openDataset(datasetIdOrName, options);
     }
 
@@ -1224,9 +1218,6 @@ export class Actor<Data extends Dictionary = Dictionary> {
      *   if the record is missing.
      */
     static async getValue<T = unknown>(key: string): Promise<T | null> {
-        // eslint-disable-next-line no-underscore-dangle
-        Actor._ensureDefaultInstanceInit('getValue');
-
         return Actor.getDefaultInstance().getValue(key);
     }
 
@@ -1261,9 +1252,6 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @param [options]
      */
     static async setValue<T>(key: string, value: T | null, options: RecordOptions = {}): Promise<void> {
-        // eslint-disable-next-line no-underscore-dangle
-        Actor._ensureDefaultInstanceInit('setValue');
-
         return Actor.getDefaultInstance().setValue(key, value, options);
     }
 
@@ -1295,9 +1283,6 @@ export class Actor<Data extends Dictionary = Dictionary> {
      *   if the record is missing.
      */
     static async getInput<T = Dictionary | string | Buffer>(): Promise<T | null> {
-        // eslint-disable-next-line no-underscore-dangle
-        Actor._ensureDefaultInstanceInit('getInput');
-
         return Actor.getDefaultInstance().getInput();
     }
 
@@ -1316,9 +1301,6 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @param [options]
      */
     static async openKeyValueStore(storeIdOrName?: string | null, options: OpenStorageOptions = {}): Promise<KeyValueStore> {
-        // eslint-disable-next-line no-underscore-dangle
-        Actor._ensureDefaultInstanceInit('openKeyValueStore');
-
         return Actor.getDefaultInstance().openKeyValueStore(storeIdOrName, options);
     }
 
@@ -1339,9 +1321,6 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @param [options]
      */
     static async openRequestQueue(queueIdOrName?: string | null, options: OpenStorageOptions = {}): Promise<RequestQueue> {
-        // eslint-disable-next-line no-underscore-dangle
-        Actor._ensureDefaultInstanceInit('openRequestQueue');
-
         return Actor.getDefaultInstance().openRequestQueue(queueIdOrName, options);
     }
 
@@ -1436,7 +1415,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
         return StorageManager.openStorage<T>(storageClass, id, client, this.config);
     }
 
-    private _ensureActorInit(methodCalled: string, staticMethod: boolean) {
+    private _ensureActorInit(methodCalled: string) {
         // If we already warned the user once, don't do it again to prevent spam
         if (this.warnedAboutMissingInitCall) {
             return;
@@ -1446,19 +1425,12 @@ export class Actor<Data extends Dictionary = Dictionary> {
             return;
         }
 
-        const methodSeparator = staticMethod ? '.' : '#';
-
         this.warnedAboutMissingInitCall = true;
 
         log.warning([
-            `Actor${methodSeparator}${methodCalled}() was called but the actor instance was not initialized.`,
-            `Did you forget to call Actor${methodSeparator}init()?`,
+            `Actor.${methodCalled}() was called but the actor instance was not initialized.`,
+            'Did you forget to call Actor.init()?',
         ].join('\n'));
-    }
-
-    private static _ensureDefaultInstanceInit(methodCalled: string) {
-        // eslint-disable-next-line no-underscore-dangle
-        return Actor.getDefaultInstance()._ensureActorInit(methodCalled, true);
     }
 }
 
