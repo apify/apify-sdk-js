@@ -94,12 +94,12 @@ module.exports = {
                 },
             },
         ],
-        // [
-        //     'docusaurus-gtm-plugin',
-        //     {
-        //         id: 'GTM-TKBX678',
-        //     },
-        // ],
+        [
+            'docusaurus-gtm-plugin',
+            {
+                id: 'GTM-MNGXGGB',
+            },
+        ],
     ],
     themeConfig:
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */ ({
