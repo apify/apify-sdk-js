@@ -177,7 +177,6 @@ export class Actor<Data extends Dictionary = Dictionary> {
      */
     async init(options: InitOptions = {}): Promise<void> {
         if (this.initialized) {
-            log.warning("Actor#init() was called multiple times. This will have no effect.");
             return;
         }
 
