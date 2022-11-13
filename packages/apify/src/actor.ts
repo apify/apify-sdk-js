@@ -68,6 +68,17 @@ export class Actor<Data extends Dictionary = Dictionary> {
      */
     readonly eventManager: EventManager;
 
+    /**
+     * Whether the actor instance was initialized. This is set by calling {@apilink Actor.init}.
+     */
+    initialized = false;
+
+    /**
+     * Set if the actor called a method that requires the instance to be initialized, but did not do so.
+     * A call to `init` after this warning is emitted is considered  an invalid state and will throw an error.
+     */
+    private warnedAboutMissingInitCall = false;
+
     constructor(options: ConfigurationOptions = {}) {
         // use default configuration object if nothing overridden (it fallbacks to env vars)
         this.config = Object.keys(options).length === 0 ? Configuration.getGlobalConfig() : new Configuration(options);
@@ -165,6 +176,20 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @ignore
      */
     async init(options: InitOptions = {}): Promise<void> {
+        if (this.initialized) {
+            return;
+        }
+
+        // If the warning about forgotten init call was emitted, we will not continue the init procedure.
+        if (this.warnedAboutMissingInitCall) {
+            throw new Error([
+                'Actor.init() was called after a method that would access a storage client was used.',
+                'This in an invalid state. Please make sure to call Actor.init() before such methods are called.',
+            ].join('\n'));
+        }
+
+        this.initialized = true;
+
         logSystemInfo();
         printOutdatedSdkWarning();
 
@@ -523,6 +548,8 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @ignore
      */
     async pushData(item: Data | Data[]): Promise<void> {
+        this._ensureActorInit('pushData');
+
         const dataset = await this.openDataset();
         return dataset.pushData(item);
     }
@@ -550,6 +577,8 @@ export class Actor<Data extends Dictionary = Dictionary> {
         ow(options, ow.object.exactShape({
             forceCloud: ow.optional.boolean,
         }));
+
+        this._ensureActorInit('openDataset');
 
         return this._openStorage<Dataset<Data>>(Dataset, datasetIdOrName, options);
     }
@@ -583,6 +612,8 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @ignore
      */
     async getValue<T = unknown>(key: string): Promise<T | null> {
+        this._ensureActorInit('getValue');
+
         const store = await this.openKeyValueStore();
         return store.getValue<T>(key);
     }
@@ -619,6 +650,8 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @ignore
      */
     async setValue<T>(key: string, value: T | null, options: RecordOptions = {}): Promise<void> {
+        this._ensureActorInit('setValue');
+
         const store = await this.openKeyValueStore();
         return store.setValue(key, value, options);
     }
@@ -653,6 +686,8 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @ignore
      */
     async getInput<T = Dictionary | string | Buffer>(): Promise<T | null> {
+        this._ensureActorInit('getInput');
+
         const inputSecretsPrivateKeyFile = this.config.get('inputSecretsPrivateKeyFile');
         const inputSecretsPrivateKeyPassphrase = this.config.get('inputSecretsPrivateKeyPassphrase');
         const input = await this.getValue<T>(this.config.get('inputKey'));
@@ -687,6 +722,8 @@ export class Actor<Data extends Dictionary = Dictionary> {
             forceCloud: ow.optional.boolean,
         }));
 
+        this._ensureActorInit('openKeyValueStore');
+
         return this._openStorage(KeyValueStore, storeIdOrName, options);
     }
 
@@ -712,6 +749,8 @@ export class Actor<Data extends Dictionary = Dictionary> {
         ow(options, ow.object.exactShape({
             forceCloud: ow.optional.boolean,
         }));
+
+        this._ensureActorInit('openRequestQueue');
 
         return this._openStorage(RequestQueue, queueIdOrName, options);
     }
@@ -1373,6 +1412,24 @@ export class Actor<Data extends Dictionary = Dictionary> {
     private _openStorage<T extends IStorage>(storageClass: Constructor<T>, id?: string, options: OpenStorageOptions = {}) {
         const client = options.forceCloud ? this.apifyClient : undefined;
         return StorageManager.openStorage<T>(storageClass, id, client, this.config);
+    }
+
+    private _ensureActorInit(methodCalled: string) {
+        // If we already warned the user once, don't do it again to prevent spam
+        if (this.warnedAboutMissingInitCall) {
+            return;
+        }
+
+        if (this.initialized) {
+            return;
+        }
+
+        this.warnedAboutMissingInitCall = true;
+
+        log.warning([
+            `Actor.${methodCalled}() was called but the actor instance was not initialized.`,
+            'Did you forget to call Actor.init()?',
+        ].join('\n'));
     }
 }
 
