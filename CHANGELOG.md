@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [3.1.1](https://github.com/apify/apify-sdk-js/compare/apify@3.1.0...apify@3.1.1) (2022-11-13)
+
+
+### Features
+
+* add `statusMessage` to `AbortOptions` ([fb10bb6](https://github.com/apify/apify-sdk-js/commit/fb10bb60c12c0af97e41ae88adcf0b2000286235))
+* warn about actor not being initialized before using storage methods ([#126](https://github.com/apify/apify-sdk-js/issues/126)) ([91cd246](https://github.com/apify/apify-sdk-js/commit/91cd2467d111de19490a6bf47b4a9138f26a37d4))
+
+
+
+
+
 # 3.1.0 (2022-10-13)
 
 
