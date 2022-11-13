@@ -1,13 +1,13 @@
 {
     "name": "actor-puppeteer-scraper",
-    "version": "3.0.0",
+    "version": "3.0.1",
     "private": true,
     "description": "Crawl web pages using Apify, headless Chrome and Puppeteer",
     "type": "module",
     "dependencies": {
-        "@apify/scraper-tools": "^1.1.0",
+        "@apify/scraper-tools": "^1.1.1",
         "@crawlee/puppeteer": "^3.1.0",
-        "apify": "^3.1.0",
+        "apify": "^3.1.1",
         "puppeteer": "*"
     },
     "devDependencies": {
