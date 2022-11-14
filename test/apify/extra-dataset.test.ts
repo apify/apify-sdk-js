@@ -1,5 +1,5 @@
 import { ENV_VARS } from '@apify/consts';
-import { Actor, Configuration, Dataset as DatasetClassic, PlatformEventManager, log } from 'apify';
+import { Actor, Configuration, PlatformEventManager, log } from 'apify';
 import { Server } from 'ws';
 import { Dataset } from 'apify-extra';
 
@@ -21,7 +21,9 @@ describe('forEachParallel', () => {
     });
 
     test('slicing should work', async () => {
-        const forEachSpy = jest.spyOn(Dataset.prototype, 'forEach').mockImplementation();
+        const getDataSpy = jest.spyOn(Dataset.prototype, 'getData').mockImplementation(async ({ limit }) => (
+            { items: [...new Array(limit).keys()] } as any
+        ));
         jest.spyOn(Dataset.prototype, 'getInfo').mockImplementation(async () => ({
             itemCount: 229, // a prime number
         } as any));
@@ -32,18 +34,17 @@ describe('forEachParallel', () => {
             id: 'dataset-forEachParallel-test',
         });
 
-        await dataset.forEachParallel(() => { log.debug('noop'); }, { persistState: true, batchSize: 7 });
+        await dataset.forEachParallel((x) => { log.debug(`processing ${x}`); }, { persistState: true, batchSize: 7 });
 
-        expect(forEachSpy).toBeCalledTimes(Math.ceil(229 / 7));
+        expect(getDataSpy).toBeCalledTimes(Math.ceil(229 / 7));
 
         [...Array(Math.ceil(229 / 7))].forEach((_, i) => {
-            expect(forEachSpy).toBeCalledWith(
-                expect.any(Function),
+            expect(getDataSpy).toBeCalledWith(
                 expect.objectContaining({
                     limit: 7,
                     offset: i * 7,
                 }));
         });
-        forEachSpy.mockRestore();
+        getDataSpy.mockRestore();
     }, 60e3);
 });
