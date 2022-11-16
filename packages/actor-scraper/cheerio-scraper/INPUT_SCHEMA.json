@@ -23,7 +23,7 @@
             "title": "Glob Patterns",
             "type": "array",
             "description": "Glob patterns to match links in the page that you want to enqueue. Combine with Link selector to tell the scraper where to find links. Omitting the Glob patterns will cause the scraper to enqueue all links matched by the Link selector.",
-            "editor": "stringList",
+            "editor": "globs",
             "default": [],
             "prefill": ["https://crawlee.dev/*/*"]
         },
