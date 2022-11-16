@@ -44,7 +44,9 @@
             "description": "Glob patterns to match links in the page that you want to enqueue. Combine with Link selector to tell the scraper where to find links. Omitting the Glob patterns will cause the scraper to enqueue all links matched by the Link selector.",
             "editor": "globs",
             "default": [],
-            "prefill": ["https://crawlee.dev/*/*"]
+            "prefill": [{
+                "glob": "https://crawlee.dev/*/*"
+            }]
         },
         "pseudoUrls": {
             "title": "Pseudo-URLs",
