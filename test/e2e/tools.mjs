@@ -5,7 +5,7 @@ import { readdir } from 'node:fs/promises';
 import { homedir } from 'node:os';
 import { setTimeout } from 'node:timers/promises';
 import fs from 'fs-extra';
-import { Actor, Configuration } from 'apify';
+import { Configuration, KeyValueStore } from 'apify';
 import { URL_NO_COMMAS_REGEX } from 'crawlee';
 import { purgeDefaultStorages } from '@crawlee/core';
 
@@ -53,7 +53,7 @@ export async function run(url, scraper, input) {
 
     await purgeDefaultStorages();
     const inputKey = Configuration.getGlobalConfig().get('inputKey');
-    await Actor.setValue(inputKey, input);
+    await KeyValueStore.setValue(inputKey, input);
 
     await import(`../../packages/actor-scraper/${scraper}/dist/main.js`);
     // Some runs don't save the final stats, and stats.crawlerFinishedAt
