@@ -4,6 +4,7 @@ title: Proxy Management
 ---
 
 import ApiLink from '@site/src/components/ApiLink';
+import CrawleeApiLink from '@site/src/components/CrawleeApiLink';
 
 [IP address blocking](https://en.wikipedia.org/wiki/IP_address_blocking) is one of the oldest
 and most effective ways of preventing access to a website. It is therefore paramount for
@@ -50,7 +51,7 @@ All your proxy needs are managed by the <ApiLink to="apify/class/ProxyConfigurat
 
 ### Crawler integration
 
-`ProxyConfiguration` integrates seamlessly into <ApiLink to="cheerio-crawler/class/CheerioCrawler">`CheerioCrawler`</ApiLink> and <ApiLink to="puppeteer-crawler/class/PuppeteerCrawler">`PuppeteerCrawler`</ApiLink>.
+`ProxyConfiguration` integrates seamlessly into <CrawleeApiLink to="cheerio-crawler/class/CheerioCrawler">`CheerioCrawler`</CrawleeApiLink> and <CrawleeApiLink to="puppeteer-crawler/class/PuppeteerCrawler">`PuppeteerCrawler`</CrawleeApiLink>.
 
 <!--DOCUSAURUS_CODE_TABS-->
 
@@ -79,7 +80,7 @@ Your crawlers will now use the selected proxies for all connections.
 
 ### IP Rotation and session management
 
-&#8203;<ApiLink to="apify/class/ProxyConfiguration#newUrl">`proxyConfiguration.newUrl()`</ApiLink> allows you to pass a `sessionId` parameter. It will then be used to create a `sessionId`-`proxyUrl` pair, and subsequent `newUrl()` calls with the same `sessionId` will always return the same `proxyUrl`. This is extremely useful in scraping, because you want to create the impression of a real user. See the [session management guide](../guides/session-management) and <ApiLink to="apify/class/SessionPool">`SessionPool`</ApiLink> class for more information on how keeping a real session helps you avoid blocking.
+&#8203;<ApiLink to="apify/class/ProxyConfiguration#newUrl">`proxyConfiguration.newUrl()`</ApiLink> allows you to pass a `sessionId` parameter. It will then be used to create a `sessionId`-`proxyUrl` pair, and subsequent `newUrl()` calls with the same `sessionId` will always return the same `proxyUrl`. This is extremely useful in scraping, because you want to create the impression of a real user. See the [session management guide](../guides/session-management) and <CrawleeApiLink to="core/class/SessionPool">`SessionPool`</CrawleeApiLink> class for more information on how keeping a real session helps you avoid blocking.
 
 When no `sessionId` is provided, your proxy URLs are rotated round-robin, whereas Apify Proxy manages their rotation using black magic to get the best performance.
 

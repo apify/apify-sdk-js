@@ -84,6 +84,10 @@ module.exports = {
                         from: '/docs/next/guides/getting-started',
                         to: '/docs/next/guides/apify-platform',
                     },
+                    {
+                        from: '/api',
+                        to: '/api/apify',
+                    },
                 ],
                 createRedirects(existingPath) {
                     if (!existingPath.endsWith('/')) {

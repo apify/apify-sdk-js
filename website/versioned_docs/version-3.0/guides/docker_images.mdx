@@ -5,6 +5,7 @@ description: Example Docker images to run your crawlers
 ---
 
 import ApiLink from '@site/src/components/ApiLink';
+import CrawleeApiLink from '@site/src/components/CrawleeApiLink';
 
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
@@ -100,7 +101,9 @@ When you use only what you need, you'll be rewarded with reasonable build and st
 
 ### actor-node
 
-This is the smallest image we have based on Alpine Linux. It does not include any browsers. It benefits from lightning fast builds and container startups. Headless browsers will **NOT** work with this image.
+This is the smallest image we have based on Alpine Linux. It does not include any browsers, and it's therefore best used with <CrawleeApiLink to="cheerio-crawler/class/CheerioCrawler">`CheerioCrawler`</CrawleeApiLink>. It benefits from lightning fast builds and container startups.
+
+&#8203;<CrawleeApiLink to="puppeteer-crawler/class/PuppeteerCrawler">`PuppeteerCrawler`</CrawleeApiLink>, <CrawleeApiLink to="playwright-crawler/class/PlaywrightCrawler">`PlaywrightCrawler`</CrawleeApiLink> and other browser based features will **NOT** work with this image.
 
 ```dockerfile
 FROM apify/actor-node:16
@@ -108,7 +111,9 @@ FROM apify/actor-node:16
 
 ### actor-node-puppeteer-chrome
 
-This image includes Puppeteer (Chromium) and the Chrome browser. It can be used with the Puppeteer library, but **NOT** with Playwright. The image supports XVFB by default, so you can run both `headless` and `headful` browsers with it.
+This image includes Puppeteer (Chromium) and the Chrome browser. It can be used with <CrawleeApiLink to="cheerio-crawler/class/CheerioCrawler">`CheerioCrawler`</CrawleeApiLink> and <CrawleeApiLink to="puppeteer-crawler/class/PuppeteerCrawler">`PuppeteerCrawler`</CrawleeApiLink>, but **NOT** with <CrawleeApiLink to="playwright-crawler/class/PlaywrightCrawler">`PlaywrightCrawler`</CrawleeApiLink>.
+
+The image supports XVFB by default, so you can run both `headless` and `headful` browsers with it.
 
 ```dockerfile
 FROM apify/actor-node-puppeteer-chrome:16
@@ -124,9 +129,9 @@ FROM apify/actor-node-playwright:16
 
 ### actor-node-playwright-chrome
 
-Similar to [`actor-node-puppeteer-chrome`](#actor-node-puppeteer-chrome), but for Playwright. You can run Playwright, but **NOT** Puppeteer.
+Similar to [`actor-node-puppeteer-chrome`](#actor-node-puppeteer-chrome), but for Playwright. You can run <CrawleeApiLink to="cheerio-crawler/class/CheerioCrawler">`CheerioCrawler`</CrawleeApiLink> and <CrawleeApiLink to="playwright-crawler/class/PlaywrightCrawler">`PlaywrightCrawler`</CrawleeApiLink>, but **NOT** <CrawleeApiLink to="puppeteer-crawler/class/PuppeteerCrawler">`PuppeteerCrawler`</CrawleeApiLink>.
 
-It uses the [`PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD`](https://playwright.dev/docs/api/environment-variables/) environment variable to block installation of more browsers into the image to keep it small. If you want more browsers, either use the [`actor-node-playwright`](#actor-node-playwright) image or override this env var.
+It uses the [`PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD`](https://playwright.dev/docs/api/environment-variables/) environment variable to block installation of more browsers into the image to keep it small. If you want more browsers, either use the [`actor-node-playwright`](#actor-node-playwright) image override this env var.
 
 The image supports XVFB by default, so we can run both `headless` and `headful` browsers with it.
 
@@ -154,7 +159,7 @@ FROM apify/actor-node-playwright-webkit:16
 
 ## Example Dockerfile
 
-To use the above images, it's necessary to have a [`Dockerfile`](https://docs.docker.com/engine/reference/builder/). You can either use this example, or bootstrap your projects with the [Crawlee CLI](../introduction/setting-up) which automatically adds the correct Dockerfile into our project folder.
+To use the above images, it's necessary to have a [`Dockerfile`](https://docs.docker.com/engine/reference/builder/). You can either use this example, or bootstrap your projects with the [Crawlee CLI](https://crawlee.dev/docs/introduction/setting-up) which automatically adds the correct Dockerfile into our project folder.
 
 <Tabs>
     <TabItem value="node+js" label="Node+JavaScript">
