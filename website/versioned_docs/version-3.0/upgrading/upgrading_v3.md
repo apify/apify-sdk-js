@@ -4,7 +4,7 @@ title: Upgrading to v3
 ---
 
 import ApiLink from '@site/src/components/ApiLink';
-import CrawleeApiLink from '@site/src/components/CrawleeApiLink';
+import { CrawleeApiLink } from '@site/src/components/CrawleeLinks';
 
 This page summarizes most of the breaking changes between Crawlee (v3) and Apify SDK (v2). Crawlee is the spiritual successor to Apify SDK, so we decided to keep the versioning and release Crawlee as v3.
 

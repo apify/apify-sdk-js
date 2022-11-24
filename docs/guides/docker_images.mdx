@@ -5,7 +5,7 @@ description: Example Docker images to run your crawlers
 ---
 
 import ApiLink from '@site/src/components/ApiLink';
-import CrawleeApiLink from '@site/src/components/CrawleeApiLink';
+import { CrawleeApiLink, CrawleeLink } from '@site/src/components/CrawleeLinks';
 
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
@@ -159,7 +159,7 @@ FROM apify/actor-node-playwright-webkit:16
 
 ## Example Dockerfile
 
-To use the above images, it's necessary to have a [`Dockerfile`](https://docs.docker.com/engine/reference/builder/). You can either use this example, or bootstrap your projects with the [Crawlee CLI](https://crawlee.dev/docs/introduction/setting-up) which automatically adds the correct Dockerfile into our project folder.
+To use the above images, it's necessary to have a [`Dockerfile`](https://docs.docker.com/engine/reference/builder/). You can either use this example, or bootstrap your projects with the <CrawleeLink to="docs/introduction/setting-up">Crawlee CLI</CrawleeLink> which automatically adds the correct Dockerfile into our project folder.
 
 <Tabs>
     <TabItem value="node+js" label="Node+JavaScript">
