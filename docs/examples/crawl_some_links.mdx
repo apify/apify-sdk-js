@@ -5,9 +5,10 @@ title: Crawl some links on a website
 
 import CodeBlock from '@theme/CodeBlock';
 import ApiLink from '@site/src/components/ApiLink';
+import { CrawleeApiLink } from '@site/src/components/CrawleeLinks';
 import CrawlSource from '!!raw-loader!./crawl_some_links.ts';
 
-This <ApiLink to="cheerio-crawler/class/CheerioCrawler">`CheerioCrawler`</ApiLink> example uses the <ApiLink to="apify/class/PseudoUrl">`pseudoUrls`</ApiLink> property in the <ApiLink to="cheerio-crawler/interface/CheerioRequestHandlerInputs#enqueueLinks">`enqueueLinks()`</ApiLink> method to only add links to the <ApiLink to="apify/class/RequestQueue">`RequestQueue`</ApiLink> queue if they match the specified regular expression.
+This <CrawleeApiLink to="cheerio-crawler/class/CheerioCrawler">`CheerioCrawler`</CrawleeApiLink> example uses the <CrawleeApiLink to="core/class/PseudoUrl">`pseudoUrls`</CrawleeApiLink> property in the <CrawleeApiLink to="cheerio-crawler/interface/CheerioRequestHandlerInputs#enqueueLinks">`enqueueLinks()`</CrawleeApiLink> method to only add links to the <ApiLink to="apify/class/RequestQueue">`RequestQueue`</ApiLink> queue if they match the specified regular expression.
 
 <CodeBlock className="language-js">
 	{CrawlSource}

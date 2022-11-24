@@ -4,6 +4,7 @@ title: Upgrading to v3
 ---
 
 import ApiLink from '@site/src/components/ApiLink';
+import { CrawleeApiLink } from '@site/src/components/CrawleeLinks';
 
 This page summarizes most of the breaking changes between Crawlee (v3) and Apify SDK (v2). Crawlee is the spiritual successor to Apify SDK, so we decided to keep the versioning and release Crawlee as v3.
 
@@ -387,7 +388,7 @@ As an example, this change disallows a pool to mix Puppeteer with Playwright. Yo
 
 One small feature worth mentioning is the ability to handle requests with browser crawlers outside the browser. To do that, we can use a combination of `Request.skipNavigation` and `context.sendRequest()`.
 
-Take a look at how to achieve this by checking out the [Skipping navigation for certain requests](../examples/skip-navigation) example!
+Take a look at how to achieve this by checking out the [Skipping navigation for certain requests](https://crawlee.dev/docs/examples/skip-navigation) example!
 
 ## Logging
 
@@ -447,14 +448,14 @@ await Actor.main(async () => {
 
 ### Events
 
-Apify SDK (v2) exports `Apify.events`, which is an `EventEmitter` instance. With Crawlee, the events are managed by <ApiLink to="core/class/EventManager">`EventManager`</ApiLink> class instead. We can either access it via `Actor.eventManager` getter, or use `Actor.on` and `Actor.off` shortcuts instead.
+Apify SDK (v2) exports `Apify.events`, which is an `EventEmitter` instance. With Crawlee, the events are managed by <CrawleeApiLink to="core/class/EventManager">`EventManager`</CrawleeApiLink> class instead. We can either access it via `Actor.eventManager` getter, or use `Actor.on` and `Actor.off` shortcuts instead.
 
 ```diff
 -Apify.events.on(...);
 +Actor.on(...);
 ```
 
-> We can also get the <ApiLink to="core/class/EventManager">`EventManager`</ApiLink> instance via `Configuration.getEventManager()`.
+> We can also get the <CrawleeApiLink to="core/class/EventManager">`EventManager`</CrawleeApiLink> instance via `Configuration.getEventManager()`.
 
 In addition to the existing events, we now have an `exit` event fired when calling `Actor.exit()` (which is called at the end of `Actor.main()`). This event allows you to gracefully shut down any resources when `Actor.exit` is called.
 
