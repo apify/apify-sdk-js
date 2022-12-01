@@ -23,9 +23,8 @@ await run(testDir, 'jsdom-scraper', {
             const { document } =    window;
             const links = Array.from(document.querySelectorAll('.ActorStoreItem')).map(x => x.href);
             for (const link of links) {
-                const actorDetailUrl = `https://apify.com${link}`;
                 await enqueueRequest({
-                    url: actorDetailUrl,
+                    url: link,
                     userData: { label: 'DETAIL' },
                 });
             }
