@@ -50,9 +50,9 @@ either in [**Start URLs**](#start-urls), [**Pseudo URLs**](#pseudo-urls) or in t
 The web pages with various content types are parsed differently and
 thus the `context` parameter of the [**Page function**](#page-function) will have different values:
 
-| **Content types**                                       | [`context.body`](#body-stringbuffer) | [`context.$`](#-function) | [`context.json`](#json-object) |
+| **Content types**                                       | [`context.body`](#body-stringbuffer) | [`context.window`](#-object) | [`context.json`](#json-object) |
 |---------------------------------------------------------|--------------------------------------|---------------------------|--------------------------------|
-| `text/html`, `application/xhtml+xml`, `application/xml` | `String`                             | `Function`                | `null`                         |
+| `text/html`, `application/xhtml+xml`, `application/xml` | `String`                             | `Object`                | `null`                         |
 | `application/json`                                      | `String`                             | `null`                    | `Object`                       |
 | Other                                                   | `Buffer`                             | `null`                    | `null`                         |
 

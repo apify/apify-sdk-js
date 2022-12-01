@@ -30,10 +30,10 @@ await run(testDir, 'jsdom-scraper', {
             log.info('Bad SSL page opened!');
         }
 
-        async function handleDetail({ request, log, $ }) {
+        async function handleDetail({ request, log, window }) {
             const { url } = request;
             log.info(`Scraping ${url}`);
-            const title = $('title').text();
+            const title = window.document.title;
             return { url, title };
         }
     },

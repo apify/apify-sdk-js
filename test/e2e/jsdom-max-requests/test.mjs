@@ -19,8 +19,9 @@ await run(testDir, 'jsdom-scraper', {
             case 'DETAIL': return handleDetail(context);
         }
 
-        async function handleStart({ enqueueRequest, $ }) {
-            const links = $('.ActorStoreItem').toArray().map((item) => $(item).attr('href'));
+        async function handleStart({ enqueueRequest, window }) {
+            const { document } =    window;
+            const links = Array.from(document.querySelectorAll('.ActorStoreItem')).map(x => x.href);
             for (const link of links) {
                 const actorDetailUrl = `https://apify.com${link}`;
                 await enqueueRequest({
