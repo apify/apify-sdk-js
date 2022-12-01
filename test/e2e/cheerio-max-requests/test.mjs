@@ -22,9 +22,8 @@ await run(testDir, 'cheerio-scraper', {
         async function handleStart({ enqueueRequest, $ }) {
             const links = $('.ActorStoreItem').toArray().map((item) => $(item).attr('href'));
             for (const link of links) {
-                const actorDetailUrl = `https://apify.com${link}`;
                 await enqueueRequest({
-                    url: actorDetailUrl,
+                    url: link,
                     userData: { label: 'DETAIL' },
                 });
             }
