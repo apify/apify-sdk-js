@@ -1,26 +1,26 @@
-# Cheerio Scraper
+# JSDOM Scraper
 
-Cheerio Scraper is a ready-made solution for crawling websites using plain HTTP requests. It retrieves the HTML pages, parses them using the [Cheerio](https://cheerio.js.org) Node.js library and lets you extract any data from them. Fast.
+JSDOM Scraper is a ready-made solution for crawling websites using plain HTTP requests. It retrieves the HTML pages, parses them using the [JSDOM](https://github.com/jsdom/jsdom) Node.js library and lets you extract any data from them using the Window API you know from browsers. Fast.
 
-Cheerio is a server-side version of the popular [jQuery](https://jquery.com) library. It does not require a
-browser but instead constructs a DOM from an HTML string. It then provides the user an API to work with that DOM.
+JSDOM is a server-side emulation of the standard browser Window API. It does not require a
+browser - instead, it constructs a DOM tree from a provided HTML string. The user is then presented with an API to work with that DOM tree.
 
-Cheerio Scraper is ideal for scraping web pages that do not rely on client-side JavaScript to serve their content and can be up to 20 times faster than using a full-browser solution such as Puppeteer.
+JSDOM Scraper is ideal for scraping web pages which utilize light client-side JavaScript to serve their content - it can be up to 20 times faster than using a full-browser solution such as Puppeteer!
 
 If you're unfamiliar with web scraping or web development in general,
-you might prefer to start with [**Scraping with Web Scraper**](https://docs.apify.com/tutorials/apify-scrapers/web-scraper) tutorial from the Apify documentation and then continue with [**Scraping with Cheerio Scraper**](https://docs.apify.com/tutorials/apify-scrapers/cheerio-scraper), a tutorial which will walk you through all the steps and provide a number of examples.
+you might prefer to start with [**Scraping with Web Scraper**](https://docs.apify.com/tutorials/apify-scrapers/web-scraper) tutorial from the Apify documentation, a tutorial which will walk you through all the steps and provide a number of examples.
 
 ## Usage
 
-To get started with Cheerio Scraper, you only need two things. First, tell the scraper which web pages
+To get started with JSDOM Scraper, you only need two things. First, tell the scraper which web pages
 it should load. Second, tell it how to extract data from each page.
 
 The scraper starts by loading the pages specified in the [**Start URLs**](#start-urls) field.
 You can make the scraper follow page links on the fly by setting a [**Link selector**](#link-selector), **[Glob Patterns](#glob-patterns)** and/or **[Pseudo-URLs](#pseudo-urls)** to tell the scraper which links it should add to the crawling queue. This is useful for the recursive crawling of entire websites, e.g. to find all products in an online store.
 
-To tell the scraper how to extract data from web pages, you need to provide a [**Page function**](#page-function). This is JavaScript code that is executed for every web page loaded. Since the scraper does not use the full web browser, writing the **Page function** is equivalent to writing server-side Node.js code - it uses the server-side library [Cheerio](https://cheerio.js.org).
+To tell the scraper how to extract data from web pages, you need to provide a [**Page function**](#page-function). This is JavaScript code that is executed for every web page loaded. Since the scraper does not use the full web browser, writing the **Page function** is equivalent to writing server-side Node.js code - it uses the server-side library [JSDOM](https://github.com/jsdom/jsdom).
 
-In summary, Cheerio Scraper works as follows:
+In summary, JSDOM Scraper works as follows:
 
 1. Adds each [Start URL](#start-urls) to the crawling queue.
 2. Fetches the first URL from the queue and constructs a DOM from the fetched HTML string.
@@ -29,14 +29,14 @@ In summary, Cheerio Scraper works as follows:
    If a link matches any of the **[Glob Patterns](#glob-patterns)** and/or **[Pseudo-URLs](#pseudo-urls)** and has not yet been visited, adds it to the queue.
 5. If there are more items in the queue, repeats step 2, otherwise finishes.
 
-Cheerio Scraper has a number of advanced configuration settings to improve performance, set cookies for login to websites, limit the number of records, etc. See their tooltips for more information.
+JSDOM Scraper has a number of advanced configuration settings to improve performance, set cookies for login to websites, limit the number of records, etc. See their tooltips for more information.
 
-Under the hood, Cheerio Scraper is built using the [`CheerioCrawler`](https://crawlee.dev/api/cheerio-crawler/class/CheerioCrawler) class
+Under the hood, JSDOM Scraper is built using the [`JSDOMCrawler`](https://crawlee.dev/api/jsdom-crawler/class/JSDOMCrawler) class
 from Crawlee. If you'd like to learn more about the inner workings of the scraper, see the respective documentation.
 
 ## Content types
 
-By default, Cheerio Scraper only processes web pages with the `text/html`, `application/json`, `application/xml`, `application/xhtml+xml` MIME content types (as reported by the `Content-Type` HTTP header),
+By default, JSDOM Scraper only processes web pages with the `text/html`, `application/json`, `application/xml`, `application/xhtml+xml` MIME content types (as reported by the `Content-Type` HTTP header),
 and skips pages with other content types.
 If you want the crawler to process other content types,
 use the **Additional MIME types** (`additionalMimeTypes`) input option.
@@ -50,9 +50,9 @@ either in [**Start URLs**](#start-urls), [**Pseudo URLs**](#pseudo-urls) or in t
 The web pages with various content types are parsed differently and
 thus the `context` parameter of the [**Page function**](#page-function) will have different values:
 
-| **Content types**                                       | [`context.body`](#body-stringbuffer) | [`context.$`](#-function) | [`context.json`](#json-object) |
+| **Content types**                                       | [`context.body`](#body-stringbuffer) | [`context.window`](#-object) | [`context.json`](#json-object) |
 |---------------------------------------------------------|--------------------------------------|---------------------------|--------------------------------|
-| `text/html`, `application/xhtml+xml`, `application/xml` | `String`                             | `Function`                | `null`                         |
+| `text/html`, `application/xhtml+xml`, `application/xml` | `String`                             | `Object`                | `null`                         |
 | `application/json`                                      | `String`                             | `null`                    | `Object`                       |
 | Other                                                   | `Buffer`                             | `null`                    | `null`                         |
 
@@ -64,18 +64,18 @@ and the result is stored in the [`context.contentType`](#contenttype-object) obj
 
 The actor does not employ a full-featured web browser such as Chromium or Firefox, so it will not be sufficient for web pages that render their content dynamically using client-side JavaScript. To scrape such sites, you might prefer to use [**Web Scraper**](https://apify.com/apify/web-scraper) (`apify/web-scraper`), which loads pages in a full browser and renders dynamic content.
 
-Since Cheerio Scraper's **Page function** is executed in the context of the server, it only supports server-side code running in Node.js. If you need to combine client- and server-side libraries in Chromium using the [Puppeteer](https://github.com/puppeteer/puppeteer) library, you might prefer to use
+Since JSDOM Scraper's **Page function** is executed in the context of the server, it only supports server-side code running in Node.js. If you need to combine client- and server-side libraries in Chromium using the [Puppeteer](https://github.com/puppeteer/puppeteer) library, you might prefer to use
 [**Puppeteer Scraper**](https://apify.com/apify/puppeteer-scraper) (`apify/puppeteer-scraper`). If you prefer Firefox and/or [Playwright](https://github.com/microsoft/playwright), check out [**Playwright Scraper**](https://apify.com/apify/playwright-scraper) (`apify/playwright-scraper`). For even more flexibility and control, you might develop a new actor from scratch in Node.js using [Apify SDK](https://sdk.apify.com/) and [Crawlee](https://crawlee.dev).
 
 In the [**Page function**](#page-function) and **Prepare request function**,
 you can only use NPM modules that are already installed in this actor.
 If you require other modules for your scraping, you'll need to develop a completely new actor.
-You can use the [`CheerioCrawler`](https://crawlee.dev/api/cheerio-crawler/class/CheerioCrawler) class
-from Crawlee to get most of the functionality of Cheerio Scraper out of the box.
+You can use the [`JSDOMCrawler`](https://crawlee.dev/api/jsdom-crawler/class/JSDOMCrawler) class
+from Crawlee to get most of the functionality of JSDOM Scraper out of the box.
 
 ## Input configuration
 
-As input, Cheerio Scraper actor accepts a number of configurations. These can be entered either manually in the user interface in [Apify Console](https://console.apify.com), or programmatically in a JSON object using the [Apify API](https://apify.com/docs/api/v2#/reference/actors/run-collection/run-actor). For a complete list of input fields and their types, please visit the [Input](https://apify.com/apify/cheerio-scraper/input-schema) tab.
+As input, JSDOM Scraper actor accepts a number of configurations. These can be entered either manually in the user interface in [Apify Console](https://console.apify.com), or programmatically in a JSON object using the [Apify API](https://apify.com/docs/api/v2#/reference/actors/run-collection/run-actor). For a complete list of input fields and their types, please visit the [Input](https://apify.com/apify/jsdom-scraper/input-schema) tab.
 
 ### Start URLs
 
@@ -154,17 +154,17 @@ from the **[Page function](#page-function)**.
 
 ### Page function
 
-The **Page function** (`pageFunction`) field contains a single JavaScript function that enables the user to extract data from the web page, access its DOM, add new URLs to the request queue, and otherwise control Cheerio Scraper's operation.
+The **Page function** (`pageFunction`) field contains a single JavaScript function that enables the user to extract data from the web page, access its DOM, add new URLs to the request queue, and otherwise control JSDOM Scraper's operation.
 
 Example:
 
 ```javascript
 async function pageFunction(context) {
-    const { $, request, log } = context;
+    const { window, request, log } = context;
 
-    // The "$" property contains the Cheerio object which is useful
+    // The "window" property contains the JSDOM object which is useful
     // for querying DOM elements and extracting data from them.
-    const pageTitle = $('title').first().text();
+    const pageTitle = window.document.title;
 
     // The "request" property contains various information about the web page loaded.
     const url = request.url;
@@ -190,17 +190,16 @@ visit the [Mozilla documentation](https://developer.mozilla.org/en-US/docs/Web/J
 
 **Properties of the `context` object:**
 
-- ##### **`$: Function`**
+- ##### **`window: Object`**
 
-  A reference to the [Cheerio](https://cheerio.js.org/)'s function representing the root scope of the DOM
+  A reference to the [JSDOM](https://github.com/jsdom/jsdom)'s object representing the root scope of the DOM
   of the current HTML page.
 
-  This function is the starting point for traversing the DOM document and extracting data from it.
-  Like with [jQuery](https://jquery.com/), it is the primary method for selecting elements in the document,
-  but unlike jQuery it is built on top of the [`css-select`](https://www.npmjs.com/package/css-select) library,
-  which implements most of the [`Sizzle`](https://github.com/jquery/sizzle/wiki) selectors.
+  This object is the starting point for traversing the DOM document and extracting data from it.
+  Just like with regular client-side Javascript, you can use the `window.document` object to access the DOM elements
+  and their properties.
 
-  For more information, see the [Cheerio](https://cheerio.js.org/) documentation.
+  For more information, see the [JSDOM](https://github.com/jsdom/jsdom) documentation.
 
   Example:
 
@@ -213,11 +212,11 @@ visit the [Mozilla documentation](https://developer.mozilla.org/en-US/docs/Web/J
   ```
 
   ```javascript
-  $('#movies', '.fun-movie').text();
+  window.document.querySelector('#movies .fun-movie').innerText;
   //=> Fun Movie
-  $('ul .sad-movie').attr('class');
+  window.document.querySelector('ul .sad-movie').className;
   //=> sad-movie
-  $('li[class=horror-movie]').html();
+  window.document.querySelector('li[class=horror-movie]').innerHTML;
   //=> Horror Movie
   ```
 
@@ -236,7 +235,7 @@ visit the [Mozilla documentation](https://developer.mozilla.org/en-US/docs/Web/J
 
 - ##### **`crawler: Object`**
 
-  A reference to the `CheerioCrawler` object, see [Crawlee docs](https://crawlee.dev/api/cheerio-crawler/class/CheerioCrawler) for more information.
+  A reference to the `JSDOMCrawler` object, see [Crawlee docs](https://crawlee.dev/api/jsdom-crawler/class/JSDOMCrawler) for more information.
 
 - ##### **`body: String|Buffer`**
 
@@ -249,16 +248,6 @@ visit the [Mozilla documentation](https://developer.mozilla.org/en-US/docs/Web/J
 
   ```javascript
   const stringBody = context.body.toString(context.contentType.encoding)
-  ```
-
-- ##### **`cheerio: Object`**
-
-  Reference to the [`Cheerio`](https://cheerio.js.org) module. Being the server-side version of the [jQuery](https://jquery.com) library, Cheerio features a very similar API with nearly identical selector implementation. This means DOM traversing, manipulation, querying, and data extraction are just as easy as with jQuery.
-
-  This is equivalent to:
-
-  ```javascript
-  import * as cheerio from 'cheerio';
   ```
 
 - ##### **`contentType: Object`**
@@ -276,7 +265,7 @@ visit the [Mozilla documentation](https://developer.mozilla.org/en-US/docs/Web/J
 - ##### **`customData: Object`**
 
   Contains the object provided in the **Custom data** (`customData`) input field.
-  This is useful for passing dynamic parameters to your Cheerio Scraper using API.
+  This is useful for passing dynamic parameters to your JSDOM Scraper using API.
 
 - ##### **`enqueueRequest(request, [options]): AsyncFunction`**
 
@@ -341,7 +330,7 @@ visit the [Mozilla documentation](https://developer.mozilla.org/en-US/docs/Web/J
 
 - ##### **`input: Object`**
 
-  An object containing the actor run input, i.e. Cheerio Scraper's configuration. Each page function invocation gets a fresh copy of the `input` object, so changing its properties has no effect.
+  An object containing the actor run input, i.e. JSDOM Scraper's configuration. Each page function invocation gets a fresh copy of the `input` object, so changing its properties has no effect.
 
 - ##### **`json: Object`**
 
@@ -494,11 +483,11 @@ preNavigationHooks: [
 ]
 ```
 
-Check out the docs for [Pre-navigation hooks](https://crawlee.dev/api/cheerio-crawler/interface/CheerioCrawlerOptions#preNavigationHooks) and the [CheerioHook type](https://crawlee.dev/api/cheerio-crawler#CheerioHook) for more info regarding the objects passed into these functions. The available properties are extended with `Actor` (alternatively `Apify`) and `customData` in this scraper.
+Check out the docs for [Pre-navigation hooks](https://crawlee.dev/api/jsdom-crawler/interface/JSDOMCrawlerOptions#preNavigationHooks) and the [JSDOM Hook type](https://crawlee.dev/api/jsdom-crawler#JSDOMHook) for more info regarding the objects passed into these functions. The available properties are extended with `Actor` (alternatively `Apify`) and `customData` in this scraper.
 
 ### Post-navigation hooks
 
-An array of functions that will be executed **AFTER** the main `pageFunction` is run. The only available parameter is the [CrawlingContext](https://crawlee.dev/api/cheerio-crawler/interface/CheerioCrawlingContext) object. The available properties are extended with `Actor` (alternatively `Apify`) and `customData` in this scraper.
+An array of functions that will be executed **AFTER** the main `pageFunction` is run. The only available parameter is the [CrawlingContext](https://crawlee.dev/api/jsdom-crawler/interface/JSDOMCrawlingContext) object. The available properties are extended with `Actor` (alternatively `Apify`) and `customData` in this scraper.
 
 ```JavaScript
 postNavigationHooks: [
@@ -506,12 +495,12 @@ postNavigationHooks: [
 ]
 ```
 
-Check out the docs for [Pre-navigation hooks](https://crawlee.dev/api/cheerio-crawler/interface/CheerioCrawlerOptions#preNavigationHooks) for more info regarding the objects passed into these functions.
+Check out the docs for [Pre-navigation hooks](https://crawlee.dev/api/jsdom-crawler/interface/JSDOMCrawlerOptions#preNavigationHooks) for more info regarding the objects passed into these functions.
 
 ## Results
 
 The scraping results returned by [**Page function**](#page-function) are stored in the default dataset associated with the actor run, from where you can export them to formats such as JSON, XML, CSV or Excel.
-For each object returned by the [**Page function**](#page-function), Cheerio Scraper pushes one record into the dataset and extends it with metadata such as the URL of the web page where the results come from.
+For each object returned by the [**Page function**](#page-function), JSDOM Scraper pushes one record into the dataset and extends it with metadata such as the URL of the web page where the results come from.
 
 For example, if your page function returned the following object:
 
@@ -560,17 +549,21 @@ endpoint in Apify API reference.
 
 ## Additional resources
 
-Congratulations! You've learned how Cheerio Scraper works.
+Congratulations! You've learned how JSDOM Scraper works.
 You might also want to see these other resources:
 
 - [Web scraping tutorial](https://docs.apify.com/tutorials/apify-scrapers) -
   An introduction to web scraping with Apify.
-- [Scraping with Cheerio Scraper](https://docs.apify.com/tutorials/apify-scrapers/cheerio-scraper) -
-  A step-by-step tutorial on how to use Cheerio Scraper, with a detailed explanation and examples.
+- [Scraping with JSDOM Scraper](https://docs.apify.com/tutorials/apify-scrapers/jsdom-scraper) -
+  A step-by-step tutorial on how to use JSDOM Scraper, with a detailed explanation and examples.
 - **Web Scraper** ([apify/web-scraper](https://apify.com/apify/web-scraper)) -
   Apify's basic tool for web crawling and scraping. It uses a full Chrome browser to render dynamic content.
   A similar web scraping actor to Puppeteer Scraper, but is simpler to use and only runs in the context of the browser.
   Uses the [Puppeteer](https://github.com/GoogleChrome/puppeteer) library.
+- **Cheerio Scraper** ([apify/cheerio-scraper](https://apify.com/apify/cheerio-scraper)) -
+  A lightweight web scraping actor similar to JSDOM Scraper, but using the [Cheerio](https://cheerio.js.org/) library instead.
+- **JSDOM Scraper** ([apify/jsdom-scraper](https://apify.com/apify/jsdom-scraper)) -
+  A lightweight web scraping actor similar to JSDOM Scraper, but using the [JSDOM](https://github.com/jsdom/jsdom) library instead.
 - **Puppeteer Scraper** ([apify/puppeteer-scraper](https://apify.com/apify/puppeteer-scraper)) -
   An actor similar to Web Scraper, which provides lower-level control of the underlying
   [Puppeteer](https://github.com/GoogleChrome/puppeteer) library and the ability to use server-side libraries.
