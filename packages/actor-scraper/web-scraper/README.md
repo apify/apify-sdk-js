@@ -14,6 +14,9 @@ a tutorial which will walk you through all the steps and provide a number of exa
 
 [![Watch Web Scraper video](https://img.youtube.com/vi/K76Hib0cY0k/0.jpg)](https://youtu.be/K76Hib0cY0k)
 
+## Cost of usage
+You can find the average usage cost for this actor on the [pricing page](https://apify.com/pricing) under the `Which plan do I need?` section. Cheerio Scraper is equivalent to `Simple HTML pages` while Web Scraper, Puppeteer Scraper and Playwright Scraper are equivalent to `Full web pages`. These cost estimates are based on averages and might be lower or higher depending on how heavy the pages you scrape are.
+
 ## Usage
 
 To get started with Web Scraper,
