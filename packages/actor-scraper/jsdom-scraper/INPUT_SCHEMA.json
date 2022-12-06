@@ -44,6 +44,18 @@
             "editor": "textfield",
             "prefill": "a[href]"
         },
+        "runScripts": {
+            "title": "Run scripts",
+            "type": "boolean",
+            "default": true,
+            "description": "Whether to execute JavaScript in the downloaded page. If enabled, the JSDOM engine will process the JavaScript in the page as if it was loaded in a browser. This is useful for pages that use JavaScript to render the content, but it can also cause secuirty issues."
+        },
+        "showInternalConsole": {
+            "title": "Show internal console logs",
+            "type": "boolean",
+            "default": false,
+            "description": "Whether to show internal JSDOM console logs in the log output. This is useful for debugging the page function and seeing what's happening in the JSDOM environment."
+        },
         "pageFunction": {
             "title": "Page function",
             "type": "string",
