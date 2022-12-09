@@ -1,6 +1,8 @@
 /* eslint-disable global-require,import/no-extraneous-dependencies */
 const { externalLinkProcessor } = require('./tools/utils/externalLink');
 
+const absoluteUrl = 'http://docs-v2.apify.com';
+
 const packages = [
     'apify',
 ];
@@ -10,22 +12,15 @@ const packagesOrder = [
 
 /** @type {Partial<import('@docusaurus/types').DocusaurusConfig>} */
 module.exports = {
-    title: 'Apify SDK',
-    tagline: 'Apify SDK is a toolkit for building actors',
-    url: 'https://sdk.apify.com',
-    baseUrl: '/',
+    title: 'Apify Docs v2',
+    tagline: 'Apify Documentation',
+    url: absoluteUrl,
+    baseUrl: '/sdk-js',
     trailingSlash: false,
     organizationName: 'apify',
-    projectName: 'apify-sdk-js',
+    projectName: 'apify-sdk-js-v2',
     scripts: ['/js/custom.js'],
     favicon: 'img/favicon.ico',
-    customFields: {
-        markdownOptions: {
-            html: true,
-        },
-        gaGtag: true,
-        repoUrl: 'https://github.com/apify/apify-sdk-js',
-    },
     onBrokenLinks:
     /** @type {import('@docusaurus/types').ReportingSeverity} */ ('warn'),
     onBrokenMarkdownLinks:
@@ -64,42 +59,12 @@ module.exports = {
                 },
             },
         ],
-        [
-            '@docusaurus/plugin-client-redirects',
-            {
-                redirects: [
-                    {
-                        from: '/docs',
-                        to: '/docs/guides/apify-platform',
-                    },
-                    {
-                        from: '/docs/next',
-                        to: '/docs/next/guides/apify-platform',
-                    },
-                    {
-                        from: '/docs/guides/getting-started',
-                        to: '/docs/guides/apify-platform',
-                    },
-                    {
-                        from: '/docs/next/guides/getting-started',
-                        to: '/docs/next/guides/apify-platform',
-                    },
-                ],
-                createRedirects(existingPath) {
-                    if (!existingPath.endsWith('/')) {
-                        return `${existingPath}/`;
-                    }
-
-                    return undefined; // Return a falsy value: no redirect created
-                },
-            },
-        ],
-        [
-            'docusaurus-gtm-plugin',
-            {
-                id: 'GTM-MNGXGGB',
-            },
-        ],
+        // [
+        //     'docusaurus-gtm-plugin',
+        //     {
+        //         id: 'GTM-TKBX678',
+        //     },
+        // ],
     ],
     themeConfig:
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */ ({
@@ -111,49 +76,153 @@ module.exports = {
         },
         navbar: {
             hideOnScroll: true,
-            title: 'Apify SDK',
+            title: 'Apify Docs',
             logo: {
                 src: 'img/apify_sdk.svg',
                 srcDark: 'img/apify_sdk_white.svg',
+                href: absoluteUrl,
+                target: '_self',
             },
             items: [
                 {
+                    label: 'Academy',
+                    href: `${absoluteUrl}/academy`,
+                    activeBasePath: 'academy',
+                    position: 'left',
+                    target: '_self',
+                    rel: 'dofollow',
+                },
+                {
+                    label: 'Platform',
+                    href: `${absoluteUrl}/platform`,
+                    activeBasePath: 'platform',
+                    position: 'left',
+                    target: '_self',
+                    rel: 'dofollow',
+                },
+                {
+                    label: 'API',
+                    type: 'dropdown',
+                    // activeBasePath: 'api',
+                    position: 'left',
+                    items: [
+                        {
+                            label: 'Reference',
+                            // TODO
+                            href: 'https://docs.apify.com/api/v2',
+                        },
+                        {
+                            label: 'Client for JavaScript',
+                            href: `${absoluteUrl}/client-js/`, // we need a trailing slash here, we'd get redirected there anyway
+                            className: 'navbar__link--active',
+                            target: '_self',
+                            rel: 'dofollow',
+                        },
+                        {
+                            label: 'Client for Python',
+                            href: `${absoluteUrl}/client-python/`, // we need a trailing slash here, we'd get redirected there anyway
+                            target: '_self',
+                            rel: 'dofollow',
+                        },
+                    ],
+                },
+                {
+                    label: 'SDK',
+                    type: 'dropdown',
+                    activeBasePath: 'sdk',
+                    position: 'left',
+                    items: [
+                        {
+                            label: 'SDK for JavaScript',
+                            href: `${absoluteUrl}/sdk-js/`, // we need a trailing slash here, we'd get redirected there anyway
+                            target: '_self',
+                            rel: 'dofollow',
+                        },
+                        {
+                            label: 'SDK for Python',
+                            href: `${absoluteUrl}/sdk-python/`, // we need a trailing slash here, we'd get redirected there anyway
+                            target: '_self',
+                            rel: 'dofollow',
+                        },
+                    ],
+                },
+                {
+                    label: 'CLI',
+                    href: `${absoluteUrl}/cli/`, // we need a trailing slash here, we'd get redirected there anyway
+                    position: 'left',
+                    target: '_self',
+                    rel: 'dofollow',
+                },
+                {
+                    label: 'Open Source',
+                    type: 'dropdown',
+                    position: 'left',
+                    items: [
+                        {
+                            label: 'Crawlee',
+                            href: 'https://crawlee.dev',
+                            rel: 'dofollow',
+                        },
+                        {
+                            label: 'Got Scraping',
+                            href: 'https://github.com/apify/got-scraping',
+                        },
+                        {
+                            label: 'Fingerprint Suite',
+                            href: 'https://github.com/apify/fingerprint-suite',
+                        },
+                        {
+                            label: 'See our GitHub',
+                            href: 'https://github.com/apify',
+                        },
+                    ],
+                },
+                {
                     type: 'doc',
                     docId: 'guides/apify-platform',
-                    label: 'Docs',
+                    label: '(Docs)',
                     position: 'left',
                     activeBaseRegex: 'guides',
+                    className: 'subnav',
+                    // subnav: 'true',
                 },
                 {
                     type: 'doc',
                     docId: '/examples',
-                    label: 'Examples',
+                    label: '(Examples)',
                     position: 'left',
                     activeBaseRegex: 'examples',
+                    className: 'subnav',
+                    // subnav: 'true',
                 },
                 {
-                    type: 'custom-api',
-                    to: 'apify',
-                    label: 'API',
+                    // type: 'custom-api',
+                    to: 'api/apify',
+                    label: '(API)',
                     position: 'left',
-                    activeBaseRegex: '(api|typedefs)/(?!.*/changelog)',
+                    activeBaseRegex: 'sdk-js/(api|typedefs)(?!.*/changelog)',
+                    className: 'subnav',
+                    // subnav: 'true',
                 },
                 {
-                    type: 'custom-api',
-                    to: 'apify/changelog',
-                    label: 'Changelog',
+                    // type: 'custom-api',
+                    to: 'api/apify/changelog',
+                    label: '(Changelog)',
                     position: 'left',
-                    className: 'changelog',
                     activeBaseRegex: 'changelog',
+                    className: 'subnav changelog',
+                    // subnav: 'true',
                 },
                 {
                     type: 'docsVersionDropdown',
                     position: 'left',
+                    className: 'subnav',
+                    // subnav: 'true',
                 },
                 {
-                    href: 'https://github.com/apify/apify-sdk-js',
+                    href: 'https://github.com/apify',
                     label: 'GitHub',
-                    title: 'View on GitHub',
+                    title: 'See our GitHub',
                     position: 'right',
                     className: 'icon',
                 },
@@ -185,20 +254,12 @@ module.exports = {
                     title: 'Docs',
                     items: [
                         {
-                            label: 'Guides',
-                            to: 'docs/guides',
+                            label: 'Academy',
+                            to: 'academy',
                         },
                         {
-                            label: 'Examples',
-                            to: 'docs/examples',
-                        },
-                        {
-                            label: 'API reference',
-                            to: 'api/apify',
-                        },
-                        {
-                            label: 'Upgrading to v3',
-                            to: 'docs/upgrading/upgrading-to-v3',
+                            label: 'Platform',
+                            to: 'platform',
                         },
                     ],
                 },
@@ -236,7 +297,7 @@ module.exports = {
                         },
                         {
                             label: 'GitHub',
-                            href: 'https://github.com/apify/apify-sdk-js',
+                            href: 'https://github.com/apify',
                         },
                     ],
                 },
@@ -248,6 +309,7 @@ module.exports = {
                 height: '60px',
             },
         },
+        // TODO
         algolia: {
             appId: 'N8EOCSBQGH',
             apiKey: 'b43e67a96ed18c7f63f5fd965906a96d', // search only (public) API key

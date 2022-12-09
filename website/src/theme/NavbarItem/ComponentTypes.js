@@ -63,18 +63,6 @@ function ApiNavbarItem(ctx) {
         return null;
     }
 
-    // link directly to the old API docs under /docs/x.x/api
-    if (+version.version < 3) {
-        return (
-            <DefaultNavbarItem
-                exact
-                {...ctx}
-                label={ctx.label}
-                to={`docs/${version.version === 'current' ? 'next' : version.version}/api/${ctx.to}`}
-            />
-        );
-    }
-
     return (
         <DefaultNavbarItem
             exact

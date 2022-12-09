@@ -28,7 +28,7 @@ function NavbarItems({ items }) {
 
 function NavbarContentLayout({
     left,
-    right
+    right,
 }) {
     return (
         <div className="navbar__inner">
@@ -42,27 +42,47 @@ export default function NavbarContent() {
     const mobileSidebar = useNavbarMobileSidebar();
     const items = useNavbarItems();
     const [leftItems, rightItems] = splitNavbarItems(items);
+    const byLevel = [[], []];
+
+    for (const item of leftItems) {
+        console.log(item);
+        const idx = item.subnav === 'true' ? 1 : 0;
+        byLevel[idx].push(item);
+    }
+
+    console.log(byLevel);
+
     const searchBarItem = items.find((item) => item.type === 'search');
     return (
-        <NavbarContentLayout
-            left={
-                <>
-                    {!mobileSidebar.disabled && <NavbarMobileSidebarToggle/>}
-                    <NavbarLogo/>
-                    <NavbarItems items={leftItems}/>
-                </>
-            }
-            right={
-                <>
-                    <NavbarColorModeToggle className={styles.colorModeToggle}/>
-                    <NavbarItems items={rightItems}/>
-                    {!searchBarItem && (
-                        <NavbarSearch>
-                            <SearchBar/>
-                        </NavbarSearch>
-                    )}
-                </>
-            }
-        />
+        <>
+            <NavbarContentLayout
+                left={
+                    <>
+                        {!mobileSidebar.disabled && <NavbarMobileSidebarToggle/>}
+                        <NavbarLogo/>
+                        <NavbarItems items={byLevel[0]}/>
+                    </>
+                }
+                right={
+                    <>
+                        <NavbarColorModeToggle className={styles.colorModeToggle}/>
+                        <NavbarItems items={rightItems}/>
+                        {!searchBarItem && (
+                            <NavbarSearch>
+                                <SearchBar/>
+                            </NavbarSearch>
+                        )}
+                    </>
+                }
+            />
+            {/* <NavbarContentLayout */}
+            {/*     left={ */}
+            {/*         <> */}
+            {/*             {!mobileSidebar.disabled && <NavbarMobileSidebarToggle/>} */}
+            {/*             <NavbarItems items={byLevel[1]}/> */}
+            {/*         </> */}
+            {/*     } */}
+            {/* /> */}
+        </>
     );
 }

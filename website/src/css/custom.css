@@ -90,6 +90,10 @@ html[data-theme='dark'] {
     width: 100%;
 }
 
+.navbar__item.dropdown {
+    padding: 0;
+}
+
 .DocSearch-Button-Placeholder {
     font-size: 14px !important;
 }
@@ -229,13 +233,13 @@ nav.navbar .dropdown__menu {
     padding: 10px 0;
 }
 
-.main-wrapper a[class*='sidebarLogo'] img {
-    height: 3rem;
+.navbar__link.subnav {
+    font-size: 0.8em;
+    padding: 5px;
 }
 
-html.plugin-pages {
-    font-size: 18px;
-    line-height: 32px;
+.main-wrapper a[class*='sidebarLogo'] img {
+    height: 3rem;
 }
 
 html.plugin-pages h2 {
