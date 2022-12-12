@@ -5,6 +5,9 @@
     "engines": {
         "node": ">=16.0.0"
     },
+    "bin": {
+        "apify": "./src/cli.ts"
+    },
     "main": "./dist/index.js",
     "module": "./dist/index.mjs",
     "types": "./dist/index.d.ts",
@@ -62,7 +65,9 @@
         "@crawlee/core": "^3.1.1",
         "@crawlee/types": "^3.1.1",
         "@crawlee/utils": "^3.1.1",
+        "apify-cli": "^0.11.1",
         "apify-client": "^2.6.0",
+        "import-local": "^3.1.0",
         "ow": "^0.28.1",
         "semver": "^7.3.7",
         "ws": "^7.5.9"
