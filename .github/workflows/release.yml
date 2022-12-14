@@ -1,0 +1,166 @@
+name: Release @latest
+
+on:
+  # Manual call from UI / automations(?)
+  workflow_dispatch:
+    inputs:
+      version:
+        description: The version to bump (if you choose custom, please include it under custom version)
+        required: true
+        default: 'patch'
+        type: choice
+        options:
+          - "patch"
+          - "minor"
+          - "major"
+          - "custom"
+      custom_version:
+        description: The custom version to bump to (only for "custom" type)
+        required: false
+        type: string
+        default: ''
+      package:
+        description: The package to release
+        required: true
+        type: choice
+        # For maintainers, this should be the folder name, not the package name
+        options:
+          - "apify"
+          - "scraper-tools"
+
+jobs:
+  # Test before releasing to ensure we don't release a broken version
+  build_and_test:
+    name: Build & Test
+    if: (!contains(github.event.head_commit.message, '[skip ci]') && !contains(github.event.head_commit.message, 'docs:'))
+    strategy:
+      fail-fast: true
+      matrix:
+        # We don't test on Windows as the tests are flaky
+        os: [ubuntu-latest]
+        node-version: [16, 18]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Cancel Workflow Action
+        uses: styfle/cancel-workflow-action@0.11.0
+        with:
+          access_token: ${{ github.token }}
+
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+          cache-dependency-path: 'package-lock.json'
+
+      - name: Setup Playwright
+        uses: microsoft/playwright-github-action@v1
+
+      - name: Turbo cache
+        id: turbo-cache
+        uses: actions/cache@v3
+        with:
+          path: .turbo
+          key: turbo-${{ github.job }}-${{ github.ref_name }}-${{ github.sha }}
+          restore-keys: |
+            turbo-${{ github.job }}-${{ github.ref_name }}-
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run ci:build
+
+      - name: Tests
+        run: npm test
+
+  release:
+    name: "Bump ${{ inputs.package }}: ${{ inputs.version }} version (${{ inputs.custom_version || 'n/a' }} custom version)"
+    if: (!contains(github.event.head_commit.message, '[skip ci]') && !contains(github.event.head_commit.message, 'docs:'))
+    needs: build_and_test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          # We need to fetch tags to be able to bump the version
+          fetch-depth: 0
+
+      - name: Use Node.js 18
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          cache: 'npm'
+          cache-dependency-path: 'package-lock.json'
+
+      - name: Turbo cache
+        id: turbo-cache
+        uses: actions/cache@v3
+        with:
+          path: .turbo
+          key: turbo-${{ github.job }}-${{ github.ref_name }}-${{ github.sha }}
+          restore-keys: |
+            turbo-${{ github.job }}-${{ github.ref_name }}-
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Setup git user and npm
+        run: |
+          git config --global user.name "Apify Release Bot"
+          git config --global user.email "noreply@apify.com"
+
+          echo "access=public" > ~/.npmrc
+          echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" >> ~/.npmrc
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          GIT_USER: "noreply@apify.com:${{ secrets.GH_TOKEN }}"
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+
+      - name: Mark all other packages as private
+        run: node ./scripts/actions/markPrivate.mjs ${{ inputs.package }}
+
+      - name: Bump version to custom version
+        if: inputs.version == 'custom' && inputs.custom_version != ''
+        run: |
+          npx lerna version ${{ inputs.custom_version }} --no-private --force-publish --yes
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          GIT_USER: "noreply@apify.com:${{ secrets.GH_TOKEN }}"
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+
+      - name: Bump version to ${{ inputs.version }} version
+        if: inputs.version != 'custom'
+        run: |
+          npx lerna version ${{ inputs.version }} --no-private --force-publish --yes
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          GIT_USER: "noreply@apify.com:${{ secrets.GH_TOKEN }}"
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+
+      - name: Revert all other packages to public
+        run: node ./scripts/actions/unmarkPrivate.mjs
+
+      - name: Add all other changes to the release commit and push
+        run: |
+          git add .
+
+          git commit --amend --no-edit
+          git push -f
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          GIT_USER: "noreply@apify.com:${{ secrets.GH_TOKEN }}"
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+
+      - name: Publish to NPM
+        run: npm run release -- --yes --no-verify-access
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          GIT_USER: "noreply@apify.com:${{ secrets.GH_TOKEN }}"
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}

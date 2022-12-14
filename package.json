@@ -42,7 +42,7 @@
         "test": "jest --silent",
         "test:e2e": "node test/e2e/run.mjs",
         "coverage": "jest --coverage",
-        "release": "npm run build && lerna version patch && lerna publish from-package --contents dist",
+        "release": "npm run build && lerna publish from-package --contents dist",
         "publish:next": "lerna publish --canary --preid beta --dist-tag next",
         "release:next": "npm run build && npm run publish:next",
         "lint": "eslint packages/*/src test",
