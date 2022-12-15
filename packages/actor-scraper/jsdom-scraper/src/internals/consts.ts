@@ -10,6 +10,8 @@ export interface Input {
     regexps: RegExpInput[];
     pseudoUrls: PseudoUrlInput[];
     keepUrlFragments: boolean;
+    runScripts: boolean;
+    showInternalConsole: boolean;
     linkSelector?: string;
     pageFunction: string;
     preNavigationHooks?: string;

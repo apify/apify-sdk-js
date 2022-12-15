@@ -158,6 +158,8 @@ export class CrawlerSetup implements CrawlerSetupOptions {
             proxyConfiguration: this.proxyConfiguration,
             requestHandler: this._requestHandler.bind(this),
             preNavigationHooks: [],
+            runScripts: this.input.runScripts ?? true,
+            hideInternalConsole: !(this.input.showInternalConsole ?? false),
             postNavigationHooks: [],
             requestList: this.requestList,
             requestQueue: this.requestQueue,
