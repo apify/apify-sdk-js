@@ -9,10 +9,13 @@ on:
 
 jobs:
     build:
+        if: ${{ !contains(github.event.head_commit.message, '[skip ci]') }}
         runs-on: ubuntu-latest
 
         steps:
             -   uses: actions/checkout@v3
+                with:
+                    token: ${{ secrets.GH_TOKEN }}
             -   name: Use Node.js 16
                 uses: actions/setup-node@v2-beta
                 with:
@@ -37,8 +40,19 @@ jobs:
                     cd website
                     # install website deps
                     npm ci --force
+                    # install the latest theme version
+                    npm update @apify/docs-theme
                     # build and deploy the docs
                     npm run deploy
                 env:
                     GIT_USER: "B4nan:${{ secrets.GH_TOKEN }}"
                     GH_TOKEN: ${{ secrets.GH_TOKEN }}
+
+            -   name: Commit the updated package(-lock).json
+                uses: stefanzweifel/git-auto-commit-action@v4
+                with:
+                  commit_message: '[skip ci] Automatic theme updating workflow'
+                  file_pattern: 'package-lock.json package.json'
+                  commit_user_name: Apify Bot
+                  commit_user_email: my-github-actions-bot@example.org
+                  commit_author: Apify Bot <apify@apify.com>
