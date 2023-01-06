@@ -51,8 +51,8 @@ jobs:
             -   name: Commit the updated package(-lock).json
                 uses: stefanzweifel/git-auto-commit-action@v4
                 with:
-                  commit_message: '[skip ci] Automatic theme updating workflow'
-                  file_pattern: 'package-lock.json package.json'
+                  commit_message: 'chore: Automatic theme updating workflow [skip ci]'
+                  file_pattern: 'website/package*.json'
                   commit_user_name: Apify Bot
                   commit_user_email: my-github-actions-bot@example.org
                   commit_author: Apify Bot <apify@apify.com>
