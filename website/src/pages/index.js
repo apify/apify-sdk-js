@@ -40,7 +40,7 @@ function Hero() {
                 </div>
                 <div className={clsx(styles.relative, 'col', 'col--5')}>
                     <div className={styles.logoBlur}>
-                        <img src={require('../../static/img/logo-blur.png').default} className={clsx(styles.hideSmall)} />
+                        <img src={useBaseUrl('/img/logo-blur.png')} className={clsx(styles.hideSmall)} />
                     </div>
                     <div className={styles.codeBlock}>
                         <CodeBlock className="language-bash">
@@ -251,7 +251,7 @@ function ActorExample() {
 }
 
 export default function Home() {
-    const SvgLogo = require('../../static/img/apify_logo.svg').default;
+    const SvgLogo = require('@apify/docs-theme/static/img/apify_logo.svg').default;
     const { siteConfig } = useDocusaurusContext();
     return (
         <Layout

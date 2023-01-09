@@ -110,4 +110,5 @@ module.exports = {
         // ],
     ],
     themeConfig: config.themeConfig,
+    staticDirectories: ['node_modules/@apify/docs-theme/static', 'static'],
 };
