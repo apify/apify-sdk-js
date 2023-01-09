@@ -55,7 +55,7 @@
         "@apify/tsconfig": "^0.1.0",
         "@commitlint/config-conventional": "^17.0.3",
         "@types/content-type": "^1.1.5",
-        "@types/fs-extra": "^9.0.13",
+        "@types/fs-extra": "^11.0.0",
         "@types/jest": "^29.1.1",
         "@types/node": "^18.7.18",
         "@types/rimraf": "^3.0.2",
