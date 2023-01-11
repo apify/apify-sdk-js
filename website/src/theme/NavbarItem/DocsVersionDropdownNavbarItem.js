@@ -71,9 +71,14 @@ export default function DocsVersionDropdownNavbarItem({
                     'The label for the navbar versions dropdown on mobile view',
         })
         : dropdownVersion.label;
-    const dropdownTo = mobile && items.length > 1
+    let dropdownTo = mobile && items.length > 1
         ? undefined
         : getVersionMainDoc(dropdownVersion).path;
+
+    if (dropdownTo && pathname.startsWith('/sdk-js/api')) {
+        dropdownTo = versionLinks.find((v) => v.label === dropdownVersion.label)?.to;
+    }
+
     // We don't want to render a version dropdown with 0 or 1 item. If we build
     // the site with a single docs version (onlyIncludeVersions: ['1.0.0']),
     // We'd rather render a button instead of a dropdown
