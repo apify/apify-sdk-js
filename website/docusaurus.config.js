@@ -1,6 +1,7 @@
 /* eslint-disable global-require,import/no-extraneous-dependencies */
 const { config } = require('@apify/docs-theme');
 const { externalLinkProcessor } = require('./tools/utils/externalLink');
+const versions = require('./versions.json');
 
 const { absoluteUrl } = config;
 
@@ -20,7 +21,6 @@ module.exports = {
     trailingSlash: false,
     organizationName: 'apify',
     projectName: 'apify-sdk-js-v2',
-    scripts: ['/js/custom.js'],
     favicon: 'img/favicon.ico',
     onBrokenLinks:
     /** @type {import('@docusaurus/types').ReportingSeverity} */ ('warn'),
@@ -60,11 +60,15 @@ module.exports = {
                             activeBaseRegex: 'changelog',
                         },
                         {
-                            type: 'docsVersionDropdown',
-                            position: 'left',
-                            className: 'navbar__item', // fixes margin around dropdown - hackish, should be fixed in theme
-                            dropdownItemsBefore: [],
-                            dropdownItemsAfter: [],
+                            'type': 'docsVersionDropdown',
+                            'position': 'left',
+                            'className': 'navbar__item', // fixes margin around dropdown - hackish, should be fixed in theme
+                            'data-api-links': JSON.stringify([
+                                'api/next/apify',
+                                ...versions.map((version, i) => (i === 0 ? 'api/apify' : `api/${version}/apify`)),
+                            ]),
+                            'dropdownItemsBefore': [],
+                            'dropdownItemsAfter': [],
                         },
                     ],
                 },
