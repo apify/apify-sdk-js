@@ -54,7 +54,7 @@ module.exports = {
                             activeBaseRegex: 'sdk-js/(api|typedefs)(?!.*/changelog)',
                         },
                         {
-                            to: '/changelog',
+                            to: 'docs/changelog',
                             label: 'Changelog',
                             position: 'left',
                             activeBaseRegex: 'changelog',
