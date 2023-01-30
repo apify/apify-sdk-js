@@ -48,8 +48,8 @@ module.exports = {
                             activeBaseRegex: 'examples',
                         },
                         {
-                            to: 'api/apify',
-                            label: 'API',
+                            to: 'api',
+                            label: 'Reference',
                             position: 'left',
                             activeBaseRegex: 'sdk-js/(api|typedefs)(?!.*/changelog)',
                         },
