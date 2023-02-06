@@ -189,7 +189,7 @@ export class CrawlerSetup implements CrawlerSetupOptions {
                     defaultViewport: DEFAULT_VIEWPORT,
                     devtools: this.devtools,
                     args,
-                    headless: !this.input.headful,
+                    headless: this.input.headless,
                 },
             } as PlaywrightLaunchContext,
             useSessionPool: true,
