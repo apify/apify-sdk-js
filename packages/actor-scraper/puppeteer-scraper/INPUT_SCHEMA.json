@@ -110,7 +110,7 @@
         "headful": {
             "title": "Run browsers in headful mode",
             "type": "boolean",
-            "description": "By default, browsers run in headless mode. You can toggle this on to run them in headful mode.",
+            "description": "By default, browsers run in headless mode. You can toggle this on to run them in headful mode. Headful mode can help with certain rare anti-scraping protections but is slower and more costly.",
             "default": false
         },
         "ignoreSslErrors": {
