@@ -107,6 +107,12 @@
             "groupCaption": "Browser masking",
             "groupDescription": "Settings that help mask as a real user and prevent scraper detection."
         },
+        "headful": {
+            "title": "Run browsers in headful mode",
+            "type": "boolean",
+            "description": "By default, browsers run in headless mode. You can toggle this on to run them in headful mode.",
+            "default": false
+        },
         "ignoreSslErrors": {
             "title": "Ignore SSL errors",
             "type": "boolean",

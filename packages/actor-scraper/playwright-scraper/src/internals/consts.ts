@@ -39,6 +39,7 @@ export interface Input {
     datasetName?: string;
     keyValueStoreName?: string;
     requestQueueName?: string;
+    headful: boolean;
 }
 
 export const enum ProxyRotation {

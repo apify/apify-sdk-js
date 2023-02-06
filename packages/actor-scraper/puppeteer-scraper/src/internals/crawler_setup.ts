@@ -185,6 +185,7 @@ export class CrawlerSetup implements CrawlerSetupOptions {
                     defaultViewport: DEFAULT_VIEWPORT,
                     devtools: this.devtools,
                     args,
+                    headless: !this.input.headful,
                 },
             },
             useSessionPool: true,
