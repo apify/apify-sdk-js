@@ -48,10 +48,10 @@ module.exports = {
                             activeBaseRegex: 'examples',
                         },
                         {
-                            to: 'api',
+                            to: 'reference',
                             label: 'Reference',
                             position: 'left',
-                            activeBaseRegex: 'sdk-js/(api|typedefs)(?!.*/changelog)',
+                            activeBaseRegex: 'reference',
                         },
                         {
                             to: 'docs/changelog',
@@ -109,6 +109,7 @@ module.exports = {
                 typedocOptions: {
                     excludeExternals: false,
                 },
+                routeBasePath: 'reference',
             },
         ],
         // [
