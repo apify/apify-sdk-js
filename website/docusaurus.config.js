@@ -60,7 +60,7 @@ module.exports = {
                             activeBaseRegex: 'changelog',
                         },
                         {
-                            to: 'https://github.com/apify/apify-sdk-js',
+                            href: 'https://github.com/apify/apify-sdk-js',
                             label: 'GitHub',
                             position: 'left',
                         },
