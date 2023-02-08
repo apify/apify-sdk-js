@@ -17,10 +17,10 @@ function Hero() {
                     <div className={clsx(styles.relative, 'row')}>
                         <div className="col">
                             <h1 className={styles.tagline}>
-                                Apify SDK<br /> is a toolkit for<br /> building actors
+                                Apify SDK for JavaScript<br /> is a toolkit for<br /> building actors
                             </h1>
                             <h1 className={styles.tagline}>
-                                <span>Apify SDK</span><br /> is a toolkit for<br /> <span>building actors</span>
+                                Apify <span>SDK for JavaScript</span><br /> is a toolkit for<br /> <span>building actors</span>
                             </h1>
                         </div>
                     </div>

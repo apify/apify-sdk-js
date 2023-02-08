@@ -17,7 +17,7 @@ module.exports = {
     title: 'Apify Docs v2',
     tagline: 'Apify Documentation',
     url: absoluteUrl,
-    baseUrl: '/sdk-js',
+    baseUrl: '/sdk/js',
     trailingSlash: false,
     organizationName: 'apify',
     projectName: 'apify-sdk-js-v2',
