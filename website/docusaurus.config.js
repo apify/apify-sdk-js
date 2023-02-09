@@ -14,13 +14,13 @@ const packagesOrder = [
 
 /** @type {Partial<import('@docusaurus/types').DocusaurusConfig>} */
 module.exports = {
-    title: 'Apify Docs v2',
+    title: 'Apify Documentation',
     tagline: 'Apify Documentation',
     url: absoluteUrl,
     baseUrl: '/sdk/js',
     trailingSlash: false,
     organizationName: 'apify',
-    projectName: 'apify-sdk-js-v2',
+    projectName: 'apify-sdk-js',
     favicon: 'img/favicon.ico',
     onBrokenLinks:
     /** @type {import('@docusaurus/types').ReportingSeverity} */ ('warn'),
@@ -69,8 +69,8 @@ module.exports = {
                             'position': 'left',
                             'className': 'navbar__item', // fixes margin around dropdown - hackish, should be fixed in theme
                             'data-api-links': JSON.stringify([
-                                'api/next/apify',
-                                ...versions.map((version, i) => (i === 0 ? 'api/apify' : `api/${version}/apify`)),
+                                'reference/next/apify',
+                                ...versions.map((version, i) => (i === 0 ? 'reference/apify' : `reference/${version}/apify`)),
                             ]),
                             'dropdownItemsBefore': [],
                             'dropdownItemsAfter': [],
