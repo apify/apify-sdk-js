@@ -7,6 +7,7 @@ import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 import CodeBlock from '@theme/CodeBlock';
 import ApiLink from '@site/src/components/ApiLink';
+import { CrawleeApiLink } from '@site/src/components/CrawleeLinks';
 
 import AllLinksSource from '!!raw-loader!./crawl_relative_links_all.ts';
 import SameHostnameSource from '!!raw-loader!./crawl_relative_links_same_hostname.ts';
@@ -18,18 +19,18 @@ automatically find links and add them to the crawler's <ApiLink to="apify/class/
 
 We provide 3 different strategies for crawling relative links:
 
-- <ApiLink to="apify/enum/EnqueueStrategy#All"><inlineCode>All</inlineCode></ApiLink> which will enqueue all links found, regardless of
+- <CrawleeApiLink to="core/enum/EnqueueStrategy#All"><inlineCode>All</inlineCode></CrawleeApiLink>, which will enqueue all links found, regardless of
 the domain they point to.
-- <ApiLink to="apify/enum/EnqueueStrategy#SameHostname"><inlineCode>SameHostname</inlineCode></ApiLink> which will enqueue all links
+- <CrawleeApiLink to="core/enum/EnqueueStrategy#SameHostname"><inlineCode>SameHostname</inlineCode></CrawleeApiLink>, which will enqueue all links
 found for the same hostname (regardless of any subdomains present).
-- <ApiLink to="apify/enum/EnqueueStrategy#SameSubdomain"><inlineCode>SameSubdomain</inlineCode></ApiLink> which will enqueue all links
+- <CrawleeApiLink to="core/enum/EnqueueStrategy#SameSubdomain"><inlineCode>SameSubdomain</inlineCode></CrawleeApiLink>, which will enqueue all links
 found that have the same subdomain and hostname. This is the default strategy.
 
 :::note
 
-For these examples, we are using the <ApiLink to="cheerio-crawler/class/CheerioCrawler">`CheerioCrawler`</ApiLink>, however
-the same method is available for both the <ApiLink to="puppeteer-crawler/class/PuppeteerCrawler">`PuppeteerCrawler`</ApiLink>
-and <ApiLink to="playwright-crawler/class/PlaywrightCrawler">`PlaywrightCrawler`</ApiLink>, and you use it
+For these examples, we are using the <CrawleeApiLink to="cheerio-crawler/class/CheerioCrawler">`CheerioCrawler`</CrawleeApiLink>, however
+the same method is available for both the <CrawleeApiLink to="puppeteer-crawler/class/PuppeteerCrawler">`PuppeteerCrawler`</CrawleeApiLink>
+and <CrawleeApiLink to="playwright-crawler/class/PlaywrightCrawler">`PlaywrightCrawler`</CrawleeApiLink>, and you use it
 the exact same way.
 
 :::

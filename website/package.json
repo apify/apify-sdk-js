@@ -21,14 +21,14 @@
         "eslint": "^8.10.0",
         "eslint-plugin-react": "^7.29.3",
         "eslint-plugin-react-hooks": "^4.3.0",
-        "fs-extra": "^10.0.1",
+        "fs-extra": "^11.0.0",
         "got": "^11.8.2",
         "path-browserify": "^1.0.1",
         "prettier": "^2.5.1",
-        "rimraf": "^3.0.2"
+        "rimraf": "^4.0.0"
     },
     "dependencies": {
-        "@apify/docs-theme": "^1.0.5",
+        "@apify/docs-theme": "^1.0.52",
         "@docusaurus/core": "^2.3.0",
         "@docusaurus/plugin-client-redirects": "^2.3.0",
         "@docusaurus/preset-classic": "^2.3.0",

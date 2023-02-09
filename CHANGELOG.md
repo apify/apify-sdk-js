@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [3.1.2](https://github.com/apify/apify-sdk-js/compare/apify@3.1.1...apify@3.1.2) (2023-02-07)
+
+
+### Bug Fixes
+
+* declare missing dependency on tslib ([bc27118](https://github.com/apify/apify-sdk-js/commit/bc27118daab211857305f7617b1ee1433da13d4a))
+* remove unused export of `QueueOperationInfoOptions` ([b29fe48](https://github.com/apify/apify-sdk-js/commit/b29fe4853d637ab527a7f7e3e53c7a5b0fe27a32))
+
+
+
+
+
 ## [3.1.1](https://github.com/apify/apify-sdk-js/compare/apify@3.1.0...apify@3.1.1) (2022-11-13)
 
 
@@ -269,7 +281,7 @@ const crawler = new BasicCrawler({
 
 #### How to use `sendRequest()`?
 
-See [the Got Scraping guide](../guides/got_scraping.mdx).
+See [the Got Scraping guide](https://crawlee.dev/docs/guides/got-scraping).
 
 #### Removed options
 
@@ -394,7 +406,7 @@ Previously, you were able to have a browser pool that would mix Puppeteer and Pl
 
 One small feature worth mentioning is the ability to handle requests with browser crawlers outside the browser. To do that, we can use a combination of `Request.skipNavigation` and `context.sendRequest()`.
 
-Take a look at how to achieve this by checking out the [Skipping navigation for certain requests](../examples/skip-navigation) example!
+Take a look at how to achieve this by checking out the [Skipping navigation for certain requests](https://crawlee.dev/docs/examples/skip-navigation) example!
 
 ### Logging
 

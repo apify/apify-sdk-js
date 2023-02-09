@@ -14,6 +14,9 @@ a tutorial which will walk you through all the steps and provide a number of exa
 
 [![Watch Web Scraper video](https://img.youtube.com/vi/K76Hib0cY0k/0.jpg)](https://youtu.be/K76Hib0cY0k)
 
+## Cost of usage
+You can find the average usage cost for this actor on the [pricing page](https://apify.com/pricing) under the `Which plan do I need?` section. Cheerio Scraper is equivalent to `Simple HTML pages` while Web Scraper, Puppeteer Scraper and Playwright Scraper are equivalent to `Full web pages`. These cost estimates are based on averages and might be lower or higher depending on how heavy the pages you scrape are.
+
 ## Usage
 
 To get started with Web Scraper,
@@ -541,6 +544,35 @@ It accepts a JSON object with the following structure:
     // If missing or null, custom proxies are not used.
     "proxyUrls": String[],
 }
+```
+
+### Logging into websites with Web Scraper
+
+The **Initial cookies** field allows you to set cookies that will be used by the scraper to log into websites.
+Cookies are small text files that are stored on your computer by your web browser. Various websites use cookies to store information about your current session - by transferring this information to the scraper, it will be able to log into websites using your credentials. To learn more about logging into websites by transfering cookies, check out our [tutorial](https://docs.apify.com/tutorials/log-in-by-transferring-cookies).
+
+Be aware that cookies usually have a limited lifetime and will expire after a certain period of time. This means that you will have to update the cookies periodically in order to keep the scraper logged in. Alternative approach is to make the scraper actively log in to the website in the Page function. For more info about this approach, check out our [tutorial](https://docs.apify.com/tutorials/log-into-a-website-using-puppeteer) on logging into websites using Puppeteer.
+
+The scraper expects the cookies in the **Initial cookies** field to be stored as separate JSON objects in a JSON array, see example below:
+
+```json
+[
+    {
+        "name": " ga",
+        "value": "GA1.1.689972112. 1627459041",
+        "domain": ".apify.com",
+        "hostOnly": false,
+        "path": "/",
+        "secure": false,
+        "httpOnly": false,
+        "sameSite": "no_restriction",
+        "session": false,
+        "firstPartyDomain": "",
+        "expirationDate": 1695304183,
+        "storelId": "firefox-default",
+        "id": 1
+    }
+]
 ```
 
 ## Advanced Configuration
