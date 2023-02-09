@@ -10,6 +10,10 @@ Cheerio Scraper is ideal for scraping web pages that do not rely on client-side 
 If you're unfamiliar with web scraping or web development in general,
 you might prefer to start with [**Scraping with Web Scraper**](https://docs.apify.com/tutorials/apify-scrapers/web-scraper) tutorial from the Apify documentation and then continue with [**Scraping with Cheerio Scraper**](https://docs.apify.com/tutorials/apify-scrapers/cheerio-scraper), a tutorial which will walk you through all the steps and provide a number of examples.
 
+## Cost of usage
+You can find the average usage cost for this actor on the [pricing page](https://apify.com/pricing) under the `Which plan do I need?` section. Cheerio Scraper is equivalent to `Simple HTML pages` while Web Scraper, Puppeteer Scraper and Playwright Scraper are equivalent to `Full web pages`. These cost estimates are based on averages and might be lower or higher depending on how heavy the pages you scrape are.
+
+
 ## Usage
 
 To get started with Cheerio Scraper, you only need two things. First, tell the scraper which web pages
@@ -213,7 +217,7 @@ visit the [Mozilla documentation](https://developer.mozilla.org/en-US/docs/Web/J
   ```
 
   ```javascript
-  $('.movies', '#fun-movie').text();
+  $('#movies', '.fun-movie').text();
   //=> Fun Movie
   $('ul .sad-movie').attr('class');
   //=> sad-movie
