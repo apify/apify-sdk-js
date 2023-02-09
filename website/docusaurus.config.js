@@ -69,9 +69,13 @@ module.exports = {
                             'position': 'left',
                             'className': 'navbar__item', // fixes margin around dropdown - hackish, should be fixed in theme
                             'data-api-links': JSON.stringify([
-                                'reference/next/apify',
-                                ...versions.map((version, i) => (i === 0 ? 'reference/apify' : `reference/${version}/apify`)),
+                                'reference/next',
+                                ...versions.map((version, i) => (i === 0 ? 'reference' : `reference/${version}`)),
                             ]),
+                            // 'data-api-links': JSON.stringify([
+                            //     'reference/next/apify',
+                            //     ...versions.map((version, i) => (i === 0 ? 'reference/apify' : `reference/${version}/apify`)),
+                            // ]),
                             'dropdownItemsBefore': [],
                             'dropdownItemsAfter': [],
                         },

@@ -19,6 +19,7 @@ jsconfig.json
 types
 docs/api
 docs/typedefs
+docs/changelog.md
 .history
 .docusaurus
 tsconfig.tsbuildinfo
