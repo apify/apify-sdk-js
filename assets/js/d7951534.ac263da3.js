@@ -1,1 +1,0 @@
-"use strict";(self.webpackChunk=self.webpackChunk||[]).push([[8498],{72106:e=>{e.exports=JSON.parse('{"title":"Guides","keywords":["guides"],"slug":"/guides","permalink":"/docs/guides","navigation":{"next":{"title":"Apify Platform","permalink":"/docs/guides/apify-platform"}}}')}}]);
