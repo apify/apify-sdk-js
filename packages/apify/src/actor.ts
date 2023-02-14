@@ -514,13 +514,17 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * For more information, see the [Actor Runs](https://docs.apify.com/api/v2#/reference/actor-runs/) API endpoints.
      * @ignore
      */
-    async setStatusMessage(statusMessage: string, options?: { isStatusMessageTerminal?: boolean }): Promise<ClientActorRun> {
+    async setStatusMessage(statusMessage: string, options?: { isStatusMessageTerminal?: boolean }): Promise<any> {
         const { isStatusMessageTerminal } = options || {};
         ow(statusMessage, ow.string);
         ow(isStatusMessageTerminal, ow.optional.boolean);
 
         const runId = this.config.get('actorRunId')!;
         if (!runId) {
+            if (!this.isAtHome()) {
+                log.info(`Setting status message to ${statusMessage}...`);
+                return;
+            }
             throw new Error(`Environment variable ${ENV_VARS.ACTOR_RUN_ID} is not set!`);
         }
 
@@ -1142,7 +1146,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @returns The return value is the Run object.
      * For more information, see the [Actor Runs](https://docs.apify.com/api/v2#/reference/actor-runs/) API endpoints.
      */
-    static async setStatusMessage(statusMessage: string): Promise<ClientActorRun> {
+    static async setStatusMessage(statusMessage: string): Promise<any> {
         return Actor.getDefaultInstance().setStatusMessage(statusMessage);
     }
 
