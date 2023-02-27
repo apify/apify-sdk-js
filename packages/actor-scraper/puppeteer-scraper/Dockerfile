@@ -28,4 +28,4 @@ COPY --chown=myuser . ./
 
 ENV APIFY_DISABLE_OUTDATED_WARNING=1
 
-CMD npm run start:prod --silent
+CMD ./start_xvfb_and_run_cmd.sh && npm run start:prod --silent
