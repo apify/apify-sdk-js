@@ -119,6 +119,12 @@
             "default": false,
             "groupCaption": "Browser masking"
         },
+        "headless": {
+            "title": "Run browsers in headless mode",
+            "type": "boolean",
+            "description": "By default, browsers run in headless mode. You can toggle this off to run them in headful mode, which can help with certain rare anti-scraping protections but is slower and more costly.",
+            "default": true
+        },
         "ignoreSslErrors": {
             "title": "Ignore SSL errors",
             "type": "boolean",

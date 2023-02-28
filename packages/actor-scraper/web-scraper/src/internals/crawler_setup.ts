@@ -226,6 +226,7 @@ export class CrawlerSetup implements CrawlerSetupOptions {
                     ignoreHTTPSErrors: this.input.ignoreSslErrors,
                     defaultViewport: DEFAULT_VIEWPORT,
                     args,
+                    headless: this.input.headless,
                 },
             },
             useSessionPool: !this.isDevRun,

@@ -47,6 +47,7 @@ export interface Input {
     datasetName?: string;
     keyValueStoreName?: string;
     requestQueueName?: string;
+    headless: boolean;
 }
 
 export const enum RunMode {
