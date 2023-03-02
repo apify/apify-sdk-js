@@ -514,7 +514,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * For more information, see the [Actor Runs](https://docs.apify.com/api/v2#/reference/actor-runs/) API endpoints.
      * @ignore
      */
-    async setStatusMessage(statusMessage: string, options?: { isStatusMessageTerminal?: boolean }): Promise<any> {
+    async setStatusMessage(statusMessage: string, options?: { isStatusMessageTerminal?: boolean }): Promise<ClientActorRun> {
         const { isStatusMessageTerminal } = options || {};
         ow(statusMessage, ow.string);
         ow(isStatusMessageTerminal, ow.optional.boolean);
@@ -1146,7 +1146,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @returns The return value is the Run object.
      * For more information, see the [Actor Runs](https://docs.apify.com/api/v2#/reference/actor-runs/) API endpoints.
      */
-    static async setStatusMessage(statusMessage: string): Promise<any> {
+    static async setStatusMessage(statusMessage: string): Promise<ClientActorRun> {
         return Actor.getDefaultInstance().setStatusMessage(statusMessage);
     }
 
