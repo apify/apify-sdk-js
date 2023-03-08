@@ -7,7 +7,7 @@
         "write-translations": "docusaurus write-translations",
         "version": "docusaurus version",
         "rename-version": "docusaurus rename-version",
-        "prettify": "prettier --write --config ./tools/docs-prettier.config.js ../docs/guides/*.md",
+        "prettify": "prettier --write --config ./tools/docs-prettier.config.js ../docs/**/*.md",
         "swizzle": "docusaurus swizzle",
         "deploy": "rimraf .docusaurus && docusaurus deploy",
         "docusaurus": "docusaurus"

@@ -72,10 +72,6 @@ module.exports = {
                                 'reference/next',
                                 ...versions.map((version, i) => (i === 0 ? 'reference' : `reference/${version}`)),
                             ]),
-                            // 'data-api-links': JSON.stringify([
-                            //     'reference/next/apify',
-                            //     ...versions.map((version, i) => (i === 0 ? 'reference/apify' : `reference/${version}/apify`)),
-                            // ]),
                             'dropdownItemsBefore': [],
                             'dropdownItemsAfter': [],
                         },
@@ -157,6 +153,6 @@ module.exports = {
         //     },
         // ],
     ],
-    themeConfig: config.themeConfig,
+    themeConfig: { ...config.themeConfig, versions },
     staticDirectories: ['node_modules/@apify/docs-theme/static', 'static'],
 };
