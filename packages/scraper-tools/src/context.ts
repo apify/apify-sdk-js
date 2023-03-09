@@ -119,7 +119,10 @@ class Context<Options extends ContextOptions = ContextOptions, ExtraFields = Opt
         this[internalState].skipLinks = true;
     }
 
-    async enqueueRequest(requestOpts: RequestOptions = {} as RequestOptions, options: RequestQueueOperationOptions = {}) {
+    async enqueueRequest(
+        requestOpts: RequestOptions = {} as RequestOptions,
+        options: RequestQueueOperationOptions = {},
+    ) : ReturnType<RequestQueue['addRequest']> {
         const defaultRequestOpts = {
             useExtendedUniqueKey: true,
             keepUrlFragment: this.input.keepUrlFragments,
