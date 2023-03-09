@@ -519,16 +519,18 @@ export class Actor<Data extends Dictionary = Dictionary> {
         ow(statusMessage, ow.string);
         ow(isStatusMessageTerminal, ow.optional.boolean);
 
+        const storageClient = this.config.getStorageClient();
+        await storageClient.setStatusMessage?.(statusMessage, { isStatusMessageTerminal });
+
         const runId = this.config.get('actorRunId')!;
-        if (!runId) {
-            if (!this.isAtHome()) {
-                log.info(`Setting status message to ${statusMessage}...`);
-                return;
+        if (runId) {
+            const run = await this.apifyClient.run(runId).get();
+            if (run) {
+                return run;
             }
-            throw new Error(`Environment variable ${ENV_VARS.ACTOR_RUN_ID} is not set!`);
         }
 
-        return this.apifyClient.run(runId).update({ statusMessage, isStatusMessageTerminal });
+        return null as unknown as ClientActorRun;
     }
 
     /**
