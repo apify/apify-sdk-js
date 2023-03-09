@@ -3,7 +3,7 @@ import { createPrivateKey } from 'node:crypto';
 import { decryptInputSecrets } from '@apify/input_secrets';
 import { ENV_VARS, INTEGER_ENV_VARS } from '@apify/consts';
 import { addTimeoutToPromise } from '@apify/timeout';
-import log from '@apify/log';
+import log, { LogLevel } from '@apify/log';
 import type {
     ActorStartOptions,
     ApifyClientOptions,
@@ -32,7 +32,7 @@ import {
     StorageManager,
     purgeDefaultStorages,
 } from '@crawlee/core';
-import type { Awaitable, Constructor, Dictionary, StorageClient } from '@crawlee/types';
+import type { Awaitable, Constructor, Dictionary, SetStatusMessageOptions, StorageClient } from '@crawlee/types';
 import { sleep, snakeCaseToCamelCase } from '@crawlee/utils';
 import { logSystemInfo, printOutdatedSdkWarning } from './utils';
 import { PlatformEventManager } from './platform_event_manager';
@@ -514,13 +514,30 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * For more information, see the [Actor Runs](https://docs.apify.com/api/v2#/reference/actor-runs/) API endpoints.
      * @ignore
      */
-    async setStatusMessage(statusMessage: string, options?: { isStatusMessageTerminal?: boolean }): Promise<ClientActorRun> {
-        const { isStatusMessageTerminal } = options || {};
+    async setStatusMessage(statusMessage: string, options?: SetStatusMessageOptions): Promise<ClientActorRun> {
+        const { isStatusMessageTerminal, level } = options || {};
         ow(statusMessage, ow.string);
         ow(isStatusMessageTerminal, ow.optional.boolean);
 
+        statusMessage = `[Status message]: ${statusMessage}`;
+
+        switch (level) {
+            case LogLevel.DEBUG:
+                log.debug(statusMessage);
+                break;
+            case LogLevel.WARNING:
+                log.warning(statusMessage);
+                break;
+            case LogLevel.ERROR:
+                log.error(statusMessage);
+                break;
+            default:
+                log.info(statusMessage);
+                break;
+        }
+
         const storageClient = this.config.getStorageClient();
-        await storageClient.setStatusMessage?.(statusMessage, { isStatusMessageTerminal });
+        await storageClient.setStatusMessage?.(statusMessage, { isStatusMessageTerminal, level });
 
         const runId = this.config.get('actorRunId')!;
         if (runId) {
