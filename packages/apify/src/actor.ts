@@ -547,7 +547,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
             }
         }
 
-        return null as unknown as ClientActorRun;
+        return {} as ClientActorRun;
     }
 
     /**
