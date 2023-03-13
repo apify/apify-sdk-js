@@ -5,10 +5,10 @@ import { ENV_VARS, INTEGER_ENV_VARS } from '@apify/consts';
 import { addTimeoutToPromise } from '@apify/timeout';
 import log, { LogLevel } from '@apify/log';
 import type {
-    ActorStartOptions,
+    ActorCallOptions,
     ApifyClientOptions,
     RunAbortOptions,
-    TaskStartOptions,
+    TaskCallOptions,
     Webhook,
     WebhookEventType,
 } from 'apify-client';
@@ -1529,14 +1529,14 @@ export interface ApifyEnv {
 
 export type UserFunc<T = unknown> = () => Awaitable<T>;
 
-export interface CallOptions extends ActorStartOptions {
+export interface CallOptions extends ActorCallOptions {
     /**
      * User API token that is used to run the actor. By default, it is taken from the `APIFY_TOKEN` environment variable.
      */
     token?: string;
 }
 
-export interface CallTaskOptions extends TaskStartOptions {
+export interface CallTaskOptions extends TaskCallOptions {
     /**
      * User API token that is used to run the actor. By default, it is taken from the `APIFY_TOKEN` environment variable.
      */
