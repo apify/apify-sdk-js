@@ -509,8 +509,11 @@ export class Actor<Data extends Dictionary = Dictionary> {
     /**
      * Sets the status message for the current actor run.
      *
-     * @param options
-     * @returns The return value is the Run object.
+     * @param statusMessage The status message to set.
+     * @param [options]
+     * @param [options.isStatusMessageTerminal] If `true`, the status message will be marked as terminal.
+     *          This is required for the last status message of the run. Default value is `false`.
+     * @returns The return value is the Run object. When run locally, this method returns empty object (`{}`).
      * For more information, see the [Actor Runs](https://docs.apify.com/api/v2#/reference/actor-runs/) API endpoints.
      * @ignore
      */
@@ -1001,10 +1004,20 @@ export class Actor<Data extends Dictionary = Dictionary> {
         return Actor.getDefaultInstance().init(options);
     }
 
+    /**
+     * Gracefully exits the actor run with the provided status message and exit code.
+     * @param messageOrOptions First parameter accepts either a string (a terminal status message) or an `ExitOptions` object.
+     * @param options Second parameter accepts an `ExitOptions` object.
+     */
     static async exit(messageOrOptions?: string | ExitOptions, options: ExitOptions = {}): Promise<void> {
         return Actor.getDefaultInstance().exit(messageOrOptions, options);
     }
 
+    /**
+     * Calls `Actor.exit()` with `options.exitCode` set to `1`.
+     * @param messageOrOptions First parameter accepts either a string (a terminal status message) or an `ExitOptions` object.
+     * @param options Second parameter accepts an `ExitOptions` object.
+     */
     static async fail(messageOrOptions?: string | ExitOptions, options: ExitOptions = {}): Promise<void> {
         return Actor.getDefaultInstance().fail(messageOrOptions, options);
     }
