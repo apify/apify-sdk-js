@@ -112,46 +112,7 @@ module.exports = {
                 routeBasePath: 'reference',
             },
         ],
-        // [
-        //     '@docusaurus/plugin-client-redirects',
-        //     {
-        //         redirects: [
-        //             {
-        //                 from: '/docs',
-        //                 to: '/docs/guides/apify-platform',
-        //             },
-        //             {
-        //                 from: '/docs/next',
-        //                 to: '/docs/next/guides/apify-platform',
-        //             },
-        //             {
-        //                 from: '/docs/guides/getting-started',
-        //                 to: '/docs/guides/apify-platform',
-        //             },
-        //             {
-        //                 from: '/docs/next/guides/getting-started',
-        //                 to: '/docs/next/guides/apify-platform',
-        //             },
-        //             {
-        //                 from: '/api',
-        //                 to: '/api/apify',
-        //             },
-        //         ],
-        //         createRedirects(existingPath) {
-        //             if (!existingPath.endsWith('/')) {
-        //                 return `${existingPath}/`;
-        //             }
-        //
-        //             return undefined; // Return a falsy value: no redirect created
-        //         },
-        //     },
-        // ],
-        // [
-        //     'docusaurus-gtm-plugin',
-        //     {
-        //         id: 'GTM-MNGXGGB',
-        //     },
-        // ],
+        ...config.plugins,
     ],
     themeConfig: { ...config.themeConfig, versions },
     staticDirectories: ['node_modules/@apify/docs-theme/static', 'static'],
