@@ -242,7 +242,7 @@ describe('Actor', () => {
             });
 
             test('works as expected with unfinished run', async () => {
-                const waitForFinish = 1;
+                const waitSecs = 1;
 
                 const callMock = jest.fn();
                 callMock.mockResolvedValueOnce(runningRun);
@@ -250,7 +250,7 @@ describe('Actor', () => {
                 actorSpy.mockReturnValueOnce({ call: callMock } as any);
                 const keyValueStoreSpy = jest.spyOn(ApifyClient.prototype, 'keyValueStore');
 
-                const callOutput = await new Actor().call(actId, undefined, { waitForFinish });
+                const callOutput = await new Actor().call(actId, undefined, { waitSecs });
 
                 expect(callOutput).toEqual(runningRun);
                 expect(actorSpy).toBeCalledWith('some-act-id');
@@ -258,7 +258,7 @@ describe('Actor', () => {
             });
 
             test('returns immediately with zero ', async () => {
-                const waitForFinish = 0;
+                const waitSecs = 0;
 
                 const callMock = jest.fn();
                 callMock.mockResolvedValueOnce(readyRun);
@@ -266,7 +266,7 @@ describe('Actor', () => {
                 actorSpy.mockReturnValueOnce({ call: callMock } as any);
                 const keyValueStoreSpy = jest.spyOn(ApifyClient.prototype, 'keyValueStore');
 
-                const callOutput = await new Actor().call(actId, undefined, { waitForFinish });
+                const callOutput = await new Actor().call(actId, undefined, { waitSecs });
 
                 expect(callOutput).toEqual(readyRun);
                 expect(actorSpy).toBeCalledWith('some-act-id');
@@ -368,7 +368,7 @@ describe('Actor', () => {
             });
 
             test('works as expected with unfinished run', async () => {
-                const waitForFinish = 1;
+                const waitSecs = 1;
 
                 const callMock = jest.fn();
                 callMock.mockResolvedValueOnce(runningRun);
@@ -376,7 +376,7 @@ describe('Actor', () => {
                 taskSpy.mockReturnValueOnce({ call: callMock } as any);
                 const keyValueStoreSpy = jest.spyOn(ApifyClient.prototype, 'keyValueStore');
 
-                const callOutput = await new Actor().callTask(taskId, undefined, { waitForFinish });
+                const callOutput = await new Actor().callTask(taskId, undefined, { waitSecs });
 
                 expect(callOutput).toEqual(runningRun);
                 expect(keyValueStoreSpy).not.toBeCalled();
@@ -384,7 +384,7 @@ describe('Actor', () => {
             });
 
             test('returns immediately with zero ', async () => {
-                const waitForFinish = 0;
+                const waitSecs = 0;
 
                 const callMock = jest.fn();
                 callMock.mockResolvedValueOnce(readyRun);
@@ -392,7 +392,7 @@ describe('Actor', () => {
                 taskSpy.mockReturnValueOnce({ call: callMock } as any);
                 const keyValueStoreSpy = jest.spyOn(ApifyClient.prototype, 'keyValueStore');
 
-                const callOutput = await new Actor().callTask(taskId, undefined, { waitForFinish });
+                const callOutput = await new Actor().callTask(taskId, undefined, { waitSecs });
 
                 expect(callOutput).toEqual(readyRun);
                 expect(keyValueStoreSpy).not.toBeCalled();
