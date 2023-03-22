@@ -3,6 +3,22 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [3.1.3](https://github.com/apify/apify-sdk-js/compare/apify@3.1.2...apify@3.1.3) (2023-03-22)
+
+
+### Bug Fixes
+
+* `call/callTask` accept `waitSecs` instead of `waitForFinish` ([#176](https://github.com/apify/apify-sdk-js/issues/176)) ([f0c73d8](https://github.com/apify/apify-sdk-js/commit/f0c73d8765091212f2abb4b4faaf109f9447d90a))
+
+
+### Features
+
+* terminal message on Actor.exit() ([#172](https://github.com/apify/apify-sdk-js/issues/172)) ([e0feca8](https://github.com/apify/apify-sdk-js/commit/e0feca895766af0d92fbf78ca4c2d7b49bd2acff))
+
+
+
+
+
 ## [3.1.2](https://github.com/apify/apify-sdk-js/compare/apify@3.1.1...apify@3.1.2) (2023-02-07)
 
 
