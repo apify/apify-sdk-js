@@ -250,13 +250,11 @@ export class Actor<Data extends Dictionary = Dictionary> {
 
         if (options.exitCode > 0) {
             options.statusMessage ??= `Actor finished with an error (exit code ${options.exitCode})`;
-            log.error(options.statusMessage);
         } else {
             options.statusMessage ??= `Actor finished successfully (exit code ${options.exitCode})`;
-            log.info(options.statusMessage);
         }
 
-        await this.setStatusMessage(options.statusMessage, { isStatusMessageTerminal: true });
+        await this.setStatusMessage(options.statusMessage, { isStatusMessageTerminal: true, level: options.exitCode > 0 ? LogLevel.ERROR : LogLevel.INFO });
 
         if (!options.exit) {
             return;
@@ -519,20 +517,20 @@ export class Actor<Data extends Dictionary = Dictionary> {
         ow(statusMessage, ow.string);
         ow(isStatusMessageTerminal, ow.optional.boolean);
 
-        statusMessage = `[Status message]: ${statusMessage}`;
+        const loggedStatusMessage = `[Status message]: ${statusMessage}`;
 
         switch (level) {
             case LogLevel.DEBUG:
-                log.debug(statusMessage);
+                log.debug(loggedStatusMessage);
                 break;
             case LogLevel.WARNING:
-                log.warning(statusMessage);
+                log.warning(loggedStatusMessage);
                 break;
             case LogLevel.ERROR:
-                log.error(statusMessage);
+                log.error(loggedStatusMessage);
                 break;
             default:
-                log.info(statusMessage);
+                log.info(loggedStatusMessage);
                 break;
         }
 
