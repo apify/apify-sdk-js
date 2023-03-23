@@ -250,13 +250,11 @@ export class Actor<Data extends Dictionary = Dictionary> {
 
         if (options.exitCode > 0) {
             options.statusMessage ??= `Actor finished with an error (exit code ${options.exitCode})`;
-            log.error(options.statusMessage);
         } else {
             options.statusMessage ??= `Actor finished successfully (exit code ${options.exitCode})`;
-            log.info(options.statusMessage);
         }
 
-        await this.setStatusMessage(options.statusMessage, { isStatusMessageTerminal: true });
+        await this.setStatusMessage(options.statusMessage, { isStatusMessageTerminal: true, level: options.exitCode > 0 ? LogLevel.ERROR : LogLevel.INFO });
 
         if (!options.exit) {
             return;
