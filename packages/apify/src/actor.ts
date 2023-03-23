@@ -519,20 +519,20 @@ export class Actor<Data extends Dictionary = Dictionary> {
         ow(statusMessage, ow.string);
         ow(isStatusMessageTerminal, ow.optional.boolean);
 
-        statusMessage = `[Status message]: ${statusMessage}`;
+        const loggedStatusMessage = `[Status message]: ${statusMessage}`;
 
         switch (level) {
             case LogLevel.DEBUG:
-                log.debug(statusMessage);
+                log.debug(loggedStatusMessage);
                 break;
             case LogLevel.WARNING:
-                log.warning(statusMessage);
+                log.warning(loggedStatusMessage);
                 break;
             case LogLevel.ERROR:
-                log.error(statusMessage);
+                log.error(loggedStatusMessage);
                 break;
             default:
-                log.info(statusMessage);
+                log.info(loggedStatusMessage);
                 break;
         }
 
