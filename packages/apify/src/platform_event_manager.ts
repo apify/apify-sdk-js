@@ -27,7 +27,8 @@ import { Configuration } from './configuration';
  *   For example, this event is used by the {@apilink AutoscaledPool} class.
  * - `migrating`: `void`
  *   Emitted when the actor running on the Apify platform is going to be migrated to another worker server soon.
- *   You can use it to persist the state of the actor and abort the run, to speed up migration.
+ *   You can use it to persist the state of the actor and gracefully stop your in-progress tasks,
+ *   so that they are not interrupted by the migration.
  *   For example, this is used by the {@apilink RequestList} class.
  * - `aborting`: `void`
  *   When a user aborts an actor run on the Apify platform, they can choose to abort gracefully to allow
