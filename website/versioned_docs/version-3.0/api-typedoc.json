@@ -9391,7 +9391,7 @@
 					},
 					{
 						"kind": "text",
-						"text": "\n  Emitted when the actor running on the Apify platform is going to be migrated to another worker server soon.\n  You can use it to persist the state of the actor and abort the run, to speed up migration.\n  For example, this is used by the "
+						"text": "\n  Emitted when the actor running on the Apify platform is going to be migrated to another worker server soon.\n  You can use it to persist the state of the actor and gracefully stop your in-progress tasks, so that they are not interrupted by the migration.\n  For example, this is used by the "
 					},
 					{
 						"kind": "inline-tag",
