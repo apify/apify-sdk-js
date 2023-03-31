@@ -277,8 +277,8 @@ The following events are emitted:
     maximum of available CPU resources. If that's the case, the actor should not add more workload. For example, this event is used by the
     [`AutoscaledPool`](../api/autoscaled-pool) class.
 -   `migrating`: `void` Emitted when the actor running on the Apify platform is going to be migrated to another worker server soon. You can use it to
-    persist the state of the actor and abort the run, to speed up migration. For example, this is used by the [`RequestList`](../api/request-list)
-    class.
+    persist the state of the actor and gracefully stop your in-progress tasks, so that they are not interrupted by the migration. For example, this is
+    used by the [`RequestList`](../api/request-list) class.
 -   `aborting`: `void` When a user aborts an actor run on the Apify platform, they can choose to abort gracefully to allow the actor some time before
     getting killed. This graceful abort emits the `aborting` event which the SDK uses to gracefully stop running crawls and you can use it to do your
     own cleanup as well.
