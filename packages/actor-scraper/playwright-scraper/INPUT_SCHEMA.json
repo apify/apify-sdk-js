@@ -30,6 +30,16 @@
             "default": [],
             "prefill": []
         },
+        "excludes": {
+            "title": "Exclude Glob Patterns",
+            "type": "array",
+            "description": "Glob patterns to match links in the page that you want to exclude from being enqueued.",
+            "editor": "globs",
+            "default": [],
+            "prefill": [{
+                "glob": "/**/*.{png,jpg,jpeg,pdf}"
+            }]
+        },
         "linkSelector": {
             "title": "Link selector",
             "type": "string",
