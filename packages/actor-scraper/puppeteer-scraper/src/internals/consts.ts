@@ -11,6 +11,7 @@ export interface Input {
     globs: GlobInput[];
     regexps: RegExpInput[];
     pseudoUrls: PseudoUrlInput[];
+    excludes: GlobInput[];
     linkSelector?: string;
     clickableElementsSelector?: string;
     keepUrlFragments: boolean;

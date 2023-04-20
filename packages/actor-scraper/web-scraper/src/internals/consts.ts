@@ -20,6 +20,7 @@ export interface Input {
     globs: GlobInput[];
     regexps: RegExpInput[];
     pseudoUrls: PseudoUrlInput[];
+    excludes: GlobInput[];
     preNavigationHooks?: string;
     postNavigationHooks?: string;
     injectJQuery: boolean;

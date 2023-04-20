@@ -10,6 +10,7 @@ export interface Input {
     globs: GlobInput[];
     regexps: RegExpInput[];
     pseudoUrls: PseudoUrlInput[];
+    excludes: GlobInput[];
     linkSelector?: string;
     keepUrlFragments: boolean;
     pageFunction: string;

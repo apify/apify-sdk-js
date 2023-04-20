@@ -339,6 +339,7 @@ export class CrawlerSetup implements CrawlerSetupOptions {
             selector: this.input.linkSelector,
             pseudoUrls: this.input.pseudoUrls,
             globs: this.input.globs,
+            exclude: this.input.excludes,
             transformRequestFunction: (requestOptions) => {
                 requestOptions.userData ??= {};
                 requestOptions.userData[META_KEY] = {

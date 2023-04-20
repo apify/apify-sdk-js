@@ -345,6 +345,7 @@ export class CrawlerSetup implements CrawlerSetupOptions {
         const enqueueOptions: EnqueueLinksOptions = {
             globs: this.input.globs,
             pseudoUrls: this.input.pseudoUrls,
+            exclude: this.input.excludes,
             transformRequestFunction: (requestOptions) => {
                 requestOptions.userData ??= {};
                 requestOptions.userData[META_KEY] = {
