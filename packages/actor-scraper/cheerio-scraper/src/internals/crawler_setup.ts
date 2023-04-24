@@ -101,7 +101,7 @@ export class CrawlerSetup implements CrawlerSetupOptions {
         this.evaledPageFunction = tools.evalFunctionOrThrow(this.input.pageFunction);
 
         if (this.input.transformRequestFunction) {
-            this.evaledTransformRequestFunction = tools.evalFunctionOrThrow(this.input.transformRequestFunction);
+            this.evaledTransformRequestFunction = tools.evalFunctionOrThrow(this.input.transformRequestFunction) as RequestTransform;
         }
 
         if (this.input.preNavigationHooks) {
