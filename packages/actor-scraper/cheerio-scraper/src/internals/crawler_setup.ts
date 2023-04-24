@@ -362,6 +362,7 @@ export class CrawlerSetup implements CrawlerSetupOptions {
                 if (updatedOptions) {
                     return baseTransformRequestFunction(requestOptions);
                 }
+                return updatedOptions;
             }
         } else {
             transformRequestFunction = baseTransformRequestFunction;
