@@ -354,12 +354,25 @@ export class CrawlerSetup implements CrawlerSetupOptions {
             return requestOptions;
         }
 
+        let transformRequestFunction: RequestTransform;
+
+        if (this.evaledTransformRequestFunction) {
+            transformRequestFunction = (requestOptions: RequestOptions) => {
+                const updatedOptions = this.evaledTransformRequestFunction!(requestOptions);
+                if (updatedOptions) {
+                    return baseTransformRequestFunction(requestOptions);
+                }
+            }
+        } else {
+            transformRequestFunction = baseTransformRequestFunction;
+        }
+
         await enqueueLinks({
             selector: this.input.linkSelector,
             pseudoUrls: this.input.pseudoUrls,
             globs: this.input.globs,
             exclude: this.input.excludes,
-            transformRequestFunction: this.evaledTransformRequestFunction || baseTransformRequestFunction,
+            transformRequestFunction,
         });
     }
 
