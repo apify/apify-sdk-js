@@ -35,6 +35,7 @@ export interface Input {
     datasetName?: string;
     keyValueStoreName?: string;
     requestQueueName?: string;
+    experimentalQueue?: boolean;
 }
 
 export const enum ProxyRotation {

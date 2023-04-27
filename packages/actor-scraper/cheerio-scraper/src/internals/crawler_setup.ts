@@ -27,6 +27,7 @@ import { IncomingMessage } from 'node:http';
 import { dirname } from 'node:path';
 import { fileURLToPath, URL } from 'node:url';
 import { Input, ProxyRotation } from './consts.js';
+import { createRequestQueue } from './request_queue_experimental.js';
 
 const { SESSION_MAX_USAGE_COUNTS, META_KEY } = scraperToolsConstants;
 const SCHEMA = JSON.parse(await readFile(new URL('../../INPUT_SCHEMA.json', import.meta.url), 'utf8'));
@@ -135,6 +136,7 @@ export class CrawlerSetup implements CrawlerSetupOptions {
         this.requestList = await RequestList.open('CHEERIO_SCRAPER', startUrls);
 
         // RequestQueue
+
         this.requestQueue = await RequestQueue.open(this.requestQueueName);
 
         // Dataset
@@ -203,6 +205,12 @@ export class CrawlerSetup implements CrawlerSetupOptions {
         }
 
         this.crawler = new CheerioCrawler(options);
+
+        if (this.input.experimentalQueue) {
+            // We have to override the queue after crawler creation.
+            // We could possibly extend the original request queue too.
+            this.crawler.requestQueue = await createRequestQueue() as any as RequestQueue;
+        }
 
         return this.crawler;
     }
