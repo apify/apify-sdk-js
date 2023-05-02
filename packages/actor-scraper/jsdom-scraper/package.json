@@ -16,7 +16,7 @@
         "typescript": "~5.0.0"
     },
     "peerDependencies": {
-        "jsdom": "^21.0.0"
+        "jsdom": "^22.0.0"
     },
     "scripts": {
         "start": "npm run start:dev",
