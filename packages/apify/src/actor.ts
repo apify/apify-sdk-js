@@ -1176,8 +1176,8 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @returns The return value is the Run object. When run locally, this method returns empty object (`{}`).
      * For more information, see the [Actor Runs](https://docs.apify.com/api/v2#/reference/actor-runs/) API endpoints.
      */
-    static async setStatusMessage(statusMessage: string): Promise<ClientActorRun> {
-        return Actor.getDefaultInstance().setStatusMessage(statusMessage);
+    static async setStatusMessage(statusMessage: string, options?: SetStatusMessageOptions): Promise<ClientActorRun> {
+        return Actor.getDefaultInstance().setStatusMessage(statusMessage, options);
     }
 
     /**
