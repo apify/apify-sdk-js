@@ -56,3 +56,8 @@ jobs:
                   commit_user_name: Apify Bot
                   commit_user_email: my-github-actions-bot@example.org
                   commit_author: Apify Bot <apify@apify.com>
+
+            -   name: Invalidate CloudFront cache
+                run: gh workflow run invalidate.yaml --repo apify/apify-docs-private
+                env:
+                    GITHUB_TOKEN: ${{ secrets.APIFY_SERVICE_ACCOUNT_GITHUB_TOKEN }}
