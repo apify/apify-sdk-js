@@ -724,3 +724,36 @@ This [v3 migration guide](https://sdk.apify.com/docs/upgrading/upgrading-to-v3) 
 
 Scraper-specific breaking changes:
 - Proxy usage is now required.
+
+## FAQ
+
+### What is Web Scraper and what can it do?
+Web Scraper is a versatile tool for extracting structured data from web pages using JavaScript code. It loads web pages in a browser, renders dynamic content, and allows you to extract data that can be stored in various formats such as JSON, XML, or CSV.
+
+### How can I use Web Scraper?
+You can use Web Scraper either manually through a user interface or programmatically [using the API](https://apify.com/apify/web-scraper/api). To get started, you need to specify the web pages to load and provide a JavaScript code called the Page function to extract data from the pages.
+
+### What are the costs associated with using Web Scraper?
+The average usage cost for Web Scraper can be found on the pricing page under the [Detailed pricing breakdown](https://apify.com/pricing) section. The cost estimates are based on averages and may vary depending on the complexity of the pages you scrape.
+
+### Are there any limitations to using Web Scraper?
+Web Scraper is designed to be user-friendly and generic, which may affect its performance and flexibility compared to more specialized solutions. It uses a resource-intensive Chromium browser and supports client-side JavaScript code only.
+
+### Can I control the crawling behavior of Web Scraper?
+Yes, you can control the crawling behavior of Web Scraper. You can specify start URLs, define link selectors, glob patterns, and pseudo-URLs to guide the scraper in following specific page links. This allows recursive crawling of websites or targeted extraction of data.
+
+### How can I extract data from web pages using Web Scraper?
+To extract data from web pages, you need to provide a JavaScript code called the Page function. This function is executed in the context of each loaded web page. You can use client-side libraries like jQuery to manipulate the DOM and extract the desired data.
+
+### Is it possible to use proxies with Web Scraper?
+Yes, you can configure proxies for Web Scraper. You have the option to use [Apify Proxy](https://apify.com/proxy), custom HTTP proxies, or SOCKS5 proxies. Proxies can help prevent detection by target websites and provide additional anonymity.
+
+### How can I handle authentication and login for websites with Web Scraper?
+Web Scraper supports logging into websites by transferring cookies. You can set initial cookies in the “Initial cookies” field, which allows the scraper to use your session credentials. Cookies have a limited lifetime, so you may need to update them periodically.
+
+### How can I customize the behavior of Web Scraper?
+Web Scraper provides advanced configuration options such as pre-navigation and post-navigation hooks and more. These options allow you to fine-tune the scraper’s behavior and perform additional actions during the scraping process.
+
+### How can I access and export the data scraped by Web Scraper?
+The data scraped by Web Scraper is stored in a dataset. You can access and export this data in various formats such as JSON, XML, CSV, or as an Excel spreadsheet. The results can be downloaded using the Apify API or through the Apify Console. Check out the Apify [API reference docs](https://docs.apify.com/api/v2) for full details.
+
