@@ -3,6 +3,22 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [3.1.5](https://github.com/apify/apify-sdk-js/compare/apify@3.1.4...apify@3.1.5) (2023-05-31)
+
+
+### Bug Fixes
+
+* add missing `options` parameter to `Actor.setStatusMessage()` ([712e8c6](https://github.com/apify/apify-sdk-js/commit/712e8c66755ac8baeb35fcc1ad000487da8b2c48))
+
+
+### Features
+
+* add `Actor.getInputOrThrow()` method ([#198](https://github.com/apify/apify-sdk-js/issues/198)) ([5fbbfe4](https://github.com/apify/apify-sdk-js/commit/5fbbfe4960a79fbbd23f4fdd7d07a1a5063820f4))
+
+
+
+
+
 ## [3.1.4](https://github.com/apify/apify-sdk-js/compare/apify@3.1.3...apify@3.1.4) (2023-03-23)
 
 
