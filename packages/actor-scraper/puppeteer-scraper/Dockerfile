@@ -1,4 +1,4 @@
-FROM apify/actor-node-puppeteer-chrome:16 AS builder
+FROM apify/actor-node-puppeteer-chrome:18 AS builder
 
 COPY --chown=myuser package*.json ./
 
@@ -8,7 +8,7 @@ COPY --chown=myuser . ./
 
 RUN npm run build
 
-FROM apify/actor-node-puppeteer-chrome:16
+FROM apify/actor-node-puppeteer-chrome:18
 
 COPY --from=builder --chown=myuser /home/myuser/dist ./dist
 
