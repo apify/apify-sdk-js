@@ -6,7 +6,9 @@ module.exports = {
     collectCoverage: false,
     testMatch: ['**/?(*.)+(spec|test).[tj]s?(x)'],
     transform: {
-        '^.+\\.ts$': 'ts-jest',
+        '^.+\\.ts$': ['ts-jest', {
+            tsconfig: 'test/tsconfig.json',
+        }],
     },
     collectCoverageFrom: [
         '<rootDir>/packages/*/src/**/*.[jt]s',
@@ -19,9 +21,4 @@ module.exports = {
         'dist/package.json',
         '<rootDir>/package.json',
     ],
-    globals: {
-        'ts-jest': {
-            tsconfig: 'test/tsconfig.json',
-        },
-    },
 };
