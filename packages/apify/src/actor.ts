@@ -727,6 +727,20 @@ export class Actor<Data extends Dictionary = Dictionary> {
     }
 
     /**
+     * Gets the actor input value just like the {@apilink Actor.getInput} method,
+     * but throws if it is not found.
+     */
+    async getInputOrThrow<T = Dictionary | string | Buffer>(): Promise<T> {
+        const input = await this.getInput<T>();
+
+        if (input == null) {
+            throw new Error('Input does not exist');
+        }
+
+        return input;
+    }
+
+    /**
      * Opens a key-value store and returns a promise resolving to an instance of the {@apilink KeyValueStore} class.
      *
      * Key-value stores are used to store records or files, along with their MIME content type.
@@ -1321,6 +1335,14 @@ export class Actor<Data extends Dictionary = Dictionary> {
      */
     static async getInput<T = Dictionary | string | Buffer>(): Promise<T | null> {
         return Actor.getDefaultInstance().getInput();
+    }
+
+    /**
+     * Gets the actor input value just like the {@apilink Actor.getInput} method,
+     * but throws if it is not found.
+     */
+    static async getInputOrThrow<T = Dictionary | string | Buffer>(): Promise<T> {
+        return Actor.getDefaultInstance().getInputOrThrow<T>();
     }
 
     /**
