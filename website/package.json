@@ -25,7 +25,7 @@
         "got": "^11.8.2",
         "path-browserify": "^1.0.1",
         "prettier": "^2.5.1",
-        "rimraf": "^4.0.0"
+        "rimraf": "^5.0.0"
     },
     "dependencies": {
         "@apify/docs-theme": "^1.0.78",
