@@ -50,7 +50,7 @@
     },
     "devDependencies": {
         "@apify/consts": "^2.4.1",
-        "@apify/eslint-config-ts": "^0.2.3",
+        "@apify/eslint-config-ts": "^0.3.0",
         "@apify/input_secrets": "^1.1.1",
         "@apify/tsconfig": "^0.1.0",
         "@commitlint/config-conventional": "^17.0.3",
