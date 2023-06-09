@@ -10,7 +10,6 @@
             "message": "chore(release): release packages [skip ci]"
         }
     },
-    "useWorkspaces": true,
     "useNx": false,
     "ignoreChanges": [
         "**/test/**",
