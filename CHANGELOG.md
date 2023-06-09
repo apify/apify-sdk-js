@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [3.1.6](https://github.com/apify/apify-sdk-js/compare/apify@3.1.5...apify@3.1.6) (2023-06-09)
+
+
+### Bug Fixes
+
+* only print status message when explicitly provided in `Actor.exit()` ([#203](https://github.com/apify/apify-sdk-js/issues/203)) ([85159e4](https://github.com/apify/apify-sdk-js/commit/85159e499984c78eee90b6d92332ea63b9f46c8c))
+
+
+
+
+
 ## [3.1.5](https://github.com/apify/apify-sdk-js/compare/apify@3.1.4...apify@3.1.5) (2023-05-31)
 
 
