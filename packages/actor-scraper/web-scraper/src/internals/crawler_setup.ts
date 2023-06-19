@@ -25,6 +25,8 @@ import { fileURLToPath, URL } from 'node:url';
 import { createBundle } from './bundle.browser.js';
 import { BreakpointLocation, CHROME_DEBUGGER_PORT, Input, ProxyRotation, RunMode } from './consts.js';
 import { GlobalStore } from './global_store.js';
+import { getInjectableScript } from 'idcac-playwright';
+import { setTimeout } from 'node:timers/promises';
 
 const SESSION_STORE_NAME = 'APIFY-WEB-SCRAPER-SESSION-STORE';
 
@@ -406,6 +408,12 @@ export class CrawlerSetup implements CrawlerSetupOptions {
 
         if (this.isDevRun && this.input.breakpointLocation === BreakpointLocation.BeforePageFunction) {
             await page.evaluate(async () => { debugger; }); // eslint-disable-line no-debugger
+        }
+
+        if (this.input.closeCookieModals) {
+            await setTimeout(500);
+            await page.evaluate(getInjectableScript());
+            await setTimeout(2000);
         }
 
         const startUserFn = process.hrtime();

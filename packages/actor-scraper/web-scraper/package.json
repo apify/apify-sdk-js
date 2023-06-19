@@ -11,6 +11,7 @@
         "apify": "^3.1.1",
         "content-type": "^1.0.4",
         "devtools-server": "^0.0.2",
+        "idcac-playwright": "^0.1.2",
         "puppeteer": "*"
     },
     "devDependencies": {
