@@ -148,6 +148,12 @@
             "description": "Scraper will ignore CSP (content security policy) and CORS (cross origin resource sharing) settings of visited pages and requested domains. This enables you to freely use XHR/Fetch to make HTTP requests from the scraper.",
             "default": false
         },
+        "closeCookieModals": {
+            "title": "Dismiss cookie modals",
+            "type": "boolean",
+            "description": "Using the [I don't care about cookies](https://addons.mozilla.org/en-US/firefox/addon/i-dont-care-about-cookies/) browser extension. When on, the crawler will automatically try to dismiss cookie consent modals. This can be useful when crawling European websites that show cookie consent modals. This setting is ignored when using the cheerio crawler type.",
+            "default": false
+        },
         "downloadMedia": {
             "sectionCaption": "Performance and limits",
             "title": "Download media",

@@ -24,6 +24,7 @@ export interface Input {
     useChrome: boolean;
     ignoreSslErrors: boolean;
     ignoreCorsAndCsp: boolean;
+    closeCookieModals: boolean;
     downloadMedia: boolean;
     downloadCss: boolean;
     maxRequestRetries: number;
