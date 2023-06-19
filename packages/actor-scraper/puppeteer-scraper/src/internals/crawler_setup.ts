@@ -14,12 +14,13 @@ import {
     EnqueueLinksOptions,
     log,
 } from '@crawlee/puppeteer';
-import { Awaitable, Dictionary } from '@crawlee/utils';
+import { Awaitable, Dictionary, sleep } from '@crawlee/utils';
 import { readFile } from 'node:fs/promises';
 import { dirname } from 'node:path';
 import { fileURLToPath, URL } from 'node:url';
 import { HTTPResponse } from 'puppeteer';
 import { Input, ProxyRotation } from './consts.js';
+import { getInjectableScript } from 'idcac-playwright';
 
 const SESSION_STORE_NAME = 'APIFY-PUPPETEER-SCRAPER-SESSION-STORE';
 
@@ -307,6 +308,12 @@ export class CrawlerSetup implements CrawlerSetupOptions {
             pageFunctionArguments,
         };
         const { context, state } = createContext(contextOptions);
+
+        if(this.input.closeCookieModals) {
+            await sleep(500);
+            await crawlingContext.page.evaluate(getInjectableScript());
+            await sleep(2000);
+        }
 
         /**
          * USER FUNCTION INVOCATION
