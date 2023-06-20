@@ -416,6 +416,10 @@ export class CrawlerSetup implements CrawlerSetupOptions {
             await setTimeout(2000);
         }
 
+        if (this.input.maxScrollHeightPixels > 0) {
+            await crawlingContext.infiniteScroll({ maxScrollHeight: this.input.maxScrollHeightPixels });
+        }
+
         const startUserFn = process.hrtime();
 
         const namespace = pageContext.apifyNamespace;

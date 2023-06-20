@@ -233,13 +233,17 @@
             "prefill": "// We need to return array of (possibly async) functions here.\n// The functions accept a single argument: the \"crawlingContext\" object.\n[\n    async (crawlingContext) => {\n        const { page } = crawlingContext;\n        // ...\n    },\n]",
             "editor": "javascript"
         },
-
-
         "closeCookieModals": {
             "title": "Dismiss cookie modals",
             "type": "boolean",
             "description": "Using the [I don't care about cookies](https://addons.mozilla.org/en-US/firefox/addon/i-dont-care-about-cookies/) browser extension. When on, the crawler will automatically try to dismiss cookie consent modals. This can be useful when crawling European websites that show cookie consent modals. This setting is ignored when using the cheerio crawler type.",
             "default": false
+        },
+        "maxScrollHeightPixels": {
+            "title": "Maximum scrolling distance in pixels",
+            "type": "integer",
+            "description": "The crawler will scroll down the page until all content is loaded or the maximum scrolling distance is reached. Setting this to `0` disables scrolling altogether.",
+            "default": 5000
         },
         "debugLog": {
             "title": "Debug log",

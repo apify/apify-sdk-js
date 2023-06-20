@@ -22,6 +22,7 @@ export interface Input {
     initialCookies: Parameters<Session['setCookies']>[0];
     launcher: 'chromium' | 'firefox' | 'webkit';
     useChrome: boolean;
+    maxScrollHeightPixels: number;
     ignoreSslErrors: boolean;
     ignoreCorsAndCsp: boolean;
     closeCookieModals: boolean;

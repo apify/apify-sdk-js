@@ -316,6 +316,10 @@ export class CrawlerSetup implements CrawlerSetupOptions {
             await sleep(2000);
         }
 
+        if (this.input.maxScrollHeightPixels > 0) {
+            await crawlingContext.infiniteScroll({ maxScrollHeight: this.input.maxScrollHeightPixels });
+        }
+
         /**
          * USER FUNCTION INVOCATION
          */
