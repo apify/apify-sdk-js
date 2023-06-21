@@ -19,8 +19,8 @@ import { readFile } from 'node:fs/promises';
 import { dirname } from 'node:path';
 import { fileURLToPath, URL } from 'node:url';
 import { HTTPResponse } from 'puppeteer';
-import { Input, ProxyRotation } from './consts.js';
 import { getInjectableScript } from 'idcac-playwright';
+import { Input, ProxyRotation } from './consts.js';
 
 const SESSION_STORE_NAME = 'APIFY-PUPPETEER-SCRAPER-SESSION-STORE';
 
@@ -309,7 +309,7 @@ export class CrawlerSetup implements CrawlerSetupOptions {
         };
         const { context, state } = createContext(contextOptions);
 
-        if(this.input.closeCookieModals) {
+        if (this.input.closeCookieModals) {
             await sleep(500);
             await crawlingContext.page.evaluate(getInjectableScript());
             await sleep(2000);

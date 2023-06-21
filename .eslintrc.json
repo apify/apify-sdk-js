@@ -26,6 +26,7 @@
         "no-void": 0,
         "no-console": "error",
         "quote-props": ["error", "consistent"],
+        "keyword-spacing": ["error", { "before": true }],
         "@typescript-eslint/array-type": "error",
         "@typescript-eslint/no-floating-promises": "error",
         "@typescript-eslint/ban-ts-comment": 0,
