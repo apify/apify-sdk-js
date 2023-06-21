@@ -259,7 +259,7 @@
         "closeCookieModals": {
             "title": "Dismiss cookie modals",
             "type": "boolean",
-            "description": "Using the [I don't care about cookies](https://addons.mozilla.org/en-US/firefox/addon/i-dont-care-about-cookies/) browser extension. When on, the crawler will automatically try to dismiss cookie consent modals. This can be useful when crawling European websites that show cookie consent modals. This setting is ignored when using the cheerio crawler type.",
+            "description": "Using the [I don't care about cookies](https://addons.mozilla.org/en-US/firefox/addon/i-dont-care-about-cookies/) browser extension. When on, the crawler will automatically try to dismiss cookie consent modals. This can be useful when crawling European websites that show cookie consent modals.",
             "default": false
         },
         "maxScrollHeightPixels": {
