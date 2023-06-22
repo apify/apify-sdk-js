@@ -45,8 +45,8 @@
         "release": "npm run build && lerna publish from-package --contents dist",
         "publish:next": "lerna publish --canary --preid beta --dist-tag next",
         "release:next": "npm run build && npm run publish:next",
-        "lint": "eslint packages/*/src packages/*/*/src test",
-        "lint:fix": "eslint packages/*/src packages/*/*/src test --fix"
+        "lint": "eslint 'packages/**/src/**/*' test",
+        "lint:fix": "eslint 'packages/**/src/**/*' test --fix"
     },
     "devDependencies": {
         "@apify/consts": "^2.4.1",
