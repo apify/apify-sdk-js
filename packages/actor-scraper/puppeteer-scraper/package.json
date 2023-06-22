@@ -6,8 +6,9 @@
     "type": "module",
     "dependencies": {
         "@apify/scraper-tools": "^1.1.1",
-        "@crawlee/puppeteer": "^3.1.0",
+        "@crawlee/puppeteer": "^3.4.0",
         "apify": "^3.1.1",
+        "idcac-playwright": "^0.1.2",
         "puppeteer": "*"
     },
     "devDependencies": {
