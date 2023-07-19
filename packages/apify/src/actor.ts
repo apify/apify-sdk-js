@@ -1,7 +1,7 @@
 import ow from 'ow';
 import { createPrivateKey } from 'node:crypto';
 import { decryptInputSecrets } from '@apify/input_secrets';
-import { ENV_VARS, INTEGER_ENV_VARS } from '@apify/consts';
+import { ACTOR_ENV_VARS, APIFY_ENV_VARS, INTEGER_ENV_VARS } from '@apify/consts';
 import { addTimeoutToPromise } from '@apify/timeout';
 import log, { LogLevel } from '@apify/log';
 import type {
@@ -489,7 +489,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
 
         const runId = this.config.get('actorRunId')!;
         if (!runId) {
-            throw new Error(`Environment variable ${ENV_VARS.ACTOR_RUN_ID} is not set!`);
+            throw new Error(`Environment variable ${ACTOR_ENV_VARS.RUN_ID} is not set!`);
         }
 
         return this.apifyClient.webhooks().create({
@@ -836,9 +836,27 @@ export class Actor<Data extends Dictionary = Dictionary> {
     }
 
     /**
-     * Returns a new {@apilink ApifyEnv} object which contains information parsed from all the `APIFY_XXX` environment variables.
+     * Modifies Actor env vars so parsing respects the structure of {@apilink ApifyEnv} interface.
+     */
+    private getModifiedActorEnvVars = () => {
+        const modifiedActorEnvVars: Record<string, string> = {};
+
+        Object.entries(ACTOR_ENV_VARS).forEach(([k, v]) => {
+            // Prepend `ACTOR_` to env vars so ApifyEnv structure is preserved
+            if (['ID', 'RUN_ID', 'TASK_ID'].includes(k)) {
+                modifiedActorEnvVars[`ACTOR_${k}`] = v;
+            } else {
+                modifiedActorEnvVars[k] = v;
+            }
+        });
+
+        return modifiedActorEnvVars;
+    };
+
+    /**
+     * Returns a new {@apilink ApifyEnv} object which contains information parsed from all the Apify environment variables.
      *
-     * For the list of the `APIFY_XXX` environment variables, see
+     * For the list of the Apify environment variables, see
      * [Actor documentation](https://docs.apify.com/actor/run#environment-variables).
      * If some variables are not defined or are invalid, the corresponding value in the resulting object will be null.
      * @ignore
@@ -848,7 +866,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
         const env = process.env || {};
         const envVars = {} as ApifyEnv;
 
-        for (const [shortName, fullName] of Object.entries(ENV_VARS)) {
+        for (const [shortName, fullName] of Object.entries({ ...APIFY_ENV_VARS, ...this.getModifiedActorEnvVars() })) {
             const camelCaseName = snakeCaseToCamelCase(shortName) as keyof ApifyEnv;
             let value: string | number | Date | undefined = env[fullName];
 
@@ -889,7 +907,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @ignore
      */
     isAtHome(): boolean {
-        return !!process.env[ENV_VARS.IS_AT_HOME];
+        return !!process.env[APIFY_ENV_VARS.IS_AT_HOME];
     }
 
     /**
@@ -1403,9 +1421,9 @@ export class Actor<Data extends Dictionary = Dictionary> {
     }
 
     /**
-     * Returns a new {@apilink ApifyEnv} object which contains information parsed from all the `APIFY_XXX` environment variables.
+     * Returns a new {@apilink ApifyEnv} object which contains information parsed from all the Apify environment variables.
      *
-     * For the list of the `APIFY_XXX` environment variables, see
+     * For the list of the Apify environment variables, see
      * [Actor documentation](https://docs.apify.com/actor/run#environment-variables).
      * If some of the variables are not defined or are invalid, the corresponding value in the resulting object will be null.
      */
@@ -1478,22 +1496,22 @@ export interface InitOptions {
 export interface MainOptions extends ExitOptions, InitOptions {}
 
 /**
- * Parsed representation of the `APIFY_XXX` environmental variables.
+ * Parsed representation of the Apify environment variables.
  * This object is returned by the {@apilink Actor.getEnv} function.
  */
 export interface ApifyEnv {
     /**
-     * ID of the actor (APIFY_ACTOR_ID)
+     * ID of the actor (ACTOR_ID)
      */
     actorId: string | null;
 
     /**
-     * ID of the actor run (APIFY_ACTOR_RUN_ID)
+     * ID of the actor run (ACTOR_RUN_ID)
      */
     actorRunId: string | null;
 
     /**
-     * ID of the actor task (APIFY_ACTOR_TASK_ID)
+     * ID of the actor task (ACTOR_TASK_ID)
      */
     actorTaskId: string | null;
 
@@ -1510,30 +1528,30 @@ export interface ApifyEnv {
     token: string | null;
 
     /**
-     * Date when the actor was started (APIFY_STARTED_AT)
+     * Date when the actor was started (ACTOR_STARTED_AT)
      */
     startedAt: Date | null;
 
     /**
-     * Date when the actor will time out (APIFY_TIMEOUT_AT)
+     * Date when the actor will time out (ACTOR_TIMEOUT_AT)
      */
     timeoutAt: Date | null;
 
     /**
      * ID of the key-value store where input and output data of this
-     * actor is stored (APIFY_DEFAULT_KEY_VALUE_STORE_ID)
+     * actor is stored (ACTOR_DEFAULT_KEY_VALUE_STORE_ID)
      */
     defaultKeyValueStoreId: string | null;
 
     /**
      * ID of the dataset where input and output data of this
-     * actor is stored (APIFY_DEFAULT_DATASET_ID)
+     * actor is stored (ACTOR_DEFAULT_DATASET_ID)
      */
     defaultDatasetId: string | null;
 
     /**
      * Amount of memory allocated for the actor,
-     * in megabytes (APIFY_MEMORY_MBYTES)
+     * in megabytes (ACTOR_MEMORY_MBYTES)
      */
     memoryMbytes: number | null;
 }

@@ -1,4 +1,4 @@
-import { ACTOR_EVENT_NAMES, ENV_VARS } from '@apify/consts';
+import { ACTOR_EVENT_NAMES, ACTOR_ENV_VARS } from '@apify/consts';
 import WebSocket from 'ws';
 import { EventType, EventManager } from '@crawlee/core';
 import { betterClearInterval } from '@apify/utilities';
@@ -63,7 +63,7 @@ export class PlatformEventManager extends EventManager {
 
         // Locally there is no web socket to connect, so just print a log message.
         if (!eventsWsUrl) {
-            this.log.debug(`Environment variable ${ENV_VARS.ACTOR_EVENTS_WS_URL} is not set, no events from Apify platform will be emitted.`);
+            this.log.debug(`Environment variable ${ACTOR_ENV_VARS.EVENTS_WEBSOCKET_URL} is not set, no events from Apify platform will be emitted.`);
             return;
         }
 

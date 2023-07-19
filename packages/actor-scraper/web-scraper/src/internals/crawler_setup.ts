@@ -212,8 +212,8 @@ export class CrawlerSetup implements CrawlerSetupOptions {
                         }
 
                         const devToolsServer = new DevToolsServer({
-                            containerHost: new URL(process.env.APIFY_CONTAINER_URL!).host,
-                            devToolsServerPort: process.env.APIFY_CONTAINER_PORT,
+                            containerHost: new URL(process.env.ACTOR_WEB_SERVER_URL!).host,
+                            devToolsServerPort: process.env.ACTOR_WEB_SERVER_PORT,
                             chromeRemoteDebuggingPort: CHROME_DEBUGGER_PORT,
                         });
                         await devToolsServer.start();

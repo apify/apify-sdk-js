@@ -133,8 +133,8 @@ export async function getDatasetItems(dirName) {
 export async function initialize(dirName) {
     process.env.CRAWLEE_STORAGE_DIR = getStorage(dirName);
     process.env.APIFY_TOKEN ??= await getApifyToken();
-    process.env.APIFY_CONTAINER_URL ??= 'http://127.0.0.1';
-    process.env.APIFY_CONTAINER_PORT ??= '8000';
+    process.env.ACTOR_WEB_SERVER_URL ??= 'http://127.0.0.1';
+    process.env.ACTOR_WEB_SERVER_PORT ??= '8000';
 }
 
 /**

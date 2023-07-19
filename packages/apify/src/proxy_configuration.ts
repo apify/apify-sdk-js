@@ -1,5 +1,5 @@
 import ow from 'ow';
-import { APIFY_PROXY_VALUE_REGEX, ENV_VARS } from '@apify/consts';
+import { APIFY_PROXY_VALUE_REGEX, APIFY_ENV_VARS } from '@apify/consts';
 import type {
     ProxyConfigurationOptions as CoreProxyConfigurationOptions,
     ProxyInfo as CoreProxyInfo,
@@ -328,8 +328,8 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
         }
 
         if (!this.password) {
-            throw new Error(`Apify Proxy password must be provided using options.password or the "${ENV_VARS.PROXY_PASSWORD}" environment variable. `
-                + `If you add the "${ENV_VARS.TOKEN}" environment variable, the password will be automatically inferred.`);
+            throw new Error(`Apify Proxy password must be provided using options.password or the "${APIFY_ENV_VARS.PROXY_PASSWORD}" environment variable. `
+                + `If you add the "${APIFY_ENV_VARS.TOKEN}" environment variable, the password will be automatically inferred.`);
         }
     }
 
