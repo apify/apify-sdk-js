@@ -3,6 +3,22 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [3.1.8](https://github.com/apify/apify-sdk-js/compare/apify@3.1.7...apify@3.1.8) (2023-07-20)
+
+
+### Bug Fixes
+
+* require newer version of apify-client and other packages ([24a3a4b](https://github.com/apify/apify-sdk-js/commit/24a3a4b5bf2f61e690348727e7f24c06c45a0999))
+
+
+### Features
+
+* Use Actor env vars ([#216](https://github.com/apify/apify-sdk-js/issues/216)) ([11ff740](https://github.com/apify/apify-sdk-js/commit/11ff740ad3d2bdd37fce011d94b64ea01413b0d9))
+
+
+
+
+
 ## [3.1.7](https://github.com/apify/apify-sdk-js/compare/apify@3.1.6...apify@3.1.7) (2023-06-09)
 
 **Note:** Version bump only for package apify
