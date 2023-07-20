@@ -1,9 +1,9 @@
 "use strict";
-exports.id = 426;
-exports.ids = [426];
+exports.id = 974;
+exports.ids = [974];
 exports.modules = {
 
-/***/ 61426:
+/***/ 96974:
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 // ESM COMPAT FLAG
@@ -2227,9 +2227,9 @@ function createAutocomplete(options) {
 }
 // EXTERNAL MODULE: ./node_modules/react/index.js
 var react = __webpack_require__(67294);
-;// CONCATENATED MODULE: ./node_modules/@docsearch/react/dist/esm/constants.js
+;// CONCATENATED MODULE: ./node_modules/@apify/docsearch-apify-docs/dist/esm/constants.js
 var MAX_QUERY_SIZE = 64;
-;// CONCATENATED MODULE: ./node_modules/@docsearch/react/dist/esm/AlgoliaLogo.js
+;// CONCATENATED MODULE: ./node_modules/@apify/docsearch-apify-docs/dist/esm/AlgoliaLogo.js
 
 function AlgoliaLogo(_ref) {
   var _ref$translations = _ref.translations,
@@ -2284,7 +2284,7 @@ function AlgoliaLogo(_ref) {
     d: "M249.83,0C113.3,0,2,110.09,.03,246.16c-2,138.19,110.12,252.7,248.33,253.5,42.68,.25,83.79-10.19,120.3-30.03,3.56-1.93,4.11-6.83,1.08-9.51l-23.38-20.72c-4.75-4.21-11.51-5.4-17.36-2.92-25.48,10.84-53.17,16.38-81.71,16.03-111.68-1.37-201.91-94.29-200.13-205.96,1.76-110.26,92-199.41,202.67-199.41h202.69V407.41l-115-102.18c-3.72-3.31-9.42-2.66-12.42,1.31-18.46,24.44-48.53,39.64-81.93,37.34-46.33-3.2-83.87-40.5-87.34-86.81-4.15-55.24,39.63-101.52,94-101.52,49.18,0,89.68,37.85,93.91,85.95,.38,4.28,2.31,8.27,5.52,11.12l29.95,26.55c3.4,3.01,8.79,1.17,9.63-3.3,2.16-11.55,2.92-23.58,2.07-35.92-4.82-70.34-61.8-126.93-132.17-131.26-80.68-4.97-148.13,58.14-150.27,137.25-2.09,77.1,61.08,143.56,138.19,145.26,32.19,.71,62.03-9.41,86.14-26.95l150.26,133.2c6.44,5.71,16.61,1.14,16.61-7.47V9.48C499.66,4.25,495.42,0,490.18,0H249.83Z"
   })));
 }
-;// CONCATENATED MODULE: ./node_modules/@docsearch/react/dist/esm/Footer.js
+;// CONCATENATED MODULE: ./node_modules/@apify/docsearch-apify-docs/dist/esm/Footer.js
 
 
 
@@ -2362,7 +2362,7 @@ function Footer(_ref) {
     className: "DocSearch-Label"
   }, closeText))));
 }
-;// CONCATENATED MODULE: ./node_modules/@docsearch/react/dist/esm/Hit.js
+;// CONCATENATED MODULE: ./node_modules/@apify/docsearch-apify-docs/dist/esm/Hit.js
 
 function Hit(_ref) {
   var hit = _ref.hit,
@@ -2371,7 +2371,7 @@ function Hit(_ref) {
     href: hit.url
   }, children);
 }
-;// CONCATENATED MODULE: ./node_modules/@docsearch/react/dist/esm/icons/ErrorIcon.js
+;// CONCATENATED MODULE: ./node_modules/@apify/docsearch-apify-docs/dist/esm/icons/ErrorIcon.js
 
 function ErrorIcon() {
   return /*#__PURE__*/react.createElement("svg", {
@@ -2387,7 +2387,7 @@ function ErrorIcon() {
     d: "M19 4.8a16 16 0 00-2-1.2m-3.3-1.2A16 16 0 001.1 4.7M16.7 8a12 12 0 00-2.8-1.4M10 6a12 12 0 00-6.7 2M12.3 14.7a4 4 0 00-4.5 0M14.5 11.4A8 8 0 0010 10M3 16L18 2M10 18h0"
   }));
 }
-;// CONCATENATED MODULE: ./node_modules/@docsearch/react/dist/esm/ErrorScreen.js
+;// CONCATENATED MODULE: ./node_modules/@apify/docsearch-apify-docs/dist/esm/ErrorScreen.js
 
 
 function ErrorScreen(_ref) {
@@ -2407,7 +2407,7 @@ function ErrorScreen(_ref) {
     className: "DocSearch-Help"
   }, helpText));
 }
-;// CONCATENATED MODULE: ./node_modules/@docsearch/react/dist/esm/icons/NoResultsIcon.js
+;// CONCATENATED MODULE: ./node_modules/@apify/docsearch-apify-docs/dist/esm/icons/NoResultsIcon.js
 
 function NoResultsIcon() {
   return /*#__PURE__*/react.createElement("svg", {
@@ -2423,7 +2423,7 @@ function NoResultsIcon() {
     d: "M15.5 4.8c2 3 1.7 7-1 9.7h0l4.3 4.3-4.3-4.3a7.8 7.8 0 01-9.8 1m-2.2-2.2A7.8 7.8 0 0113.2 2.4M2 18L18 2"
   }));
 }
-;// CONCATENATED MODULE: ./node_modules/@docsearch/react/dist/esm/NoResultsScreen.js
+;// CONCATENATED MODULE: ./node_modules/@apify/docsearch-apify-docs/dist/esm/NoResultsScreen.js
 var NoResultsScreen_excluded = ["translations"];
 
 function NoResultsScreen_toConsumableArray(arr) { return NoResultsScreen_arrayWithoutHoles(arr) || NoResultsScreen_iterableToArray(arr) || NoResultsScreen_unsupportedIterableToArray(arr) || NoResultsScreen_nonIterableSpread(); }
@@ -2491,7 +2491,7 @@ function NoResultsScreen(_ref) {
     rel: "noopener noreferrer"
   }, reportMissingResultsLinkText)));
 }
-;// CONCATENATED MODULE: ./node_modules/@docsearch/react/dist/esm/icons/SourceIcon.js
+;// CONCATENATED MODULE: ./node_modules/@apify/docsearch-apify-docs/dist/esm/icons/SourceIcon.js
 
 
 var LvlIcon = function LvlIcon() {
@@ -2549,7 +2549,7 @@ function ContentIcon() {
     strokeLinejoin: "round"
   }));
 }
-;// CONCATENATED MODULE: ./node_modules/@docsearch/react/dist/esm/icons/SelectIcon.js
+;// CONCATENATED MODULE: ./node_modules/@apify/docsearch-apify-docs/dist/esm/icons/SelectIcon.js
 
 function SelectIcon() {
   return /*#__PURE__*/react.createElement("svg", {
@@ -2569,7 +2569,7 @@ function SelectIcon() {
     d: "M8 17l-6-6 6-6"
   })));
 }
-;// CONCATENATED MODULE: ./node_modules/@docsearch/react/dist/esm/Snippet.js
+;// CONCATENATED MODULE: ./node_modules/@apify/docsearch-apify-docs/dist/esm/Snippet.js
 var Snippet_excluded = ["hit", "attribute", "tagName"];
 
 function Snippet_ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
@@ -2605,7 +2605,7 @@ function Snippet(_ref) {
     }
   }));
 }
-;// CONCATENATED MODULE: ./node_modules/@docsearch/react/dist/esm/Results.js
+;// CONCATENATED MODULE: ./node_modules/@apify/docsearch-apify-docs/dist/esm/Results.js
 function Results_slicedToArray(arr, i) { return Results_arrayWithHoles(arr) || Results_iterableToArrayLimit(arr, i) || Results_unsupportedIterableToArray(arr, i) || Results_nonIterableRest(); }
 
 function Results_nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
@@ -2729,7 +2729,7 @@ function Result(_ref) {
     runFavoriteTransition: runFavoriteTransition
   }))));
 }
-;// CONCATENATED MODULE: ./node_modules/@docsearch/react/dist/esm/utils/removeHighlightTags.js
+;// CONCATENATED MODULE: ./node_modules/@apify/docsearch-apify-docs/dist/esm/utils/removeHighlightTags.js
 var regexHighlightTags = /(<mark>|<\/mark>)/g;
 var regexHasHighlightTags = RegExp(regexHighlightTags.source);
 function removeHighlightTags(hit) {
@@ -2746,7 +2746,7 @@ function removeHighlightTags(hit) {
 
   return value && regexHasHighlightTags.test(value) ? value.replace(regexHighlightTags, '') : value;
 }
-;// CONCATENATED MODULE: ./node_modules/@docsearch/react/dist/esm/ResultsScreen.js
+;// CONCATENATED MODULE: ./node_modules/@apify/docsearch-apify-docs/dist/esm/ResultsScreen.js
 function ResultsScreen_extends() { ResultsScreen_extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; }; return ResultsScreen_extends.apply(this, arguments); }
 
 
@@ -2802,7 +2802,7 @@ function ResultsScreen(props) {
     state: props.state
   })));
 }
-;// CONCATENATED MODULE: ./node_modules/@docsearch/react/dist/esm/icons/RecentIcon.js
+;// CONCATENATED MODULE: ./node_modules/@apify/docsearch-apify-docs/dist/esm/icons/RecentIcon.js
 
 function RecentIcon() {
   return /*#__PURE__*/react.createElement("svg", {
@@ -2821,7 +2821,7 @@ function RecentIcon() {
     d: "M6.44 7.25H2.55V3.36M10.45 6v5.6M10.45 11.6L13 13"
   })));
 }
-;// CONCATENATED MODULE: ./node_modules/@docsearch/react/dist/esm/icons/StarIcon.js
+;// CONCATENATED MODULE: ./node_modules/@apify/docsearch-apify-docs/dist/esm/icons/StarIcon.js
 
 function StarIcon() {
   return /*#__PURE__*/react.createElement("svg", {
@@ -2836,7 +2836,7 @@ function StarIcon() {
     strokeLinejoin: "round"
   }));
 }
-;// CONCATENATED MODULE: ./node_modules/@docsearch/react/dist/esm/icons/ResetIcon.js
+;// CONCATENATED MODULE: ./node_modules/@apify/docsearch-apify-docs/dist/esm/icons/ResetIcon.js
 
 function ResetIcon() {
   return /*#__PURE__*/react.createElement("svg", {
@@ -2852,7 +2852,7 @@ function ResetIcon() {
     strokeLinejoin: "round"
   }));
 }
-;// CONCATENATED MODULE: ./node_modules/@docsearch/react/dist/esm/StartScreen.js
+;// CONCATENATED MODULE: ./node_modules/@apify/docsearch-apify-docs/dist/esm/StartScreen.js
 var StartScreen_excluded = ["translations"];
 
 function StartScreen_extends() { StartScreen_extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; }; return StartScreen_extends.apply(this, arguments); }
@@ -2972,7 +2972,7 @@ function StartScreen(_ref) {
     }
   })));
 }
-;// CONCATENATED MODULE: ./node_modules/@docsearch/react/dist/esm/ScreenState.js
+;// CONCATENATED MODULE: ./node_modules/@apify/docsearch-apify-docs/dist/esm/ScreenState.js
 var ScreenState_excluded = ["translations"];
 
 function ScreenState_extends() { ScreenState_extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; }; return ScreenState_extends.apply(this, arguments); }
@@ -3022,7 +3022,7 @@ var ScreenState = react.memo(function (_ref) {
   //  - NoResults screen → NoResults screen with another query
   return nextProps.state.status === 'loading' || nextProps.state.status === 'stalled';
 });
-;// CONCATENATED MODULE: ./node_modules/@docsearch/react/dist/esm/icons/LoadingIcon.js
+;// CONCATENATED MODULE: ./node_modules/@apify/docsearch-apify-docs/dist/esm/icons/LoadingIcon.js
 
 function LoadingIcon() {
   return /*#__PURE__*/react.createElement("svg", {
@@ -3051,9 +3051,9 @@ function LoadingIcon() {
     repeatCount: "indefinite"
   })))));
 }
-// EXTERNAL MODULE: ./node_modules/@docsearch/react/dist/esm/icons/SearchIcon.js
-var SearchIcon = __webpack_require__(20830);
-;// CONCATENATED MODULE: ./node_modules/@docsearch/react/dist/esm/SearchBox.js
+// EXTERNAL MODULE: ./node_modules/@apify/docsearch-apify-docs/dist/esm/icons/SearchIcon.js
+var SearchIcon = __webpack_require__(12076);
+;// CONCATENATED MODULE: ./node_modules/@apify/docsearch-apify-docs/dist/esm/SearchBox.js
 var SearchBox_excluded = ["translations"];
 
 function SearchBox_extends() { SearchBox_extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; }; return SearchBox_extends.apply(this, arguments); }
@@ -3126,7 +3126,7 @@ function SearchBox(_ref) {
     onClick: props.onClose
   }, cancelButtonText));
 }
-;// CONCATENATED MODULE: ./node_modules/@docsearch/react/dist/esm/stored-searches.js
+;// CONCATENATED MODULE: ./node_modules/@apify/docsearch-apify-docs/dist/esm/stored-searches.js
 var stored_searches_excluded = ["_highlightResult", "_snippetResult"];
 
 function stored_searches_objectWithoutProperties(source, excluded) { if (source == null) return {}; var target = stored_searches_objectWithoutPropertiesLoose(source, excluded); var key, i; if (Object.getOwnPropertySymbols) { var sourceSymbolKeys = Object.getOwnPropertySymbols(source); for (i = 0; i < sourceSymbolKeys.length; i++) { key = sourceSymbolKeys[i]; if (excluded.indexOf(key) >= 0) continue; if (!Object.prototype.propertyIsEnumerable.call(source, key)) continue; target[key] = source[key]; } } return target; }
@@ -4144,9 +4144,9 @@ algoliasearch.version = algoliasearch_lite_esm_browser_version;
 
 /* harmony default export */ const algoliasearch_lite_esm_browser = (algoliasearch);
 
-;// CONCATENATED MODULE: ./node_modules/@docsearch/react/dist/esm/version.js
+;// CONCATENATED MODULE: ./node_modules/@apify/docsearch-apify-docs/dist/esm/version.js
 var version_version = '3.5.1';
-;// CONCATENATED MODULE: ./node_modules/@docsearch/react/dist/esm/useSearchClient.js
+;// CONCATENATED MODULE: ./node_modules/@apify/docsearch-apify-docs/dist/esm/useSearchClient.js
 
 
 
@@ -4167,7 +4167,7 @@ function useSearchClient(appId, apiKey, transformSearchClient) {
   }, [appId, apiKey, transformSearchClient]);
   return searchClient;
 }
-;// CONCATENATED MODULE: ./node_modules/@docsearch/react/dist/esm/useTouchEvents.js
+;// CONCATENATED MODULE: ./node_modules/@apify/docsearch-apify-docs/dist/esm/useTouchEvents.js
 
 function useTouchEvents(_ref) {
   var getEnvironmentProps = _ref.getEnvironmentProps,
@@ -4195,7 +4195,7 @@ function useTouchEvents(_ref) {
     };
   }, [getEnvironmentProps, panelElement, formElement, inputElement]);
 }
-;// CONCATENATED MODULE: ./node_modules/@docsearch/react/dist/esm/useTrapFocus.js
+;// CONCATENATED MODULE: ./node_modules/@apify/docsearch-apify-docs/dist/esm/useTrapFocus.js
 
 function useTrapFocus(_ref) {
   var container = _ref.container;
@@ -4230,13 +4230,13 @@ function useTrapFocus(_ref) {
     };
   }, [container]);
 }
-;// CONCATENATED MODULE: ./node_modules/@docsearch/react/dist/esm/utils/noop.js
+;// CONCATENATED MODULE: ./node_modules/@apify/docsearch-apify-docs/dist/esm/utils/noop.js
 function noop_noop() {}
-;// CONCATENATED MODULE: ./node_modules/@docsearch/react/dist/esm/utils/identity.js
+;// CONCATENATED MODULE: ./node_modules/@apify/docsearch-apify-docs/dist/esm/utils/identity.js
 function identity(x) {
   return x;
 }
-;// CONCATENATED MODULE: ./node_modules/@docsearch/react/dist/esm/utils/isModifierEvent.js
+;// CONCATENATED MODULE: ./node_modules/@apify/docsearch-apify-docs/dist/esm/utils/isModifierEvent.js
 /**
  * Detect when an event is modified with a special key to let the browser
  * trigger its default behavior.
@@ -4245,7 +4245,7 @@ function isModifierEvent(event) {
   var isMiddleClick = event.button === 1;
   return isMiddleClick || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey;
 }
-;// CONCATENATED MODULE: ./node_modules/@docsearch/react/dist/esm/utils/groupBy.js
+;// CONCATENATED MODULE: ./node_modules/@apify/docsearch-apify-docs/dist/esm/utils/groupBy.js
 function groupBy(values, predicate, maxResultsPerGroup) {
   return values.reduce(function (acc, item) {
     var key = predicate(item);
@@ -4263,7 +4263,7 @@ function groupBy(values, predicate, maxResultsPerGroup) {
     return acc;
   }, {});
 }
-;// CONCATENATED MODULE: ./node_modules/@docsearch/react/dist/esm/DocSearchModal.js
+;// CONCATENATED MODULE: ./node_modules/@apify/docsearch-apify-docs/dist/esm/DocSearchModal.js
 var DocSearchModal_excluded = ["footer", "searchBox"];
 
 function DocSearchModal_extends() { DocSearchModal_extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; }; return DocSearchModal_extends.apply(this, arguments); }
@@ -4519,7 +4519,28 @@ function DocSearchModal(_ref) {
             };
           }
 
-          return Object.values(sources).map(function (items, index) {
+          return Object.values(sources).sort(function (a, b) {
+            var pathnameA = new URL(a[0].url).pathname;
+            var pathnameB = new URL(b[0].url).pathname;
+            var _window = window,
+                pathname = _window.location.pathname;
+
+            if (['/', ''].includes(pathname)) {
+              pathname = '/academy';
+            }
+
+            var getLongestCommonPrefix = function getLongestCommonPrefix(a, b) {
+              return a.split('/').filter(Boolean).reduce(function (acc, curr, i) {
+                if (curr === b.split('/').filter(Boolean)[i]) {
+                  return acc + curr + '/';
+                }
+
+                return acc;
+              }, '');
+            };
+
+            return getLongestCommonPrefix(pathnameB, pathname).length - getLongestCommonPrefix(pathnameA, pathname).length;
+          }).map(function (items, index) {
             return {
               sourceId: "hits".concat(index),
               onSelect: function onSelect(_ref8) {
@@ -4553,6 +4574,10 @@ function DocSearchModal(_ref) {
                       __docsearch_parent: parent
                     }, insightsParams);
                   });
+                }).map(function (x) {
+                  return x.sort(function (a, b) {
+                    return !a.__docsearch_parent ? -1 : !b.__docsearch_parent ? 1 : 0;
+                  });
                 }).flat();
               }
             };
@@ -4576,12 +4601,12 @@ function DocSearchModal(_ref) {
   react.useEffect(function () {
     document.body.classList.add('DocSearch--active');
     return function () {
-      var _window$scrollTo, _window;
+      var _window$scrollTo, _window2;
 
       document.body.classList.remove('DocSearch--active'); // IE11 doesn't support `scrollTo` so we check that the method exists
       // first.
 
-      (_window$scrollTo = (_window = window).scrollTo) === null || _window$scrollTo === void 0 ? void 0 : _window$scrollTo.call(_window, 0, initialScrollY);
+      (_window$scrollTo = (_window2 = window).scrollTo) === null || _window$scrollTo === void 0 ? void 0 : _window$scrollTo.call(_window2, 0, initialScrollY);
     }; // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   react.useEffect(function () {
@@ -4682,7 +4707,7 @@ function DocSearchModal(_ref) {
     translations: footerTranslations
   }))));
 }
-;// CONCATENATED MODULE: ./node_modules/@docsearch/react/modal.js
+;// CONCATENATED MODULE: ./node_modules/@apify/docsearch-apify-docs/modal.js
 
 
 
