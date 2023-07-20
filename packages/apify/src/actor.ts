@@ -248,13 +248,9 @@ export class Actor<Data extends Dictionary = Dictionary> {
             finished = true;
         }
 
-        if (options.exitCode > 0) {
-            options.statusMessage ??= `Actor finished with an error (exit code ${options.exitCode})`;
-        } else {
-            options.statusMessage ??= `Actor finished successfully (exit code ${options.exitCode})`;
+        if (options.statusMessage != null) {
+            await this.setStatusMessage(options.statusMessage, { isStatusMessageTerminal: true, level: options.exitCode > 0 ? LogLevel.ERROR : LogLevel.INFO });
         }
-
-        await this.setStatusMessage(options.statusMessage, { isStatusMessageTerminal: true, level: options.exitCode > 0 ? LogLevel.ERROR : LogLevel.INFO });
 
         if (!options.exit) {
             return;
@@ -727,6 +723,20 @@ export class Actor<Data extends Dictionary = Dictionary> {
     }
 
     /**
+     * Gets the actor input value just like the {@apilink Actor.getInput} method,
+     * but throws if it is not found.
+     */
+    async getInputOrThrow<T = Dictionary | string | Buffer>(): Promise<T> {
+        const input = await this.getInput<T>();
+
+        if (input == null) {
+            throw new Error('Input does not exist');
+        }
+
+        return input;
+    }
+
+    /**
      * Opens a key-value store and returns a promise resolving to an instance of the {@apilink KeyValueStore} class.
      *
      * Key-value stores are used to store records or files, along with their MIME content type.
@@ -1194,8 +1204,8 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @returns The return value is the Run object. When run locally, this method returns empty object (`{}`).
      * For more information, see the [Actor Runs](https://docs.apify.com/api/v2#/reference/actor-runs/) API endpoints.
      */
-    static async setStatusMessage(statusMessage: string): Promise<ClientActorRun> {
-        return Actor.getDefaultInstance().setStatusMessage(statusMessage);
+    static async setStatusMessage(statusMessage: string, options?: SetStatusMessageOptions): Promise<ClientActorRun> {
+        return Actor.getDefaultInstance().setStatusMessage(statusMessage, options);
     }
 
     /**
@@ -1339,6 +1349,14 @@ export class Actor<Data extends Dictionary = Dictionary> {
      */
     static async getInput<T = Dictionary | string | Buffer>(): Promise<T | null> {
         return Actor.getDefaultInstance().getInput();
+    }
+
+    /**
+     * Gets the actor input value just like the {@apilink Actor.getInput} method,
+     * but throws if it is not found.
+     */
+    static async getInputOrThrow<T = Dictionary | string | Buffer>(): Promise<T> {
+        return Actor.getDefaultInstance().getInputOrThrow<T>();
     }
 
     /**

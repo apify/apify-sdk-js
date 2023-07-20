@@ -8,6 +8,7 @@ export interface Input {
     startUrls: RequestOptions[];
     globs: GlobInput[];
     regexps: RegExpInput[];
+    excludes: GlobInput[];
     pseudoUrls: PseudoUrlInput[];
     keepUrlFragments: boolean;
     linkSelector?: string;

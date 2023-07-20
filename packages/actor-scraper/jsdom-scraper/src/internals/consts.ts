@@ -9,6 +9,7 @@ export interface Input {
     globs: GlobInput[];
     regexps: RegExpInput[];
     pseudoUrls: PseudoUrlInput[];
+    excludes: GlobInput[];
     keepUrlFragments: boolean;
     runScripts: boolean;
     showInternalConsole: boolean;

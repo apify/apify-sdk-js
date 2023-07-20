@@ -6,15 +6,16 @@
     "type": "module",
     "dependencies": {
         "@apify/scraper-tools": "^1.1.1",
-        "@crawlee/puppeteer": "^3.1.0",
+        "@crawlee/puppeteer": "^3.4.0",
         "apify": "^3.1.1",
+        "idcac-playwright": "^0.1.2",
         "puppeteer": "*"
     },
     "devDependencies": {
         "@apify/tsconfig": "^0.1.0",
         "@types/node": "^18.7.18",
         "ts-node": "^10.9.1",
-        "typescript": "~5.0.0"
+        "typescript": "~5.1.0"
     },
     "scripts": {
         "start": "npm run start:dev",

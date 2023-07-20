@@ -3,7 +3,7 @@
 [![npm version](https://badge.fury.io/js/apify.svg)](https://www.npmjs.com/package/apify)
 [![Downloads](https://img.shields.io/npm/dm/apify.svg)](https://www.npmjs.com/package/apify)
 [![Chat on discord](https://img.shields.io/discord/801163717915574323?label=discord)](https://discord.gg/jyEM2PRvMU)
-[![Build Status](https://github.com/apify/apify-sdk-js/actions/workflows/test-and-release.yml/badge.svg?branch=master)](https://github.com/apify/apify-sdk-js/actions/workflows/test-and-release.yml)
+[![Build Status](https://github.com/apify/apify-sdk-js/actions/workflows/test-and-release.yaml/badge.svg?branch=master)](https://github.com/apify/apify-sdk-js/actions/workflows/test-and-release.yaml)
 
 Apify SDK is the core set of tools and utilities that we've built to help make your interaction with the [Apify Platform](https://apify.com) easier.
 This monorepo holds all the components and tools that we've created for it!

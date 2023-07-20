@@ -950,6 +950,9 @@ describe('Actor', () => {
         const TestingActor = new Actor();
 
         test('should work', async () => {
+            await expect(TestingActor.getInput()).resolves.toBeNull();
+            await expect(TestingActor.getInputOrThrow()).rejects.toThrowError('Input does not exist');
+
             const mockGetValue = jest.spyOn(TestingActor, 'getValue');
             mockGetValue.mockImplementation(async (key) => expect(key).toEqual(KEY_VALUE_STORE_KEYS.INPUT));
 

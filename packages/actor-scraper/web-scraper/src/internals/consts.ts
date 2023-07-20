@@ -20,6 +20,7 @@ export interface Input {
     globs: GlobInput[];
     regexps: RegExpInput[];
     pseudoUrls: PseudoUrlInput[];
+    excludes: GlobInput[];
     preNavigationHooks?: string;
     postNavigationHooks?: string;
     injectJQuery: boolean;
@@ -28,8 +29,10 @@ export interface Input {
     sessionPoolName?: string;
     initialCookies: Parameters<Session['setCookies']>[0];
     useChrome: boolean;
+    maxScrollHeightPixels: number;
     ignoreSslErrors: boolean;
     ignoreCorsAndCsp: boolean;
+    closeCookieModals: boolean;
     downloadMedia: boolean;
     downloadCss: boolean;
     maxRequestRetries: number;

@@ -1,7 +1,7 @@
 {
     "title": "JSDOM Scraper Input",
     "type": "object",
-    "description": "JSDOM Scraper loads <b>Start URLs</b> using raw HTTP requests, parses the HTML using the <a href='https://github.com/jsdom/jsdom' target='_blank' rel='noopener noreferrer'>JSDOM</a> library and then executes <b>Page function</b> for each page to extract data from it. To follow links and scrape additional pages, set <b>Link selector</b> with <b>Pseudo-URLs</b> and/or <b>Glob patterns</b> to specify which links to follow. Alternatively, you can manually enqueue new links in the <b>Page function</b>. For details, see the actor's <a href='https://apify.com/apify/jsdom-scraper' target='_blank' rel='noopener'>README</a> or the <a href='https://apify.com/docs/scraping/tutorial/introduction' target='_blank' rel='noopener'>Web scraping tutorial</a> in the Apify documentation.",
+    "description": "JSDOM Scraper loads <b>Start URLs</b> using raw HTTP requests, parses the HTML using the <a href='https://github.com/jsdom/jsdom' target='_blank' rel='noopener noreferrer'>JSDOM</a> library and then executes <b>Page function</b> for each page to extract data from it. To follow links and scrape additional pages, set <b>Link selector</b> with <b>Pseudo-URLs</b> and/or <b>Glob patterns</b> to specify which links to follow. Alternatively, you can manually enqueue new links in the <b>Page function</b>. For details, see the actor's <a href='https://apify.com/apify/jsdom-scraper' target='_blank' rel='noopener'>README</a> or the <a href='https://docs.apify.com/academy/web-scraping-for-beginners' target='_blank' rel='noopener'>Web scraping tutorial</a> in the Apify documentation.",
     "schemaVersion": 1,
     "properties": {
         "startUrls": {
@@ -36,6 +36,16 @@
             "editor": "pseudoUrls",
             "default": [],
             "prefill": []
+        },
+        "excludes": {
+            "title": "Exclude Glob Patterns",
+            "type": "array",
+            "description": "Glob patterns to match links in the page that you want to exclude from being enqueued.",
+            "editor": "globs",
+            "default": [],
+            "prefill": [{
+                "glob": "/**/*.{png,jpg,jpeg,pdf}"
+            }]
         },
         "linkSelector": {
             "title": "Link selector",

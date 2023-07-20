@@ -1,7 +1,7 @@
 {
     "title": "Web Scraper Input",
     "type": "object",
-    "description": "Web Scraper loads <b>Start URLs</b> in the Chrome browser and executes <b>Page function</b> on each page to extract data from it. To follow links and scrape additional pages, set <b>Link selector</b> with <b>Pseudo-URLs</b> and/or <b>Glob patterns</b> to specify which links to follow. Alternatively, you can manually enqueue new links in <b>Page function</b>. For details, see actor's <a href='https://apify.com/apify/web-scraper' target='_blank' rel='noopener'>README</a> or <a href='https://apify.com/docs/scraping/tutorial/introduction' target='_blank' rel='noopener'>Web scraping tutorial</a> in the Apify documentation.",
+    "description": "Web Scraper loads <b>Start URLs</b> in the Chrome browser and executes <b>Page function</b> on each page to extract data from it. To follow links and scrape additional pages, set <b>Link selector</b> with <b>Pseudo-URLs</b> and/or <b>Glob patterns</b> to specify which links to follow. Alternatively, you can manually enqueue new links in <b>Page function</b>. For details, see actor's <a href='https://apify.com/apify/web-scraper' target='_blank' rel='noopener'>README</a> or <a href='https://docs.apify.com/academy/apify-scrapers/web-scraper' target='_blank' rel='noopener'>Web scraping tutorial</a> in the Apify documentation.",
     "schemaVersion": 1,
     "properties": {
         "runMode": {
@@ -55,6 +55,16 @@
             "editor": "pseudoUrls",
             "default": [],
             "prefill": []
+        },
+        "excludes": {
+            "title": "Exclude Glob Patterns",
+            "type": "array",
+            "description": "Glob patterns to match links in the page that you want to exclude from being enqueued.",
+            "editor": "globs",
+            "default": [],
+            "prefill": [{
+                "glob": "/**/*.{png,jpg,jpeg,pdf}"
+            }]
         },
         "pageFunction": {
             "title": "Page function",
@@ -176,7 +186,7 @@
         "maxCrawlingDepth": {
             "title": "Max crawling depth",
             "type": "integer",
-            "description": "Specifies how many links away from <b>Start URLs</b> the scraper will descend. This value is a safeguard against infinite crawling depths for misconfigured scrapers. Note that pages added using <code>context.enqueuePage()</code> in <b>Page function</b> are not subject to the maximum depth constraint. <br><br>If set to <code>0</code>, there is no limit.",
+            "description": "Specifies how many links away from <b>Start URLs</b> the scraper will descend. This value is a safeguard against infinite crawling depths for misconfigured scrapers. Note that pages added using <code>context.enqueuePage()</code> in <b>Page function</b> are not subject to the maximum depth constraint. <br><br>If set to <code>0</code>, there is no limit. To crawl only the pages specified by the Start URLs, set <a href=\"#linkSelector\"><code>linkSelector</code></a> empty instead.",
             "minimum": 0,
             "default": 0
         },
@@ -245,6 +255,18 @@
                 "Before Page function invocation",
                 "After Page function invocation"
             ]
+        },
+        "closeCookieModals": {
+            "title": "Dismiss cookie modals",
+            "type": "boolean",
+            "description": "Using the [I don't care about cookies](https://addons.mozilla.org/en-US/firefox/addon/i-dont-care-about-cookies/) browser extension. When on, the crawler will automatically try to dismiss cookie consent modals. This can be useful when crawling European websites that show cookie consent modals.",
+            "default": false
+        },
+        "maxScrollHeightPixels": {
+            "title": "Maximum scrolling distance in pixels",
+            "type": "integer",
+            "description": "The crawler will scroll down the page until all content is loaded or the maximum scrolling distance is reached. Setting this to `0` disables scrolling altogether.",
+            "default": 5000
         },
         "debugLog": {
             "title": "Debug log",

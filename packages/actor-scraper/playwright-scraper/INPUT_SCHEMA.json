@@ -30,6 +30,16 @@
             "default": [],
             "prefill": []
         },
+        "excludes": {
+            "title": "Exclude Glob Patterns",
+            "type": "array",
+            "description": "Glob patterns to match links in the page that you want to exclude from being enqueued.",
+            "editor": "globs",
+            "default": [],
+            "prefill": [{
+                "glob": "/**/*.{png,jpg,jpeg,pdf}"
+            }]
+        },
         "linkSelector": {
             "title": "Link selector",
             "type": "string",
@@ -234,6 +244,18 @@
             "description": "Async functions that are sequentially evaluated after the navigation. Good for checking if the navigation was successful. The function accepts `crawlingContext` as the only parameter.",
             "prefill": "// We need to return array of (possibly async) functions here.\n// The functions accept a single argument: the \"crawlingContext\" object.\n[\n    async (crawlingContext) => {\n        const { page } = crawlingContext;\n        // ...\n    },\n]",
             "editor": "javascript"
+        },
+        "closeCookieModals": {
+            "title": "Dismiss cookie modals",
+            "type": "boolean",
+            "description": "Using the [I don't care about cookies](https://addons.mozilla.org/en-US/firefox/addon/i-dont-care-about-cookies/) browser extension. When on, the crawler will automatically try to dismiss cookie consent modals. This can be useful when crawling European websites that show cookie consent modals.",
+            "default": false
+        },
+        "maxScrollHeightPixels": {
+            "title": "Maximum scrolling distance in pixels",
+            "type": "integer",
+            "description": "The crawler will scroll down the page until all content is loaded or the maximum scrolling distance is reached. Setting this to `0` disables scrolling altogether.",
+            "default": 5000
         },
         "debugLog": {
             "title": "Debug log",

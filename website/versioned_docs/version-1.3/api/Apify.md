@@ -277,8 +277,8 @@ The following events are emitted:
     maximum of available CPU resources. If that's the case, the actor should not add more workload. For example, this event is used by the
     [`AutoscaledPool`](../api/autoscaled-pool) class.
 -   `migrating`: `void` Emitted when the actor running on the Apify platform is going to be migrated to another worker server soon. You can use it to
-    persist the state of the actor and abort the run, to speed up migration. For example, this is used by the [`RequestList`](../api/request-list)
-    class.
+    persist the state of the actor and gracefully stop your in-progress tasks, so that they are not interrupted by the migration. For example, this is
+    used by the [`RequestList`](../api/request-list) class.
 -   `persistState`: `{ "isMigrating": Boolean }` Emitted in regular intervals (by default 60 seconds) to notify all components of Apify SDK that it is
     time to persist their state, in order to avoid repeating all work when the actor restarts. This event is automatically emitted together with the
     `migrating` event, in which case the `isMigrating` flag is set to `true`. Otherwise the flag is `false`. Note that the `persistState` event is
