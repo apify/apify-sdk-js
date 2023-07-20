@@ -861,7 +861,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
         });
 
         return modifiedActorEnvVars;
-    };
+    }
 
     /**
      * Returns a new {@apilink ApifyEnv} object which contains information parsed from all the Apify environment variables.
