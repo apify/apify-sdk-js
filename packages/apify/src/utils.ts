@@ -1,5 +1,5 @@
 import log from '@apify/log';
-import { ENV_VARS } from '@apify/consts';
+import { APIFY_ENV_VARS } from '@apify/consts';
 import { type } from 'node:os';
 import semver from 'semver';
 
@@ -29,8 +29,8 @@ export function logSystemInfo() {
  * @ignore
  */
 export function printOutdatedSdkWarning() {
-    if (process.env[ENV_VARS.DISABLE_OUTDATED_WARNING]) return;
-    const latestApifyVersion = process.env[ENV_VARS.SDK_LATEST_VERSION];
+    if (process.env[APIFY_ENV_VARS.DISABLE_OUTDATED_WARNING]) return;
+    const latestApifyVersion = process.env[APIFY_ENV_VARS.SDK_LATEST_VERSION];
     if (!latestApifyVersion || !semver.lt(apifyVersion, latestApifyVersion)) return;
 
     log.warning(`You are using an outdated version (${apifyVersion}) of Apify SDK. We recommend you to update to the latest version (${latestApifyVersion}).

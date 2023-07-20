@@ -1,5 +1,5 @@
 import { createPublicKey } from 'node:crypto';
-import { ACT_JOB_STATUSES, ENV_VARS, KEY_VALUE_STORE_KEYS, WEBHOOK_EVENT_TYPES } from '@apify/consts';
+import { ACTOR_ENV_VARS, ACT_JOB_STATUSES, APIFY_ENV_VARS, KEY_VALUE_STORE_KEYS, WEBHOOK_EVENT_TYPES } from '@apify/consts';
 import log from '@apify/log';
 import { encryptInputSecrets } from '@apify/input_secrets';
 import type { ApifyEnv } from 'apify';
@@ -26,25 +26,25 @@ const getEmptyEnv = () => {
 };
 
 const setEnv = (env: ApifyEnv) => {
-    delete process.env.APIFY_ACTOR_ID;
-    delete process.env.APIFY_ACTOR_RUN_ID;
+    delete process.env.ACTOR_ID;
+    delete process.env.ACTOR_RUN_ID;
     delete process.env.APIFY_USER_ID;
     delete process.env.APIFY_TOKEN;
-    delete process.env.APIFY_STARTED_AT;
-    delete process.env.APIFY_TIMEOUT_AT;
-    delete process.env.APIFY_DEFAULT_KEY_VALUE_STORE_ID;
-    delete process.env.APIFY_DEFAULT_DATASET_ID;
-    delete process.env.APIFY_MEMORY_MBYTES;
+    delete process.env.ACTOR_STARTED_AT;
+    delete process.env.ACTOR_TIMEOUT_AT;
+    delete process.env.ACTOR_DEFAULT_KEY_VALUE_STORE_ID;
+    delete process.env.ACTOR_DEFAULT_DATASET_ID;
+    delete process.env.ACTOR_MEMORY_MBYTES;
 
-    if (env.actorId) process.env.APIFY_ACTOR_ID = env.actorId;
-    if (env.actorRunId) process.env.APIFY_ACTOR_RUN_ID = env.actorRunId;
+    if (env.actorId) process.env.ACTOR_ID = env.actorId;
+    if (env.actorRunId) process.env.ACTOR_RUN_ID = env.actorRunId;
     if (env.userId) process.env.APIFY_USER_ID = env.userId;
     if (env.token) process.env.APIFY_TOKEN = env.token;
-    if (env.startedAt) process.env.APIFY_STARTED_AT = env.startedAt.toISOString();
-    if (env.timeoutAt) process.env.APIFY_TIMEOUT_AT = env.timeoutAt.toISOString();
-    if (env.defaultKeyValueStoreId) process.env.APIFY_DEFAULT_KEY_VALUE_STORE_ID = env.defaultKeyValueStoreId;
-    if (env.defaultDatasetId) process.env.APIFY_DEFAULT_DATASET_ID = env.defaultDatasetId;
-    if (env.memoryMbytes) process.env.APIFY_MEMORY_MBYTES = env.memoryMbytes.toString();
+    if (env.startedAt) process.env.ACTOR_STARTED_AT = env.startedAt.toISOString();
+    if (env.timeoutAt) process.env.ACTOR_TIMEOUT_AT = env.timeoutAt.toISOString();
+    if (env.defaultKeyValueStoreId) process.env.ACTOR_DEFAULT_KEY_VALUE_STORE_ID = env.defaultKeyValueStoreId;
+    if (env.defaultDatasetId) process.env.ACTOR_DEFAULT_DATASET_ID = env.defaultDatasetId;
+    if (env.memoryMbytes) process.env.ACTOR_MEMORY_MBYTES = env.memoryMbytes.toString();
 };
 
 const testingPublicKey = createPublicKey({
@@ -420,13 +420,13 @@ describe('Actor', () => {
             const run = { id: runId, actorId };
 
             beforeEach(() => {
-                process.env[ENV_VARS.ACTOR_ID] = actorId;
-                process.env[ENV_VARS.ACTOR_RUN_ID] = runId;
+                process.env[ACTOR_ENV_VARS.ID] = actorId;
+                process.env[ACTOR_ENV_VARS.RUN_ID] = runId;
             });
 
             afterEach(() => {
-                delete process.env[ENV_VARS.ACTOR_ID];
-                delete process.env[ENV_VARS.ACTOR_RUN_ID];
+                delete process.env[ACTOR_ENV_VARS.ID];
+                delete process.env[ACTOR_ENV_VARS.RUN_ID];
             });
 
             test('works as expected', async () => {
@@ -473,8 +473,8 @@ describe('Actor', () => {
             };
 
             test('works', async () => {
-                process.env[ENV_VARS.ACTOR_RUN_ID] = runId;
-                process.env[ENV_VARS.IS_AT_HOME] = '1';
+                process.env[ACTOR_ENV_VARS.RUN_ID] = runId;
+                process.env[APIFY_ENV_VARS.IS_AT_HOME] = '1';
 
                 const createMock = jest.fn();
                 createMock.mockResolvedValueOnce(webhook);
@@ -488,8 +488,8 @@ describe('Actor', () => {
                     idempotencyKey: expectedIdempotencyKey,
                 });
 
-                delete process.env[ENV_VARS.ACTOR_RUN_ID];
-                delete process.env[ENV_VARS.IS_AT_HOME];
+                delete process.env[ACTOR_ENV_VARS.RUN_ID];
+                delete process.env[APIFY_ENV_VARS.IS_AT_HOME];
 
                 expect(webhooksSpy).toBeCalledTimes(1);
             });
@@ -509,7 +509,7 @@ describe('Actor', () => {
             });
 
             test('should fail without actor run ID', async () => {
-                process.env[ENV_VARS.IS_AT_HOME] = '1';
+                process.env[APIFY_ENV_VARS.IS_AT_HOME] = '1';
 
                 let isThrow;
                 try {
@@ -519,7 +519,7 @@ describe('Actor', () => {
                 }
                 expect(isThrow).toBe(true);
 
-                delete process.env[ENV_VARS.IS_AT_HOME];
+                delete process.env[APIFY_ENV_VARS.IS_AT_HOME];
             });
 
             test('Actor.createProxyConfiguration() allows useApifyProxy option', async () => {
@@ -787,15 +787,15 @@ describe('Actor', () => {
         const { run } = runConfigs;
 
         beforeEach(() => {
-            process.env[ENV_VARS.ACTOR_ID] = actId;
-            process.env[ENV_VARS.ACTOR_RUN_ID] = runId;
-            process.env[ENV_VARS.IS_AT_HOME] = '1';
+            process.env[ACTOR_ENV_VARS.ID] = actId;
+            process.env[ACTOR_ENV_VARS.RUN_ID] = runId;
+            process.env[APIFY_ENV_VARS.IS_AT_HOME] = '1';
         });
 
         afterEach(() => {
-            delete process.env[ENV_VARS.ACTOR_ID];
-            delete process.env[ENV_VARS.ACTOR_RUN_ID];
-            delete process.env[ENV_VARS.IS_AT_HOME];
+            delete process.env[ACTOR_ENV_VARS.ID];
+            delete process.env[ACTOR_ENV_VARS.RUN_ID];
+            delete process.env[APIFY_ENV_VARS.IS_AT_HOME];
             jest.restoreAllMocks();
         });
 
@@ -832,15 +832,15 @@ describe('Actor', () => {
         const { actId, runId } = globalOptions;
 
         beforeEach(() => {
-            process.env[ENV_VARS.IS_AT_HOME] = '1';
-            process.env[ENV_VARS.ACTOR_ID] = actId;
-            process.env[ENV_VARS.ACTOR_RUN_ID] = runId;
+            process.env[APIFY_ENV_VARS.IS_AT_HOME] = '1';
+            process.env[ACTOR_ENV_VARS.ID] = actId;
+            process.env[ACTOR_ENV_VARS.RUN_ID] = runId;
         });
 
         afterEach(() => {
-            delete process.env[ENV_VARS.IS_AT_HOME];
-            delete process.env[ENV_VARS.ACTOR_ID];
-            delete process.env[ENV_VARS.ACTOR_RUN_ID];
+            delete process.env[APIFY_ENV_VARS.IS_AT_HOME];
+            delete process.env[ACTOR_ENV_VARS.ID];
+            delete process.env[ACTOR_ENV_VARS.RUN_ID];
             jest.restoreAllMocks();
         });
 
@@ -904,8 +904,8 @@ describe('Actor', () => {
         };
 
         test('works', async () => {
-            process.env[ENV_VARS.ACTOR_RUN_ID] = runId;
-            process.env[ENV_VARS.IS_AT_HOME] = '1';
+            process.env[ACTOR_ENV_VARS.RUN_ID] = runId;
+            process.env[APIFY_ENV_VARS.IS_AT_HOME] = '1';
 
             const clientMock = jest.spyOn(Actor.apifyClient, 'webhooks')
                 .mockReturnValueOnce({ create: async () => webhook } as any);
@@ -917,8 +917,8 @@ describe('Actor', () => {
                 idempotencyKey: expectedIdempotencyKey,
             });
 
-            delete process.env[ENV_VARS.ACTOR_RUN_ID];
-            delete process.env[ENV_VARS.IS_AT_HOME];
+            delete process.env[ACTOR_ENV_VARS.RUN_ID];
+            delete process.env[APIFY_ENV_VARS.IS_AT_HOME];
 
             expect(clientMock).toBeCalledTimes(1);
         });
@@ -936,13 +936,13 @@ describe('Actor', () => {
         });
 
         test('should fail without actor run ID', async () => {
-            process.env[ENV_VARS.IS_AT_HOME] = '1';
+            process.env[APIFY_ENV_VARS.IS_AT_HOME] = '1';
 
             await expect(async () => Actor.addWebhook({ eventTypes: expectedEventTypes, requestUrl: expectedRequestUrl }))
                 .rejects
                 .toThrow();
 
-            delete process.env[ENV_VARS.IS_AT_HOME];
+            delete process.env[APIFY_ENV_VARS.IS_AT_HOME];
         });
     });
 
@@ -959,11 +959,11 @@ describe('Actor', () => {
             await TestingActor.getInput();
 
             // Uses value from env var.
-            process.env[ENV_VARS.INPUT_KEY] = 'some-value';
+            process.env[ACTOR_ENV_VARS.INPUT_KEY] = 'some-value';
             mockGetValue.mockImplementation(async (key) => expect(key).toBe('some-value'));
             await TestingActor.getInput();
 
-            delete process.env[ENV_VARS.INPUT_KEY];
+            delete process.env[ACTOR_ENV_VARS.INPUT_KEY];
             mockGetValue.mockRestore();
         });
 
@@ -978,14 +978,14 @@ describe('Actor', () => {
 
             mockGetValue.mockImplementation(async (key) => encryptedInput);
 
-            process.env[ENV_VARS.INPUT_SECRETS_PRIVATE_KEY_FILE] = testingPrivateKeyFile;
-            process.env[ENV_VARS.INPUT_SECRETS_PRIVATE_KEY_PASSPHRASE] = testingPrivateKeyPassphrase;
+            process.env[APIFY_ENV_VARS.INPUT_SECRETS_PRIVATE_KEY_FILE] = testingPrivateKeyFile;
+            process.env[APIFY_ENV_VARS.INPUT_SECRETS_PRIVATE_KEY_PASSPHRASE] = testingPrivateKeyPassphrase;
             const input = await TestingActor.getInput();
 
             expect(input).toStrictEqual(originalInput);
 
-            delete process.env[ENV_VARS.INPUT_SECRETS_PRIVATE_KEY_FILE];
-            delete process.env[ENV_VARS.INPUT_SECRETS_PRIVATE_KEY_PASSPHRASE];
+            delete process.env[APIFY_ENV_VARS.INPUT_SECRETS_PRIVATE_KEY_FILE];
+            delete process.env[APIFY_ENV_VARS.INPUT_SECRETS_PRIVATE_KEY_PASSPHRASE];
             mockGetValue.mockRestore();
         });
     });

@@ -1,11 +1,11 @@
-import { ENV_VARS, LOCAL_ENV_VARS } from '@apify/consts';
+import { APIFY_ENV_VARS, LOCAL_APIFY_ENV_VARS } from '@apify/consts';
 import { gotScraping } from 'got-scraping';
 import { UserClient } from 'apify-client';
 import { Actor, ProxyConfiguration } from 'apify';
 
 const groups = ['GROUP1', 'GROUP2'];
-const hostname = LOCAL_ENV_VARS[ENV_VARS.PROXY_HOSTNAME];
-const port = Number(LOCAL_ENV_VARS[ENV_VARS.PROXY_PORT]);
+const hostname = LOCAL_APIFY_ENV_VARS[APIFY_ENV_VARS.PROXY_HOSTNAME];
+const port = Number(LOCAL_APIFY_ENV_VARS[APIFY_ENV_VARS.PROXY_PORT]);
 const password = 'test12345';
 const countryCode = 'CZ';
 const sessionId = 538909250932;
@@ -32,10 +32,10 @@ afterAll(() => {
 });
 
 afterEach(() => {
-    delete process.env[ENV_VARS.TOKEN];
-    delete process.env[ENV_VARS.PROXY_PASSWORD];
-    delete process.env[ENV_VARS.PROXY_HOSTNAME];
-    delete process.env[ENV_VARS.PROXY_STATUS_URL];
+    delete process.env[APIFY_ENV_VARS.TOKEN];
+    delete process.env[APIFY_ENV_VARS.PROXY_PASSWORD];
+    delete process.env[APIFY_ENV_VARS.PROXY_HOSTNAME];
+    delete process.env[APIFY_ENV_VARS.PROXY_STATUS_URL];
 });
 
 describe('ProxyConfiguration', () => {
@@ -409,8 +409,8 @@ describe('Actor.createProxyConfiguration()', () => {
     });
 
     test('should throw missing password', async () => {
-        delete process.env[ENV_VARS.PROXY_PASSWORD];
-        delete process.env[ENV_VARS.TOKEN];
+        delete process.env[APIFY_ENV_VARS.PROXY_PASSWORD];
+        delete process.env[APIFY_ENV_VARS.TOKEN];
 
         const status = { connected: true };
 
@@ -426,7 +426,7 @@ describe('Actor.createProxyConfiguration()', () => {
     });
 
     test('should throw when group is not available', async () => {
-        delete process.env[ENV_VARS.PROXY_PASSWORD];
+        delete process.env[APIFY_ENV_VARS.PROXY_PASSWORD];
         process.env.APIFY_TOKEN = '123456789';
         const connectionError = 'Invalid username: proxy group "GROUP2"; not found or not accessible.';
         const status = { connected: false, connectionError };

@@ -49,7 +49,7 @@
         "lint:fix": "eslint \"packages/**/src/**/*\" test --fix"
     },
     "devDependencies": {
-        "@apify/consts": "^2.4.1",
+        "@apify/consts": "^2.20.0",
         "@apify/eslint-config-ts": "^0.3.0",
         "@apify/input_secrets": "^1.1.1",
         "@apify/tsconfig": "^0.1.0",

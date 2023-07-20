@@ -1,4 +1,4 @@
-import { ENV_VARS } from '@apify/consts';
+import { ACTOR_ENV_VARS, APIFY_ENV_VARS } from '@apify/consts';
 import type { Dictionary } from '@crawlee/utils';
 import { sleep } from '@crawlee/utils';
 import { EventType } from '@crawlee/core';
@@ -14,13 +14,13 @@ describe('events', () => {
     beforeEach(() => {
         wss = new Server({ port: 9099 });
         jest.useFakeTimers();
-        process.env[ENV_VARS.ACTOR_EVENTS_WS_URL] = 'ws://localhost:9099/someRunId';
-        process.env[ENV_VARS.TOKEN] = 'dummy';
+        process.env[ACTOR_ENV_VARS.EVENTS_WEBSOCKET_URL] = 'ws://localhost:9099/someRunId';
+        process.env[APIFY_ENV_VARS.TOKEN] = 'dummy';
     });
     afterEach((done) => {
         jest.useRealTimers();
-        delete process.env[ENV_VARS.ACTOR_EVENTS_WS_URL];
-        delete process.env[ENV_VARS.TOKEN];
+        delete process.env[ACTOR_ENV_VARS.EVENTS_WEBSOCKET_URL];
+        delete process.env[APIFY_ENV_VARS.TOKEN];
         wss.close(done);
     });
 
