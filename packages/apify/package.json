@@ -56,7 +56,7 @@
     "dependencies": {
         "@apify/consts": "^2.20.0",
         "@apify/input_secrets": "^1.1.32",
-        "@apify/log": "^2.3.0",
+        "@apify/log": "^2.4.0",
         "@apify/timeout": "^0.3.0",
         "@apify/utilities": "^2.7.9",
         "@crawlee/core": "^3.4.2",
