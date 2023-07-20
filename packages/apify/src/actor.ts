@@ -838,7 +838,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
     /**
      * Modifies Actor env vars so parsing respects the structure of {@apilink ApifyEnv} interface.
      */
-    private getModifiedActorEnvVars = () => {
+    private getModifiedActorEnvVars() {
         const modifiedActorEnvVars: Record<string, string> = {};
 
         Object.entries(ACTOR_ENV_VARS).forEach(([k, v]) => {
