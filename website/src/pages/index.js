@@ -20,13 +20,13 @@ function Hero() {
                                 Apify SDK for JavaScript<br /> is a toolkit for<br /> building actors
                             </h1>
                             <h1 className={styles.tagline}>
-                                <span>Apify SDK</span> for <span>JavaScript</span><br /> is a <span>toolkit</span> for<br /> building <span>actors</span>
+                                <span>Apify SDK</span> for <span>JavaScript</span> and <span>Node.js</span>
                             </h1>
                         </div>
                     </div>
                     <div className="row">
                         <div className="col">
-                            <h2>Actors are serverless microservices running on the Apify platform.</h2>
+                            <h2>Toolkit for building Actors—serverless microservices running on the Apify platform.</h2>
                         </div>
                     </div>
                     <div className="row">
