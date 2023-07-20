@@ -4539,7 +4539,13 @@ function DocSearchModal(_ref) {
               }, '');
             };
 
-            return getLongestCommonPrefix(pathnameB, pathname).length - getLongestCommonPrefix(pathnameA, pathname).length;
+            var isTheSameLang = function isTheSameLang(a, b) {
+              return Number(['js', 'python'].some(function (lang) {
+                return a.includes(lang) && b.includes(lang);
+              }));
+            };
+
+            return getLongestCommonPrefix(pathnameB, pathname).length + 20 * isTheSameLang(pathnameB, pathname) - getLongestCommonPrefix(pathnameA, pathname).length - 20 * isTheSameLang(pathnameA, pathname);
           }).map(function (items, index) {
             return {
               sourceId: "hits".concat(index),
