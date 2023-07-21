@@ -17,22 +17,22 @@ function Hero() {
                     <div className={clsx(styles.relative, 'row')}>
                         <div className="col">
                             <h1 className={styles.tagline}>
-                                Apify SDK for JavaScript<br /> is a toolkit for<br /> building actors
+                                Apify SDK for JavaScript and Node.js
                             </h1>
                             <h1 className={styles.tagline}>
-                                <span>Apify SDK</span> for <span>JavaScript</span><br /> is a <span>toolkit</span> for<br /> building <span>actors</span>
+                                <span>Apify SDK</span> for <span>JavaScript</span> and <span>Node.js</span>
                             </h1>
                         </div>
                     </div>
                     <div className="row">
                         <div className="col">
-                            <h2>Actors are serverless microservices running on the Apify platform.</h2>
+                            <h2>Toolkit for building <a href="https://docs.apify.com/actors">Actors</a>—serverless microservices running (not only) on the Apify platform.</h2>
                         </div>
                     </div>
                     <div className="row">
                         <div className="col">
                             <div className={styles.heroButtons}>
-                                <Link to="docs/guides/apify-platform" className={styles.getStarted}>Get Started</Link>
+                                <Link to="docs/guides/apify-platform" className={styles.getStarted}>Get started</Link>
                                 <iframe src="https://ghbtns.com/github-btn.html?user=apify&repo=apify-sdk-js&type=star&count=true&size=large" frameBorder="0" scrolling="0" width="170" height="30" title="GitHub"></iframe>
                             </div>
                         </div>
