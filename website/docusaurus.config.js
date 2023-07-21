@@ -14,8 +14,7 @@ const packagesOrder = [
 
 /** @type {Partial<import('@docusaurus/types').DocusaurusConfig>} */
 module.exports = {
-    title: 'Apify Documentation',
-    tagline: 'Apify Documentation',
+    title: 'SDK for JavaScript | Apify Documentation',
     url: absoluteUrl,
     baseUrl: '/sdk/js',
     trailingSlash: false,
