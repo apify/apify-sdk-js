@@ -17,7 +17,7 @@ function Hero() {
                     <div className={clsx(styles.relative, 'row')}>
                         <div className="col">
                             <h1 className={styles.tagline}>
-                                Apify SDK for JavaScript<br /> is a toolkit for<br /> building actors
+                                Apify SDK for JavaScript and Node.js
                             </h1>
                             <h1 className={styles.tagline}>
                                 <span>Apify SDK</span> for <span>JavaScript</span> and <span>Node.js</span>
@@ -26,7 +26,7 @@ function Hero() {
                     </div>
                     <div className="row">
                         <div className="col">
-                            <h2>Toolkit for building Actors—serverless microservices running on the Apify platform.</h2>
+                            <h2>Toolkit for building <a href="https://docs.apify.com/actors">Actors</a>—serverless microservices running (not only) on the Apify platform.</h2>
                         </div>
                     </div>
                     <div className="row">
