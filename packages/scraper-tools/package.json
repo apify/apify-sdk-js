@@ -34,24 +34,24 @@
         "access": "public"
     },
     "dependencies": {
-        "@apify/log": "^2.1.4",
-        "ajv": "^8.11.0",
-        "content-type": "^1.0.4",
-        "tslib": "^2.4.0"
+        "@apify/log": "^2.4.0",
+        "ajv": "^8.12.0",
+        "content-type": "^1.0.5",
+        "tslib": "^2.6.1"
     },
     "devDependencies": {
-        "@crawlee/browser-pool": "^3.1.0",
-        "@crawlee/core": "^3.1.0",
-        "@crawlee/types": "^3.1.0",
-        "@crawlee/utils": "^3.1.0",
-        "apify": "^3.1.1"
+        "@crawlee/browser-pool": "^3.4.2",
+        "@crawlee/core": "^3.4.2",
+        "@crawlee/types": "^3.4.2",
+        "@crawlee/utils": "^3.4.2",
+        "apify": "^3.1.8"
     },
     "peerDependencies": {
-        "@crawlee/browser-pool": "^3.1.0",
-        "@crawlee/core": "^3.1.0",
-        "@crawlee/types": "^3.1.0",
-        "@crawlee/utils": "^3.1.0",
-        "apify": "^3.0.0"
+        "@crawlee/browser-pool": "^3.4.2",
+        "@crawlee/core": "^3.4.2",
+        "@crawlee/types": "^3.4.2",
+        "@crawlee/utils": "^3.4.2",
+        "apify": "^3.1.8"
     },
     "peerDependenciesMeta": {
         "@crawlee/puppeteer": {
