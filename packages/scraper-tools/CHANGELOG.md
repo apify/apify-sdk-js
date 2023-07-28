@@ -3,6 +3,22 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.1.2](https://github.com/apify/apify-sdk-js/compare/@apify/scraper-tools@1.1.1...@apify/scraper-tools@1.1.2) (2023-07-28)
+
+
+### Bug Fixes
+
+* declare missing dependency on tslib ([bc27118](https://github.com/apify/apify-sdk-js/commit/bc27118daab211857305f7617b1ee1433da13d4a))
+
+
+### Features
+
+* terminal message on Actor.exit() ([#172](https://github.com/apify/apify-sdk-js/issues/172)) ([e0feca8](https://github.com/apify/apify-sdk-js/commit/e0feca895766af0d92fbf78ca4c2d7b49bd2acff))
+
+
+
+
+
 ## [1.1.1](https://github.com/apify/apify-sdk-js/compare/@apify/scraper-tools@1.1.0...@apify/scraper-tools@1.1.1) (2022-11-13)
 
 **Note:** Version bump only for package @apify/scraper-tools

@@ -1,6 +1,6 @@
 {
     "name": "@apify/scraper-tools",
-    "version": "1.1.1",
+    "version": "1.1.2",
     "description": "Tools shared by Apify actor-scrapers.",
     "types": "dist/index.d.ts",
     "exports": {
