@@ -1,10 +1,8 @@
-import {
-    constants as scraperToolsConstants,
-    CrawlerSetupOptions,
-    createContext,
-    RequestMetadata,
-    tools,
-} from '@apify/scraper-tools';
+import { readFile } from 'node:fs/promises';
+import { IncomingMessage } from 'node:http';
+import { dirname } from 'node:path';
+import { fileURLToPath, URL } from 'node:url';
+import { Actor, ApifyEnv } from 'apify';
 import {
     AutoscaledPool,
     JSDOMCrawler,
@@ -20,11 +18,13 @@ import {
     Dictionary,
     Awaitable,
 } from '@crawlee/jsdom';
-import { Actor, ApifyEnv } from 'apify';
-import { readFile } from 'node:fs/promises';
-import { IncomingMessage } from 'node:http';
-import { dirname } from 'node:path';
-import { fileURLToPath, URL } from 'node:url';
+import {
+    constants as scraperToolsConstants,
+    CrawlerSetupOptions,
+    createContext,
+    RequestMetadata,
+    tools,
+} from '@apify/scraper-tools';
 import { Input, ProxyRotation } from './consts.js';
 
 const { SESSION_MAX_USAGE_COUNTS, META_KEY } = scraperToolsConstants;

@@ -1,3 +1,7 @@
+import { readFile } from 'node:fs/promises';
+import { dirname } from 'node:path';
+import { fileURLToPath, URL } from 'node:url';
+import { setTimeout } from 'node:timers/promises';
 import { browserTools, constants as scraperToolsConstants, CrawlerSetupOptions, createContext, tools } from '@apify/scraper-tools';
 import { Actor, ApifyEnv } from 'apify';
 import {
@@ -18,12 +22,8 @@ import {
 import contentType from 'content-type';
 // @ts-expect-error no typings
 import DevToolsServer from 'devtools-server';
-import { readFile } from 'node:fs/promises';
 import { HTTPResponse, Page } from 'puppeteer';
-import { dirname } from 'node:path';
-import { fileURLToPath, URL } from 'node:url';
 import { getInjectableScript } from 'idcac-playwright';
-import { setTimeout } from 'node:timers/promises';
 import { createBundle } from './bundle.browser.js';
 import { BreakpointLocation, CHROME_DEBUGGER_PORT, Input, ProxyRotation, RunMode } from './consts.js';
 import { GlobalStore } from './global_store.js';

@@ -1,3 +1,4 @@
+import type { IncomingMessage } from 'node:http';
 import { APIFY_ENV_VARS } from '@apify/consts';
 import type { Request } from '@crawlee/core';
 import { log } from '@crawlee/core';
@@ -5,7 +6,6 @@ import { createRequestDebugInfo } from '@crawlee/utils';
 import { Actor } from 'apify';
 import { printOutdatedSdkWarning } from 'apify/src/utils';
 import semver from 'semver';
-import type { IncomingMessage } from 'node:http';
 
 describe('Actor.isAtHome()', () => {
     test('works', () => {

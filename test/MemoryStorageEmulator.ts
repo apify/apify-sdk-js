@@ -1,10 +1,10 @@
+import { resolve } from 'node:path';
+import { rm } from 'node:fs/promises';
 import log from '@apify/log';
 import { cryptoRandomObjectId } from '@apify/utilities';
 import { MemoryStorage } from '@crawlee/memory-storage';
 import { Configuration } from 'apify';
 import { ensureDir } from 'fs-extra';
-import { resolve } from 'node:path';
-import { rm } from 'node:fs/promises';
 import { StorageManager } from '@crawlee/core';
 
 const LOCAL_EMULATION_DIR = resolve(__dirname, '..', 'tmp', 'memory-emulation-dir');

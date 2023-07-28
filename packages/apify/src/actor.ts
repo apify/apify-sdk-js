@@ -1,5 +1,5 @@
-import ow from 'ow';
 import { createPrivateKey } from 'node:crypto';
+import ow from 'ow';
 import { decryptInputSecrets } from '@apify/input_secrets';
 import { ACTOR_ENV_VARS, APIFY_ENV_VARS, INTEGER_ENV_VARS } from '@apify/consts';
 import { addTimeoutToPromise } from '@apify/timeout';

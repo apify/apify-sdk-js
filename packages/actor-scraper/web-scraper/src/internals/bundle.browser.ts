@@ -246,7 +246,7 @@ export function createBundle(apifyNamespace: string) {
             return new Context(options);
         };
     }(window, apifyNamespace));
-};
+}
 
 interface PoolOptions {
     pollingIntervalMillis?: number;

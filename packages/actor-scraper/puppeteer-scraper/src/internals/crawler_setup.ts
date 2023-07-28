@@ -1,3 +1,6 @@
+import { readFile } from 'node:fs/promises';
+import { dirname } from 'node:path';
+import { fileURLToPath, URL } from 'node:url';
 import { browserTools, constants as scraperToolsConstants, CrawlerSetupOptions, createContext, RequestMetadata, tools } from '@apify/scraper-tools';
 import { Actor, ApifyEnv } from 'apify';
 import {
@@ -15,9 +18,6 @@ import {
     log,
 } from '@crawlee/puppeteer';
 import { Awaitable, Dictionary, sleep } from '@crawlee/utils';
-import { readFile } from 'node:fs/promises';
-import { dirname } from 'node:path';
-import { fileURLToPath, URL } from 'node:url';
 import { HTTPResponse } from 'puppeteer';
 import { getInjectableScript } from 'idcac-playwright';
 import { Input, ProxyRotation } from './consts.js';

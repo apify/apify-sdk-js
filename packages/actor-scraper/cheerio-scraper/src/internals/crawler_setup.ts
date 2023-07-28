@@ -1,3 +1,7 @@
+import { readFile } from 'node:fs/promises';
+import { IncomingMessage } from 'node:http';
+import { dirname } from 'node:path';
+import { fileURLToPath, URL } from 'node:url';
 import {
     constants as scraperToolsConstants,
     CrawlerSetupOptions,
@@ -22,10 +26,6 @@ import {
 } from '@crawlee/cheerio';
 import { Actor, ApifyEnv } from 'apify';
 import { load } from 'cheerio';
-import { readFile } from 'node:fs/promises';
-import { IncomingMessage } from 'node:http';
-import { dirname } from 'node:path';
-import { fileURLToPath, URL } from 'node:url';
 import { Input, ProxyRotation } from './consts.js';
 
 const { SESSION_MAX_USAGE_COUNTS, META_KEY } = scraperToolsConstants;

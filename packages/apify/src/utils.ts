@@ -1,6 +1,6 @@
+import { type } from 'node:os';
 import log from '@apify/log';
 import { APIFY_ENV_VARS } from '@apify/consts';
-import { type } from 'node:os';
 import semver from 'semver';
 
 // @ts-expect-error if we enable resolveJsonModule, we end up with `src` folder in `dist`

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-declaration-merging */
 import type { ApifyEnv } from 'apify';
 import { Actor } from 'apify';
 import type {
