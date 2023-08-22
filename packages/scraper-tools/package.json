@@ -40,17 +40,17 @@
         "tslib": "^2.6.1"
     },
     "devDependencies": {
-        "@crawlee/browser-pool": "^3.4.2",
-        "@crawlee/core": "^3.4.2",
-        "@crawlee/types": "^3.4.2",
-        "@crawlee/utils": "^3.4.2",
+        "@crawlee/browser-pool": "^3.5.2",
+        "@crawlee/core": "^3.5.2",
+        "@crawlee/types": "^3.5.2",
+        "@crawlee/utils": "^3.5.2",
         "apify": "^3.1.8"
     },
     "peerDependencies": {
-        "@crawlee/browser-pool": "^3.4.2",
-        "@crawlee/core": "^3.4.2",
-        "@crawlee/types": "^3.4.2",
-        "@crawlee/utils": "^3.4.2",
+        "@crawlee/browser-pool": "^3.5.2",
+        "@crawlee/core": "^3.5.2",
+        "@crawlee/types": "^3.5.2",
+        "@crawlee/utils": "^3.5.2",
         "apify": "^3.1.8"
     },
     "peerDependenciesMeta": {
