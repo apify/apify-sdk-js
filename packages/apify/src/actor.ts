@@ -3,7 +3,7 @@ import ow from 'ow';
 import { decryptInputSecrets } from '@apify/input_secrets';
 import { ACTOR_ENV_VARS, APIFY_ENV_VARS, INTEGER_ENV_VARS } from '@apify/consts';
 import { addTimeoutToPromise } from '@apify/timeout';
-import log, { LogLevel } from '@apify/log';
+import log from '@apify/log';
 import type {
     ActorCallOptions,
     ApifyClientOptions,
@@ -249,7 +249,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
         }
 
         if (options.statusMessage != null) {
-            await this.setStatusMessage(options.statusMessage, { isStatusMessageTerminal: true, level: options.exitCode > 0 ? LogLevel.ERROR : LogLevel.INFO });
+            await this.setStatusMessage(options.statusMessage, { isStatusMessageTerminal: true, level: options.exitCode > 0 ? 'ERROR' : 'INFO' });
         }
 
         if (!options.exit) {
@@ -503,7 +503,6 @@ export class Actor<Data extends Dictionary = Dictionary> {
     /**
      * Sets the status message for the current actor run.
      *
-     * @param options
      * @returns The return value is the Run object.
      * For more information, see the [Actor Runs](https://docs.apify.com/api/v2#/reference/actor-runs/) API endpoints.
      * @ignore
@@ -516,13 +515,13 @@ export class Actor<Data extends Dictionary = Dictionary> {
         const loggedStatusMessage = `[Status message]: ${statusMessage}`;
 
         switch (level) {
-            case LogLevel.DEBUG:
+            case 'DEBUG':
                 log.debug(loggedStatusMessage);
                 break;
-            case LogLevel.WARNING:
+            case 'WARNING':
                 log.warning(loggedStatusMessage);
                 break;
-            case LogLevel.ERROR:
+            case 'ERROR':
                 log.error(loggedStatusMessage);
                 break;
             default:
