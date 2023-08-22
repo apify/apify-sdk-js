@@ -8,6 +8,9 @@
             "conventionalCommits": true,
             "createRelease": "github",
             "message": "chore(release): release packages [skip ci]"
+        },
+        "publish": {
+            "assets": []
         }
     },
     "useNx": false,
