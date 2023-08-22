@@ -584,14 +584,3 @@ You might also want to see these other resources:
   Documentation for the Apify Actors cloud computing platform.
 - [Apify SDK documentation](https://sdk.apify.com) - Learn more about the tools required to run your own Apify actors.
 - [Crawlee documentation](https://crawlee.dev) - Learn how to build a new web scraping project from scratch using the world's most popular web crawling and scraping library for Node.js.
-
-## Upgrading
-
-v2 introduced several minor breaking changes, you can read about those in the
-[migration guide](https://github.com/apify/actor-scraper/blob/master/MIGRATIONS.md).
-
-v3 introduces even more breaking changes.
-This [v3 migration guide](https://sdk.apify.com/docs/upgrading/upgrading-to-v3) should take you through these.
-
-Scraper-specific breaking changes:
-- Proxy usage is now required.

@@ -590,13 +590,3 @@ That's it! You might also want to check out these other resources:
     A similar web scraping actor to Puppeteer Scraper, but using the [Playwright](https://github.com/microsoft/playwright) library instead.
 -   [Web Scraper](https://apify.com/apify/web-scraper) - A similar web scraping actor to Playwright Scraper, but is simpler to use and only runs in the context of the browser. Uses the [Puppeteer](https://github.com/puppeteer/puppeteer) library.
 -   [Cheerio Scraper](https://apify.com/apify/cheerio-scraper) - Another web scraping actor that downloads and processes pages in raw HTML for much higher performance.
-
-## Upgrading
-
-v2 introduced several minor breaking changes, you can read about those in the [migration guide](https://github.com/apify/actor-scraper/blob/master/MIGRATIONS.md).
-
-v3 introduces even more breaking changes.
-This [v3 migration guide](https://sdk.apify.com/docs/upgrading/upgrading-to-v3) should take you through these.
-
-Scraper-specific breaking changes:
-- Proxy usage is now required.

@@ -1,13 +1,13 @@
 # Change Log
 
-All notable changes to this project will be documented in this file.
-See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
+### 1.0.11 (2023-08-22)
 
-## 3.0.1 (2022-11-13)
+- Updated Crawlee version to v3.5.2.
+- Added new options:
+  - **Dismiss cookie modals** (`closeCookieModals`): Using the [I don't care about cookies](https://addons.mozilla.org/en-US/firefox/addon/i-dont-care-about-cookies/) browser extension. When on, the crawler will automatically try to dismiss cookie consent modals. This can be useful when crawling European websites that show cookie consent modals.
+  - **Maximum scrolling distance in pixels** (`maxScrollHeightPixels`): The crawler will scroll down the page until all content is loaded or the maximum scrolling distance is reached. Setting this to `0` disables scrolling altogether.
 
+## 1.0
 
-### Features
-
-* add `Actor.useState()` helper ([#98](https://github.com/apify/apify-sdk-js/issues/98)) ([27dc413](https://github.com/apify/apify-sdk-js/commit/27dc4139caa0a2d94c570edac2cb628f6b3f747c))
-* add playwright scraper ([#26](https://github.com/apify/apify-sdk-js/issues/26)) ([2dcd50d](https://github.com/apify/apify-sdk-js/commit/2dcd50ded777ae13bc7b75e6e0bc21a6a11315b7))
-* update the scrapers ([#70](https://github.com/apify/apify-sdk-js/issues/70)) ([efbfc44](https://github.com/apify/apify-sdk-js/commit/efbfc442bc8be4f07b5f2432a750cb861d7f05e8))
+- Initial version built on Crawlee.
+- Proxy usage is now required.
