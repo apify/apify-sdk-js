@@ -3,6 +3,7 @@
 ### 3.0.11 (2023-08-22)
 
 - Updated Crawlee version to v3.5.2.
+- Updated Node.js version to v18.
 - Added new options:
   - **Exclude Glob Patterns** (`excludes`): Glob patterns to match links in the page that you want to exclude from being enqueued.
 
