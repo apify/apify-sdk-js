@@ -1,6 +1,6 @@
 # Change Log
 
-### 1.0.11 (2023-08-22)
+## 1.0.11 (2023-08-22)
 
 - Updated Crawlee version to v3.5.2.
 - Updated Node.js version to v18.
