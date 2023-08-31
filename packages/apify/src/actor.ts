@@ -208,7 +208,10 @@ export class Actor<Data extends Dictionary = Dictionary> {
         // Init the event manager the config uses
         await this.config.getEventManager().init();
 
-        await purgeDefaultStorages(this.config);
+        await purgeDefaultStorages({
+            config: this.config,
+            onlyPurgeOnce: true,
+        });
         Configuration.storage.enterWith(this.config);
     }
 

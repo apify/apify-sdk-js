@@ -51,7 +51,9 @@ export function getTestDir(url) {
 export async function run(url, scraper, input) {
     await initialize(url);
 
-    await purgeDefaultStorages();
+    await purgeDefaultStorages({
+        onlyPurgeOnce: true,
+    });
     const inputKey = Configuration.getGlobalConfig().get('inputKey');
     await KeyValueStore.setValue(inputKey, input);
 
