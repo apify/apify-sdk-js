@@ -14,7 +14,6 @@
         }
     },
     "useNx": false,
-    "useWorkspaces": true,
     "ignoreChanges": [
         "**/test/**",
         "**/*.md"
