@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [3.1.10](https://github.com/apify/apify-sdk-js/compare/apify@3.1.9...apify@3.1.10) (2023-09-07)
+
+
+### Bug Fixes
+
+* require newer version of crawlee to fix possible issues with `purgeDefaultStorages` ([#226](https://github.com/apify/apify-sdk-js/issues/226)) ([95cf31f](https://github.com/apify/apify-sdk-js/commit/95cf31f3d1d054a1c8e3daac89f41bbb0aaddbba))
+
+
+
+
+
 ## [3.1.9](https://github.com/apify/apify-sdk-js/compare/apify@3.1.8...apify@3.1.9) (2023-09-06)
 
 **Note:** Version bump only for package apify
