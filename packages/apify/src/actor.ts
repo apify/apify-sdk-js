@@ -457,6 +457,10 @@ export class Actor<Data extends Dictionary = Dictionary> {
 
         const runId = this.config.get('actorRunId')!;
         await this.apifyClient.run(runId).reboot();
+
+        // Wait some time for container to be stopped.
+        const customAfterSleepMillis = this.config.get('metamorphAfterSleepMillis');
+        await sleep(customAfterSleepMillis);
     }
 
     /**
