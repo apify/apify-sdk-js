@@ -441,13 +441,13 @@ export class Actor<Data extends Dictionary = Dictionary> {
      *
      * @ignore
      */
-    async reboot(): Promise<void> {
+    async reboot(options: RebootOptions = {}): Promise<void> {
         if (!this.isAtHome()) {
             log.warning('Actor.reboot() is only supported when running on the Apify platform.');
             return;
         }
 
-        // Waiting for all the listeners to finish, as `.metamorph()` kills the container.
+        // Waiting for all the listeners to finish, as `.reboot()` kills the container.
         await Promise.all([
             // `persistState` for individual RequestLists, RequestQueue... instances to be persisted
             ...this.config.getEventManager().listeners(EventType.PERSIST_STATE).map((x) => x()),
@@ -455,8 +455,12 @@ export class Actor<Data extends Dictionary = Dictionary> {
             ...this.config.getEventManager().listeners(EventType.MIGRATING).map((x) => x()),
         ]);
 
-        const actorId = this.config.get('actorId')!;
-        await this.metamorph(actorId);
+        const runId = this.config.get('actorRunId')!;
+        await this.apifyClient.run(runId).reboot();
+
+        // Wait some time for container to be stopped.
+        const { customAfterSleepMillis = this.config.get('metamorphAfterSleepMillis') } = options;
+        await sleep(customAfterSleepMillis);
     }
 
     /**
@@ -1177,8 +1181,8 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * Internally reboots this actor run. The system stops the current container and starts
      * a new container with the same run id.
      */
-    static async reboot(): Promise<void> {
-        return Actor.getDefaultInstance().reboot();
+    static async reboot(options: RebootOptions = {}): Promise<void> {
+        return Actor.getDefaultInstance().reboot(options);
     }
 
     /**
@@ -1648,6 +1652,11 @@ export interface MetamorphOptions {
      */
     build?: string;
 
+    /** @internal */
+    customAfterSleepMillis?: number;
+}
+
+export interface RebootOptions {
     /** @internal */
     customAfterSleepMillis?: number;
 }

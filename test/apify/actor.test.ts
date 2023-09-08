@@ -830,6 +830,7 @@ describe('Actor', () => {
 
     describe('Actor.reboot()', () => {
         const { actId, runId } = globalOptions;
+        const { run } = runConfigs;
 
         beforeEach(() => {
             process.env[APIFY_ENV_VARS.IS_AT_HOME] = '1';
@@ -844,19 +845,11 @@ describe('Actor', () => {
             jest.restoreAllMocks();
         });
 
-        test('metamorphs to the same actor', async () => {
-            const metamorphSpy = jest.spyOn(Actor.prototype, 'metamorph');
-            metamorphSpy.mockResolvedValueOnce();
-
-            await Actor.reboot();
-
-            expect(metamorphSpy).toBeCalledTimes(1);
-            expect(metamorphSpy).toBeCalledWith(actId);
-        });
-
-        test('reboot waits for persistState/migrating listeners before morphing', async () => {
-            const metamorphSpy = jest.spyOn(Actor.prototype, 'metamorph');
-            metamorphSpy.mockResolvedValueOnce();
+        test('reboot waits for persistState/migrating listeners before rebooting', async () => {
+            const rebootMock = jest.fn();
+            rebootMock.mockResolvedValueOnce(run);
+            const rebootSpy = jest.spyOn(ApifyClient.prototype, 'run');
+            rebootSpy.mockReturnValueOnce({ reboot: rebootMock } as any);
 
             const persistenceStore = [];
 
@@ -872,7 +865,7 @@ describe('Actor', () => {
             events.on(EventType.PERSIST_STATE, persistStateSpy);
             events.on(EventType.MIGRATING, migratingSpy);
 
-            await Actor.reboot();
+            await Actor.reboot({ customAfterSleepMillis: 1 });
 
             events.off(EventType.PERSIST_STATE, persistStateSpy);
             events.off(EventType.MIGRATING, migratingSpy);
@@ -883,6 +876,9 @@ describe('Actor', () => {
 
             // Do the listeners finish?
             expect(persistenceStore.length).toBe(2);
+
+            // Did the client's reboot method get called?
+            expect(rebootMock).toBeCalledTimes(1);
         });
     });
 
