@@ -62,7 +62,7 @@
         "@crawlee/core": "^3.5.3",
         "@crawlee/types": "^3.5.3",
         "@crawlee/utils": "^3.5.3",
-        "apify-client": "^2.7.1",
+        "apify-client": "^2.8.0",
         "ow": "^0.28.2",
         "semver": "^7.5.4",
         "tslib": "^2.6.0",

@@ -844,19 +844,9 @@ describe('Actor', () => {
             jest.restoreAllMocks();
         });
 
-        test('metamorphs to the same actor', async () => {
-            const metamorphSpy = jest.spyOn(Actor.prototype, 'metamorph');
-            metamorphSpy.mockResolvedValueOnce();
-
-            await Actor.reboot();
-
-            expect(metamorphSpy).toBeCalledTimes(1);
-            expect(metamorphSpy).toBeCalledWith(actId);
-        });
-
-        test('reboot waits for persistState/migrating listeners before morphing', async () => {
-            const metamorphSpy = jest.spyOn(Actor.prototype, 'metamorph');
-            metamorphSpy.mockResolvedValueOnce();
+        test('reboot waits for persistState/migrating listeners before rebooting', async () => {
+            const rebootSpy = jest.spyOn(Actor.prototype, 'reboot');
+            rebootSpy.mockResolvedValueOnce();
 
             const persistenceStore = [];
 

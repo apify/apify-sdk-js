@@ -447,7 +447,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
             return;
         }
 
-        // Waiting for all the listeners to finish, as `.metamorph()` kills the container.
+        // Waiting for all the listeners to finish, as `.reboot()` kills the container.
         await Promise.all([
             // `persistState` for individual RequestLists, RequestQueue... instances to be persisted
             ...this.config.getEventManager().listeners(EventType.PERSIST_STATE).map((x) => x()),
@@ -455,8 +455,8 @@ export class Actor<Data extends Dictionary = Dictionary> {
             ...this.config.getEventManager().listeners(EventType.MIGRATING).map((x) => x()),
         ]);
 
-        const actorId = this.config.get('actorId')!;
-        await this.metamorph(actorId);
+        const runId = this.config.get('actorRunId')!;
+        await this.apifyClient.run(runId).reboot();
     }
 
     /**
