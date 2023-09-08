@@ -438,6 +438,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
     /**
      * Internally reboots this actor. The system stops the current container and starts
      * a new container with the same run ID.
+     * This can be used to get the Actor out of irrecoverable error state and continue where it left off.
      *
      * @ignore
      */
@@ -1180,6 +1181,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
     /**
      * Internally reboots this actor run. The system stops the current container and starts
      * a new container with the same run id.
+     * This can be used to get the Actor out of irrecoverable error state and continue where it left off.
      */
     static async reboot(options: RebootOptions = {}): Promise<void> {
         return Actor.getDefaultInstance().reboot(options);
