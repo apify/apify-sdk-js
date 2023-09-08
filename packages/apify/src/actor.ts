@@ -441,7 +441,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      *
      * @ignore
      */
-    async reboot(): Promise<void> {
+    async reboot(options: RebootOptions = {}): Promise<void> {
         if (!this.isAtHome()) {
             log.warning('Actor.reboot() is only supported when running on the Apify platform.');
             return;
@@ -459,7 +459,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
         await this.apifyClient.run(runId).reboot();
 
         // Wait some time for container to be stopped.
-        const customAfterSleepMillis = this.config.get('metamorphAfterSleepMillis');
+        const { customAfterSleepMillis = this.config.get('metamorphAfterSleepMillis') } = options;
         await sleep(customAfterSleepMillis);
     }
 
@@ -1181,8 +1181,8 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * Internally reboots this actor run. The system stops the current container and starts
      * a new container with the same run id.
      */
-    static async reboot(): Promise<void> {
-        return Actor.getDefaultInstance().reboot();
+    static async reboot(options: RebootOptions = {}): Promise<void> {
+        return Actor.getDefaultInstance().reboot(options);
     }
 
     /**
@@ -1652,6 +1652,11 @@ export interface MetamorphOptions {
      */
     build?: string;
 
+    /** @internal */
+    customAfterSleepMillis?: number;
+}
+
+export interface RebootOptions {
     /** @internal */
     customAfterSleepMillis?: number;
 }
