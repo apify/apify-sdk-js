@@ -6,7 +6,7 @@ title: Puppeteer crawler
 import CodeBlock from '@theme/CodeBlock';
 import ApiLink from '@site/src/components/ApiLink';
 import { CrawleeApiLink } from '@site/src/components/CrawleeLinks';
-import CrawlSource from '!!raw-loader!./puppeteer_crawler.ts';
+import CrawlSource from '!!raw-loader!roa-loader!./puppeteer_crawler.ts';
 
 This example demonstrates how to use <CrawleeApiLink to="puppeteer-crawler/class/PuppeteerCrawler">`PuppeteerCrawler`</CrawleeApiLink> in combination
 with <ApiLink to="apify/class/RequestQueue">`RequestQueue`</ApiLink>
@@ -21,6 +21,6 @@ To run this example on the Apify Platform, select the `apify/actor-node-puppetee
 
 :::
 
-<CodeBlock className="language-js">
+<RunnableCodeBlock className="language-js" type="puppeteer">
 	{CrawlSource}
-</CodeBlock>
+</RunnableCodeBlock>
