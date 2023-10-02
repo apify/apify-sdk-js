@@ -5,7 +5,7 @@ title: Puppeteer with proxy
 
 import CodeBlock from '@theme/CodeBlock';
 
-import CrawlSource from '!!raw-loader!./puppeteer_with_proxy.ts';
+import CrawlSource from '!!raw-loader!roa-loader!./puppeteer_with_proxy.ts';
 
 This example demonstrates how to load pages in headless Chrome / Puppeteer over [Apify Proxy](https://docs.apify.com/proxy).
 
@@ -17,6 +17,6 @@ To run this example on the Apify Platform, select the `apify/actor-node-puppetee
 
 :::
 
-<CodeBlock className="language-js">
+<RunnableCodeBlock className="language-js" type="puppeteer">
 	{CrawlSource}
-</CodeBlock>
+</RunnableCodeBlock>

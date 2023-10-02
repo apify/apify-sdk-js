@@ -7,10 +7,10 @@ import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 import CodeBlock from '@theme/CodeBlock';
 
-import PuppeteerPageScreenshotSource from '!!raw-loader!./puppeteer_page_screenshot.ts';
-import PuppeteerCrawlerUtilsSnapshotSource from '!!raw-loader!./puppeteer_crawler_utils_snapshot.ts';
-import PuppeteerCrawlerPageScreenshotSource from '!!raw-loader!./puppeteer_crawler_page_screenshot.ts';
-import PuppeteerCrawlerCrawlerUtilsSnapshotSource from '!!raw-loader!./puppeteer_crawler_crawler_utils_snapshot.ts';
+import PuppeteerPageScreenshotSource from '!!raw-loader!roa-loader!./puppeteer_page_screenshot.ts';
+import PuppeteerCrawlerUtilsSnapshotSource from '!!raw-loader!roa-loader!./puppeteer_crawler_utils_snapshot.ts';
+import PuppeteerCrawlerPageScreenshotSource from '!!raw-loader!roa-loader!./puppeteer_crawler_page_screenshot.ts';
+import PuppeteerCrawlerCrawlerUtilsSnapshotSource from '!!raw-loader!roa-loader!./puppeteer_crawler_crawler_utils_snapshot.ts';
 
 :::tip
 
@@ -25,9 +25,9 @@ This example captures a screenshot of a web page using `Puppeteer`. It would loo
 
 Using `page.screenshot()`:
 
-<CodeBlock className="language-js">
+<RunnableCodeBlock className="language-js" type="puppeteer">
 	{PuppeteerPageScreenshotSource}
-</CodeBlock>
+</RunnableCodeBlock>
 
 </TabItem>
 
@@ -35,9 +35,9 @@ Using `page.screenshot()`:
 
 Using `puppeteerUtils.saveSnapshot()`:
 
-<CodeBlock className="language-js">
+<RunnableCodeBlock className="language-js" type="puppeteer">
 	{PuppeteerCrawlerUtilsSnapshotSource}
-</CodeBlock>
+</RunnableCodeBlock>
 
 </TabItem>
 </Tabs>
@@ -49,9 +49,9 @@ This example captures a screenshot of multiple web pages when using `PuppeteerCr
 
 Using `page.screenshot()`:
 
-<CodeBlock className="language-js">
+<RunnableCodeBlock className="language-js" type="puppeteer">
 	{PuppeteerCrawlerPageScreenshotSource}
-</CodeBlock>
+</RunnableCodeBlock>
 
 </TabItem>
 
@@ -59,9 +59,9 @@ Using `page.screenshot()`:
 
 Using `puppeteerUtils.saveSnapshot()`:
 
-<CodeBlock className="language-js">
+<RunnableCodeBlock className="language-js" type="puppeteer">
 	{PuppeteerCrawlerCrawlerUtilsSnapshotSource}
-</CodeBlock>
+</RunnableCodeBlock>
 
 </TabItem>
 </Tabs>

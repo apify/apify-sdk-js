@@ -6,7 +6,7 @@ title: Playwright crawler
 import CodeBlock from '@theme/CodeBlock';
 import ApiLink from '@site/src/components/ApiLink';
 import { CrawleeApiLink } from '@site/src/components/CrawleeLinks';
-import CrawlSource from '!!raw-loader!./playwright_crawler.ts';
+import CrawlSource from '!!raw-loader!roa-loader!./playwright_crawler.ts';
 
 This example demonstrates how to use <CrawleeApiLink to="playwright-crawler/class/PlaywrightCrawler">`PlaywrightCrawler`</CrawleeApiLink>
 in combination with <ApiLink to="apify/class/RequestQueue">`RequestQueue`</ApiLink> to
@@ -21,6 +21,6 @@ To run this example on the Apify Platform, select the `apify/actor-node-playwrig
 
 :::
 
-<CodeBlock className="language-js">
+<RunnableCodeBlock className="language-js" type="playwright">
 	{CrawlSource}
-</CodeBlock>
+</RunnableCodeBlock>
