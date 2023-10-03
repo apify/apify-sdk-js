@@ -7,7 +7,7 @@ import type {
 import {
     ProxyConfiguration as CoreProxyConfiguration,
 } from '@crawlee/core';
-import { gotScraping } from 'got-scraping';
+import { gotScraping } from '@crawlee/utils';
 import { Actor } from './actor';
 import { Configuration } from './configuration';
 
