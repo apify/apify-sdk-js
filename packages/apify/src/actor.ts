@@ -223,37 +223,43 @@ export class Actor<Data extends Dictionary = Dictionary> {
         options.exit ??= true;
         options.exitCode ??= EXIT_CODES.SUCCESS;
         options.timeoutSecs ??= 30;
+        const client = this.config.getStorageClient();
+        const events = this.config.getEventManager();
 
         // Close the event manager and emit the final PERSIST_STATE event
-        await this.config.getEventManager().close();
+        await events.close();
 
         // Emit the exit event
-        this.config.getEventManager().emit(EventType.EXIT, options);
+        events.emit(EventType.EXIT, options);
 
         // Wait for all event listeners to be processed
         log.debug(`Waiting for all event listeners to complete their execution (with ${options.timeoutSecs} seconds timeout)`);
         await addTimeoutToPromise(
-            () => this.config.getEventManager().waitForAllListenersToComplete(),
+            async () => {
+                await events.waitForAllListenersToComplete();
+
+                if (client.teardown) {
+                    let finished = false;
+                    setTimeout(() => {
+                        if (!finished) {
+                            log.info('Waiting for the storage to write its state to file system.');
+                        }
+                    }, 1000);
+                    await client.teardown();
+                    finished = true;
+                }
+
+                if (options.statusMessage != null) {
+                    await this.setStatusMessage(options.statusMessage, { isStatusMessageTerminal: true, level: options.exitCode! > 0 ? 'ERROR' : 'INFO' });
+                }
+            },
             options.timeoutSecs * 1000,
             `Waiting for all event listeners to complete their execution timed out after ${options.timeoutSecs} seconds`,
-        );
-
-        const client = this.config.getStorageClient();
-
-        if (client.teardown) {
-            let finished = false;
-            setTimeout(() => {
-                if (!finished) {
-                    log.info('Waiting for the storage to write its state to file system.');
-                }
-            }, 1000);
-            await client.teardown();
-            finished = true;
-        }
-
-        if (options.statusMessage != null) {
-            await this.setStatusMessage(options.statusMessage, { isStatusMessageTerminal: true, level: options.exitCode > 0 ? 'ERROR' : 'INFO' });
-        }
+        ).catch(() => {
+            if (options.exit) {
+                process.exit(options.exitCode);
+            }
+        });
 
         if (!options.exit) {
             return;
