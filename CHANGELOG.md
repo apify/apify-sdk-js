@@ -3,6 +3,22 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [3.1.11](https://github.com/apify/apify-sdk-js/compare/apify@3.1.10...apify@3.1.11) (2023-10-04)
+
+
+### Bug Fixes
+
+* run the whole `Actor.exit()` code inside a timeout handler ([#235](https://github.com/apify/apify-sdk-js/issues/235)) ([c8aabae](https://github.com/apify/apify-sdk-js/commit/c8aabaee5f2de1ab40947f47f95f54ccff37cad0))
+
+
+### Features
+
+* Use `.reboot()`  instead of `.metamorph()` for reboot ([#227](https://github.com/apify/apify-sdk-js/issues/227)) ([8c0bff5](https://github.com/apify/apify-sdk-js/commit/8c0bff5a8d3ea65e532b3700b34b9c563856158a))
+
+
+
+
+
 ## [3.1.10](https://github.com/apify/apify-sdk-js/compare/apify@3.1.9...apify@3.1.10) (2023-09-07)
 
 
