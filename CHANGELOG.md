@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [3.1.12](https://github.com/apify/apify-sdk-js/compare/apify@3.1.11...apify@3.1.12) (2023-10-05)
+
+
+### Bug Fixes
+
+* add more logging to `Actor.init` and `Actor.exit` ([#236](https://github.com/apify/apify-sdk-js/issues/236)) ([b7e01fc](https://github.com/apify/apify-sdk-js/commit/b7e01fc649de84d6f1391bf95e0f349f7ca32536))
+
+
+
+
+
 ## [3.1.11](https://github.com/apify/apify-sdk-js/compare/apify@3.1.10...apify@3.1.11) (2023-10-04)
 
 
