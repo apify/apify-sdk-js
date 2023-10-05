@@ -177,6 +177,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      */
     async init(options: InitOptions = {}): Promise<void> {
         if (this.initialized) {
+            log.debug(`Actor SDK was already initialized`);
             return;
         }
 
@@ -207,11 +208,14 @@ export class Actor<Data extends Dictionary = Dictionary> {
 
         // Init the event manager the config uses
         await this.config.getEventManager().init();
+        log.debug(`Events initialized`);
 
         await purgeDefaultStorages({
             config: this.config,
             onlyPurgeOnce: true,
         });
+        log.debug(`Default storages purged`);
+
         Configuration.storage.enterWith(this.config);
     }
 
@@ -228,6 +232,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
 
         // Close the event manager and emit the final PERSIST_STATE event
         await events.close();
+        log.debug(`Events closed`);
 
         // Emit the exit event
         events.emit(EventType.EXIT, options);
@@ -543,12 +548,25 @@ export class Actor<Data extends Dictionary = Dictionary> {
                 break;
         }
 
-        const storageClient = this.config.getStorageClient();
-        await storageClient.setStatusMessage?.(statusMessage, { isStatusMessageTerminal, level });
+        const client = this.config.getStorageClient();
+
+        // just to be sure, this should be fast
+        await addTimeoutToPromise(
+            () => client.setStatusMessage!(statusMessage, { isStatusMessageTerminal, level }),
+            1000,
+            'Setting status message timed out after 1s',
+        ).catch((e) => log.warning(e.message));
 
         const runId = this.config.get('actorRunId')!;
+
         if (runId) {
-            const run = await this.apifyClient.run(runId).get();
+            // just to be sure, this should be fast
+            const run = await addTimeoutToPromise(
+                () => this.apifyClient.run(runId).get(),
+                1000,
+                'Setting status message timed out after 1s',
+            ).catch((e) => log.warning(e.message));
+
             if (run) {
                 return run;
             }
