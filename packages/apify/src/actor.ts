@@ -564,7 +564,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
             const run = await addTimeoutToPromise(
                 () => this.apifyClient.run(runId).get(),
                 1000,
-                'Setting status message timed out after 1s',
+                'Getting the current run timed out after 1s',
             ).catch((e) => log.warning(e.message));
 
             if (run) {
