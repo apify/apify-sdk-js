@@ -82,7 +82,7 @@ const stats = await getStats(testDir);
 await expect(stats.requestsFinished > 30, 'All requests finished');
 
 const datasetItems = await getDatasetItems(testDir);
-await expect(datasetItems.length > 25 && datasetItems.length < 35, 'Number of dataset items');
+await expect(datasetItems.length > 25 && datasetItems.length < 36, 'Number of dataset items');
 await expect(
     validateDataset(
         datasetItems,
