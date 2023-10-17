@@ -2,7 +2,7 @@ import { getTestDir, getStats, getDatasetItems, run, expect, validateDataset } f
 
 const testDir = getTestDir(import.meta.url);
 
-const exit = process.exit;
+const { exit } = process;
 process.exit = () => {};
 
 await run(testDir, 'web-scraper', {
@@ -48,7 +48,7 @@ await run(testDir, 'web-scraper', {
     downloadCss: true,
     waitUntil: ['networkidle2'],
     debugLog: false,
-    browserLog: false
+    browserLog: false,
 });
 
 process.exit = exit;

@@ -2,7 +2,7 @@ import { getTestDir, getStats, getDatasetItems, run, expect, validateDataset } f
 
 const testDir = getTestDir(import.meta.url);
 
-const exit = process.exit;
+const { exit } = process;
 process.exit = () => {};
 
 await run(testDir, 'cheerio-scraper', {
@@ -40,7 +40,7 @@ await run(testDir, 'cheerio-scraper', {
     proxyConfiguration: { useApifyProxy: false },
     proxyRotation: 'RECOMMENDED',
     debugLog: false,
-    ignoreSslErrors: true
+    ignoreSslErrors: true,
 });
 
 process.exit = exit;

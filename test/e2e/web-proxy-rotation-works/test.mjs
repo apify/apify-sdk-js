@@ -2,7 +2,7 @@ import { getTestDir, getStats, getDatasetItems, run, expect, validateDataset } f
 
 const testDir = getTestDir(import.meta.url);
 
-const exit = process.exit;
+const { exit } = process;
 process.exit = () => {};
 
 await run(testDir, 'web-scraper', {
@@ -20,14 +20,14 @@ await run(testDir, 'web-scraper', {
         const pageContent = JSON.parse($('pre').first().text());
         const { clientIp } = pageContent;
 
-        if (userData.enqueueRequests){
+        if (userData.enqueueRequests) {
             for (let i = 0; i < 4; i++) {
                 await enqueueRequest({ url: 'https://api.apify.com/v2/browser-info', method: 'GET', uniqueKey: `${i}` });
             }
             userData.isReady = false;
         }
 
-        if (await getValue(clientIp)) throw new Error(`The ip address ${clientIp} was already used. Proxy rotation does not work properly.`)
+        if (await getValue(clientIp)) throw new Error(`The ip address ${clientIp} was already used. Proxy rotation does not work properly.`);
         await setValue(clientIp, url);
 
         return { url, clientIp };
@@ -45,7 +45,7 @@ await run(testDir, 'web-scraper', {
     waitUntil: ['networkidle2'],
     breakpointLocation: 'NONE',
     debugLog: false,
-    browserLog: false
+    browserLog: false,
 });
 
 process.exit = exit;
