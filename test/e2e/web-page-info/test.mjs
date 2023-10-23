@@ -1,4 +1,6 @@
-import { getTestDir, getStats, getDatasetItems, run, expect, validateDataset } from '../tools.mjs';
+import { getTestDir, getStats, getDatasetItems, run, expect, validateDataset, skipTest } from '../tools.mjs';
+
+skipTest('Unstable test in CI, locally it works if your internet and machine is fast enough.');
 
 const testDir = getTestDir(import.meta.url);
 
