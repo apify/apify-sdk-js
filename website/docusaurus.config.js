@@ -1,4 +1,3 @@
-/* eslint-disable global-require,import/no-extraneous-dependencies */
 const { config } = require('@apify/docs-theme');
 const { externalLinkProcessor } = require('./tools/utils/externalLink');
 const versions = require('./versions.json');
@@ -90,6 +89,7 @@ module.exports = {
                     path: '../docs',
                     sidebarPath: './sidebars.js',
                     rehypePlugins: [externalLinkProcessor],
+                    editUrl: 'https://github.com/apify/apify-sdk-js/edit/master/docs/',
                 },
             }),
         ],
