@@ -6,6 +6,7 @@
 		"scripts/**/*.js",
 		"scripts/**/*.ts",
 		"test/**/*.js",
+		"test/**/*.mjs",
 		"test/**/*.ts",
 		"packages/**/test/**/*.js",
 		"packages/**/test/**/*.ts",

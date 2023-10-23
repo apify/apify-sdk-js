@@ -2,30 +2,30 @@ import { getTestDir, getStats, run, expect, getDatasetItems } from '../tools.mjs
 
 const testDir = getTestDir(import.meta.url);
 
-const exit = process.exit;
+const { exit } = process;
 process.exit = () => {};
 
 await run(testDir, 'puppeteer-scraper', {
     startUrls: [{
         url: 'https://api.apify.com/v2/browser-info',
-        method: 'GET'
+        method: 'GET',
     }],
     pageFunction: async function pageFunction(context) {
         const { page, input, log } = context;
 
-        const initialCookies = input.initialCookies;
+        const { initialCookies } = input;
         const initialCookiesLength = initialCookies.length;
 
         const pageCookies = await page.cookies();
 
         log.info('Checking cookies names and values...');
         let numberOfMatchingCookies = 0;
-        pageCookies.forEach(cookieObject => {
-            initialCookies.forEach(initialCookieObject => {
+        pageCookies.forEach((cookieObject) => {
+            initialCookies.forEach((initialCookieObject) => {
                 if (cookieObject.name === initialCookieObject.name && cookieObject.value === initialCookieObject.value) {
                     numberOfMatchingCookies++;
                 }
-            })
+            });
         });
 
         if (numberOfMatchingCookies !== initialCookiesLength) {
@@ -55,7 +55,7 @@ await run(testDir, 'puppeteer-scraper', {
     downloadCss: true,
     waitUntil: ['networkidle2'],
     debugLog: false,
-    browserLog: false
+    browserLog: false,
 });
 
 process.exit = exit;
