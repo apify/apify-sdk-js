@@ -7,13 +7,13 @@ process.exit = () => {};
 
 await run(testDir, 'jsdom-scraper', {
     startUrls: [{
-        url: 'https://apify.com/apify',
+        url: 'https://warehouse-theme-metal.myshopify.com/collections/all-tvs',
         method: 'GET',
         userData: { label: 'START' },
     }],
     keepUrlFragments: false,
     pseudoUrls: [{
-        purl: 'https://apify.com/apify/web-scraper',
+        purl: 'https://warehouse-theme-metal.myshopify.com/products/sony-xbr-65x950g-65-class-64-5-diag-bravia-4k-hdr-ultra-hd-tv',
         method: 'GET',
         userData: { label: 'DETAIL' },
     }],
@@ -32,19 +32,23 @@ await run(testDir, 'jsdom-scraper', {
             log.info(`Scraping ${url}`);
             await skipLinks();
 
-            const uniqueIdentifier = url.split('/').slice(-2).join('/');
-            const title = document.querySelector('header h1').textContent;
-            const description = document.querySelector('div.Section-body > div > p').textContent;
-            const modifiedDate = document.querySelector('div:nth-of-type(2) > ul > li:nth-of-type(3)').textContent;
-            const runCount = document.querySelector('div:nth-of-type(2) > ul > li:nth-of-type(2)').textContent;
+            const urlPart = url.split('/').slice(-1); // ['sennheiser-mke-440-professional-stereo-shotgun-microphone-mke-440']
+            const manufacturer = urlPart[0].split('-')[0]; // 'sennheiser'
+            const title = document.querySelector('.product-meta h1').textContent;
+            const sku = document.querySelector('span.product-meta__sku-number').textContent;
+
+            const rawPrice = document.querySelector('span.price').textContent.split('$')[1];
+            const price = Number(rawPrice.replaceAll(',', ''));
+
+            const inStock = document.querySelector('span.product-form__inventory').textContent.includes('In stock');
 
             return {
                 url,
-                uniqueIdentifier,
+                manufacturer,
                 title,
-                description,
-                modifiedDate,
-                runCount,
+                sku,
+                currentPrice: price,
+                availableInStock: inStock,
             };
         }
     },
@@ -68,12 +72,11 @@ await expect(
         datasetItems,
         [
             'url',
+            'manufacturer',
             'title',
-            'uniqueIdentifier',
-            'description',
-            // Skip modifiedAt and runCount since they changed
-            // 'modifiedDate',
-            // 'runCount',
+            'sku',
+            'currentPrice',
+            'availableInStock',
         ],
     ),
     'Dataset items validation',
