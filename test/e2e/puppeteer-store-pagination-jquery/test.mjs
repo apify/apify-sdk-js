@@ -1,6 +1,4 @@
-import { getTestDir, getStats, getDatasetItems, run, expect, validateDataset, skipTest } from '../tools.mjs';
-
-skipTest('Unstable test in CI, locally it works if your internet and machine is fast enough.');
+import { getTestDir, getStats, getDatasetItems, run, expect, validateDataset } from '../tools.mjs';
 
 const testDir = getTestDir(import.meta.url);
 
@@ -9,7 +7,7 @@ process.exit = () => {};
 
 await run(testDir, 'puppeteer-scraper', {
     startUrls: [{
-        url: 'https://apify.com/store',
+        url: 'https://warehouse-theme-metal.myshopify.com/collections/all-tvs',
         method: 'GET',
         userData: { label: 'START' },
     }],
@@ -23,16 +21,16 @@ await run(testDir, 'puppeteer-scraper', {
 
         async function handleStart({ log, page, enqueueLinks }) {
             log.info('Store opened!');
-            const nextButtonSelector = '[data-test="pagination-button-next"]:not([disabled])';
-            // enqueue actor details from the first three pages of the store
-            for (let pageNo = 1; pageNo <= 3; pageNo++) {
+            const nextButtonSelector = '.pagination__next';
+            // enqueue product details from the first three pages of the store
+            for (let pageNo = 1; pageNo < 3; pageNo++) {
                 // Wait for network events to finish
                 await page.waitForNetworkIdle();
                 // Enqueue all loaded links
                 await enqueueLinks({
-                    selector: 'div.ActorStore-main div > a',
+                    selector: 'a.product-item__image-wrapper',
                     label: 'DETAIL',
-                    globs: [{ glob: 'https://apify.com/*/*' }],
+                    globs: ['https://warehouse-theme-metal.myshopify.com/*/*'],
                 });
                 log.info(`Enqueued actors for page ${pageNo}`);
                 log.info('Loading the next page');
@@ -43,18 +41,44 @@ await run(testDir, 'puppeteer-scraper', {
         async function handleDetail({ request: { url }, log, page, injectJQuery }) {
             log.info(`Scraping ${url}`);
             await injectJQuery();
-            const uniqueIdentifier = url.split('/').slice(-2).join('/');
-            const results = await page.evaluate(() => ({
-                title: $('header h1').text(),
-                description: $('div.Section-body > div > p').text(),
-                modifiedDate: $('div:nth-of-type(2) > ul > li:nth-of-type(3)').text(),
-                runCount: $('div:nth-of-type(2) > ul > li:nth-of-type(2)').text(),
-            }));
 
-            return { url, uniqueIdentifier, ...results };
+            const urlPart = url.split('/').slice(-1); // ['sennheiser-mke-440-professional-stereo-shotgun-microphone-mke-440']
+            const manufacturer = urlPart[0].split('-')[0]; // 'sennheiser'
+
+            /* eslint-disable no-undef */
+            const results = await page.evaluate(() => {
+                const rawPrice = $('span.price')
+                    .filter((_, el) => $(el).text().includes('$'))
+                    .first()
+                    .text()
+                    .split('$')[1];
+
+                const price = Number(rawPrice.replaceAll(',', ''));
+
+                const inStock = $('span.product-form__inventory')
+                    .first()
+                    .filter((_, el) => $(el).text().includes('In stock'))
+                    .length !== 0;
+
+                return {
+                    title: $('.product-meta h1').text(),
+                    sku: $('span.product-meta__sku-number').text(),
+                    currentPrice: price,
+                    availableInStock: inStock,
+                };
+            });
+
+            return { url, manufacturer, ...results };
         }
     },
-    preNavigationHooks: "[\n    ({ session, request }, goToOptions) => {\n        session?.setCookies([{ name: 'OptanonAlertBoxClosed', value: new Date().toISOString() }], request.url);\n        goToOptions.waitUntil = ['networkidle2'];\n    }\n]",
+    preNavigationHooks: `[
+        async ({ page }, goToOptions) => {
+            await page.evaluateOnNewDocument(() => {
+                localStorage.setItem('themeExitPopup', 'true');
+            });
+            goToOptions.waitUntil = ['networkidle2'];
+        }
+    ]`,
     proxyConfiguration: { useApifyProxy: false },
     proxyRotation: 'RECOMMENDED',
     useChrome: false,
@@ -80,12 +104,11 @@ await expect(
         datasetItems,
         [
             'url',
+            'manufacturer',
             'title',
-            'uniqueIdentifier',
-            'description',
-            // Skip modifiedAt and runCount since they changed
-            // 'modifiedDate',
-            // 'runCount',
+            'sku',
+            'currentPrice',
+            'availableInStock',
         ],
     ),
     'Dataset items validation',

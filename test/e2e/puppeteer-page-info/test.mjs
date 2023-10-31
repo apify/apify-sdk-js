@@ -1,6 +1,4 @@
-import { getTestDir, getStats, getDatasetItems, run, expect, validateDataset, skipTest } from '../tools.mjs';
-
-skipTest('Unstable test in CI, locally it works if your internet and machine is fast enough.');
+import { getTestDir, getStats, getDatasetItems, run, expect, validateDataset } from '../tools.mjs';
 
 const testDir = getTestDir(import.meta.url);
 
@@ -9,12 +7,12 @@ process.exit = () => {};
 
 await run(testDir, 'puppeteer-scraper', {
     startUrls: [{
-        url: 'https://apify.com/store',
+        url: 'https://warehouse-theme-metal.myshopify.com/collections/all-tvs',
         method: 'GET',
         userData: { label: 'START' },
     }],
     pseudoUrls: [{
-        purl: 'https://apify.com/apify/web-scraper',
+        purl: 'https://warehouse-theme-metal.myshopify.com/products/sony-xbr-65x950g-65-class-64-5-diag-bravia-4k-hdr-ultra-hd-tv',
         method: 'GET',
         userData: { label: 'DETAIL' },
     }],
@@ -32,26 +30,35 @@ await run(testDir, 'puppeteer-scraper', {
             log.info(`Scraping ${url}`);
             await skipLinks();
 
-            const uniqueIdentifier = url.split('/').slice(-2).join('/');
+            const urlPart = url.split('/').slice(-1); // ['sennheiser-mke-440-professional-stereo-shotgun-microphone-mke-440']
+            const manufacturer = urlPart[0].split('-')[0]; // 'sennheiser'
 
-            const titleP = page.$eval('header h1', ((el) => el.textContent));
-            const descriptionP = page.$eval('div.Section-body > div > p', ((el) => el.textContent));
-            const modifiedTimestampP = page.$eval('div:nth-of-type(2) > ul > li:nth-of-type(3)', (el) => el.textContent);
-            const runCountTextP = page.$eval('div:nth-of-type(2) > ul > li:nth-of-type(2)', ((el) => el.textContent));
+            const title = await page.locator('.product-meta h1').map((el) => el.textContent).wait();
+            const sku = await page.locator('span.product-meta__sku-number').map((el) => el.textContent).wait();
 
-            const [
+            const rawPriceString = await page
+                .locator('span.price')
+                .filter((el) => el.textContent.includes('$'))
+                .map((el) => el.textContent)
+                .wait();
+
+            const rawPrice = rawPriceString.split('$')[1];
+            const price = Number(rawPrice.replaceAll(',', ''));
+
+            const inStock = await page
+                .locator('span.product-form__inventory')
+                .filter((el) => el.textContent.includes('In stock'))
+                .map((el) => (!!el))
+                .wait();
+
+            return {
+                url,
+                manufacturer,
                 title,
-                description,
-                modifiedTimestamp,
-                runCountText,
-            ] = await Promise.all([
-                titleP,
-                descriptionP,
-                modifiedTimestampP,
-                runCountTextP,
-            ]);
-
-            return { url, uniqueIdentifier, title, description, modifiedDate: modifiedTimestamp, runCount: runCountText };
+                sku,
+                currentPrice: price,
+                availableInStock: inStock,
+            };
         }
     },
     proxyConfiguration: { useApifyProxy: false },
@@ -78,12 +85,11 @@ await expect(
         datasetItems,
         [
             'url',
+            'manufacturer',
             'title',
-            'uniqueIdentifier',
-            'description',
-            // Skip modifiedAt and runCount since they changed
-            // 'modifiedDate',
-            // 'runCount',
+            'sku',
+            'currentPrice',
+            'availableInStock',
         ],
     ),
     'Dataset items validation',
