@@ -19,7 +19,7 @@ module.exports = {
     trailingSlash: false,
     organizationName: 'apify',
     projectName: 'apify-sdk-js',
-    favicon: 'img/favicon.ico',
+    favicon: 'img/favicon.svg',
     onBrokenLinks:
     /** @type {import('@docusaurus/types').ReportingSeverity} */ ('warn'),
     onBrokenMarkdownLinks:
