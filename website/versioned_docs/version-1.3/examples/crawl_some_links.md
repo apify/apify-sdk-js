@@ -4,7 +4,7 @@ title: Crawl some links on a website
 id: crawl-some-links
 ---
 
-This [`CheerioCrawler`](/docs/api/cheerio-crawler) example uses the [`pseudoUrls`](/docs/api/pseudo-url) property in the `Apify.enqueueLinks()` method
+This [`CheerioCrawler`](/docs/1.3/api/cheerio-crawler) example uses the [`pseudoUrls`](/docs/1.3/api/pseudo-url) property in the `Apify.enqueueLinks()` method
 to only add links to the `RequestList` queue if they match the specified regular expression.
 
 ```javascript

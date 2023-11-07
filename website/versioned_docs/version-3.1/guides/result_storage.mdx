@@ -26,12 +26,9 @@ code changes are needed.
 The key-value store is used for saving and reading data records or files. Each data record is represented by a unique key and associated with a MIME
 content type. Key-value stores are ideal for saving screenshots of web pages, PDFs or to persist the state of crawlers.
 
-Each actor run is associated with a **default key-value store**, which is created exclusively for the actor run. By convention, the actor run input
-and output is stored in the default key-value store under the `INPUT` and `OUTPUT` key, respectively. Typically the input and output is a JSON file,
-although it can be any other format.
+Each actor run is associated with a **default key-value store**, which is created exclusively for the actor run. By convention, the actor run input and output is stored in the default key-value store under the `INPUT` and `OUTPUT` key, respectively. Typically the input and output is a JSON file, although it can be any other format.
 
-In the Apify SDK, the key-value store is represented by the <ApiLink to="apify/class/KeyValueStore">`KeyValueStore`</ApiLink> class. In order to simplify access to the default
-key-value store, the SDK also provides <ApiLink to="apify/class/Actor#getValue">`Actor.getValue()`</ApiLink> and <ApiLink to="apify/class/Actor#setValue">`Actor.setValue()`</ApiLink> functions.
+In the Apify SDK, the key-value store is represented by the <ApiLink to="apify/class/KeyValueStore">`KeyValueStore`</ApiLink> class. In order to simplify access to the default key-value store, the SDK also provides <ApiLink to="apify/class/Actor#getValue">`Actor.getValue()`</ApiLink> and <ApiLink to="apify/class/Actor#setValue">`Actor.setValue()`</ApiLink> functions.
 
 In local configuration, the data is stored in the directory specified by the `APIFY_LOCAL_STORAGE_DIR` environment variable as follows:
 

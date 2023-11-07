@@ -4,8 +4,8 @@ title: Call actor
 id: call-actor
 ---
 
-This example demonstrates how to start an Apify actor using [`Apify.call()`](/docs/api/apify#call) and how to call the Apify API using
-[`Apify.client`](/docs/api/apify#client). The script gets a random weird word and its explanation from [randomword.com](https://randomword.com/) and
+This example demonstrates how to start an Apify actor using [`Apify.call()`](/docs/1.3/api/apify#call) and how to call the Apify API using
+[`Apify.client`](/docs/1.3/api/apify#client). The script gets a random weird word and its explanation from [randomword.com](https://randomword.com/) and
 sends it to your email using the [`apify/send-mail`](https://apify.com/apify/send-mail) actor.
 
 To make the example work, you'll need an [Apify account](https://my.apify.com/). Go to the
