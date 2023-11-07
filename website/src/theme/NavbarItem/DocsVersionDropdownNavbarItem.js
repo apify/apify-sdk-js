@@ -67,8 +67,7 @@ export default function DocsVersionDropdownNavbarItem({
         ? translate({
             id: 'theme.navbar.mobileVersionsDropdown.label',
             message: 'Versions',
-            description:
-                    'The label for the navbar versions dropdown on mobile view',
+            description: 'The label for the navbar versions dropdown on mobile view',
         })
         : dropdownVersion.label;
     let dropdownTo = mobile && items.length > 1

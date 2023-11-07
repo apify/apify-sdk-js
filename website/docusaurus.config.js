@@ -21,9 +21,9 @@ module.exports = {
     projectName: 'apify-sdk-js',
     favicon: 'img/favicon.svg',
     onBrokenLinks:
-    /** @type {import('@docusaurus/types').ReportingSeverity} */ ('warn'),
+    /** @type {import('@docusaurus/types').ReportingSeverity} */ ('throw'),
     onBrokenMarkdownLinks:
-    /** @type {import('@docusaurus/types').ReportingSeverity} */ ('warn'),
+    /** @type {import('@docusaurus/types').ReportingSeverity} */ ('throw'),
     themes: [
         [
             '@apify/docs-theme',
@@ -68,11 +68,35 @@ module.exports = {
                             'className': 'navbar__item', // fixes margin around dropdown - hackish, should be fixed in theme
                             'data-api-links': JSON.stringify([
                                 'reference/next',
-                                ...versions.map((version, i) => (i === 0 ? 'reference' : `reference/${version}`)),
+                                ...versions.map((version, i) => {
+                                    if (i === 0) {
+                                        return 'reference';
+                                    }
+
+                                    if (+version < 3) {
+                                        return `docs/${version}/api/apify`;
+                                    }
+
+                                    return `reference/${version}`;
+                                }),
                             ]),
                             'dropdownItemsBefore': [],
                             'dropdownItemsAfter': [],
                         },
+                        // {
+                        //     type: 'docsVersionDropdown',
+                        //     position: 'left',
+                        //     dropdownItemsAfter: [
+                        //         {
+                        //             href: 'https://sdk.apify.com/docs/guides/getting-started',
+                        //             label: '2.2',
+                        //         },
+                        //         {
+                        //             href: 'https://sdk.apify.com/docs/1.3.1/guides/getting-started',
+                        //             label: '1.3',
+                        //         },
+                        //     ],
+                        // },
                     ],
                 },
             },
@@ -84,8 +108,10 @@ module.exports = {
             /** @type {import('@docusaurus/preset-classic').Options} */
             ({
                 docs: {
-                    showLastUpdateAuthor: true,
-                    showLastUpdateTime: true,
+                    // Docusaurus shows the author and date of last commit to entire repo, which doesn't make sense,
+                    // so let's just disable showing author and last modification
+                    showLastUpdateAuthor: false,
+                    showLastUpdateTime: false,
                     path: '../docs',
                     sidebarPath: './sidebars.js',
                     rehypePlugins: [externalLinkProcessor],

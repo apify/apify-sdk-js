@@ -21,7 +21,7 @@ The request queue is a storage of URLs to crawl. The queue is used for the deep 
 
 Each actor run is associated with a **default request queue**, which is created exclusively for the actor run. Typically, it is used to store URLs to crawl in the specific actor run. Its usage is optional.
 
-In Apify SDK, the request queue is represented by the [`RequestQueue`](/docs/api/request-queue) class.
+In Apify SDK, the request queue is represented by the [`RequestQueue`](/docs/1.3/api/request-queue) class.
 
 In local configuration, the request queue is emulated by [@apify/storage-local](https://github.com/apify/apify-storage-local-js) NPM package and its data is stored in SQLite database in the directory specified by the `APIFY_LOCAL_STORAGE_DIR` environment variable as follows:
 
@@ -55,11 +55,11 @@ To see more detailed example of how to use the request queue with a crawler, see
 
 ## Request list
 
-The request list is not a storage per se - it represents the list of URLs to crawl that is stored in a run memory (or optionally in default [Key-Value Store](../guides/results-storage#key-value-store) associated with the run, if specified). The list is used for the crawling of a large number of URLs, when you know all the URLs which should be visited by the crawler and no URLs would be added during the run. The URLs can be provided either in code or parsed from a text file hosted on the web.
+The request list is not a storage per se - it represents the list of URLs to crawl that is stored in a run memory (or optionally in default [Key-Value Store](./result_storage.md#key-value-store) associated with the run, if specified). The list is used for the crawling of a large number of URLs, when you know all the URLs which should be visited by the crawler and no URLs would be added during the run. The URLs can be provided either in code or parsed from a text file hosted on the web.
 
 Request list is created exclusively for the actor run and only if its usage is explicitly specified in the code. Its usage is optional.
 
-In Apify SDK, the request list is represented by the [`RequestList`](/docs/api/request-list) class.
+In Apify SDK, the request list is represented by the [`RequestList`](/docs/1.3/api/request-list) class.
 
 The following code demonstrates basic operations of the request list:
 

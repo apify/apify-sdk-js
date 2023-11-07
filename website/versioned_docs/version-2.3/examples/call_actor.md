@@ -4,8 +4,8 @@ title: Call actor
 ---
 
 This example demonstrates how to start an Apify actor using
-[`Apify.call()`](/docs/api/apify#call) and how to call the Apify API using
-[`Apify.client`](/docs/api/apify#client).
+[`Apify.call()`](/docs/2.3/api/apify#call) and how to call the Apify API using
+[`Apify.client`](/docs/2.3/api/apify#client).
 The script gets a random weird word and its explanation from [randomword.com](https://randomword.com/)
 and sends it to your email using the [`apify/send-mail`](https://apify.com/apify/send-mail) actor.
 
@@ -14,10 +14,10 @@ Go to the [Account - Integrations](https://my.apify.com/account#/integrations) p
 and set it to the [`APIFY_TOKEN`](/docs/guides/environment-variables#APIFY_TOKEN) environment variable,
 or run the script using the Apify CLI. If you deploy this actor to the Apify Cloud, you can do things like set
 up a scheduler to run your actor early in the morning.
- 
+
 To see what other actors are available, visit the [Apify Store](https://apify.com/store).
- 
- > To run this example on the Apify Platform, select the `Node.js 12 + Chrome on Debian (apify/actor-node-chrome)` 
+
+ > To run this example on the Apify Platform, select the `Node.js 12 + Chrome on Debian (apify/actor-node-chrome)`
  > base image on the **Source** tab when configuring the actor.
 
 

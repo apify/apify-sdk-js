@@ -8,9 +8,13 @@ const ApiLink = ({ to, children }) => {
     const { version, isLast } = useDocsVersion();
     const { siteConfig } = useDocusaurusContext();
 
+    if (to.toString().startsWith('apify/')) {
+        to = to.toString().substring('apify/'.length);
+    }
+
     if (siteConfig.presets[0][1].docs.disableVersioning) {
         return (
-            <Link to={`/api/${to}`}>{children}</Link>
+            <Link to={`/reference/${to}`}>{children}</Link>
         );
     }
 
@@ -23,7 +27,7 @@ const ApiLink = ({ to, children }) => {
     }
 
     return (
-        <Link to={`/api/${versionSlug}${to}`}>{children}</Link>
+        <Link to={`/reference/${versionSlug}${to}`}>{children}</Link>
     );
 };
 

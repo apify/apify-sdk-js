@@ -4,9 +4,9 @@ title: Dataset Map and Reduce methods
 id: map-and-reduce
 ---
 
-This example shows an easy use-case of the [Apify dataset](https://docs.apify.com/storage/dataset) [`map`](/docs/api/dataset#map) and
-[`reduce`](/docs/api/dataset#reduce) methods. Both methods can be used to simplify the dataset results workflow process. Both can be called on the
-[dataset](/docs/api/dataset) directly.
+This example shows an easy use-case of the [Apify dataset](https://docs.apify.com/storage/dataset) [`map`](/docs/1.3/api/dataset#map) and
+[`reduce`](/docs/1.3/api/dataset#reduce) methods. Both methods can be used to simplify the dataset results workflow process. Both can be called on the
+[dataset](/docs/1.3/api/dataset) directly.
 
 Important to mention is that both methods return a new result (`map` returns a new array and `reduce` can return any type) - neither method updates
 the dataset in any way.
@@ -15,7 +15,7 @@ Examples for both methods are demonstrated on a simple dataset containing the re
 `h1` - `h3` header elements under the `headingCount` key.
 
 This data structure is stored in the default dataset under `{PROJECT_FOLDER}/apify_storage/datasets/default/`. If you want to simulate the
-functionality, you can use the [`dataset.PushData()`](/docs/api/dataset#pushdata) method to save the example `JSON array` to your dataset.
+functionality, you can use the [`dataset.PushData()`](/docs/1.3/api/dataset#pushdata) method to save the example `JSON array` to your dataset.
 
 ```json
 [
@@ -58,7 +58,7 @@ Apify.main(async () => {
 
 The `moreThan5headers` variable is an array of `headingCount` attributes where the number of headers is greater than 5.
 
-The `map` method's result value saved to the [`key-value store`](/docs/api/key-value-store) should be:
+The `map` method's result value saved to the [`key-value store`](/docs/1.3/api/key-value-store) should be:
 
 ```javascript
 [11, 8];
@@ -67,7 +67,7 @@ The `map` method's result value saved to the [`key-value store`](/docs/api/key-v
 ### Reduce
 
 The dataset `reduce` method does not produce a new array of values - it reduces a list of values down to a single value. The method iterates through
-the items in the dataset using the [`memo` argument](/docs/api/dataset#datasetreduceiteratee-memo-options). After performing the necessary
+the items in the dataset using the [`memo` argument](/docs/1.3/api/dataset#datasetreduceiteratee-memo-options). After performing the necessary
 calculation, the `memo` is sent to the next iteration, while the item just processed is reduced (removed).
 
 Using the `reduce` method to get the total number of headers scraped (all items in the dataset):
@@ -93,7 +93,7 @@ Apify.main(async () => {
 The original dataset will be reduced to a single value, `pagesHeadingCount`, which contains the count of all headers for all scraped pages (all
 dataset items).
 
-The `reduce` method's result value saved to the [key-value store](/docs/api/key-value-store) should be:
+The `reduce` method's result value saved to the [key-value store](/docs/1.3/api/key-value-store) should be:
 
 ```javascript
 23;

@@ -3,7 +3,7 @@ id: crawl-single-url
 title: Crawl a single URL
 ---
 
-This example uses the [`Apify.utils.requestAsBrowser()`](/docs/api/utils#utilsrequestasbrowseroptions) function to grab the 
+This example uses the [`Apify.utils.requestAsBrowser()`](/docs/2.3/api/utils#utilsrequestasbrowseroptions) function to grab the
 HTML of a web page.
 
 ```javascript

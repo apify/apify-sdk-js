@@ -66,7 +66,7 @@ const value = await store.getValue('some-key');
 await store.setValue('some-key', null);
 ```
 
-To see a real-world example of how to get the input from the key-value store, see the [Screenshots](../examples/screenshots) example.
+To see a real-world example of how to get the input from the key-value store, see the [Screenshots](../examples/capture_screenshot.md) example.
 
 ## Dataset
 
