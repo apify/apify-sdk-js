@@ -83,20 +83,6 @@ module.exports = {
                             'dropdownItemsBefore': [],
                             'dropdownItemsAfter': [],
                         },
-                        // {
-                        //     type: 'docsVersionDropdown',
-                        //     position: 'left',
-                        //     dropdownItemsAfter: [
-                        //         {
-                        //             href: 'https://sdk.apify.com/docs/guides/getting-started',
-                        //             label: '2.2',
-                        //         },
-                        //         {
-                        //             href: 'https://sdk.apify.com/docs/1.3.1/guides/getting-started',
-                        //             label: '1.3',
-                        //         },
-                        //     ],
-                        // },
                     ],
                 },
             },
