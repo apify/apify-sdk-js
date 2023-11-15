@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [3.1.13](https://github.com/apify/apify-sdk-js/compare/apify@3.1.12...apify@3.1.13) (2023-11-15)
+
+
+### Bug Fixes
+
+* **apify:** declare got-scraping as dependency ([#252](https://github.com/apify/apify-sdk-js/issues/252)) ([a6bcf1d](https://github.com/apify/apify-sdk-js/commit/a6bcf1d578a7c7ebbb23b3768e8bbf9e94e2b404))
+
+
+
+
+
 ## [3.1.12](https://github.com/apify/apify-sdk-js/compare/apify@3.1.11...apify@3.1.12) (2023-10-05)
 
 
