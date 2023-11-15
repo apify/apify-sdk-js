@@ -83,5 +83,5 @@
         "typescript": "~5.2.0",
         "ws": "^7.5.9"
     },
-    "packageManager": "npm@10.2.3"
+    "packageManager": "npm@10.2.4"
 }
