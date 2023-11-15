@@ -18,6 +18,7 @@ import {
     log,
     Awaitable,
     Dictionary,
+    ProxyConfiguration,
 } from '@crawlee/puppeteer';
 import contentType from 'content-type';
 // @ts-expect-error no typings
@@ -205,7 +206,7 @@ export class CrawlerSetup implements CrawlerSetupOptions {
             maxConcurrency: this.isDevRun ? MAX_CONCURRENCY_IN_DEVELOPMENT : this.input.maxConcurrency,
             maxRequestRetries: this.input.maxRequestRetries,
             maxRequestsPerCrawl: this.input.maxPagesPerCrawl,
-            proxyConfiguration: await Actor.createProxyConfiguration(this.input.proxyConfiguration),
+            proxyConfiguration: await Actor.createProxyConfiguration(this.input.proxyConfiguration) as any as ProxyConfiguration,
             browserPoolOptions: {
                 preLaunchHooks: [
                     async () => {

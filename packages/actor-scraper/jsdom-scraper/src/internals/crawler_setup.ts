@@ -145,7 +145,7 @@ export class CrawlerSetup implements CrawlerSetupOptions {
         this.keyValueStore = await KeyValueStore.open(this.keyValueStoreName);
 
         // Proxy configuration
-        this.proxyConfiguration = await Actor.createProxyConfiguration(this.input.proxyConfiguration);
+        this.proxyConfiguration = await Actor.createProxyConfiguration(this.input.proxyConfiguration) as any as ProxyConfiguration;
     }
 
     /**

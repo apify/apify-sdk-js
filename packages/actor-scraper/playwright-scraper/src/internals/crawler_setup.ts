@@ -16,6 +16,7 @@ import {
     PlaywrightLaunchContext,
     EnqueueLinksOptions,
     log,
+    ProxyConfiguration,
 } from '@crawlee/playwright';
 import { Awaitable, Dictionary, sleep } from '@crawlee/utils';
 import playwright, { Response } from 'playwright';
@@ -180,7 +181,7 @@ export class CrawlerSetup implements CrawlerSetupOptions {
             maxConcurrency: this.input.maxConcurrency,
             maxRequestRetries: this.input.maxRequestRetries,
             maxRequestsPerCrawl: this.input.maxPagesPerCrawl,
-            proxyConfiguration: await Actor.createProxyConfiguration(this.input.proxyConfiguration),
+            proxyConfiguration: await Actor.createProxyConfiguration(this.input.proxyConfiguration) as any as ProxyConfiguration,
             launchContext: {
                 useChrome: this.input.useChrome,
                 launcher: playwright[this.input.launcher],
