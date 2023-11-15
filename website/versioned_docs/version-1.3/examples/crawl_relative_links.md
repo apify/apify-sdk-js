@@ -4,7 +4,7 @@ title: Crawl a website with relative links
 id: crawl-relative-links
 ---
 
-If a website uses relative links, [`CheerioCrawler`](/docs/api/cheerio-crawler) and `Apify.enqueueLinks()` may have trouble following them. This is
+If a website uses relative links, [`CheerioCrawler`](/docs/1.3/api/cheerio-crawler) and `Apify.enqueueLinks()` may have trouble following them. This is
 why it is important to set the `baseUrl` property within `Apify.enqueueLinks()` to `request.loadedUrl`:
 
 ```javascript

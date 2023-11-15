@@ -13,7 +13,7 @@
     },
     "devDependencies": {
         "@apify/tsconfig": "^0.1.0",
-        "@types/node": "^18.7.18",
+        "@types/node": "^20.8.2",
         "ts-node": "^10.9.1",
         "typescript": "~5.2.0"
     },

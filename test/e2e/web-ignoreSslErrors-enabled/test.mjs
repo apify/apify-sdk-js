@@ -2,14 +2,14 @@ import { getTestDir, getStats, getDatasetItems, run, expect, validateDataset } f
 
 const testDir = getTestDir(import.meta.url);
 
-const exit = process.exit;
+const { exit } = process;
 process.exit = () => {};
 
 await run(testDir, 'web-scraper', {
     startUrls: [{
         url: 'https://badssl.com/',
         method: 'GET',
-        userData: { label: 'START' }
+        userData: { label: 'START' },
     }],
     keepUrlFragments: false,
     linkSelector: '.group a.bad',
@@ -48,7 +48,7 @@ await run(testDir, 'web-scraper', {
     waitUntil: ['networkidle2'],
     debugLog: false,
     browserLog: false,
-    proxyRotation: 'RECOMMENDED'
+    proxyRotation: 'RECOMMENDED',
 });
 
 process.exit = exit;

@@ -177,6 +177,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      */
     async init(options: InitOptions = {}): Promise<void> {
         if (this.initialized) {
+            log.debug(`Actor SDK was already initialized`);
             return;
         }
 
@@ -207,11 +208,14 @@ export class Actor<Data extends Dictionary = Dictionary> {
 
         // Init the event manager the config uses
         await this.config.getEventManager().init();
+        log.debug(`Events initialized`);
 
         await purgeDefaultStorages({
             config: this.config,
             onlyPurgeOnce: true,
         });
+        log.debug(`Default storages purged`);
+
         Configuration.storage.enterWith(this.config);
     }
 
@@ -223,37 +227,44 @@ export class Actor<Data extends Dictionary = Dictionary> {
         options.exit ??= true;
         options.exitCode ??= EXIT_CODES.SUCCESS;
         options.timeoutSecs ??= 30;
+        const client = this.config.getStorageClient();
+        const events = this.config.getEventManager();
 
         // Close the event manager and emit the final PERSIST_STATE event
-        await this.config.getEventManager().close();
+        await events.close();
+        log.debug(`Events closed`);
 
         // Emit the exit event
-        this.config.getEventManager().emit(EventType.EXIT, options);
+        events.emit(EventType.EXIT, options);
 
         // Wait for all event listeners to be processed
         log.debug(`Waiting for all event listeners to complete their execution (with ${options.timeoutSecs} seconds timeout)`);
         await addTimeoutToPromise(
-            () => this.config.getEventManager().waitForAllListenersToComplete(),
+            async () => {
+                await events.waitForAllListenersToComplete();
+
+                if (client.teardown) {
+                    let finished = false;
+                    setTimeout(() => {
+                        if (!finished) {
+                            log.info('Waiting for the storage to write its state to file system.');
+                        }
+                    }, 1000);
+                    await client.teardown();
+                    finished = true;
+                }
+
+                if (options.statusMessage != null) {
+                    await this.setStatusMessage(options.statusMessage, { isStatusMessageTerminal: true, level: options.exitCode! > 0 ? 'ERROR' : 'INFO' });
+                }
+            },
             options.timeoutSecs * 1000,
             `Waiting for all event listeners to complete their execution timed out after ${options.timeoutSecs} seconds`,
-        );
-
-        const client = this.config.getStorageClient();
-
-        if (client.teardown) {
-            let finished = false;
-            setTimeout(() => {
-                if (!finished) {
-                    log.info('Waiting for the storage to write its state to file system.');
-                }
-            }, 1000);
-            await client.teardown();
-            finished = true;
-        }
-
-        if (options.statusMessage != null) {
-            await this.setStatusMessage(options.statusMessage, { isStatusMessageTerminal: true, level: options.exitCode > 0 ? 'ERROR' : 'INFO' });
-        }
+        ).catch(() => {
+            if (options.exit) {
+                process.exit(options.exitCode);
+            }
+        });
 
         if (!options.exit) {
             return;
@@ -537,12 +548,25 @@ export class Actor<Data extends Dictionary = Dictionary> {
                 break;
         }
 
-        const storageClient = this.config.getStorageClient();
-        await storageClient.setStatusMessage?.(statusMessage, { isStatusMessageTerminal, level });
+        const client = this.config.getStorageClient();
+
+        // just to be sure, this should be fast
+        await addTimeoutToPromise(
+            () => client.setStatusMessage!(statusMessage, { isStatusMessageTerminal, level }),
+            1000,
+            'Setting status message timed out after 1s',
+        ).catch((e) => log.warning(e.message));
 
         const runId = this.config.get('actorRunId')!;
+
         if (runId) {
-            const run = await this.apifyClient.run(runId).get();
+            // just to be sure, this should be fast
+            const run = await addTimeoutToPromise(
+                () => this.apifyClient.run(runId).get(),
+                1000,
+                'Getting the current run timed out after 1s',
+            ).catch((e) => log.warning(e.message));
+
             if (run) {
                 return run;
             }

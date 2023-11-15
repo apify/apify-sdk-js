@@ -2,18 +2,18 @@ import { getTestDir, getStats, getDatasetItems, run, expect, validateDataset } f
 
 const testDir = getTestDir(import.meta.url);
 
-const exit = process.exit;
+const { exit } = process;
 process.exit = () => {};
 
 await run(testDir, 'web-scraper', {
     runMode: 'PRODUCTION',
     startUrls: [{
-        url: 'https://apify.com/store?page=1',
+        url: 'https://warehouse-theme-metal.myshopify.com/collections/all-tvs',
         method: 'GET',
         userData: { label: 'START' },
     }],
     pseudoUrls: [{
-        purl: 'https://apify.com/store?page=[2|3]',
+        purl: 'https://warehouse-theme-metal.myshopify.com/collections/all-tvs?page=[2|3]',
         method: 'GET',
         userData: { label: 'START' },
     }],
@@ -26,11 +26,14 @@ await run(testDir, 'web-scraper', {
 
         async function handleStart({ log, request, enqueueRequest, waitFor, jQuery: $ }) {
             log.info(`${request.url} opened!`);
-            await waitFor('.ActorStoreItem');
-            const urls = $('.ActorStoreItem')
+
+            await waitFor('a.product-item__image-wrapper');
+            const urls = $('a.product-item__image-wrapper')
                 .toArray()
-                .map((link) => `https://apify.com/${$(link).attr('href')}`);
+                .map((link) => `https://warehouse-theme-metal.myshopify.com/${$(link).attr('href')}`);
+
             log.info(`${request.url} | Enqueueing ${urls.length} actor pages`);
+
             for (const url of urls) {
                 await enqueueRequest({ url, label: 'DETAIL' });
             }
@@ -41,25 +44,44 @@ await run(testDir, 'web-scraper', {
             log.info(`Scraping ${url}`);
             await skipLinks();
 
-            const uniqueIdentifier = url.split('/').slice(-2).join('/');
-            const title = $('header h1').text();
-            const description = $('header span.actor-description').text();
-            const modifiedDate = $('ul.ActorHeader-stats time').attr('datetime');
-            const runCount = $('ul.ActorHeader-stats > li:nth-of-type(3)').text().match(/[\d,]+/)[0].replace(/,/g, '');
+            const urlPart = url.split('/').slice(-1); // ['sennheiser-mke-440-professional-stereo-shotgun-microphone-mke-440']
+            const manufacturer = urlPart[0].split('-')[0]; // 'sennheiser'
+
+            const title = $('.product-meta h1').text();
+            const sku = $('span.product-meta__sku-number').text();
+
+            const rawPrice = $('span.price')
+                .filter((_, el) => $(el).text().includes('$'))
+                .first()
+                .text()
+                .split('$')[1];
+
+            const price = Number(rawPrice.replaceAll(',', ''));
+
+            const inStock = $('span.product-form__inventory')
+                .first()
+                .filter((_, el) => $(el).text().includes('In stock'))
+                .length !== 0;
 
             return {
                 url,
-                uniqueIdentifier,
+                manufacturer,
                 title,
-                description,
-                modifiedDate: new Date(Number(modifiedDate)),
-                runCount: Number(runCount),
+                sku,
+                currentPrice: price,
+                availableInStock: inStock,
             };
         }
     },
     injectJQuery: true,
     injectUnderscore: false,
-    preNavigationHooks: "[\n    ({ session, request }) => {\n        session?.setCookies([{ name: 'OptanonAlertBoxClosed', value: new Date().toISOString() }], request.url);\n    }\n]",
+    preNavigationHooks: `[
+        async ({ page }) => {
+            await page.evaluateOnNewDocument(() => {
+                localStorage.setItem('themeExitPopup', 'true');
+            });
+        }
+    ]`,
     proxyConfiguration: { useApifyProxy: false },
     proxyRotation: 'RECOMMENDED',
     useChrome: false,
@@ -82,7 +104,17 @@ await expect(stats.requestsFinished > 30, 'All requests finished');
 const datasetItems = await getDatasetItems(testDir);
 await expect(datasetItems.length > 25 && datasetItems.length < 35, 'Number of dataset items');
 await expect(
-    validateDataset(datasetItems, ['url', 'title', 'uniqueIdentifier', 'description', 'modifiedDate', 'runCount']),
+    validateDataset(
+        datasetItems,
+        [
+            'url',
+            'manufacturer',
+            'title',
+            'sku',
+            'currentPrice',
+            'availableInStock',
+        ],
+    ),
     'Dataset items validation',
 );
 

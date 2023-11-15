@@ -4,8 +4,8 @@ title: Screenshots
 id: screenshots
 ---
 
-This example demonstrates how to read and write data to the default key-value store using [`Apify.getValue()`](/docs/api/apify#apifygetvaluekey) and
-[`Apify.setValue()`](/docs/api/apify#apifysetvaluekey-value-options).
+This example demonstrates how to read and write data to the default key-value store using [`Apify.getValue()`](/docs/1.3/api/apify#apifygetvaluekey) and
+[`Apify.setValue()`](/docs/1.3/api/apify#apifysetvaluekey-value-options).
 
 The script crawls a list of URLs using Puppeteer, captures a screenshot of each page, and saves it to the store. The list of URLs is provided as actor
 input that is also read from the store.

@@ -2,7 +2,7 @@ import { getTestDir, getStats, getDatasetItems, run, expect, validateDataset } f
 
 const testDir = getTestDir(import.meta.url);
 
-const exit = process.exit;
+const { exit } = process;
 process.exit = () => {};
 
 await run(testDir, 'jsdom-scraper', {
@@ -24,6 +24,7 @@ await run(testDir, 'jsdom-scraper', {
     forceResponseEncoding: false,
     ignoreSslErrors: false,
     debugLog: false,
+    runScripts: false,
 });
 
 process.exit = exit;
