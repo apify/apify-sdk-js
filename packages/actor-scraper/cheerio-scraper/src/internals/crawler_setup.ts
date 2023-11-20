@@ -2,6 +2,7 @@ import { readFile } from 'node:fs/promises';
 import { IncomingMessage } from 'node:http';
 import { dirname } from 'node:path';
 import { fileURLToPath, URL } from 'node:url';
+
 import {
     constants as scraperToolsConstants,
     CrawlerSetupOptions,
@@ -26,6 +27,7 @@ import {
 } from '@crawlee/cheerio';
 import { Actor, ApifyEnv } from 'apify';
 import { load } from 'cheerio';
+
 import { Input, ProxyRotation } from './consts.js';
 
 const { SESSION_MAX_USAGE_COUNTS, META_KEY } = scraperToolsConstants;
@@ -240,7 +242,7 @@ export class CrawlerSetup implements CrawlerSetupOptions {
         });
     }
 
-    private _failedRequestHandler({ request }: CheerioCrawlingContext) {
+    private async _failedRequestHandler({ request }: CheerioCrawlingContext) {
         const lastError = request.errorMessages[request.errorMessages.length - 1];
         const errorMessage = lastError ? lastError.split('\n')[0] : 'no error';
         log.error(`Request ${request.url} failed and will not be retried anymore. Marking as failed.\nLast Error Message: ${errorMessage}`);

@@ -1,7 +1,8 @@
 import { ACTOR_EVENT_NAMES, ACTOR_ENV_VARS } from '@apify/consts';
-import WebSocket from 'ws';
-import { EventType, EventManager } from '@crawlee/core';
 import { betterClearInterval } from '@apify/utilities';
+import { EventType, EventManager } from '@crawlee/core';
+import WebSocket from 'ws';
+
 import { Configuration } from './configuration';
 
 /**

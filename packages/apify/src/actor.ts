@@ -1,21 +1,9 @@
 import { createPrivateKey } from 'node:crypto';
-import ow from 'ow';
-import { decryptInputSecrets } from '@apify/input_secrets';
+
 import { ACTOR_ENV_VARS, APIFY_ENV_VARS, INTEGER_ENV_VARS } from '@apify/consts';
-import { addTimeoutToPromise } from '@apify/timeout';
+import { decryptInputSecrets } from '@apify/input_secrets';
 import log from '@apify/log';
-import type {
-    ActorCallOptions,
-    ApifyClientOptions,
-    RunAbortOptions,
-    TaskCallOptions,
-    Webhook,
-    WebhookEventType,
-} from 'apify-client';
-import {
-    ActorRun as ClientActorRun,
-    ApifyClient,
-} from 'apify-client';
+import { addTimeoutToPromise } from '@apify/timeout';
 import type {
     ConfigurationOptions,
     EventManager,
@@ -34,12 +22,26 @@ import {
 } from '@crawlee/core';
 import type { Awaitable, Constructor, Dictionary, SetStatusMessageOptions, StorageClient } from '@crawlee/types';
 import { sleep, snakeCaseToCamelCase } from '@crawlee/utils';
-import { logSystemInfo, printOutdatedSdkWarning } from './utils';
+import type {
+    ActorCallOptions,
+    ApifyClientOptions,
+    RunAbortOptions,
+    TaskCallOptions,
+    Webhook,
+    WebhookEventType,
+} from 'apify-client';
+import {
+    ActorRun as ClientActorRun,
+    ApifyClient,
+} from 'apify-client';
+import ow from 'ow';
+
+import { Configuration } from './configuration';
+import { KeyValueStore } from './key_value_store';
 import { PlatformEventManager } from './platform_event_manager';
 import type { ProxyConfigurationOptions } from './proxy_configuration';
 import { ProxyConfiguration } from './proxy_configuration';
-import { KeyValueStore } from './key_value_store';
-import { Configuration } from './configuration';
+import { logSystemInfo, printOutdatedSdkWarning } from './utils';
 
 /**
  * `Actor` class serves as an alternative approach to the static helpers exported from the package. It allows to pass configuration
@@ -151,7 +153,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @param options
      * @ignore
      */
-    main<T>(userFunc: UserFunc, options?: MainOptions): Promise<T> {
+    async main<T>(userFunc: UserFunc, options?: MainOptions): Promise<T> {
         if (!userFunc || typeof userFunc !== 'function') {
             throw new Error(`First parameter for Actor.main() must be a function (was '${userFunc === null ? 'null' : typeof userFunc}').`);
         }
@@ -462,9 +464,9 @@ export class Actor<Data extends Dictionary = Dictionary> {
         // Waiting for all the listeners to finish, as `.reboot()` kills the container.
         await Promise.all([
             // `persistState` for individual RequestLists, RequestQueue... instances to be persisted
-            ...this.config.getEventManager().listeners(EventType.PERSIST_STATE).map((x) => x()),
+            ...this.config.getEventManager().listeners(EventType.PERSIST_STATE).map(async (x) => x()),
             // `migrating` to pause Apify crawlers
-            ...this.config.getEventManager().listeners(EventType.MIGRATING).map((x) => x()),
+            ...this.config.getEventManager().listeners(EventType.MIGRATING).map(async (x) => x()),
         ]);
 
         const runId = this.config.get('actorRunId')!;
@@ -552,7 +554,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
 
         // just to be sure, this should be fast
         await addTimeoutToPromise(
-            () => client.setStatusMessage!(statusMessage, { isStatusMessageTerminal, level }),
+            async () => client.setStatusMessage!(statusMessage, { isStatusMessageTerminal, level }),
             1000,
             'Setting status message timed out after 1s',
         ).catch((e) => log.warning(e.message));
@@ -562,7 +564,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
         if (runId) {
             // just to be sure, this should be fast
             const run = await addTimeoutToPromise(
-                () => this.apifyClient.run(runId).get(),
+                async () => this.apifyClient.run(runId).get(),
                 1000,
                 'Getting the current run timed out after 1s',
             ).catch((e) => log.warning(e.message));
@@ -1050,7 +1052,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * the promise will be awaited. The user function is called with no arguments.
      * @param options
      */
-    static main<T>(userFunc: UserFunc<T>, options?: MainOptions): Promise<T> {
+    static async main<T>(userFunc: UserFunc<T>, options?: MainOptions): Promise<T> {
         return Actor.getDefaultInstance().main<T>(userFunc, options);
     }
 
@@ -1515,7 +1517,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
         return this._instance;
     }
 
-    private _openStorage<T extends IStorage>(storageClass: Constructor<T>, id?: string, options: OpenStorageOptions = {}) {
+    private async _openStorage<T extends IStorage>(storageClass: Constructor<T>, id?: string, options: OpenStorageOptions = {}) {
         const client = options.forceCloud ? this.apifyClient : undefined;
         return StorageManager.openStorage<T>(storageClass, id, client, this.config);
     }

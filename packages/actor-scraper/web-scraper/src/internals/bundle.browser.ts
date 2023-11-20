@@ -1,8 +1,7 @@
 /* eslint-disable max-classes-per-file */
 
-import type { CrawlerSetupOptions, constants, RequestMetadata } from '@apify/scraper-tools';
 import { Log } from '@apify/log';
-import type { ApifyEnv } from 'apify';
+import type { CrawlerSetupOptions, constants, RequestMetadata } from '@apify/scraper-tools';
 import type {
     KeyValueStore,
     RecordOptions,
@@ -12,6 +11,8 @@ import type {
     RequestQueueOperationOptions,
     Dictionary,
 } from '@crawlee/puppeteer';
+import type { ApifyEnv } from 'apify';
+
 import { Input } from './consts';
 import { GlobalStore } from './global_store';
 
@@ -139,11 +140,11 @@ export function createBundle(apifyNamespace: string) {
                 this.waitFor = this.waitFor.bind(this);
             }
 
-            getValue<T>(...args: Parameters<KeyValueStore['getValue']>) {
+            async getValue<T>(...args: Parameters<KeyValueStore['getValue']>) {
                 return this[internalState].keyValueStore!.getValue(...args) as Promise<T>;
             }
 
-            setValue<T>(...args: Parameters<KeyValueStore['setValue']>) {
+            async setValue<T>(...args: Parameters<KeyValueStore['setValue']>) {
                 return this[internalState].keyValueStore!.setValue(...args as [key: string, value: T | null, options?: RecordOptions]);
             }
 

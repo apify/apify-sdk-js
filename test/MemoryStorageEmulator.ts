@@ -1,11 +1,12 @@
-import { resolve } from 'node:path';
 import { rm } from 'node:fs/promises';
+import { resolve } from 'node:path';
+
 import log from '@apify/log';
 import { cryptoRandomObjectId } from '@apify/utilities';
+import { StorageManager } from '@crawlee/core';
 import { MemoryStorage } from '@crawlee/memory-storage';
 import { Configuration } from 'apify';
 import { ensureDir } from 'fs-extra';
-import { StorageManager } from '@crawlee/core';
 
 const LOCAL_EMULATION_DIR = resolve(__dirname, '..', 'tmp', 'memory-emulation-dir');
 
@@ -24,7 +25,7 @@ export class MemoryStorageEmulator {
     }
 
     async destroy() {
-        const promises = this.localStorageDirectories.map((dir) => {
+        const promises = this.localStorageDirectories.map(async (dir) => {
             return rm(dir, { force: true, recursive: true });
         });
 

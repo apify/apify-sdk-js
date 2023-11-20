@@ -2,7 +2,14 @@ import { readFile } from 'node:fs/promises';
 import { IncomingMessage } from 'node:http';
 import { dirname } from 'node:path';
 import { fileURLToPath, URL } from 'node:url';
-import { Actor, ApifyEnv } from 'apify';
+
+import {
+    constants as scraperToolsConstants,
+    CrawlerSetupOptions,
+    createContext,
+    RequestMetadata,
+    tools,
+} from '@apify/scraper-tools';
 import {
     AutoscaledPool,
     JSDOMCrawler,
@@ -18,13 +25,8 @@ import {
     Dictionary,
     Awaitable,
 } from '@crawlee/jsdom';
-import {
-    constants as scraperToolsConstants,
-    CrawlerSetupOptions,
-    createContext,
-    RequestMetadata,
-    tools,
-} from '@apify/scraper-tools';
+import { Actor, ApifyEnv } from 'apify';
+
 import { Input, ProxyRotation } from './consts.js';
 
 const { SESSION_MAX_USAGE_COUNTS, META_KEY } = scraperToolsConstants;
@@ -241,7 +243,7 @@ export class CrawlerSetup implements CrawlerSetupOptions {
         });
     }
 
-    private _failedRequestHandler({ request }: JSDOMCrawlingContext) {
+    private async _failedRequestHandler({ request }: JSDOMCrawlingContext) {
         const lastError = request.errorMessages[request.errorMessages.length - 1];
         const errorMessage = lastError ? lastError.split('\n')[0] : 'no error';
         log.error(`Request ${request.url} failed and will not be retried anymore. Marking as failed.\nLast Error Message: ${errorMessage}`);
