@@ -1,6 +1,6 @@
+import log from '@apify/log';
 import { browserTools } from '@apify/scraper-tools';
 import { launchPuppeteer, KeyValueStore } from 'crawlee';
-import log from '@apify/log';
 
 describe('browserTools', () => {
     let browser: Awaited<ReturnType<typeof launchPuppeteer>>;
@@ -75,17 +75,13 @@ describe('browserTools', () => {
     });
 
     describe('dumpConsole()', () => {
-        afterEach(() => {
-            jest.restoreAllMocks();
-        });
-
         it('should work', async () => {
             let page = await browser.newPage();
 
-            const debug = jest.spyOn(log, 'debug');
-            const info = jest.spyOn(log, 'info');
-            const warning = jest.spyOn(log, 'warning');
-            const error = jest.spyOn(log, 'error');
+            const debug = vitest.spyOn(log, 'debug');
+            const info = vitest.spyOn(log, 'info');
+            const warning = vitest.spyOn(log, 'warning');
+            const error = vitest.spyOn(log, 'error');
 
             browserTools.dumpConsole(page);
             await page.evaluate(async () => {

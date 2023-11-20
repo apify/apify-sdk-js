@@ -1,27 +1,27 @@
 import { ACTOR_ENV_VARS, APIFY_ENV_VARS } from '@apify/consts';
+import { EventType } from '@crawlee/core';
 import type { Dictionary } from '@crawlee/utils';
 import { sleep } from '@crawlee/utils';
-import { EventType } from '@crawlee/core';
 import { Actor, Configuration, PlatformEventManager } from 'apify';
-import { Server } from 'ws';
+import WebSocket from 'ws';
 
 describe('events', () => {
-    let wss: Server = null;
+    let wss: WebSocket.Server = null;
     const config = Configuration.getGlobalConfig();
     const events = new PlatformEventManager(config);
     config.useEventManager(events);
 
     beforeEach(() => {
-        wss = new Server({ port: 9099 });
-        jest.useFakeTimers();
+        wss = new WebSocket.Server({ port: 9099 });
+        vitest.useFakeTimers();
         process.env[ACTOR_ENV_VARS.EVENTS_WEBSOCKET_URL] = 'ws://localhost:9099/someRunId';
         process.env[APIFY_ENV_VARS.TOKEN] = 'dummy';
     });
-    afterEach((done) => {
-        jest.useRealTimers();
+    afterEach(async () => {
+        vitest.useRealTimers();
         delete process.env[ACTOR_ENV_VARS.EVENTS_WEBSOCKET_URL];
         delete process.env[APIFY_ENV_VARS.TOKEN];
-        wss.close(done);
+        await new Promise((resolve) => wss.close(resolve));
     });
 
     test('should work in main()', async () => {
@@ -50,8 +50,8 @@ describe('events', () => {
         await Actor.init();
         await isWsConnected;
         Actor.on('aborting', (data) => eventsReceived.push(data));
-        jest.advanceTimersByTime(150);
-        jest.useRealTimers();
+        vitest.advanceTimersByTime(150);
+        vitest.useRealTimers();
         await sleep(10);
         await Actor.exit({ exit: false });
 
@@ -98,8 +98,8 @@ describe('events', () => {
         await events.init();
         await isWsConnected;
         events.on('aborting', (data) => eventsReceived.push(data));
-        jest.advanceTimersByTime(150);
-        jest.useRealTimers();
+        vitest.advanceTimersByTime(150);
+        vitest.useRealTimers();
         await sleep(10);
 
         expect(eventsReceived).toEqual([[1, 2, 3], { foo: 'bar' }]);
@@ -114,9 +114,9 @@ describe('events', () => {
         const eventsReceived = [];
         events.on(EventType.PERSIST_STATE, (data) => eventsReceived.push(data));
         await events.init();
-        jest.advanceTimersByTime(60001);
-        jest.advanceTimersByTime(60001);
-        jest.advanceTimersByTime(60001);
+        vitest.advanceTimersByTime(60001);
+        vitest.advanceTimersByTime(60001);
+        vitest.advanceTimersByTime(60001);
         await events.close();
         expect(eventsReceived.length).toBe(5);
     });

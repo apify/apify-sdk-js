@@ -1,13 +1,15 @@
 import { createPublicKey } from 'node:crypto';
+
 import { ACTOR_ENV_VARS, ACT_JOB_STATUSES, APIFY_ENV_VARS, KEY_VALUE_STORE_KEYS, WEBHOOK_EVENT_TYPES } from '@apify/consts';
-import log from '@apify/log';
 import { encryptInputSecrets } from '@apify/input_secrets';
+import log from '@apify/log';
+import { Configuration, EventType, StorageManager } from '@crawlee/core';
+import { sleep } from '@crawlee/utils';
 import type { ApifyEnv } from 'apify';
 import { Actor, ProxyConfiguration, KeyValueStore, Dataset } from 'apify';
 import type { WebhookUpdateData } from 'apify-client';
 import { ActorClient, ApifyClient, RunClient, TaskClient } from 'apify-client';
-import { Configuration, EventType, StorageManager } from '@crawlee/core';
-import { sleep } from '@crawlee/utils';
+
 import { MemoryStorageEmulator } from '../MemoryStorageEmulator';
 
 const getEmptyEnv = () => {
@@ -62,8 +64,6 @@ describe('Actor', () => {
         await localStorageEmulator.init();
     });
 
-    afterEach(() => jest.restoreAllMocks());
-
     afterAll(async () => {
         await localStorageEmulator.destroy();
     });
@@ -105,9 +105,9 @@ describe('Actor', () => {
         });
 
         describe('main()', () => {
-            test('throws on invalid args', () => {
+            test('throws on invalid args', async () => {
                 // @ts-expect-error invalid options
-                expect(() => new Actor().main()).toThrow();
+                await expect(async () => new Actor().main()).rejects.toThrow();
             });
 
             test('works with simple user function', async () => {
@@ -124,8 +124,8 @@ describe('Actor', () => {
             });
 
             test('on exception in simple user function the process exits with code 91', async () => {
-                const exitSpy = jest.spyOn(process, 'exit');
-                exitSpy.mockImplementation();
+                const exitSpy = vitest.spyOn(process, 'exit');
+                exitSpy.mockImplementation((() => {}) as any);
                 await Actor.main(async () => {
                     throw new Error('Test exception I');
                 });
@@ -133,8 +133,8 @@ describe('Actor', () => {
             });
 
             test('on exception in promised user function the process exits with code 91', async () => {
-                const exitSpy = jest.spyOn(process, 'exit');
-                exitSpy.mockImplementation();
+                const exitSpy = vitest.spyOn(process, 'exit');
+                exitSpy.mockImplementation((() => {}) as any);
                 await Actor.main(async () => {
                     await sleep(20);
                     throw new Error('Test exception I');
@@ -143,7 +143,7 @@ describe('Actor', () => {
             });
         });
 
-        // TODO just test we call the client method via jest spy and use the token if available
+        // TODO just test we call the client method via vitest spy and use the token if available
         describe.skip('call()', () => {
             const token = 'some-token';
             const actId = 'some-act-id';
@@ -168,13 +168,13 @@ describe('Actor', () => {
                 const timeout = 60;
                 const webhooks = [{ a: 'a' }, { b: 'b' }] as unknown as WebhookUpdateData[];
 
-                const getRecordMock = jest.fn();
+                const getRecordMock = vitest.fn();
                 getRecordMock.mockResolvedValueOnce(output);
-                const callMock = jest.fn();
+                const callMock = vitest.fn();
                 callMock.mockResolvedValueOnce(finishedRun);
-                const actorSpy = jest.spyOn(ApifyClient.prototype, 'actor');
+                const actorSpy = vitest.spyOn(ApifyClient.prototype, 'actor');
                 actorSpy.mockReturnValueOnce({ call: callMock } as any);
-                const keyValueStoreSpy = jest.spyOn(ApifyClient.prototype, 'keyValueStore');
+                const keyValueStoreSpy = vitest.spyOn(ApifyClient.prototype, 'keyValueStore');
                 keyValueStoreSpy.mockReturnValueOnce({ getRecord: getRecordMock } as any);
 
                 const callOutput = await new Actor().call(actId, input, {
@@ -191,10 +191,10 @@ describe('Actor', () => {
             });
 
             test('works as expected with fetchOutput = false', async () => {
-                const callMock = jest.fn();
+                const callMock = vitest.fn();
                 callMock.mockResolvedValueOnce(finishedRun);
-                const actorSpy = jest.spyOn(ApifyClient.prototype, 'actor');
-                const keyValueStoreSpy = jest.spyOn(ApifyClient.prototype, 'keyValueStore');
+                const actorSpy = vitest.spyOn(ApifyClient.prototype, 'actor');
+                const keyValueStoreSpy = vitest.spyOn(ApifyClient.prototype, 'keyValueStore');
                 actorSpy.mockReturnValueOnce({ call: callMock } as any);
 
                 const callOutput = await new Actor().call(actId);
@@ -208,14 +208,14 @@ describe('Actor', () => {
                 const timeout = 60;
                 const webhooks = [{ a: 'a' }, { b: 'b' }] as any;
 
-                const newClientSpy = jest.spyOn(Actor.prototype, 'newClient');
-                const callMock = jest.fn();
+                const newClientSpy = vitest.spyOn(Actor.prototype, 'newClient');
+                const callMock = vitest.fn();
                 callMock.mockResolvedValueOnce(finishedRun);
-                const getRecordMock = jest.fn();
+                const getRecordMock = vitest.fn();
                 getRecordMock.mockResolvedValueOnce(output);
-                const actorSpy = jest.spyOn(ApifyClient.prototype, 'actor');
+                const actorSpy = vitest.spyOn(ApifyClient.prototype, 'actor');
                 actorSpy.mockReturnValueOnce({ call: callMock } as any);
-                const keyValueStoreSpy = jest.spyOn(ApifyClient.prototype, 'keyValueStore');
+                const keyValueStoreSpy = vitest.spyOn(ApifyClient.prototype, 'keyValueStore');
                 keyValueStoreSpy.mockReturnValueOnce({ getRecord: getRecordMock } as any);
 
                 const callOutput = await new Actor({ storageClientOptions: { token } }).call(actId, input, {
@@ -244,11 +244,11 @@ describe('Actor', () => {
             test('works as expected with unfinished run', async () => {
                 const waitSecs = 1;
 
-                const callMock = jest.fn();
+                const callMock = vitest.fn();
                 callMock.mockResolvedValueOnce(runningRun);
-                const actorSpy = jest.spyOn(ApifyClient.prototype, 'actor');
+                const actorSpy = vitest.spyOn(ApifyClient.prototype, 'actor');
                 actorSpy.mockReturnValueOnce({ call: callMock } as any);
-                const keyValueStoreSpy = jest.spyOn(ApifyClient.prototype, 'keyValueStore');
+                const keyValueStoreSpy = vitest.spyOn(ApifyClient.prototype, 'keyValueStore');
 
                 const callOutput = await new Actor().call(actId, undefined, { waitSecs });
 
@@ -260,11 +260,11 @@ describe('Actor', () => {
             test('returns immediately with zero ', async () => {
                 const waitSecs = 0;
 
-                const callMock = jest.fn();
+                const callMock = vitest.fn();
                 callMock.mockResolvedValueOnce(readyRun);
-                const actorSpy = jest.spyOn(ApifyClient.prototype, 'actor');
+                const actorSpy = vitest.spyOn(ApifyClient.prototype, 'actor');
                 actorSpy.mockReturnValueOnce({ call: callMock } as any);
-                const keyValueStoreSpy = jest.spyOn(ApifyClient.prototype, 'keyValueStore');
+                const keyValueStoreSpy = vitest.spyOn(ApifyClient.prototype, 'keyValueStore');
 
                 const callOutput = await new Actor().call(actId, undefined, { waitSecs });
 
@@ -274,16 +274,16 @@ describe('Actor', () => {
             });
 
             test("throws if run doesn't succeed", async () => {
-                const callMock = jest.fn();
+                const callMock = vitest.fn();
                 callMock.mockResolvedValueOnce(failedRun);
-                const actorSpy = jest.spyOn(ApifyClient.prototype, 'actor');
+                const actorSpy = vitest.spyOn(ApifyClient.prototype, 'actor');
                 actorSpy.mockReturnValueOnce({ call: callMock } as any);
 
                 expect(actorSpy).toBeCalledWith('some-act-id');
             });
         });
 
-        // TODO just test we call the client method via jest spy and use the token if available
+        // TODO just test we call the client method via vitest spy and use the token if available
         describe.skip('callTask()', () => {
             const taskId = 'some-task-id';
             const actId = 'xxx';
@@ -306,13 +306,13 @@ describe('Actor', () => {
             const webhooks = [{ a: 'a' }, { b: 'b' }] as any;
 
             test('works as expected', async () => {
-                const getRecordMock = jest.fn();
+                const getRecordMock = vitest.fn();
                 getRecordMock.mockResolvedValueOnce(output);
-                const callMock = jest.fn();
+                const callMock = vitest.fn();
                 callMock.mockResolvedValueOnce(finishedRun);
-                const taskSpy = jest.spyOn(ApifyClient.prototype, 'task');
+                const taskSpy = vitest.spyOn(ApifyClient.prototype, 'task');
                 taskSpy.mockReturnValueOnce({ call: callMock } as any);
-                const keyValueStoreSpy = jest.spyOn(ApifyClient.prototype, 'keyValueStore');
+                const keyValueStoreSpy = vitest.spyOn(ApifyClient.prototype, 'keyValueStore');
                 keyValueStoreSpy.mockReturnValueOnce({ getRecord: getRecordMock } as any);
 
                 const callOutput = await new Actor().callTask(taskId, input, { memory, timeout, build, webhooks });
@@ -322,14 +322,14 @@ describe('Actor', () => {
             });
 
             test('works with token', async () => {
-                const newClientSpy = jest.spyOn(Actor.prototype, 'newClient');
-                const callMock = jest.fn();
+                const newClientSpy = vitest.spyOn(Actor.prototype, 'newClient');
+                const callMock = vitest.fn();
                 callMock.mockResolvedValueOnce(finishedRun);
-                const getRecordMock = jest.fn();
+                const getRecordMock = vitest.fn();
                 getRecordMock.mockResolvedValueOnce(output);
-                const taskSpy = jest.spyOn(ApifyClient.prototype, 'task');
+                const taskSpy = vitest.spyOn(ApifyClient.prototype, 'task');
                 taskSpy.mockReturnValueOnce({ call: callMock } as any);
-                const keyValueStoreSpy = jest.spyOn(ApifyClient.prototype, 'keyValueStore');
+                const keyValueStoreSpy = vitest.spyOn(ApifyClient.prototype, 'keyValueStore');
                 keyValueStoreSpy.mockReturnValueOnce({ getRecord: getRecordMock } as any);
 
                 const callOutput = await new Actor({ storageClientOptions: { token } }).callTask(taskId, input, {
@@ -354,10 +354,10 @@ describe('Actor', () => {
             });
 
             test('works as expected with fetchOutput = false', async () => {
-                const callMock = jest.fn();
+                const callMock = vitest.fn();
                 callMock.mockResolvedValueOnce(finishedRun);
-                const taskSpy = jest.spyOn(ApifyClient.prototype, 'task');
-                const keyValueStoreSpy = jest.spyOn(ApifyClient.prototype, 'keyValueStore');
+                const taskSpy = vitest.spyOn(ApifyClient.prototype, 'task');
+                const keyValueStoreSpy = vitest.spyOn(ApifyClient.prototype, 'keyValueStore');
                 taskSpy.mockReturnValueOnce({ call: callMock } as any);
 
                 const callOutput = await new Actor().callTask(taskId, undefined, {});
@@ -370,11 +370,11 @@ describe('Actor', () => {
             test('works as expected with unfinished run', async () => {
                 const waitSecs = 1;
 
-                const callMock = jest.fn();
+                const callMock = vitest.fn();
                 callMock.mockResolvedValueOnce(runningRun);
-                const taskSpy = jest.spyOn(ApifyClient.prototype, 'task');
+                const taskSpy = vitest.spyOn(ApifyClient.prototype, 'task');
                 taskSpy.mockReturnValueOnce({ call: callMock } as any);
-                const keyValueStoreSpy = jest.spyOn(ApifyClient.prototype, 'keyValueStore');
+                const keyValueStoreSpy = vitest.spyOn(ApifyClient.prototype, 'keyValueStore');
 
                 const callOutput = await new Actor().callTask(taskId, undefined, { waitSecs });
 
@@ -386,11 +386,11 @@ describe('Actor', () => {
             test('returns immediately with zero ', async () => {
                 const waitSecs = 0;
 
-                const callMock = jest.fn();
+                const callMock = vitest.fn();
                 callMock.mockResolvedValueOnce(readyRun);
-                const taskSpy = jest.spyOn(ApifyClient.prototype, 'task');
+                const taskSpy = vitest.spyOn(ApifyClient.prototype, 'task');
                 taskSpy.mockReturnValueOnce({ call: callMock } as any);
-                const keyValueStoreSpy = jest.spyOn(ApifyClient.prototype, 'keyValueStore');
+                const keyValueStoreSpy = vitest.spyOn(ApifyClient.prototype, 'keyValueStore');
 
                 const callOutput = await new Actor().callTask(taskId, undefined, { waitSecs });
 
@@ -400,16 +400,16 @@ describe('Actor', () => {
             });
 
             test("throws if run doesn't succeed", async () => {
-                const callMock = jest.fn();
+                const callMock = vitest.fn();
                 callMock.mockResolvedValueOnce(failedRun);
-                const taskSpy = jest.spyOn(ApifyClient.prototype, 'task');
+                const taskSpy = vitest.spyOn(ApifyClient.prototype, 'task');
                 taskSpy.mockReturnValueOnce({ call: callMock } as any);
 
                 expect(taskSpy).toBeCalledWith('some-task-id');
             });
         });
 
-        // TODO just test we call the client method via jest spy and use the token if available
+        // TODO just test we call the client method via vitest spy and use the token if available
         describe.skip('metamorph()', () => {
             const runId = 'some-run-id';
             const actorId = 'some-actor-id';
@@ -430,9 +430,9 @@ describe('Actor', () => {
             });
 
             test('works as expected', async () => {
-                const metamorphMock = jest.fn();
+                const metamorphMock = vitest.fn();
                 metamorphMock.mockResolvedValueOnce(run);
-                const runSpy = jest.spyOn(ApifyClient.prototype, 'run');
+                const runSpy = vitest.spyOn(ApifyClient.prototype, 'run');
                 runSpy.mockReturnValueOnce({ metamorph: metamorphMock } as any);
 
                 await new Actor().metamorph(targetActorId, input, { contentType, build, customAfterSleepMillis: 1 });
@@ -444,9 +444,9 @@ describe('Actor', () => {
             });
 
             test('works without opts and input', async () => {
-                const metamorphMock = jest.fn();
+                const metamorphMock = vitest.fn();
                 metamorphMock.mockResolvedValueOnce(run);
-                const runSpy = jest.spyOn(ApifyClient.prototype, 'run');
+                const runSpy = vitest.spyOn(ApifyClient.prototype, 'run');
                 runSpy.mockReturnValueOnce({ metamorph: metamorphMock } as any);
 
                 await new Actor().metamorph(targetActorId, undefined, { customAfterSleepMillis: 1 });
@@ -476,9 +476,9 @@ describe('Actor', () => {
                 process.env[ACTOR_ENV_VARS.RUN_ID] = runId;
                 process.env[APIFY_ENV_VARS.IS_AT_HOME] = '1';
 
-                const createMock = jest.fn();
+                const createMock = vitest.fn();
                 createMock.mockResolvedValueOnce(webhook);
-                const webhooksSpy = jest.spyOn(ApifyClient.prototype, 'webhooks');
+                const webhooksSpy = vitest.spyOn(ApifyClient.prototype, 'webhooks');
                 webhooksSpy.mockReturnValueOnce({ create: createMock } as any);
 
                 await new Actor().addWebhook({
@@ -495,9 +495,9 @@ describe('Actor', () => {
             });
 
             test('on local logs warning and does nothing', async () => {
-                const warningMock = jest.spyOn(log, 'warning');
-                const metamorphMock = jest.fn();
-                const runSpy = jest.spyOn(RunClient.prototype, 'metamorph');
+                const warningMock = vitest.spyOn(log, 'warning');
+                const metamorphMock = vitest.fn();
+                const runSpy = vitest.spyOn(RunClient.prototype, 'metamorph');
                 runSpy.mockImplementationOnce(metamorphMock);
 
                 const sdk = new Actor();
@@ -531,7 +531,7 @@ describe('Actor', () => {
                     apifyProxyCountry: 'US',
                 };
 
-                const initializeSpy = jest.spyOn(ProxyConfiguration.prototype, 'initialize');
+                const initializeSpy = vitest.spyOn(ProxyConfiguration.prototype, 'initialize');
                 initializeSpy.mockImplementationOnce(async () => {});
                 await expect(Actor.createProxyConfiguration(proxyConfiguration)).resolves.toBeInstanceOf(ProxyConfiguration);
                 expect(initializeSpy).toBeCalledTimes(1);
@@ -539,7 +539,7 @@ describe('Actor', () => {
 
             test('createProxyConfiguration should create ProxyConfiguration', async () => {
                 const sdk = new Actor();
-                const initializeSpy = jest.spyOn(ProxyConfiguration.prototype, 'initialize');
+                const initializeSpy = vitest.spyOn(ProxyConfiguration.prototype, 'initialize');
                 initializeSpy.mockImplementationOnce(async () => {});
                 await sdk.createProxyConfiguration();
                 expect(initializeSpy).toBeCalledTimes(1);
@@ -550,10 +550,10 @@ describe('Actor', () => {
             let sdk: Actor<{ foo: string }>;
 
             beforeEach(async () => { sdk = new Actor({ storageClientOptions: { storageDir: await localStorageEmulator.init() } }); });
-            afterAll(() => localStorageEmulator.destroy());
+            afterAll(async () => localStorageEmulator.destroy());
 
             test('getInput()', async () => {
-                const getValueSpy = jest.spyOn(KeyValueStore.prototype, 'getValue');
+                const getValueSpy = vitest.spyOn(KeyValueStore.prototype, 'getValue');
                 getValueSpy.mockImplementation(async () => 123);
 
                 // Uses default value.
@@ -573,7 +573,7 @@ describe('Actor', () => {
 
             test('setValue()', async () => {
                 const record = { foo: 'bar' };
-                const setValueSpy = jest.spyOn(KeyValueStore.prototype, 'setValue');
+                const setValueSpy = vitest.spyOn(KeyValueStore.prototype, 'setValue');
                 setValueSpy.mockImplementationOnce(async () => {});
 
                 await sdk.setValue('key-1', record);
@@ -582,7 +582,7 @@ describe('Actor', () => {
             });
 
             test('getValue()', async () => {
-                const getValueSpy = jest.spyOn(KeyValueStore.prototype, 'getValue');
+                const getValueSpy = vitest.spyOn(KeyValueStore.prototype, 'getValue');
                 getValueSpy.mockImplementationOnce(async () => 123);
 
                 const val = await sdk.getValue('key-1');
@@ -592,7 +592,7 @@ describe('Actor', () => {
             });
 
             test('pushData()', async () => {
-                const pushDataSpy = jest.spyOn(Dataset.prototype, 'pushData');
+                const pushDataSpy = vitest.spyOn(Dataset.prototype, 'pushData');
                 pushDataSpy.mockImplementationOnce(async () => {});
 
                 await sdk.pushData({ foo: 'bar' });
@@ -603,7 +603,7 @@ describe('Actor', () => {
             test('openRequestQueue should open storage', async () => {
                 const queueId = 'abc';
                 const options = { forceCloud: true };
-                const openStorageSpy = jest.spyOn(StorageManager.prototype, 'openStorage');
+                const openStorageSpy = vitest.spyOn(StorageManager.prototype, 'openStorage');
                 openStorageSpy.mockImplementationOnce(async (i) => i);
                 await sdk.openRequestQueue(queueId, options);
                 expect(openStorageSpy).toBeCalledWith(queueId, sdk.apifyClient);
@@ -613,8 +613,8 @@ describe('Actor', () => {
             test('openDataset should open storage', async () => {
                 const datasetName = 'abc';
                 const options = { forceCloud: true };
-                const mockOpenStorage = jest.spyOn(StorageManager.prototype, 'openStorage');
-                mockOpenStorage.mockResolvedValueOnce(jest.fn());
+                const mockOpenStorage = vitest.spyOn(StorageManager.prototype, 'openStorage');
+                mockOpenStorage.mockResolvedValueOnce(vitest.fn());
                 const ds = await sdk.openDataset(datasetName, options);
                 expect(mockOpenStorage).toBeCalledTimes(1);
                 expect(mockOpenStorage).toBeCalledWith(datasetName, sdk.apifyClient);
@@ -709,8 +709,8 @@ describe('Actor', () => {
 
             const options = { contentType, build, memory, timeout, webhooks };
 
-            const actorSpy = jest.spyOn(ApifyClient.prototype, 'actor');
-            const callSpy = jest.spyOn(ActorClient.prototype, 'call').mockReturnValue(runConfigs.finishedRun);
+            const actorSpy = vitest.spyOn(ApifyClient.prototype, 'actor');
+            const callSpy = vitest.spyOn(ActorClient.prototype, 'call').mockReturnValue(runConfigs.finishedRun);
             await Actor.call(actId, input, options);
 
             expect(actorSpy).toBeCalledWith(actId);
@@ -722,9 +722,9 @@ describe('Actor', () => {
             const timeout = 60;
             const webhooks = [{ a: 'a' }, { b: 'b' }] as unknown as WebhookUpdateData[];
 
-            const newClientSpy = jest.spyOn(Actor.prototype, 'newClient');
-            const actorSpy = jest.spyOn(ApifyClient.prototype, 'actor');
-            const callSpy = jest.spyOn(ActorClient.prototype, 'call').mockReturnValue(runConfigs.finishedRun);
+            const newClientSpy = vitest.spyOn(Actor.prototype, 'newClient');
+            const actorSpy = vitest.spyOn(ApifyClient.prototype, 'actor');
+            const callSpy = vitest.spyOn(ActorClient.prototype, 'call').mockReturnValue(runConfigs.finishedRun);
             await Actor.call(actId, input, { contentType, build, token, memory, timeout, webhooks });
 
             expect(newClientSpy).toBeCalledWith({ token });
@@ -749,8 +749,8 @@ describe('Actor', () => {
         const { finishedRun } = runConfigs;
 
         test('works as expected', async () => {
-            const taskSpy = jest.spyOn(ApifyClient.prototype, 'task');
-            const callSpy = jest.spyOn(TaskClient.prototype, 'call').mockReturnValue(finishedRun);
+            const taskSpy = vitest.spyOn(ApifyClient.prototype, 'task');
+            const callSpy = vitest.spyOn(TaskClient.prototype, 'call').mockReturnValue(finishedRun);
 
             const options = { memory, timeout, build, webhooks };
             const callOutput = await Actor.callTask(taskId, input, options);
@@ -767,9 +767,9 @@ describe('Actor', () => {
         test('works with token', async () => {
             const options = { memory, timeout, build, webhooks };
 
-            const newClientSpy = jest.spyOn(Actor.prototype, 'newClient');
-            const taskSpy = jest.spyOn(ApifyClient.prototype, 'task');
-            const callSpy = jest.spyOn(TaskClient.prototype, 'call').mockReturnValue(finishedRun);
+            const newClientSpy = vitest.spyOn(Actor.prototype, 'newClient');
+            const taskSpy = vitest.spyOn(ApifyClient.prototype, 'task');
+            const callSpy = vitest.spyOn(TaskClient.prototype, 'call').mockReturnValue(finishedRun);
             const callOutput = await Actor.callTask(taskId, input, { token, ...options });
 
             expect(newClientSpy).toBeCalledWith({ token });
@@ -796,14 +796,14 @@ describe('Actor', () => {
             delete process.env[ACTOR_ENV_VARS.ID];
             delete process.env[ACTOR_ENV_VARS.RUN_ID];
             delete process.env[APIFY_ENV_VARS.IS_AT_HOME];
-            jest.restoreAllMocks();
+            vitest.restoreAllMocks();
         });
 
         test('works as expected', async () => {
-            const metamorphMock = jest.fn();
+            const metamorphMock = vitest.fn();
             metamorphMock.mockResolvedValueOnce(run);
 
-            const runSpy = jest.spyOn(ApifyClient.prototype, 'run');
+            const runSpy = vitest.spyOn(ApifyClient.prototype, 'run');
             runSpy.mockReturnValueOnce({ metamorph: metamorphMock } as any);
 
             await Actor.metamorph(targetActorId, input, { contentType, build, customAfterSleepMillis: 1 });
@@ -817,9 +817,9 @@ describe('Actor', () => {
         });
 
         test('works without opts and input', async () => {
-            const metamorphMock = jest.fn();
+            const metamorphMock = vitest.fn();
             metamorphMock.mockResolvedValueOnce(run);
-            const runSpy = jest.spyOn(ApifyClient.prototype, 'run');
+            const runSpy = vitest.spyOn(ApifyClient.prototype, 'run');
             runSpy.mockReturnValueOnce({ metamorph: metamorphMock } as any);
 
             await Actor.metamorph(targetActorId, undefined, { customAfterSleepMillis: 1 });
@@ -842,13 +842,13 @@ describe('Actor', () => {
             delete process.env[APIFY_ENV_VARS.IS_AT_HOME];
             delete process.env[ACTOR_ENV_VARS.ID];
             delete process.env[ACTOR_ENV_VARS.RUN_ID];
-            jest.restoreAllMocks();
+            vitest.restoreAllMocks();
         });
 
         test('reboot waits for persistState/migrating listeners before rebooting', async () => {
-            const rebootMock = jest.fn();
+            const rebootMock = vitest.fn();
             rebootMock.mockResolvedValueOnce(run);
-            const rebootSpy = jest.spyOn(ApifyClient.prototype, 'run');
+            const rebootSpy = vitest.spyOn(ApifyClient.prototype, 'run');
             rebootSpy.mockReturnValueOnce({ reboot: rebootMock } as any);
 
             const persistenceStore = [];
@@ -858,8 +858,8 @@ describe('Actor', () => {
                 persistenceStore.push('PERSISTED ITEM');
             };
 
-            const migratingSpy = jest.fn(persistResource(50));
-            const persistStateSpy = jest.fn(persistResource(50));
+            const migratingSpy = vitest.fn(persistResource(50));
+            const persistStateSpy = vitest.fn(persistResource(50));
             const events = Configuration.getEventManager();
 
             events.on(EventType.PERSIST_STATE, persistStateSpy);
@@ -903,7 +903,7 @@ describe('Actor', () => {
             process.env[ACTOR_ENV_VARS.RUN_ID] = runId;
             process.env[APIFY_ENV_VARS.IS_AT_HOME] = '1';
 
-            const clientMock = jest.spyOn(Actor.apifyClient, 'webhooks')
+            const clientMock = vitest.spyOn(Actor.apifyClient, 'webhooks')
                 .mockReturnValueOnce({ create: async () => webhook } as any);
 
             await Actor.addWebhook({
@@ -920,10 +920,10 @@ describe('Actor', () => {
         });
 
         test('on local logs warning and does nothing', async () => {
-            const clientMock = jest.spyOn(Actor.apifyClient, 'webhooks')
-                .mockImplementation();
+            const clientMock = vitest.spyOn(Actor.apifyClient, 'webhooks')
+                .mockImplementation((() => {}) as any);
 
-            const warningStub = jest.spyOn(log, 'warning').mockImplementation();
+            const warningStub = vitest.spyOn(log, 'warning').mockImplementation(() => {});
 
             await Actor.addWebhook({ eventTypes: expectedEventTypes, requestUrl: expectedRequestUrl });
 
@@ -949,7 +949,7 @@ describe('Actor', () => {
             await expect(TestingActor.getInput()).resolves.toBeNull();
             await expect(TestingActor.getInputOrThrow()).rejects.toThrowError('Input does not exist');
 
-            const mockGetValue = jest.spyOn(TestingActor, 'getValue');
+            const mockGetValue = vitest.spyOn(TestingActor, 'getValue');
             mockGetValue.mockImplementation(async (key) => expect(key).toEqual(KEY_VALUE_STORE_KEYS.INPUT));
 
             await TestingActor.getInput();
@@ -963,8 +963,8 @@ describe('Actor', () => {
             mockGetValue.mockRestore();
         });
 
-        test('should work with input secrets', async () => {
-            const mockGetValue = jest.spyOn(TestingActor, 'getValue');
+        test.only('should work with input secrets', async () => {
+            const mockGetValue = vitest.spyOn(TestingActor, 'getValue');
             const originalInput = { secret: 'foo', nonSecret: 'bar' };
             const likeInputSchema = { properties: { secret: { type: 'string', isSecret: true } }, nonSecret: { type: 'string' } };
             const encryptedInput = encryptInputSecrets({ input: originalInput, inputSchema: likeInputSchema, publicKey: testingPublicKey });
@@ -990,7 +990,7 @@ describe('Actor', () => {
         test('should work', async () => {
             const record = { foo: 'bar' };
             const defaultStore = await KeyValueStore.open();
-            const setValueSpy = jest.spyOn(defaultStore, 'setValue');
+            const setValueSpy = vitest.spyOn(defaultStore, 'setValue');
 
             setValueSpy.mockImplementation(async () => {});
 
@@ -1003,7 +1003,7 @@ describe('Actor', () => {
     describe('Actor.getValue', () => {
         test('should work', async () => {
             const defaultStore = await KeyValueStore.open();
-            const getValueSpy = jest.spyOn(defaultStore, 'getValue');
+            const getValueSpy = vitest.spyOn(defaultStore, 'getValue');
 
             getValueSpy.mockImplementationOnce(async () => {});
 
@@ -1016,7 +1016,7 @@ describe('Actor', () => {
     describe('Actor.pushData', () => {
         test('should work', async () => {
             const defaultStore = await Dataset.open();
-            const pushDataSpy = jest.spyOn(defaultStore, 'pushData');
+            const pushDataSpy = vitest.spyOn(defaultStore, 'pushData');
 
             pushDataSpy.mockImplementationOnce(async () => {});
 

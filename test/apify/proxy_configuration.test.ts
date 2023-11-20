@@ -1,7 +1,6 @@
 import { APIFY_ENV_VARS, LOCAL_APIFY_ENV_VARS } from '@apify/consts';
-import { gotScraping } from 'got-scraping';
-import { UserClient } from 'apify-client';
 import { Actor, ProxyConfiguration } from 'apify';
+import { UserClient } from 'apify-client';
 
 const groups = ['GROUP1', 'GROUP2'];
 const hostname = LOCAL_APIFY_ENV_VARS[APIFY_ENV_VARS.PROXY_HOSTNAME];
@@ -17,19 +16,18 @@ const basicOpts = {
 const basicOptsProxyUrl = 'http://groups-GROUP1+GROUP2,session-538909250932,country-CZ:test12345@proxy.apify.com:8000';
 const proxyUrlNoSession = 'http://groups-GROUP1+GROUP2,country-CZ:test12345@proxy.apify.com:8000';
 
-jest.mock('got-scraping', () => {
-    const original: typeof import('got-scraping') = jest.requireActual('got-scraping');
+vitest.mock('@crawlee/utils', async (importActual) => {
+    const mod = await importActual<typeof import('@crawlee/utils')>();
+
     return {
-        ...original,
-        gotScraping: jest.fn(),
+        ...mod,
+        gotScraping: vitest.fn(),
     };
 });
 
-const gotScrapingSpy = gotScraping as jest.MockedFunction<typeof gotScraping>;
+const { gotScraping } = await import('@crawlee/utils');
 
-afterAll(() => {
-    jest.unmock('got-scraping');
-});
+const gotScrapingSpy = vitest.mocked(gotScraping);
 
 afterEach(() => {
     delete process.env[APIFY_ENV_VARS.TOKEN];
@@ -134,7 +132,7 @@ describe('ProxyConfiguration', () => {
     test('newUrl() should throw on invalid session argument', async () => {
         const proxyConfiguration = new ProxyConfiguration();
         await Promise.all([
-            expect(() => proxyConfiguration.newUrl('a-b')).rejects.toThrow(),
+            expect(async () => proxyConfiguration.newUrl('a-b')).rejects.toThrow(),
             expect(proxyConfiguration.newUrl('a$b')).rejects.toThrow(),
             // @ts-expect-error invalid input
             expect(proxyConfiguration.newUrl({})).rejects.toThrow(),
@@ -365,7 +363,7 @@ describe('Actor.createProxyConfiguration()', () => {
         const opts = { ...basicOpts };
         delete opts.password;
 
-        const getUserSpy = jest.spyOn(UserClient.prototype, 'get');
+        const getUserSpy = vitest.spyOn(UserClient.prototype, 'get');
         const status = { connected: true };
 
         gotScrapingSpy.mockResolvedValueOnce({ body: status } as any);
@@ -391,7 +389,7 @@ describe('Actor.createProxyConfiguration()', () => {
     test('should show warning log', async () => {
         process.env.APIFY_TOKEN = '123456789';
 
-        const getUserSpy = jest.spyOn(UserClient.prototype, 'get');
+        const getUserSpy = vitest.spyOn(UserClient.prototype, 'get');
         const status = { connected: true };
         const fakeUserData = { proxy: { password: 'some-other-users-password' } };
         getUserSpy.mockResolvedValueOnce(fakeUserData as any);
@@ -399,7 +397,7 @@ describe('Actor.createProxyConfiguration()', () => {
 
         const proxyConfiguration = new ProxyConfiguration(basicOpts);
         // @ts-expect-error
-        const logMock = jest.spyOn(proxyConfiguration.log, 'warning');
+        const logMock = vitest.spyOn(proxyConfiguration.log, 'warning');
         await proxyConfiguration.initialize();
         expect(logMock).toBeCalledTimes(1);
 
@@ -430,7 +428,7 @@ describe('Actor.createProxyConfiguration()', () => {
         process.env.APIFY_TOKEN = '123456789';
         const connectionError = 'Invalid username: proxy group "GROUP2"; not found or not accessible.';
         const status = { connected: false, connectionError };
-        const getUserSpy = jest.spyOn(UserClient.prototype, 'get');
+        const getUserSpy = vitest.spyOn(UserClient.prototype, 'get');
         getUserSpy.mockResolvedValue(userData as any);
         gotScrapingSpy.mockResolvedValueOnce({ body: status } as any);
 
@@ -447,7 +445,7 @@ describe('Actor.createProxyConfiguration()', () => {
 
         const proxyConfiguration = new ProxyConfiguration();
         // @ts-expect-error private property
-        const logMock = jest.spyOn(proxyConfiguration.log, 'warning');
+        const logMock = vitest.spyOn(proxyConfiguration.log, 'warning');
 
         await proxyConfiguration.initialize();
         expect(logMock).toBeCalledTimes(1);

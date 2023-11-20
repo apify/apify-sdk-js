@@ -10,6 +10,7 @@
 		"test/**/*.ts",
 		"packages/**/test/**/*.js",
 		"packages/**/test/**/*.ts",
-    	"docs/examples/**/*"
+    	"docs/examples/**/*",
+		"vitest.config.ts"
 	]
 }
