@@ -963,7 +963,7 @@ describe('Actor', () => {
             mockGetValue.mockRestore();
         });
 
-        test.only('should work with input secrets', async () => {
+        test('should work with input secrets', async () => {
             const mockGetValue = vitest.spyOn(TestingActor, 'getValue');
             const originalInput = { secret: 'foo', nonSecret: 'bar' };
             const likeInputSchema = { properties: { secret: { type: 'string', isSecret: true } }, nonSecret: { type: 'string' } };
