@@ -1,5 +1,3 @@
-[![Webinar on Building and Monetization of Actors](https://raw.githubusercontent.com/apify-projects/actor-readme-images/master/Build%20and%20monetize_Webinar%20Store%20banner.jpg)](https://apify.com/resources/build-monetize-actors)
-
 # Web Scraper
 
 Web Scraper is a generic easy-to-use actor for crawling arbitrary web pages

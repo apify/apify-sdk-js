@@ -1,5 +1,3 @@
-[![Webinar on Building and Monetization of Actors](https://raw.githubusercontent.com/apify-projects/actor-readme-images/master/Build%20and%20monetize_Webinar%20Store%20banner.jpg)](https://apify.com/resources/build-monetize-actors)
-
 # Puppeteer Scraper
 
 Puppeteer Scraper is one of the most powerful scraper tools in our arsenal (aside from developing your own actors).
