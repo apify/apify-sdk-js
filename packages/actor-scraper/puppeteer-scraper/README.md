@@ -1,7 +1,3 @@
-[![Webinar on Building and Monetization of Actors](https://raw.githubusercontent.com/apify-projects/actor-readme-images/master/Build%20and%20monetize_Webinar%20Store%20banner.jpg)](https://apify.com/resources/build-monetize-actors)
-
-# Puppeteer Scraper
-
 Puppeteer Scraper is one of the most powerful scraper tools in our arsenal (aside from developing your own actors).
 
 It uses the Puppeteer library to programmatically control a headless Chrome browser, and it can make it do almost anything. If using [Web Scraper](https://apify.com/apify/web-scraper) doesn't cut it for your use case, then Puppeteer Scraper is what you need.
