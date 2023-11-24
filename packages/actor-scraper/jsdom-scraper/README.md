@@ -1,5 +1,3 @@
-## What is JSDOM Scraper?
-
 JSDOM Scraper is a ready-made solution for crawling websites using plain HTTP requests. It retrieves the HTML pages, parses them using the [JSDOM](https://github.com/jsdom/jsdom) Node.js library and lets you extract any data from them using the Window API you know from browsers. Fast.
 
 JSDOM is a server-side emulation of the standard browser Window API. It does not require a browser; instead, it constructs a DOM tree from a provided HTML string. The user is then presented with an API to work with that DOM tree.

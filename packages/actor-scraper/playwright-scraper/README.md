@@ -1,5 +1,3 @@
-# Playwright Scraper
-
 Playwright Scraper is the most powerful scraper tool in our arsenal (aside from developing your own actors).
 
 It uses the Playwright library to programmatically control a headless Chromium or Firefox browser, and it can make it do almost anything. If using [Web Scraper](https://apify.com/apify/web-scraper) doesn't cut it for your use case, then Playwright Scraper is what you need.

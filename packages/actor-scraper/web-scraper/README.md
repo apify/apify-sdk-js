@@ -1,5 +1,3 @@
-# Web Scraper
-
 Web Scraper is a generic easy-to-use actor for crawling arbitrary web pages
 and extracting structured data from them using a few lines of JavaScript code.
 The actor loads web pages in the Chromium browser and renders dynamic content.

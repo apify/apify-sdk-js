@@ -1,5 +1,3 @@
-# Puppeteer Scraper
-
 Puppeteer Scraper is one of the most powerful scraper tools in our arsenal (aside from developing your own actors).
 
 It uses the Puppeteer library to programmatically control a headless Chrome browser, and it can make it do almost anything. If using [Web Scraper](https://apify.com/apify/web-scraper) doesn't cut it for your use case, then Puppeteer Scraper is what you need.
