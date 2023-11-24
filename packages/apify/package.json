@@ -54,18 +54,18 @@
         "access": "public"
     },
     "dependencies": {
-        "@apify/consts": "^2.20.0",
-        "@apify/input_secrets": "^1.1.32",
-        "@apify/log": "^2.4.0",
+        "@apify/consts": "^2.23.0",
+        "@apify/input_secrets": "^1.1.40",
+        "@apify/log": "^2.4.3",
         "@apify/timeout": "^0.3.0",
-        "@apify/utilities": "^2.7.9",
+        "@apify/utilities": "^2.9.3",
         "@crawlee/core": "^3.6.1",
         "@crawlee/types": "^3.6.1",
         "@crawlee/utils": "^3.6.1",
-        "apify-client": "^2.8.0",
+        "apify-client": "^2.8.4",
         "ow": "^0.28.2",
         "semver": "^7.5.4",
-        "tslib": "^2.6.0",
+        "tslib": "^2.6.2",
         "ws": "^7.5.9"
     }
 }

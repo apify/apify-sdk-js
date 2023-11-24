@@ -27,6 +27,5 @@ export default defineConfig({
             { find: 'apify', replacement: resolve(__dirname, './packages/apify/src') },
             { find: '@apify/scraper-tools', replacement: resolve(__dirname, './packages/scraper-tools/src') },
         ],
-        retry: 3,
     },
 });
