@@ -1,4 +1,3 @@
-import ow from 'ow';
 import { APIFY_PROXY_VALUE_REGEX, APIFY_ENV_VARS } from '@apify/consts';
 import type {
     ProxyConfigurationOptions as CoreProxyConfigurationOptions,
@@ -7,7 +6,9 @@ import type {
 import {
     ProxyConfiguration as CoreProxyConfiguration,
 } from '@crawlee/core';
-import { gotScraping } from 'got-scraping';
+import { gotScraping } from '@crawlee/utils';
+import ow from 'ow';
+
 import { Actor } from './actor';
 import { Configuration } from './configuration';
 

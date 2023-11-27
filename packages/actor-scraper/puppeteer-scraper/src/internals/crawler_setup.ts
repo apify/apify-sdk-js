@@ -1,8 +1,8 @@
 import { readFile } from 'node:fs/promises';
 import { dirname } from 'node:path';
 import { fileURLToPath, URL } from 'node:url';
+
 import { browserTools, constants as scraperToolsConstants, CrawlerSetupOptions, createContext, RequestMetadata, tools } from '@apify/scraper-tools';
-import { Actor, ApifyEnv } from 'apify';
 import {
     AutoscaledPool,
     Dataset,
@@ -16,10 +16,13 @@ import {
     PuppeteerCrawlerOptions,
     EnqueueLinksOptions,
     log,
+    ProxyConfiguration,
 } from '@crawlee/puppeteer';
 import { Awaitable, Dictionary, sleep } from '@crawlee/utils';
-import { HTTPResponse } from 'puppeteer';
+import { Actor, ApifyEnv } from 'apify';
 import { getInjectableScript } from 'idcac-playwright';
+import { HTTPResponse } from 'puppeteer';
+
 import { Input, ProxyRotation } from './consts.js';
 
 const SESSION_STORE_NAME = 'APIFY-PUPPETEER-SCRAPER-SESSION-STORE';
@@ -178,7 +181,7 @@ export class CrawlerSetup implements CrawlerSetupOptions {
             maxConcurrency: this.input.maxConcurrency,
             maxRequestRetries: this.input.maxRequestRetries,
             maxRequestsPerCrawl: this.input.maxPagesPerCrawl,
-            proxyConfiguration: await Actor.createProxyConfiguration(this.input.proxyConfiguration),
+            proxyConfiguration: await Actor.createProxyConfiguration(this.input.proxyConfiguration) as any as ProxyConfiguration,
             launchContext: {
                 useChrome: this.input.useChrome,
                 launchOptions: {
@@ -254,7 +257,7 @@ export class CrawlerSetup implements CrawlerSetupOptions {
         });
     }
 
-    private _failedRequestHandler({ request }: PuppeteerCrawlingContext) {
+    private async _failedRequestHandler({ request }: PuppeteerCrawlingContext) {
         const lastError = request.errorMessages[request.errorMessages.length - 1];
         const errorMessage = lastError ? lastError.split('\n')[0] : 'no error';
         log.error(`Request ${request.url} failed and will not be retried anymore. Marking as failed.\nLast Error Message: ${errorMessage}`);

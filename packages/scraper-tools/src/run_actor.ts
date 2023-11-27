@@ -1,6 +1,6 @@
-import { Actor } from 'apify';
-import type { FinalStatistics } from '@crawlee/core';
 import log from '@apify/log';
+import type { FinalStatistics } from '@crawlee/core';
+import { Actor } from 'apify';
 
 export interface CrawlerSetup {
     name: string;

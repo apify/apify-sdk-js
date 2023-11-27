@@ -3,12 +3,14 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { promisify } from 'node:util';
 import { runInThisContext } from 'node:vm';
+
 import log from '@apify/log';
 import type { Request, Session } from '@crawlee/core';
+import type { Cookie } from '@crawlee/types';
 import { createRequestDebugInfo } from '@crawlee/utils';
 import type { Dictionary } from '@crawlee/utils';
-import type { Cookie } from '@crawlee/types';
 import Ajv from 'ajv';
+
 import { META_KEY, PAGE_FUNCTION_FILENAME } from './consts';
 
 const randomBytes = promisify(callbackRandomBytes);

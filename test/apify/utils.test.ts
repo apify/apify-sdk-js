@@ -1,11 +1,13 @@
 import type { IncomingMessage } from 'node:http';
+
 import { APIFY_ENV_VARS } from '@apify/consts';
+import log from '@apify/log';
 import type { Request } from '@crawlee/core';
-import { log } from '@crawlee/core';
 import { createRequestDebugInfo } from '@crawlee/utils';
 import { Actor } from 'apify';
-import { printOutdatedSdkWarning } from 'apify/src/utils';
 import semver from 'semver';
+
+import { printOutdatedSdkWarning } from '../../packages/apify/src/utils';
 
 describe('Actor.isAtHome()', () => {
     test('works', () => {
@@ -41,50 +43,44 @@ describe('Actor.newClient()', () => {
 describe('printOutdatedSdkWarning()', () => {
     const currentVersion = require('../../packages/apify/package.json').version; // eslint-disable-line
 
-    test('should do nothing when ENV_VARS.SDK_LATEST_VERSION is not set', () => {
-        const spy = jest.spyOn(log, 'warning');
-
+    afterEach(() => {
         delete process.env[APIFY_ENV_VARS.SDK_LATEST_VERSION];
+        delete process.env[APIFY_ENV_VARS.DISABLE_OUTDATED_WARNING];
+    });
+
+    test('should do nothing when ENV_VARS.SDK_LATEST_VERSION is not set', () => {
+        const spy = vitest.spyOn(log, 'warning');
+
         printOutdatedSdkWarning();
 
         expect(spy).not.toHaveBeenCalled();
-        spy.mockRestore();
     });
 
     test('should do nothing when ENV_VARS.DISABLE_OUTDATED_WARNING is set', () => {
-        const spy = jest.spyOn(log, 'warning');
+        const spy = vitest.spyOn(log, 'warning');
 
         process.env[APIFY_ENV_VARS.DISABLE_OUTDATED_WARNING] = '1';
         printOutdatedSdkWarning();
 
         expect(spy).not.toHaveBeenCalled();
-
-        delete process.env[APIFY_ENV_VARS.DISABLE_OUTDATED_WARNING];
-        spy.mockRestore();
     });
 
     test('should correctly work when outdated', () => {
-        const spy = jest.spyOn(log, 'warning');
+        const spy = vitest.spyOn(log, 'warning');
 
         process.env[APIFY_ENV_VARS.SDK_LATEST_VERSION] = semver.inc(currentVersion, 'minor');
         printOutdatedSdkWarning();
 
         expect(spy).toHaveBeenCalledTimes(1);
-
-        delete process.env[APIFY_ENV_VARS.SDK_LATEST_VERSION];
-        spy.mockRestore();
     });
 
     test('should correctly work when up to date', () => {
-        const spy = jest.spyOn(log, 'warning');
+        const spy = vitest.spyOn(log, 'warning');
 
         process.env[APIFY_ENV_VARS.SDK_LATEST_VERSION] = '0.13.0';
         printOutdatedSdkWarning();
 
         expect(spy).not.toHaveBeenCalled();
-
-        delete process.env[APIFY_ENV_VARS.SDK_LATEST_VERSION];
-        spy.mockRestore();
     });
 });
 

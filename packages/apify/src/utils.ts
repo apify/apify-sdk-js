@@ -1,12 +1,13 @@
 import { type } from 'node:os';
-import log from '@apify/log';
-import { APIFY_ENV_VARS } from '@apify/consts';
-import semver from 'semver';
 
-// @ts-expect-error if we enable resolveJsonModule, we end up with `src` folder in `dist`
-import { version as apifyClientVersion } from 'apify-client/package.json';
+import { APIFY_ENV_VARS } from '@apify/consts';
+import log from '@apify/log';
 // @ts-expect-error if we enable resolveJsonModule, we end up with `src` folder in `dist`
 import { version as crawleeVersion } from '@crawlee/core/package.json';
+// @ts-expect-error if we enable resolveJsonModule, we end up with `src` folder in `dist`
+import { version as apifyClientVersion } from 'apify-client/package.json';
+import semver from 'semver';
+
 // @ts-expect-error if we enable resolveJsonModule, we end up with `src` folder in `dist`
 import { version as apifyVersion } from '../package.json';
 

@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unsafe-declaration-merging */
-import type { ApifyEnv } from 'apify';
-import { Actor } from 'apify';
+import log from '@apify/log';
 import type {
     KeyValueStore,
     RecordOptions,
@@ -10,9 +9,11 @@ import type {
     RequestQueueOperationOptions,
 } from '@crawlee/core';
 import type { Dictionary } from '@crawlee/utils';
-import log from '@apify/log';
+import type { ApifyEnv } from 'apify';
+import { Actor } from 'apify';
 import type { MediaType } from 'content-type';
 import contentTypeParser from 'content-type';
+
 import type { SnapshotOptions } from './browser_tools';
 import { saveSnapshot } from './browser_tools';
 import { META_KEY } from './consts';
@@ -97,15 +98,15 @@ class Context<Options extends ContextOptions = ContextOptions, ExtraFields = Opt
         this.enqueueRequest = this.enqueueRequest.bind(this);
     }
 
-    getValue<T>(...args: Parameters<KeyValueStore['getValue']>) {
+    async getValue<T>(...args: Parameters<KeyValueStore['getValue']>) {
         return this[setup].keyValueStore.getValue<T>(...args as [string, T]);
     }
 
-    setValue<T>(...args: Parameters<KeyValueStore['setValue']>) {
+    async setValue<T>(...args: Parameters<KeyValueStore['setValue']>) {
         return this[setup].keyValueStore.setValue<T>(...args as [key: string, value: T | null, options?: RecordOptions]);
     }
 
-    saveSnapshot() {
+    async saveSnapshot() {
         return saveSnapshot({
             page: this.page as SnapshotOptions['page'],
             body: this.body as SnapshotOptions['body'],
@@ -148,7 +149,7 @@ class Context<Options extends ContextOptions = ContextOptions, ExtraFields = Opt
 // @ts-expect-error -- Extensions actually work but TS complains
 interface Context<
     Options extends ContextOptions = ContextOptions,
-    ExtraFields extends ContextOptions['pageFunctionArguments'] = Options['pageFunctionArguments']
+    ExtraFields extends ContextOptions['pageFunctionArguments'] = Options['pageFunctionArguments'],
 > extends ExtraFields {}
 
 /**
@@ -157,7 +158,7 @@ interface Context<
  */
 export function createContext<
     Options extends ContextOptions = ContextOptions,
-    ExtraFields extends ContextOptions['pageFunctionArguments'] = Options['pageFunctionArguments']
+    ExtraFields extends ContextOptions['pageFunctionArguments'] = Options['pageFunctionArguments'],
 >(contextOptions: Options) {
     const context = new Context<Options, ExtraFields>(contextOptions);
     return {
