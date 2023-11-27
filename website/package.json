@@ -13,7 +13,7 @@
         "docusaurus": "docusaurus"
     },
     "devDependencies": {
-        "@apify/eslint-config-ts": "^0.3.0",
+        "@apify/eslint-config-ts": "^0.4.0",
         "@apify/tsconfig": "^0.1.0",
         "@types/react": "^18.2.8",
         "@typescript-eslint/eslint-plugin": "^6.0.0",
