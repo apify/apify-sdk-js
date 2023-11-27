@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [3.1.14](https://github.com/apify/apify-sdk-js/compare/apify@3.1.13...apify@3.1.14) (2023-11-27)
+
+**Note:** Version bump only for package apify
+
+
+
+
+
 ## [3.1.13](https://github.com/apify/apify-sdk-js/compare/apify@3.1.12...apify@3.1.13) (2023-11-15)
 
 
