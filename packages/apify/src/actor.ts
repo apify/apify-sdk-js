@@ -1553,19 +1553,24 @@ export interface MainOptions extends ExitOptions, InitOptions {}
  */
 export interface ApifyEnv {
     /**
-     * ID of the actor (ACTOR_ID)
+     * ID of the actor (APIFY_ACTOR_ID)
      */
     actorId: string | null;
 
     /**
-     * ID of the actor run (ACTOR_RUN_ID)
+     * ID of the actor run (APIFY_ACTOR_RUN_ID)
      */
     actorRunId: string | null;
 
     /**
-     * ID of the actor task (ACTOR_TASK_ID)
+     * ID of the actor task (APIFY_ACTOR_TASK_ID)
      */
     actorTaskId: string | null;
+
+    /**
+     * ID of the Actor build used in the run. (APIFY_ACTOR_BUILD_ID)
+     */
+    actorBuildId: string | null;
 
     /**
      * ID of the user who started the actor - note that it might be
@@ -1580,32 +1585,100 @@ export interface ApifyEnv {
     token: string | null;
 
     /**
-     * Date when the actor was started (ACTOR_STARTED_AT)
+     * Date when the actor was started (APIFY_STARTED_AT)
      */
     startedAt: Date | null;
 
     /**
-     * Date when the actor will time out (ACTOR_TIMEOUT_AT)
+     * Date when the actor will time out (APIFY_TIMEOUT_AT)
      */
     timeoutAt: Date | null;
 
     /**
      * ID of the key-value store where input and output data of this
-     * actor is stored (ACTOR_DEFAULT_KEY_VALUE_STORE_ID)
+     * actor is stored (APIFY_DEFAULT_KEY_VALUE_STORE_ID)
      */
     defaultKeyValueStoreId: string | null;
 
     /**
      * ID of the dataset where input and output data of this
-     * actor is stored (ACTOR_DEFAULT_DATASET_ID)
+     * actor is stored (APIFY_DEFAULT_DATASET_ID)
      */
     defaultDatasetId: string | null;
 
     /**
      * Amount of memory allocated for the actor,
-     * in megabytes (ACTOR_MEMORY_MBYTES)
+     * in megabytes (APIFY_MEMORY_MBYTES)
      */
     memoryMbytes: number | null;
+
+    /**
+     * If set to 1, the web browsers inside the Actor should run in headless
+     * mode because there is no windowing system available. (APIFY_HEADLESS)
+     */
+    headless: 1 | null;
+
+    /**
+     * Is set to 1 if the Actor is running on Apify servers.
+     * (APIFY_IS_AT_HOME)
+     */
+    isAtHome: 1 | null;
+
+    /**
+     * The Apify Proxy password of the user who started the Actor. (APIFY_PROXY_PASSWORD)
+     */
+    proxyPassword: string | null;
+    proxyHostname: string | null;
+    proxyPort: string | null;
+
+    /**
+     * You can visit this page to troubleshoot your proxy connection. (APIFY_PROXY_STATUS_URL)
+     */
+    proxyStatusUrl: string | null;
+    apiBaseUrl: string | null;
+    apiPublicBaseUrl: string | null;
+    chromeExecutablePath: string | null;
+    dedicatedCpus: string | null;
+    disableOutdatedWarning: 1 | null;
+    fact: string | null;
+    inputSecretsPrivateKeyFile: string | null;
+    inputSecretsPrivateKeyPassphrase: string | null;
+
+    /**
+     * Defines the path to a local directory where KeyValueStore, Dataset, and RequestQueue
+     * store their data. Typically, it is set to ./storage. If omitted, you should define the
+     * APIFY_TOKEN environment variable instead. See more info on combination of this and
+     * APIFY_TOKEN [here](https://docs.apify.com/sdk/js/docs/guides/environment-variables#combinations-of-apify_local_storage_dir-and-apify_token)(APIFY_LOCAL_STORAGE_DIR)
+     */
+    localStorageDir: string | null;
+
+    /**
+     * Specifies the minimum log level, which can be one of the following values (in order of severity): DEBUG, INFO, WARNING and ERROR
+     * (APIFY_LOG_LEVEL)
+     */
+    logLevel: string | null;
+    logFormat: string | null;
+
+    /**
+     * Origin for the actor run, i.e. how it was started. See [here](https://docs.apify.com/sdk/python/reference/enum/MetaOrigin)
+     * for more details. (APIFY_META_ORIGIN)
+     */
+    metaOrigin: string | null;
+
+    /**
+     * The key of the input record in the actor’s default key-value store (APIFY_INPUT_KEY)
+     */
+    inputKey: string | null;
+    sdkLatestVersion: string | null;
+    systemInfoIntervalMillis: string | null;
+    workflowKey: string | null;
+    xvfb: 1 | null;
+    actorBuildNumber: string | null;
+    actorEventsWsUrl: string | null;
+    actorMaxPaidDatasetItems: number | null;
+    containerPort: number | null;
+    containerUrl: string | null;
+    defaultRequestQueueId: string | null;
 }
 
 export type UserFunc<T = unknown> = () => Awaitable<T>;
