@@ -1553,28 +1553,28 @@ export interface MainOptions extends ExitOptions, InitOptions {}
  */
 export interface ApifyEnv {
     /**
-     * ID of the actor (APIFY_ACTOR_ID)
+     * ID of the actor (ACTOR_ID)
      */
     actorId: string | null;
 
     /**
-     * ID of the actor run (APIFY_ACTOR_RUN_ID)
+     * ID of the actor run (ACTOR_RUN_ID)
      */
     actorRunId: string | null;
 
     /**
-     * ID of the actor task (APIFY_ACTOR_TASK_ID)
+     * ID of the actor task (ACTOR_TASK_ID)
      */
     actorTaskId: string | null;
 
     /**
-     * ID of the Actor build used in the run. (APIFY_ACTOR_BUILD_ID)
+     * ID of the Actor build used in the run. (ACTOR_BUILD_ID)
      */
     actorBuildId: string | null;
 
     /**
      * ID of the user who started the actor - note that it might be
-     * different than the owner ofthe actor (APIFY_USER_ID)
+     * different than the owner of the actor (APIFY_USER_ID)
      */
     userId: string | null;
 
@@ -1585,44 +1585,44 @@ export interface ApifyEnv {
     token: string | null;
 
     /**
-     * Date when the actor was started (APIFY_STARTED_AT)
+     * Date when the actor was started (ACTOR_STARTED_AT)
      */
     startedAt: Date | null;
 
     /**
-     * Date when the actor will time out (APIFY_TIMEOUT_AT)
+     * Date when the actor will time out (ACTOR_TIMEOUT_AT)
      */
     timeoutAt: Date | null;
 
     /**
      * ID of the key-value store where input and output data of this
-     * actor is stored (APIFY_DEFAULT_KEY_VALUE_STORE_ID)
+     * actor is stored (ACTOR_DEFAULT_KEY_VALUE_STORE_ID)
      */
     defaultKeyValueStoreId: string | null;
 
     /**
      * ID of the dataset where input and output data of this
-     * actor is stored (APIFY_DEFAULT_DATASET_ID)
+     * actor is stored (ACTOR_DEFAULT_DATASET_ID)
      */
     defaultDatasetId: string | null;
 
     /**
      * Amount of memory allocated for the actor,
-     * in megabytes (APIFY_MEMORY_MBYTES)
+     * in megabytes (ACTOR_MEMORY_MBYTES)
      */
     memoryMbytes: number | null;
 
     /**
-     * If set to 1, the web browsers inside the Actor should run in headless
+     * If set to "1", the web browsers inside the Actor should run in headless
      * mode because there is no windowing system available. (APIFY_HEADLESS)
      */
-    headless: 1 | null;
+    headless: string | null;
 
     /**
-     * Is set to 1 if the Actor is running on Apify servers.
+     * Is set to "1" if the Actor is running on Apify servers.
      * (APIFY_IS_AT_HOME)
      */
-    isAtHome: 1 | null;
+    isAtHome: string | null;
 
     /**
      * The Apify Proxy password of the user who started the Actor. (APIFY_PROXY_PASSWORD)
@@ -1666,13 +1666,12 @@ export interface ApifyEnv {
     metaOrigin: string | null;
 
     /**
-     * The key of the input record in the actor’s default key-value store (APIFY_INPUT_KEY)
+     * The key of the input record in the actor’s default key-value store (ACTOR_INPUT_KEY)
      */
     inputKey: string | null;
     sdkLatestVersion: string | null;
     systemInfoIntervalMillis: string | null;
     workflowKey: string | null;
-    xvfb: 1 | null;
     actorBuildNumber: string | null;
     actorEventsWsUrl: string | null;
     actorMaxPaidDatasetItems: number | null;
