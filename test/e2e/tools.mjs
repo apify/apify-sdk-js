@@ -1,13 +1,14 @@
-import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { existsSync } from 'node:fs';
 import { readdir } from 'node:fs/promises';
 import { homedir } from 'node:os';
+import { dirname, join } from 'node:path';
 import { setTimeout } from 'node:timers/promises';
-import fs from 'fs-extra';
-import { Configuration, KeyValueStore } from 'apify';
-import { URL_NO_COMMAS_REGEX } from 'crawlee';
+import { fileURLToPath } from 'node:url';
+
 import { purgeDefaultStorages } from '@crawlee/core';
+import { Configuration, KeyValueStore } from 'apify';
+import { URL_NO_COMMAS_REGEX, sleep } from 'crawlee';
+import fs from 'fs-extra';
 
 export const SKIPPED_TEST_CLOSE_CODE = 404;
 
@@ -29,12 +30,17 @@ export function getStorage(dirName) {
 /**
  * @param {string} dirName
  */
-export async function getStats(dirName) {
+export async function getStats(dirName, retries = 3) {
     const dir = getStorage(dirName);
     const path = join(dir, 'key_value_stores/default/SDK_CRAWLER_STATISTICS_0.json');
 
     if (!existsSync(path)) {
-        return false;
+        if (!retries) {
+            return false;
+        }
+
+        await sleep(500);
+        return getStats(dirName, retries - 1);
     }
 
     return fs.readJSON(path);
@@ -66,7 +72,7 @@ export async function run(url, scraper, input) {
     // to make sure all tests will run and finish.
     await Promise.race([
         waitForFinish(url),
-        setTimeout(60e3),
+        setTimeout(120e3),
     ]);
 }
 
