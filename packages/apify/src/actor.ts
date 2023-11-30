@@ -1552,6 +1552,9 @@ export interface MainOptions extends ExitOptions, InitOptions {}
  * This object is returned by the {@apilink Actor.getEnv} function.
  */
 export interface ApifyEnv {
+    // TODO: if this interface hasn't been changed for a while, you
+    // are invited to check if there are any new env vars (refer to APIFY_ENV_VARS and ACTOR_ENV_VARS)
+
     /**
      * ID of the actor (ACTOR_ID)
      */
