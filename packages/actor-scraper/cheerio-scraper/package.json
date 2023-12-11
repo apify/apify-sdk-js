@@ -12,7 +12,7 @@
     "devDependencies": {
         "@apify/tsconfig": "^0.1.0",
         "@types/node": "^20.8.2",
-        "ts-node": "^10.9.1",
+        "tsx": "^4.6.2",
         "typescript": "~5.2.0"
     },
     "peerDependencies": {
@@ -21,7 +21,7 @@
     "scripts": {
         "start": "npm run start:dev",
         "start:prod": "node dist/main.js",
-        "start:dev": "ts-node-esm -T src/main.ts",
+        "start:dev": "tsx src/main.ts",
         "build": "tsc"
     },
     "repository": {
