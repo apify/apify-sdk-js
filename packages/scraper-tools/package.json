@@ -28,7 +28,7 @@
         "build": "npm run clean && npm run compile && npm run copy",
         "clean": "rimraf ./dist",
         "compile": "tsc -p tsconfig.build.json && gen-esm-wrapper ./dist/index.js ./dist/index.mjs",
-        "copy": "ts-node -T ../../scripts/copy.ts --readme=false"
+        "copy": "tsx ../../scripts/copy.ts --readme=false"
     },
     "publishConfig": {
         "access": "public"
