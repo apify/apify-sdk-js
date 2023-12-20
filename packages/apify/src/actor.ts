@@ -1552,6 +1552,9 @@ export interface MainOptions extends ExitOptions, InitOptions {}
  * This object is returned by the {@apilink Actor.getEnv} function.
  */
 export interface ApifyEnv {
+    // TODO: if this interface hasn't been changed for a while, you
+    // are invited to check if there are any new env vars (refer to APIFY_ENV_VARS and ACTOR_ENV_VARS)
+
     /**
      * ID of the actor (ACTOR_ID)
      */
@@ -1568,8 +1571,13 @@ export interface ApifyEnv {
     actorTaskId: string | null;
 
     /**
+     * ID of the Actor build used in the run. (ACTOR_BUILD_ID)
+     */
+    actorBuildId: string | null;
+
+    /**
      * ID of the user who started the actor - note that it might be
-     * different than the owner ofthe actor (APIFY_USER_ID)
+     * different than the owner of the actor (APIFY_USER_ID)
      */
     userId: string | null;
 
@@ -1606,6 +1614,73 @@ export interface ApifyEnv {
      * in megabytes (ACTOR_MEMORY_MBYTES)
      */
     memoryMbytes: number | null;
+
+    /**
+     * If set to "1", the web browsers inside the Actor should run in headless
+     * mode because there is no windowing system available. (APIFY_HEADLESS)
+     */
+    headless: string | null;
+
+    /**
+     * Is set to "1" if the Actor is running on Apify servers.
+     * (APIFY_IS_AT_HOME)
+     */
+    isAtHome: string | null;
+
+    /**
+     * The Apify Proxy password of the user who started the Actor. (APIFY_PROXY_PASSWORD)
+     */
+    proxyPassword: string | null;
+    proxyHostname: string | null;
+    proxyPort: string | null;
+
+    /**
+     * You can visit this page to troubleshoot your proxy connection. (APIFY_PROXY_STATUS_URL)
+     */
+    proxyStatusUrl: string | null;
+    apiBaseUrl: string | null;
+    apiPublicBaseUrl: string | null;
+    chromeExecutablePath: string | null;
+    dedicatedCpus: string | null;
+    disableOutdatedWarning: 1 | null;
+    fact: string | null;
+    inputSecretsPrivateKeyFile: string | null;
+    inputSecretsPrivateKeyPassphrase: string | null;
+
+    /**
+     * Defines the path to a local directory where KeyValueStore, Dataset, and RequestQueue
+     * store their data. Typically, it is set to ./storage. If omitted, you should define the
+     * APIFY_TOKEN environment variable instead. See more info on combination of this and
+     * APIFY_TOKEN [here](https://docs.apify.com/sdk/js/docs/guides/environment-variables#combinations-of-apify_local_storage_dir-and-apify_token)(APIFY_LOCAL_STORAGE_DIR)
+     */
+    localStorageDir: string | null;
+
+    /**
+     * Specifies the minimum log level, which can be one of the following values (in order of severity): DEBUG, INFO, WARNING and ERROR
+     * (APIFY_LOG_LEVEL)
+     */
+    logLevel: string | null;
+    logFormat: string | null;
+
+    /**
+     * Origin for the actor run, i.e. how it was started. See [here](https://docs.apify.com/sdk/python/reference/enum/MetaOrigin)
+     * for more details. (APIFY_META_ORIGIN)
+     */
+    metaOrigin: string | null;
+
+    /**
+     * The key of the input record in the actor’s default key-value store (ACTOR_INPUT_KEY)
+     */
+    inputKey: string | null;
+    sdkLatestVersion: string | null;
+    systemInfoIntervalMillis: string | null;
+    workflowKey: string | null;
+    actorBuildNumber: string | null;
+    actorEventsWsUrl: string | null;
+    actorMaxPaidDatasetItems: number | null;
+    containerPort: number | null;
+    containerUrl: string | null;
+    defaultRequestQueueId: string | null;
 }
 
 export type UserFunc<T = unknown> = () => Awaitable<T>;
