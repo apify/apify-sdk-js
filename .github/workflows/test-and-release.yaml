@@ -90,6 +90,7 @@ jobs:
                 run: npm ci --force
 
             -   name: Build docs
+                if: github.ref != 'refs/heads/master'
                 run: |
                     cd website
                     npm ci
