@@ -89,7 +89,7 @@ jobs:
             -   name: Install Dependencies
                 run: npm ci --force
 
-            -   name: Build & deploy docs
+            -   name: Build docs
                 run: |
                     cd website
                     npm ci
