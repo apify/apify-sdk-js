@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [3.1.15](https://github.com/apify/apify-sdk-js/compare/apify@3.1.14...apify@3.1.15) (2024-01-08)
+
+
+### Features
+
+* ignore proxy configuration locally if no valid token or password is found ([#272](https://github.com/apify/apify-sdk-js/issues/272)) ([0931c2e](https://github.com/apify/apify-sdk-js/commit/0931c2e27e48425bfc58c5df80cd42ed66b9395d)), closes [#262](https://github.com/apify/apify-sdk-js/issues/262)
+
+
+
+
+
 ## [3.1.14](https://github.com/apify/apify-sdk-js/compare/apify@3.1.13...apify@3.1.14) (2023-11-27)
 
 **Note:** Version bump only for package apify
