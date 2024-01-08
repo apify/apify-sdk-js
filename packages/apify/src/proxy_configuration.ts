@@ -331,6 +331,7 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
                     return;
                 }
             }
+
             const { password } = proxy!;
 
             if (this.password) {
@@ -380,12 +381,10 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
         // This is because the user might not have set up things correctly yet.
         // It still fails on the platform, where we don't want to allow this behavior.
         if (Actor.isAtHome()) {
-            this._throwApifyProxyConnectionError(connectionError);
-        } else {
-            this.log.warning(connectionError);
-            return false;
+            throw new Error(connectionError);
         }
 
+        this.log.warning(connectionError);
         return false;
     }
 
@@ -411,14 +410,6 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
         }
 
         return undefined;
-    }
-
-    /**
-     * Throws Apify Proxy is not connected
-     * @internal
-     */
-    protected _throwApifyProxyConnectionError(errorMessage: string) {
-        throw new Error(errorMessage);
     }
 
     /**
