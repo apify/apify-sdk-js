@@ -873,9 +873,12 @@ export class Actor<Data extends Dictionary = Dictionary> {
         }
 
         const proxyConfiguration = new ProxyConfiguration(options, this.config);
-        await proxyConfiguration.initialize();
 
-        return proxyConfiguration;
+        if (await proxyConfiguration.initialize()) {
+            return proxyConfiguration;
+        }
+
+        return undefined;
     }
 
     /**

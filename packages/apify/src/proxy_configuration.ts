@@ -7,6 +7,7 @@ import {
     ProxyConfiguration as CoreProxyConfiguration,
 } from '@crawlee/core';
 import { gotScraping } from '@crawlee/utils';
+import type { UserProxy } from 'apify-client';
 import ow from 'ow';
 
 import { Actor } from './actor';
@@ -213,11 +214,13 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
      * You should use the {@apilink createProxyConfiguration} function to create a pre-initialized
      * `ProxyConfiguration` instance instead of calling this manually.
      */
-    async initialize(): Promise<void> {
+    async initialize(): Promise<boolean> {
         if (this.usesApifyProxy) {
             await this._setPasswordIfToken();
-            await this._checkAccess();
+            return this._checkAccess();
         }
+
+        return true;
     }
 
     /**
@@ -315,7 +318,20 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
         const token = this.config.get('token');
 
         if (token) {
-            const { proxy } = await Actor.apifyClient.user().get();
+            let proxy: UserProxy;
+
+            try {
+                const user = await Actor.apifyClient.user().get();
+                proxy = user.proxy!;
+            } catch (error) {
+                if (Actor.isAtHome()) {
+                    throw error;
+                } else {
+                    this.log.warning(`Failed to fetch user data based on token, disabling proxy.`, { error });
+                    return;
+                }
+            }
+
             const { password } = proxy!;
 
             if (this.password) {
@@ -329,8 +345,14 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
         }
 
         if (!this.password) {
-            throw new Error(`Apify Proxy password must be provided using options.password or the "${APIFY_ENV_VARS.PROXY_PASSWORD}" environment variable. `
-                + `If you add the "${APIFY_ENV_VARS.TOKEN}" environment variable, the password will be automatically inferred.`);
+            if (Actor.isAtHome()) {
+                throw new Error(`Apify Proxy password must be provided using options.password or the "${APIFY_ENV_VARS.PROXY_PASSWORD}" environment variable. `
+                    + `If you add the "${APIFY_ENV_VARS.TOKEN}" environment variable, the password will be automatically inferred.`);
+            } else {
+                this.log.warning(`No proxy password or token detected, running without proxy. To use Apify Proxy locally, `
+                    + `provide options.password or "${APIFY_ENV_VARS.PROXY_PASSWORD}" environment variable. `
+                    + `If you add the "${APIFY_ENV_VARS.TOKEN}" environment variable, the password will be automatically inferred.`);
+            }
         }
     }
 
@@ -339,17 +361,31 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
      * If the check can not be made, it only prints a warning and allows the program to continue. This is to
      * prevent program crashes caused by short downtimes of Proxy.
      */
-    protected async _checkAccess(): Promise<void> {
+    protected async _checkAccess(): Promise<boolean> {
         const status = await this._fetchStatus();
-        if (status) {
-            const { connected, connectionError, isManInTheMiddle } = status;
-            this.isManInTheMiddle = isManInTheMiddle;
 
-            if (!connected) this._throwApifyProxyConnectionError(connectionError);
-        } else {
+        if (!status) {
             this.log.warning('Apify Proxy access check timed out. Watch out for errors with status code 407. '
                 + 'If you see some, it most likely means you don\'t have access to either all or some of the proxies you\'re trying to use.');
+            return true;
         }
+
+        const { connected, connectionError, isManInTheMiddle } = status;
+        this.isManInTheMiddle = isManInTheMiddle;
+
+        if (connected) {
+            return true;
+        }
+
+        // Throw only on the platform, locally we just print a warning and run requests without the proxy.
+        // This is because the user might not have set up things correctly yet.
+        // It still fails on the platform, where we don't want to allow this behavior.
+        if (Actor.isAtHome()) {
+            throw new Error(connectionError);
+        }
+
+        this.log.warning(connectionError);
+        return false;
     }
 
     /**
@@ -374,14 +410,6 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
         }
 
         return undefined;
-    }
-
-    /**
-     * Throws Apify Proxy is not connected
-     * @internal
-     */
-    protected _throwApifyProxyConnectionError(errorMessage: string) {
-        throw new Error(errorMessage);
     }
 
     /**

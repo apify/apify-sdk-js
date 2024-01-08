@@ -34,6 +34,7 @@ afterEach(() => {
     delete process.env[APIFY_ENV_VARS.PROXY_PASSWORD];
     delete process.env[APIFY_ENV_VARS.PROXY_HOSTNAME];
     delete process.env[APIFY_ENV_VARS.PROXY_STATUS_URL];
+    delete process.env[APIFY_ENV_VARS.IS_AT_HOME];
 });
 
 describe('ProxyConfiguration', () => {
@@ -406,9 +407,11 @@ describe('Actor.createProxyConfiguration()', () => {
         gotScrapingSpy.mockRestore();
     });
 
+    // TODO: test that on platform we throw but locally we only print warning
     test('should throw missing password', async () => {
         delete process.env[APIFY_ENV_VARS.PROXY_PASSWORD];
         delete process.env[APIFY_ENV_VARS.TOKEN];
+        process.env[APIFY_ENV_VARS.IS_AT_HOME] = '1';
 
         const status = { connected: true };
 
@@ -421,11 +424,15 @@ describe('Actor.createProxyConfiguration()', () => {
         await expect(Actor.createProxyConfiguration()).rejects.toThrow('Apify Proxy password must be provided');
 
         gotScrapingSpy.mockRestore();
+
+        delete process.env[APIFY_ENV_VARS.IS_AT_HOME];
+        await expect(Actor.createProxyConfiguration()).resolves.toBeInstanceOf(ProxyConfiguration);
     });
 
     test('should throw when group is not available', async () => {
         delete process.env[APIFY_ENV_VARS.PROXY_PASSWORD];
         process.env.APIFY_TOKEN = '123456789';
+        process.env[APIFY_ENV_VARS.IS_AT_HOME] = '1';
         const connectionError = 'Invalid username: proxy group "GROUP2"; not found or not accessible.';
         const status = { connected: false, connectionError };
         const getUserSpy = vitest.spyOn(UserClient.prototype, 'get');
@@ -436,6 +443,9 @@ describe('Actor.createProxyConfiguration()', () => {
 
         gotScrapingSpy.mockRestore();
         getUserSpy.mockRestore();
+
+        delete process.env[APIFY_ENV_VARS.IS_AT_HOME];
+        await expect(Actor.createProxyConfiguration({ groups })).resolves.toBeInstanceOf(ProxyConfiguration);
     });
 
     test('should not throw when access check is unresponsive', async () => {
