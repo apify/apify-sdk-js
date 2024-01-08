@@ -532,7 +532,7 @@ describe('Actor', () => {
                 };
 
                 const initializeSpy = vitest.spyOn(ProxyConfiguration.prototype, 'initialize');
-                initializeSpy.mockImplementationOnce(async () => {});
+                initializeSpy.mockImplementationOnce(async () => true);
                 await expect(Actor.createProxyConfiguration(proxyConfiguration)).resolves.toBeInstanceOf(ProxyConfiguration);
                 expect(initializeSpy).toBeCalledTimes(1);
             });
@@ -540,7 +540,7 @@ describe('Actor', () => {
             test('createProxyConfiguration should create ProxyConfiguration', async () => {
                 const sdk = new Actor();
                 const initializeSpy = vitest.spyOn(ProxyConfiguration.prototype, 'initialize');
-                initializeSpy.mockImplementationOnce(async () => {});
+                initializeSpy.mockImplementationOnce(async () => true);
                 await sdk.createProxyConfiguration();
                 expect(initializeSpy).toBeCalledTimes(1);
             });
