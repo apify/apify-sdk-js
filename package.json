@@ -82,5 +82,5 @@
         "vitest": "^1.0.0",
         "ws": "^7.5.9"
     },
-    "packageManager": "npm@10.2.5"
+    "packageManager": "npm@10.3.0"
 }
