@@ -46,7 +46,7 @@ jobs:
 
             -   name: Turbo cache
                 id: turbo-cache
-                uses: actions/cache@v3
+                uses: actions/cache@v4
                 with:
                     path: .turbo
                     key: turbo-${{ github.job }}-${{ github.ref_name }}-${{ github.sha }}
@@ -79,7 +79,7 @@ jobs:
 
             -   name: Turbo cache
                 id: turbo-cache
-                uses: actions/cache@v3
+                uses: actions/cache@v4
                 with:
                     path: .turbo
                     key: turbo-${{ github.job }}-${{ github.ref_name }}-${{ github.sha }}
@@ -113,7 +113,7 @@ jobs:
 
             -   name: Turbo cache
                 id: turbo-cache
-                uses: actions/cache@v3
+                uses: actions/cache@v4
                 with:
                     path: .turbo
                     key: turbo-${{ github.job }}-${{ github.ref_name }}-${{ github.sha }}
@@ -147,7 +147,7 @@ jobs:
 
             -   name: Turbo cache
                 id: turbo-cache
-                uses: actions/cache@v3
+                uses: actions/cache@v4
                 with:
                     path: .turbo
                     key: turbo-${{ github.job }}-${{ github.ref_name }}-${{ github.sha }}
