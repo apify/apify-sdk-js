@@ -20,7 +20,7 @@ await run(testDir, 'cheerio-scraper', {
         }
 
         async function handleStart({ enqueueRequest, $ }) {
-            const links = $('div.UserDetailPage-publicActors > div a').toArray().map((item) => $(item).attr('href'));
+            const links = $('[data-test="actorCard"] > a').toArray().map((item) => $(item).attr('href'));
             for (const link of links) {
                 const actorDetailUrl = `https://apify.com${link}`;
                 await enqueueRequest({
@@ -38,8 +38,8 @@ await run(testDir, 'cheerio-scraper', {
             const uniqueIdentifier = url.split('/').slice(-2).join('/');
             const title = $('header h1').text();
             const description = $('div.Section-body > div > p').text();
-            const modifiedDate = $('div:nth-of-type(2) > ul > li:nth-of-type(3)').text();
-            const runCount = $('div:nth-of-type(2) > ul > li:nth-of-type(2)').text();
+            const modifiedDate = $('div:nth-of-type(2) > ul > li:nth-of-type(2)').text();
+            const runCount = $('div:nth-of-type(2) > ul > li:nth-of-type(1)').text();
 
             return {
                 url,
