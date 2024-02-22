@@ -1,5 +1,8 @@
 name: Release @latest
 
+env:
+    PUPPETEER_DOWNLOAD_BASE_URL: https://storage.googleapis.com/chrome-for-testing-public
+
 on:
     workflow_dispatch:
         inputs:
