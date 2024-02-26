@@ -193,7 +193,7 @@ export class CrawlerSetup implements CrawlerSetupOptions {
     async createCrawler() {
         await this.initPromise;
 
-        const args = [];
+        const args = ['--disable-dev-shm-usage'];
         if (this.input.ignoreCorsAndCsp) args.push('--disable-web-security');
         if (this.isDevRun) args.push(`--remote-debugging-port=${CHROME_DEBUGGER_PORT}`);
 
