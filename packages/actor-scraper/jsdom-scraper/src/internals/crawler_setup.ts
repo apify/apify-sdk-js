@@ -20,7 +20,7 @@ import {
     ProxyConfiguration,
     Request,
     RequestList,
-    RequestQueue,
+    RequestQueueV2,
     log,
     Dictionary,
     Awaitable,
@@ -47,7 +47,7 @@ export class CrawlerSetup implements CrawlerSetupOptions {
      * Used to store data that persist navigations
      */
     globalStore = new Map();
-    requestQueue: RequestQueue;
+    requestQueue: RequestQueueV2;
     keyValueStore: KeyValueStore;
     customData: unknown;
     input: Input;
@@ -136,7 +136,7 @@ export class CrawlerSetup implements CrawlerSetupOptions {
         this.requestList = await RequestList.open('JSDOM_SCRAPER', startUrls);
 
         // RequestQueue
-        this.requestQueue = await RequestQueue.open(this.requestQueueName);
+        this.requestQueue = await RequestQueueV2.open(this.requestQueueName);
 
         // Dataset
         this.dataset = await Dataset.open(this.datasetName);
@@ -188,6 +188,9 @@ export class CrawlerSetup implements CrawlerSetupOptions {
                 sessionOptions: {
                     maxUsageCount: this.maxSessionUsageCount,
                 },
+            },
+            experiments: {
+                requestLocking: true,
             },
         };
 
