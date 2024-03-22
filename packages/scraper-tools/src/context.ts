@@ -5,7 +5,7 @@ import type {
     RecordOptions,
     Request,
     RequestOptions,
-    RequestQueue,
+    RequestQueueV2,
     RequestQueueOperationOptions,
 } from '@crawlee/core';
 import type { Dictionary } from '@crawlee/utils';
@@ -23,7 +23,7 @@ export interface CrawlerSetupOptions {
     rawInput: string;
     env: ApifyEnv;
     globalStore: Map<string, unknown> | MapLike<string, unknown>;
-    requestQueue: RequestQueue;
+    requestQueue: RequestQueueV2;
     keyValueStore: KeyValueStore;
     customData: unknown;
 }
@@ -124,7 +124,7 @@ class Context<Options extends ContextOptions = ContextOptions, ExtraFields = Opt
     async enqueueRequest(
         requestOpts: RequestOptions = {} as RequestOptions,
         options: RequestQueueOperationOptions = {},
-    ) : ReturnType<RequestQueue['addRequest']> {
+    ) : ReturnType<RequestQueueV2['addRequest']> {
         const defaultRequestOpts = {
             useExtendedUniqueKey: true,
             keepUrlFragment: this.input.keepUrlFragments,
