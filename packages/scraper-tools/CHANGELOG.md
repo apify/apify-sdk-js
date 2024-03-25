@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.1.4](https://github.com/apify/apify-sdk-js/compare/@apify/scraper-tools@1.1.2...@apify/scraper-tools@1.1.4) (2024-03-25)
+
+**Note:** Version bump only for package @apify/scraper-tools
+
+
+
+
+
 ## [1.1.2](https://github.com/apify/apify-sdk-js/compare/@apify/scraper-tools@1.1.1...@apify/scraper-tools@1.1.2) (2023-07-28)
 
 
