@@ -1,12 +1,12 @@
 {
     "name": "actor-cheerio-scraper",
-    "version": "3.0.1",
+    "version": "3.1.0",
     "private": true,
     "description": "Crawl web pages using HTTP requests and Cheerio",
     "type": "module",
     "dependencies": {
         "@apify/scraper-tools": "^1.1.1",
-        "@crawlee/cheerio": "^3.5.2",
+        "@crawlee/cheerio": "^3.8.2",
         "apify": "^3.1.8"
     },
     "devDependencies": {

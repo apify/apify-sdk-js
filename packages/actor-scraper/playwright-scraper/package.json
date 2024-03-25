@@ -1,14 +1,14 @@
 {
     "name": "actor-playwright-scraper",
-    "version": "3.0.1",
+    "version": "3.1.0",
     "private": true,
     "description": "Crawl web pages using Apify, headless browser and Playwright",
     "type": "module",
     "dependencies": {
         "@apify/scraper-tools": "^1.1.1",
-        "@crawlee/core": "^3.5.2",
-        "@crawlee/playwright": "^3.5.2",
-        "@crawlee/utils": "^3.5.2",
+        "@crawlee/core": "^3.8.2",
+        "@crawlee/playwright": "^3.8.2",
+        "@crawlee/utils": "^3.8.2",
         "apify": "^3.1.8",
         "idcac-playwright": "^0.1.2",
         "playwright": "*"
