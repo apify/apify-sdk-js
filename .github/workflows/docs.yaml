@@ -40,6 +40,7 @@ jobs:
                     npm run build
                 env:
                     APIFY_SIGNING_TOKEN: ${{ secrets.APIFY_SIGNING_TOKEN }}
+                    SMARTLOOK_PROJECT_KEY: ${{ secrets.SMARTLOOK_DOCS_PROJECT_KEY }}
 
             -   name: Commit the updated package(-lock).json
                 uses: stefanzweifel/git-auto-commit-action@v5
