@@ -1,5 +1,10 @@
 # Change Log
 
+## 3.0.18 (2024-04-09)
+
+- Updated Crawlee version to v3.8.0.
+- Updated to use new request queue in scraper
+
 ## 3.0.14 (2023-08-22)
 
 - Updated Crawlee version to v3.5.2.
