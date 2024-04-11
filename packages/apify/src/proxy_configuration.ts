@@ -62,7 +62,7 @@ export interface ProxyConfigurationOptions extends CoreProxyConfigurationOptions
      * Multiple different ProxyConfigurationOptions stratified into tiers. Crawlee crawlers will switch between those tiers
      * based on the blocked request statistics.
      */
-    tieredProxyConfig?: ProxyConfigurationOptions[];
+    tieredProxyConfig?: Omit<ProxyConfigurationOptions, keyof CoreProxyConfigurationOptions | 'tieredProxyConfig'>[];
 }
 
 /**
@@ -310,7 +310,10 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
         return this.composeDefaultUrl(sessionId);
     }
 
-    protected _generateTieredProxyUrls(tieredProxyConfig: ProxyConfigurationOptions[], globalOptions: ProxyConfigurationOptions) {
+    protected _generateTieredProxyUrls(
+        tieredProxyConfig: NonNullable<ProxyConfigurationOptions['tieredProxyConfig']>,
+        globalOptions: ProxyConfigurationOptions,
+    ) {
         return tieredProxyConfig
             .map(
                 (config) => [
