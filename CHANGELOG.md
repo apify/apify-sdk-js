@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [3.2.0](https://github.com/apify/apify-sdk-js/compare/apify@3.1.16...apify@3.2.0) (2024-04-11)
+
+
+### Features
+
+* support for proxy tiers ([#290](https://github.com/apify/apify-sdk-js/issues/290)) ([fff3a66](https://github.com/apify/apify-sdk-js/commit/fff3a66d3a0fe5080121cc083e27f59db3d979b5))
+
+
+
+
+
 ## [3.1.16](https://github.com/apify/apify-sdk-js/compare/apify@3.1.15...apify@3.1.16) (2024-02-23)
 
 **Note:** Version bump only for package apify
