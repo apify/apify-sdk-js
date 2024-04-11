@@ -1,6 +1,7 @@
 import { APIFY_ENV_VARS, LOCAL_APIFY_ENV_VARS } from '@apify/consts';
 import { Actor, ProxyConfiguration } from 'apify';
 import { UserClient } from 'apify-client';
+import { Request } from 'crawlee';
 
 const groups = ['GROUP1', 'GROUP2'];
 const hostname = LOCAL_APIFY_ENV_VARS[APIFY_ENV_VARS.PROXY_HOSTNAME];
@@ -72,8 +73,9 @@ describe('ProxyConfiguration', () => {
             password,
             hostname,
             port,
+            username: 'groups-GROUP1+GROUP2,session-538909250932,country-CZ',
         };
-        expect(await proxyConfiguration.newProxyInfo(sessionId)).toStrictEqual(proxyInfo);
+        expect(await proxyConfiguration.newProxyInfo(sessionId)).toEqual(proxyInfo);
     });
 
     test('actor UI input schema should work', () => {
@@ -331,6 +333,63 @@ describe('ProxyConfiguration', () => {
             }
         });
     });
+
+    describe('With tieredProxyUrls', () => {
+        test('proxy configuration accepts the tiered urls (Crawlee style)', async () => {
+            const proxyConfiguration = new ProxyConfiguration({
+                tieredProxyUrls: [
+                    ['http://proxy.com:1111'],
+                    ['http://proxy.com:2222'],
+                    ['http://proxy.com:3333'],
+                    ['http://proxy.com:4444'],
+                ],
+            });
+
+            // through newUrl()
+            expect(await proxyConfiguration.newUrl(
+                'abc',
+                { request: new Request({ url: 'http://example.com' }) as any },
+            )).toEqual('http://proxy.com:1111');
+
+            // through newProxyInfo()
+            expect((await proxyConfiguration.newProxyInfo(
+                'abc',
+                { request: new Request({ url: 'http://example.com' }) as any },
+            )).url).toEqual('http://proxy.com:1111');
+        });
+
+        test('shorthand tieredProxyConfig gets correctly expanded', async () => {
+            const proxyConfiguration = new ProxyConfiguration({
+                password: 'password',
+                countryCode: 'DE',
+                tieredProxyConfig: [
+                    {
+                        groups: ['GROUP1'],
+                        countryCode: 'CZ',
+                    },
+                    {
+                        groups: ['GROUP2'],
+                        countryCode: 'US',
+                    },
+                    {
+                        groups: ['GROUP3', 'GROUP4'],
+                    },
+                    {
+                        groups: ['GROUP3', 'GROUP4'],
+                        countryCode: undefined,
+                    },
+                ],
+            });
+
+            // eslint-disable-next-line dot-notation
+            expect(proxyConfiguration['tieredProxyUrls']).toEqual([
+                ['http://groups-GROUP1,country-CZ:password@proxy.apify.com:8000'],
+                ['http://groups-GROUP2,country-US:password@proxy.apify.com:8000'],
+                ['http://groups-GROUP3+GROUP4,country-DE:password@proxy.apify.com:8000'],
+                ['http://groups-GROUP3+GROUP4:password@proxy.apify.com:8000'],
+            ]);
+        });
+    });
 });
 
 describe('Actor.createProxyConfiguration()', () => {
@@ -482,5 +541,62 @@ describe('Actor.createProxyConfiguration()', () => {
         });
 
         gotScrapingSpy.mockRestore();
+    });
+
+    describe('With tieredProxyUrls', () => {
+        test('proxy configuration accepts the tiered urls (Crawlee style)', async () => {
+            const proxyConfiguration = await Actor.createProxyConfiguration({
+                tieredProxyUrls: [
+                    ['http://proxy.com:1111'],
+                    ['http://proxy.com:2222'],
+                    ['http://proxy.com:3333'],
+                    ['http://proxy.com:4444'],
+                ],
+            });
+
+            // through newUrl()
+            expect(await proxyConfiguration.newUrl(
+                'abc',
+                { request: new Request({ url: 'http://example.com' }) as any },
+            )).toEqual('http://proxy.com:1111');
+
+            // through newProxyInfo()
+            expect((await proxyConfiguration.newProxyInfo(
+                'abc',
+                { request: new Request({ url: 'http://example.com' }) as any },
+            )).url).toEqual('http://proxy.com:1111');
+        });
+
+        test('shorthand tieredProxyConfig gets correctly expanded', async () => {
+            const proxyConfiguration = await Actor.createProxyConfiguration({
+                password: 'password',
+                countryCode: 'DE',
+                tieredProxyConfig: [
+                    {
+                        groups: ['GROUP1'],
+                        countryCode: 'CZ',
+                    },
+                    {
+                        groups: ['GROUP2'],
+                        countryCode: 'US',
+                    },
+                    {
+                        groups: ['GROUP3', 'GROUP4'],
+                    },
+                    {
+                        groups: ['GROUP3', 'GROUP4'],
+                        countryCode: undefined,
+                    },
+                ],
+            });
+
+            // eslint-disable-next-line dot-notation
+            expect(proxyConfiguration['tieredProxyUrls']).toEqual([
+                ['http://groups-GROUP1,country-CZ:password@proxy.apify.com:8000'],
+                ['http://groups-GROUP2,country-US:password@proxy.apify.com:8000'],
+                ['http://groups-GROUP3+GROUP4,country-DE:password@proxy.apify.com:8000'],
+                ['http://groups-GROUP3+GROUP4:password@proxy.apify.com:8000'],
+            ]);
+        });
     });
 });

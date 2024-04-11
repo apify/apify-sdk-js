@@ -1,4 +1,5 @@
 import { APIFY_PROXY_VALUE_REGEX, APIFY_ENV_VARS } from '@apify/consts';
+import { cryptoRandomObjectId } from '@apify/utilities';
 import type {
     ProxyConfigurationOptions as CoreProxyConfigurationOptions,
     ProxyInfo as CoreProxyInfo,
@@ -56,6 +57,12 @@ export interface ProxyConfigurationOptions extends CoreProxyConfigurationOptions
      * configurate the proxy by UI input schema. You should use the `countryCode` option in your crawler code.
      */
     apifyProxyCountry?: string;
+
+    /**
+     * Multiple different ProxyConfigurationOptions stratified into tiers. Crawlee crawlers will switch between those tiers
+     * based on the blocked request statistics.
+     */
+    tieredProxyConfig?: Omit<ProxyConfigurationOptions, keyof CoreProxyConfigurationOptions | 'tieredProxyConfig'>[];
 }
 
 /**
@@ -170,6 +177,8 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
             countryCode: ow.optional.string.matches(COUNTRY_CODE_REGEX),
             apifyProxyCountry: ow.optional.string.matches(COUNTRY_CODE_REGEX),
             password: ow.optional.string,
+            tieredProxyUrls: ow.optional.array.ofType(ow.array.ofType(ow.string)),
+            tieredProxyConfig: ow.optional.array.ofType(ow.object),
         }));
 
         const {
@@ -178,7 +187,15 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
             countryCode,
             apifyProxyCountry,
             password = config.get('proxyPassword'),
+            tieredProxyConfig,
+            tieredProxyUrls,
         } = options;
+
+        this.tieredProxyUrls ??= tieredProxyUrls;
+
+        if (tieredProxyConfig) {
+            this.tieredProxyUrls = this._generateTieredProxyUrls(tieredProxyConfig, options);
+        }
 
         const groupsToUse = groups.length ? groups : apifyProxyGroups;
         const countryCodeToUse = countryCode || apifyProxyCountry;
@@ -240,16 +257,18 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
      *  The identifier must not be longer than 50 characters and include only the following: `0-9`, `a-z`, `A-Z`, `"."`, `"_"` and `"~"`.
      * @return Represents information about used proxy and its configuration.
      */
-    override async newProxyInfo(sessionId?: string | number): Promise<ProxyInfo> {
+    override async newProxyInfo(sessionId?: string | number, options?: Parameters<CoreProxyConfiguration['newProxyInfo']>[1]): Promise<ProxyInfo | undefined> {
         if (typeof sessionId === 'number') sessionId = `${sessionId}`;
         ow(sessionId, ow.optional.string.maxLength(MAX_SESSION_ID_LENGTH).matches(APIFY_PROXY_VALUE_REGEX));
-        const url = await this.newUrl(sessionId);
 
-        const { groups, countryCode, password, port, hostname } = (this.usesApifyProxy ? this : new URL(url)) as ProxyConfiguration;
+        const proxyInfo = await super.newProxyInfo(sessionId, options);
+        if (!proxyInfo) return proxyInfo;
+
+        const { groups, countryCode, password, port, hostname } = (this.usesApifyProxy ? this : new URL(proxyInfo.url)) as ProxyConfiguration;
 
         return {
+            ...proxyInfo,
             sessionId,
-            url,
             groups,
             countryCode,
             password: password ?? '',
@@ -271,19 +290,40 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
      * @return A string with a proxy URL, including authentication credentials and port number.
      *  For example, `http://bob:password123@proxy.example.com:8000`
      */
-    override async newUrl(sessionId?: string | number): Promise<string> {
+    override async newUrl(sessionId?: string | number, options?: Parameters<CoreProxyConfiguration['newUrl']>[1]): Promise<string | undefined> {
         if (typeof sessionId === 'number') sessionId = `${sessionId}`;
         ow(sessionId, ow.optional.string.maxLength(MAX_SESSION_ID_LENGTH).matches(APIFY_PROXY_VALUE_REGEX));
         if (this.newUrlFunction) {
-            return this._callNewUrlFunction(sessionId)!;
+            return (await this._callNewUrlFunction(sessionId, { request: options?.request }) ?? undefined);
         }
         if (this.proxyUrls) {
             return this._handleCustomUrl(sessionId);
         }
-        const username = this._getUsername(sessionId);
-        const { password, hostname, port } = this;
 
-        return `http://${username}:${password}@${hostname}:${port}`;
+        if (this.tieredProxyUrls) {
+            return this._handleTieredUrl(
+                sessionId ?? cryptoRandomObjectId(6),
+                options,
+            ).proxyUrl;
+        }
+
+        return this.composeDefaultUrl(sessionId);
+    }
+
+    protected _generateTieredProxyUrls(
+        tieredProxyConfig: NonNullable<ProxyConfigurationOptions['tieredProxyConfig']>,
+        globalOptions: ProxyConfigurationOptions,
+    ) {
+        return tieredProxyConfig
+            .map(
+                (config) => [
+                    new ProxyConfiguration({
+                        ...globalOptions,
+                        ...config,
+                        tieredProxyConfig: undefined,
+                    }).composeDefaultUrl(),
+                ],
+            );
     }
 
     /**
@@ -309,6 +349,13 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
         if (parts.length === 0) username = 'auto';
 
         return username;
+    }
+
+    protected composeDefaultUrl(sessionId?: string): string {
+        const username = this._getUsername(sessionId);
+        const { password, hostname, port } = this;
+
+        return `http://${username}:${password}@${hostname}:${port}`;
     }
 
     /**
