@@ -224,6 +224,11 @@ export class CrawlerSetup implements CrawlerSetupOptions {
                         await devToolsServer.start();
                     },
                 ],
+                fingerprintOptions: {
+                    fingerprintGeneratorOptions: {
+                        slim: !this.input.advancedFingerprinting,
+                    } as any,
+                },
             },
             launchContext: {
                 useChrome: this.input.useChrome,

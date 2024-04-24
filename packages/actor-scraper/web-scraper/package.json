@@ -12,6 +12,7 @@
         "content-type": "^1.0.5",
         "crawlee": "^3.8.2",
         "devtools-server": "^0.0.2",
+        "fingerprint-injector": "^2.1.50",
         "idcac-playwright": "^0.1.2",
         "puppeteer": "*"
     },

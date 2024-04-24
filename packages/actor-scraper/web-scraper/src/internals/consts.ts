@@ -35,6 +35,7 @@ export interface Input {
     closeCookieModals: boolean;
     downloadMedia: boolean;
     downloadCss: boolean;
+    advancedFingerprinting: boolean;
     maxRequestRetries: number;
     maxPagesPerCrawl: number;
     maxResultsPerCrawl: number;

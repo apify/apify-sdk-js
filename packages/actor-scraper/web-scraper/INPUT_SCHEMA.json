@@ -162,6 +162,12 @@
             "description": "If enabled, the scraper will download CSS files with stylesheets, as usual. Disabling this option may speed up the scrape, but certain websites could stop working correctly, and the live view will not look as cool.",
             "default": true
         },
+        "advancedFingerprinting": {
+            "title": "Advanced fingerprinting",
+            "type": "boolean",
+            "description": "If enabled, the scraper will use advanced fingerprinting techniques to make it harder for websites to detect that you're using a scraper. This helps bypass certain anti-scraping protections, but might cause performance issues in certain cases.",
+            "default": true
+        },
         "maxRequestRetries": {
             "title": "Max page retries",
             "type": "integer",
