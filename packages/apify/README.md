@@ -5,7 +5,7 @@
 [![Chat on discord](https://img.shields.io/discord/801163717915574323?label=discord)](https://discord.gg/jyEM2PRvMU)
 [![Build Status](https://github.com/apify/apify-sdk-js/actions/workflows/test-and-release.yaml/badge.svg?branch=master)](https://github.com/apify/apify-sdk-js/actions/workflows/test-and-release.yaml)
 
-Apify SDK provides the tools required to run your own Apify actors. The crawlers and scraping related tools, previously included in Apify SDK (v2), have been split into a brand-new module - [`crawlee`](https://npmjs.org/crawlee), while keeping the Apify specific parts in this module.
+Apify SDK provides the tools required to run your own Apify Actors. The crawlers and scraping related tools, previously included in Apify SDK (v2), have been split into a brand-new module - [`crawlee`](https://npmjs.org/crawlee), while keeping the Apify specific parts in this module.
 
 > Would you like to work with us on Crawlee, Apify SDK or similar projects? We are hiring [Node.js engineers](https://apify.com/jobs#senior-node.js-engineer).
 
@@ -17,7 +17,7 @@ A lot of things have changed since version 2 of the Apify SDK, including the spl
 
 This short tutorial will set you up to start using Apify SDK in a minute or two.
 If you want to learn more, proceed to the [Apify Platform](https://docs.apify.com/sdk/js/docs/guides/apify-platform)
-guide that will take you step by step through running your actor on Apify's platform.
+guide that will take you step by step through running your Actor on Apify's platform.
 
 Apify SDK requires [Node.js](https://nodejs.org/en/) 16 or later. Add Apify SDK to any Node.js project by running:
 
@@ -25,9 +25,9 @@ Apify SDK requires [Node.js](https://nodejs.org/en/) 16 or later. Add Apify SDK 
 npm install apify crawlee playwright
 ```
 
-> For this example, we'll also install the [`crawlee`](https://npmjs.org/crawlee) module, as it now provides the crawlers that were previously exported by Apify SDK. If you don't plan to use crawlers in your actors, then you don't need to install it. Keep in mind that neither `playwright` nor `puppeteer` are bundled with `crawlee` in order to reduce install size and allow greater flexibility. That's why we manually install it with NPM. You can choose one, both, or neither.
+> For this example, we'll also install the [`crawlee`](https://npmjs.org/crawlee) module, as it now provides the crawlers that were previously exported by Apify SDK. If you don't plan to use crawlers in your Actors, then you don't need to install it. Keep in mind that neither `playwright` nor `puppeteer` are bundled with `crawlee` in order to reduce install size and allow greater flexibility. That's why we manually install it with NPM. You can choose one, both, or neither.
 
-There are two ways to initialize your actor: by using the `Actor.main()` function you're probably used to, or by calling `Actor.init()` and `Actor.exit()` manually. We prefer explicitly calling `init` and `exit`.
+There are two ways to initialize your Actor: by using the `Actor.main()` function you're probably used to, or by calling `Actor.init()` and `Actor.exit()` manually. We prefer explicitly calling `init` and `exit`.
 
 ### Using `Actor.init()` and `Actor.exit()`
 

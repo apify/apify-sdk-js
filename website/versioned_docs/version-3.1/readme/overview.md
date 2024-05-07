@@ -5,13 +5,13 @@
 The Apify SDK is available as the [`apify`](https://www.npmjs.com/package/apify) NPM package and it provides the following tools:
 
 - [`Actor`](https://sdk.apify.com/api/apify/class/Actor) - Serves as an alternative approach to the static helpers exported from the package.
-This class can be used to control the current actor run and to interact with the actor's environment. 
+This class can be used to control the current Actor run and to interact with the Actor's environment.
 
-- [`ApifyClient`](https://sdk.apify.com/api/apify/class/ApifyClient) - Allows user to interact with the Apify platform from code, control and schedule actors on the platform and access the result data stores.
+- [`ApifyClient`](https://sdk.apify.com/api/apify/class/ApifyClient) - Allows user to interact with the Apify platform from code, control and schedule Actors on the platform and access the result data stores.
 
-- [`Configuration`](https://sdk.apify.com/api/apify/class/Configuration) - Helper class encapsulating the configuration of the current actor run.
+- [`Configuration`](https://sdk.apify.com/api/apify/class/Configuration) - Helper class encapsulating the configuration of the current Actor run.
 
-- [`PlatformEventManager`](https://sdk.apify.com/api/apify/class/PlatformEventManager) - Event emitter for the platform and SDK events. Can be used to track actor run performance or serverless container migration.
+- [`PlatformEventManager`](https://sdk.apify.com/api/apify/class/PlatformEventManager) - Event emitter for the platform and SDK events. Can be used to track Actor run performance or serverless container migration.
 
 - [`ProxyConfiguration`](https://sdk.apify.com/api/apify/class/ProxyConfiguration) - Configures connection to a proxy server with the provided options. Setting proxy configuration in your crawlers automatically configures them to use the selected proxies for all connections. The proxy servers are managed by Apify Proxy.
 

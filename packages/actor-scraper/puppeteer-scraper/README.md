@@ -1,15 +1,15 @@
-Puppeteer Scraper is one of the most powerful scraper tools in our arsenal (aside from developing your own actors).
+Puppeteer Scraper is one of the most powerful scraper tools in our arsenal (aside from developing your own Actors).
 
 It uses the Puppeteer library to programmatically control a headless Chrome browser, and it can make it do almost anything. If using [Web Scraper](https://apify.com/apify/web-scraper) doesn't cut it for your use case, then Puppeteer Scraper is what you need.
 
-[Puppeteer](https://github.com/puppeteer/puppeteer) is a Node.js library, so knowledge of Node.js and its paradigms is expected when working with this actor.
+[Puppeteer](https://github.com/puppeteer/puppeteer) is a Node.js library, so knowledge of Node.js and its paradigms is expected when working with this Actor.
 
 If you need either a faster, or a simpler tool, check out [Cheerio Scraper](https://apify.com/apify/cheerio-scraper) for optimization and speed, or [Web Scraper](https://apify.com/apify/web-scraper) for simplicity.
 
-If you are having any difficulty deciding which of the four main Apify "Scraper" actors to use, check out the [Web Scraper vs Puppeteer Scraper](https://help.apify.com/en/articles/3195646-when-to-use-puppeteer-scraper), [Cheerio Scraper](https://blog.apify.com/how-to-super-efficiently-scrape-any-website-for-beginners/) and [Playwright Scraper](https://blog.apify.com/how-to-scrape-the-web-with-playwright-ece1ced75f73/) articles on the Apify blog.
+If you are having any difficulty deciding which of the four main Apify "Scraper" Actors to use, check out the [Web Scraper vs Puppeteer Scraper](https://help.apify.com/en/articles/3195646-when-to-use-puppeteer-scraper), [Cheerio Scraper](https://blog.apify.com/how-to-super-efficiently-scrape-any-website-for-beginners/) and [Playwright Scraper](https://blog.apify.com/how-to-scrape-the-web-with-playwright-ece1ced75f73/) articles on the Apify blog.
 
 ## Cost of usage
-You can find the average usage cost for this actor on the [pricing page](https://apify.com/pricing) under the `Which plan do I need?` section. Cheerio Scraper is equivalent to `Simple HTML pages` while Web Scraper, Puppeteer Scraper and Playwright Scraper are equivalent to `Full web pages`. These cost estimates are based on averages and might be lower or higher depending on how heavy the pages you scrape are.
+You can find the average usage cost for this Actor on the [pricing page](https://apify.com/pricing) under the `Which plan do I need?` section. Cheerio Scraper is equivalent to `Simple HTML pages` while Web Scraper, Puppeteer Scraper and Playwright Scraper are equivalent to `Full web pages`. These cost estimates are based on averages and might be lower or higher depending on how heavy the pages you scrape are.
 
 ## Usage
 
@@ -33,13 +33,13 @@ Puppeteer Scraper has a number of other configuration settings to improve perfor
 
 ## Limitations
 
-The actor employs a fully-featured Chromium web browser, which is resource-intensive and might be an overkill for websites that do not render the content dynamically using client-side JavaScript. To achieve better performance for scraping such sites, you might prefer to use [**Cheerio Scraper**](https://apify.com/apify/cheerio-scraper), which downloads and processes raw HTML pages without the overheads of a web browser.
+The Actor employs a fully-featured Chromium web browser, which is resource-intensive and might be an overkill for websites that do not render the content dynamically using client-side JavaScript. To achieve better performance for scraping such sites, you might prefer to use [**Cheerio Scraper**](https://apify.com/apify/cheerio-scraper), which downloads and processes raw HTML pages without the overheads of a web browser.
 
 For non-seasoned developers, Puppeteer Scraper may be too complex. For a simpler setup process check out [Web Scraper](https://apify.com/apify/web-scraper), which also uses Puppeteer under the hood.
 
 ## Input Configuration
 
-On input, the Puppeteer Scraper actor accepts a number of configuration settings. These can be entered either manually in the user interface in [Apify Console](https://console.apify.com), or programmatically in a JSON object using the [Apify API](https://docs.apify.com/api/v2#/reference/actors/run-collection/run-actor). For a complete list of input fields and their types, please see the outline of the actor's [Input-schema](https://apify.com/apify/puppeteer-scraper/input-schema).
+On input, the Puppeteer Scraper Actor accepts a number of configuration settings. These can be entered either manually in the user interface in [Apify Console](https://console.apify.com), or programmatically in a JSON object using the [Apify API](https://docs.apify.com/api/v2#/reference/actors/run-collection/run-actor). For a complete list of input fields and their types, please see the outline of the Actor's [Input-schema](https://apify.com/apify/puppeteer-scraper/input-schema).
 
 ### Start URLs
 
@@ -162,7 +162,7 @@ const context = {
 | ------ | --------- | ------------ |
 | Object | -         | Input object |
 
-The actor's input as it was received from the UI. Each `pageFunction` invocation gets a fresh copy. Note that the actor's input cannot be modified by changing the values in this object.
+The Actor's input as it was received from the UI. Each `pageFunction` invocation gets a fresh copy. Note that the Actor's input cannot be modified by changing the values in this object.
 
 #### **`env`**
 
@@ -462,7 +462,7 @@ http://bob:password@proxy1.example.com:8000
 http://bobby:password123@proxy2.example.com:3001
 ```
 
-The proxy configuration can be set programmatically when calling the actor using the API by setting the `proxyConfiguration` field. It accepts a JSON object with the following structure:
+The proxy configuration can be set programmatically when calling the Actor using the API by setting the `proxyConfiguration` field. It accepts a JSON object with the following structure:
 
 ```JavaScript
 {
@@ -517,7 +517,7 @@ When set to true, debug messages will be included in the log. Use `context.log.d
 
 _boolean_
 
-When set to true, console messages from the browser will be included in the actor's log. This may result in the log being flooded by error messages, warnings and other messages of little value (especially with a high concurrency).
+When set to true, console messages from the browser will be included in the Actor's log. This may result in the log being flooded by error messages, warnings and other messages of little value (especially with a high concurrency).
 
 ### Custom data
 
@@ -535,7 +535,7 @@ Leave the storage unnamed if you only want the data within it to be persisted on
 
 ## Results
 
-The scraping results returned by **[Page function](#page-function)** are stored in the default dataset associated with the actor run, from which you can export them to formats such as JSON, XML, CSV or Excel.
+The scraping results returned by **[Page function](#page-function)** are stored in the default dataset associated with the Actor run, from which you can export them to formats such as JSON, XML, CSV or Excel.
 For each object returned by the **[Page function](#page-function)**, Puppeteer Scraper pushes one record into the dataset, and extends it with metadata such as the URL of the web page where the results come from.
 
 For example, if you were scraping the HTML `<title>` of [Apify](https://apify.com) and returning the following object from the `pageFunction`:
@@ -570,7 +570,7 @@ To download the results, call the [Get dataset items](https://docs.apify.com/api
 https://api.apify.com/v2/datasets/[DATASET_ID]/items?format=json
 ```
 
-`[DATASET_ID]` is the ID of the actor's run dataset, in which you can find the Run object returned when starting the actor. Alternatively, you'll find the download links for the results in Apify Console.
+`[DATASET_ID]` is the ID of the Actor's run dataset, in which you can find the Run object returned when starting the Actor. Alternatively, you'll find the download links for the results in Apify Console.
 
 To skip the `#error` and `#debug` metadata fields from the results and not include empty result records, simply add the `clean=true` query parameter to the API URL, or select the **Clean items** option when downloading the dataset in Apify Console.
 
@@ -582,9 +582,9 @@ For more information, see [Datasets](https://apify.com/docs/storage#dataset) in 
 That's it! You might also want to check out these other resources:
 
 -   [Actors documentation](https://apify.com/docs/actor) - Documentation for the Apify Actors cloud computing platform.
--   [Apify SDK documentation](https://sdk.apify.com) - Learn more about the tools required to run your own Apify actors.
+-   [Apify SDK documentation](https://sdk.apify.com) - Learn more about the tools required to run your own Apify Actors.
 -   [Crawlee documentation](https://crawlee.dev) - Learn how to build a new web scraping project from scratch using the world's most popular web crawling and scraping library for Node.js.
 -   [Playwright Scraper](https://apify.com/apify/playwright-scraper) -
-    A similar web scraping actor to Puppeteer Scraper, but using the [Playwright](https://github.com/microsoft/playwright) library instead.
--   [Web Scraper](https://apify.com/apify/web-scraper) - A similar web scraping actor to Playwright Scraper, but is simpler to use and only runs in the context of the browser. Uses the [Puppeteer](https://github.com/puppeteer/puppeteer) library.
--   [Cheerio Scraper](https://apify.com/apify/cheerio-scraper) - Another web scraping actor that downloads and processes pages in raw HTML for much higher performance.
+    A similar web scraping Actor to Puppeteer Scraper, but using the [Playwright](https://github.com/microsoft/playwright) library instead.
+-   [Web Scraper](https://apify.com/apify/web-scraper) - A similar web scraping Actor to Playwright Scraper, but is simpler to use and only runs in the context of the browser. Uses the [Puppeteer](https://github.com/puppeteer/puppeteer) library.
+-   [Cheerio Scraper](https://apify.com/apify/cheerio-scraper) - Another web scraping Actor that downloads and processes pages in raw HTML for much higher performance.

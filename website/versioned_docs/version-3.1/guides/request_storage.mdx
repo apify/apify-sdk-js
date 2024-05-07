@@ -20,7 +20,7 @@ Typically, you will be developing the code on your local computer and thus set t
 
 The request queue is a storage of URLs to crawl. The queue is used for the deep crawling of websites, where you start with several URLs and then recursively follow links to other pages. The data structure supports both breadth-first and depth-first crawling orders.
 
-Each actor run is associated with a **default request queue**, which is created exclusively for the actor run. Typically, it is used to store URLs to crawl in the specific actor run. Its usage is optional.
+Each Actor run is associated with a **default request queue**, which is created exclusively for the Actor run. Typically, it is used to store URLs to crawl in the specific Actor run. Its usage is optional.
 
 In Apify SDK, the request queue is represented by the <ApiLink to="apify/class/RequestQueue">`RequestQueue`</ApiLink> class.
 
@@ -35,7 +35,7 @@ Note that `{QUEUE_ID}` is the name or ID of the request queue. The default queue
 The following code demonstrates basic operations of the request queue:
 
 ```javascript
-// Open the default request queue associated with the actor run
+// Open the default request queue associated with the Actor run
 const requestQueue = await RequestQueue.open();
 // Enqueue the initial request
 await requestQueue.addRequest({ url: 'https://example.com' });
@@ -58,7 +58,7 @@ To see more detailed example of how to use the request queue with a crawler, see
 
 The request list is not a storage per se - it represents the list of URLs to crawl that is stored in a run memory (or optionally in default [Key-Value Store](../guides/result-storage#key-value-store) associated with the run, if specified). The list is used for the crawling of a large number of URLs, when you know all the URLs which should be visited by the crawler and no URLs would be added during the run. The URLs can be provided either in code or parsed from a text file hosted on the web.
 
-Request list is created exclusively for the actor run and only if its usage is explicitly specified in the code. Its usage is optional.
+Request list is created exclusively for the Actor run and only if its usage is explicitly specified in the code. Its usage is optional.
 
 In Apify SDK, the request list is represented by the <CrawleeApiLink to="core/class/RequestList">`RequestList`</CrawleeApiLink> class.
 

@@ -1,7 +1,7 @@
 {
     "title": "Cheerio Scraper Input",
     "type": "object",
-    "description": "Cheerio Scraper loads <b>Start URLs</b> using raw HTTP requests, parses the HTML using the <a href='https://cheerio.js.org' target='_blank' rel='noopener noreferrer'>Cheerio</a> library and then executes <b>Page function</b> for each page to extract data from it. To follow links and scrape additional pages, set <b>Link selector</b> with <b>Pseudo-URLs</b> and/or <b>Glob patterns</b> to specify which links to follow. Alternatively, you can manually enqueue new links in the <b>Page function</b>. For details, see the actor's <a href='https://apify.com/apify/cheerio-scraper' target='_blank' rel='noopener'>README</a> or the <a href='https://docs.apify.com/academy/apify-scrapers/cheerio-scraper' target='_blank' rel='noopener'>Web scraping tutorial</a> in the Apify documentation.",
+    "description": "Cheerio Scraper loads <b>Start URLs</b> using raw HTTP requests, parses the HTML using the <a href='https://cheerio.js.org' target='_blank' rel='noopener noreferrer'>Cheerio</a> library and then executes <b>Page function</b> for each page to extract data from it. To follow links and scrape additional pages, set <b>Link selector</b> with <b>Pseudo-URLs</b> and/or <b>Glob patterns</b> to specify which links to follow. Alternatively, you can manually enqueue new links in the <b>Page function</b>. For details, see the Actor's <a href='https://apify.com/apify/cheerio-scraper' target='_blank' rel='noopener'>README</a> or the <a href='https://docs.apify.com/academy/apify-scrapers/cheerio-scraper' target='_blank' rel='noopener'>Web scraping tutorial</a> in the Apify documentation.",
     "schemaVersion": 1,
     "properties": {
         "startUrls": {
@@ -32,7 +32,7 @@
         "pseudoUrls": {
             "title": "Pseudo-URLs",
             "type": "array",
-            "description": "Specifies what kind of URLs found by the <b>Link selector</b> should be added to the request queue. A pseudo-URL is a URL with <b>regular expressions</b> enclosed in <code>[]</code> brackets, e.g. <code>http://www.example.com/[.*]</code>. <br><br>If <b>Pseudo-URLs</b> are omitted, the actor enqueues all links matched by the <b>Link selector</b>.<br><br>For details, see <a href='https://apify.com/apify/cheerio-scraper#pseudo-urls' target='_blank' rel='noopener'>Pseudo-URLs</a> in README.",
+            "description": "Specifies what kind of URLs found by the <b>Link selector</b> should be added to the request queue. A pseudo-URL is a URL with <b>regular expressions</b> enclosed in <code>[]</code> brackets, e.g. <code>http://www.example.com/[.*]</code>. <br><br>If <b>Pseudo-URLs</b> are omitted, the Actor enqueues all links matched by the <b>Link selector</b>.<br><br>For details, see <a href='https://apify.com/apify/cheerio-scraper#pseudo-urls' target='_blank' rel='noopener'>Pseudo-URLs</a> in README.",
             "editor": "pseudoUrls",
             "default": [],
             "prefill": []
@@ -58,7 +58,7 @@
             "title": "Page function",
             "type": "string",
             "description": "A JavaScript function that is executed for every page loaded server-side in Node.js 12. Use it to scrape data from the page, perform actions or add new URLs to the request queue.<br><br>For details, see <a href='https://apify.com/apify/cheerio-scraper#page-function' target='_blank' rel='noopener'>Page function</a> in README.",
-            "prefill": "async function pageFunction(context) {\n    const { $, request, log } = context;\n\n    // The \"$\" property contains the Cheerio object which is useful\n    // for querying DOM elements and extracting data from them.\n    const pageTitle = $('title').first().text();\n\n    // The \"request\" property contains various information about the web page loaded. \n    const url = request.url;\n    \n    // Use \"log\" object to print information to actor log.\n    log.info('Page scraped', { url, pageTitle });\n\n    // Return an object with the data extracted from the page.\n    // It will be stored to the resulting dataset.\n    return {\n        url,\n        pageTitle\n    };\n}",
+            "prefill": "async function pageFunction(context) {\n    const { $, request, log } = context;\n\n    // The \"$\" property contains the Cheerio object which is useful\n    // for querying DOM elements and extracting data from them.\n    const pageTitle = $('title').first().text();\n\n    // The \"request\" property contains various information about the web page loaded. \n    const url = request.url;\n    \n    // Use \"log\" object to print information to Actor log.\n    log.info('Page scraped', { url, pageTitle });\n\n    // Return an object with the data extracted from the page.\n    // It will be stored to the resulting dataset.\n    return {\n        url,\n        pageTitle\n    };\n}",
             "editor": "javascript"
         },
         "proxyConfiguration": {
@@ -90,7 +90,7 @@
         "sessionPoolName": {
             "title": "Session pool name",
             "type": "string",
-            "description": "<b>Use only english alphanumeric characters dashes and underscores.</b> A session is a representation of a user. It has it's own IP and cookies which are then used together to emulate a real user. Usage of the sessions is controlled by the Proxy rotation option. By providing a session pool name, you enable sharing of those sessions across multiple actor runs. This is very useful when you need specific cookies for accessing the websites or when a lot of your proxies are already blocked. Instead of trying randomly, a list of working sessions will be saved and a new actor run can reuse those sessions. Note that the IP lock on sessions expires after 24 hours, unless the session is used again in that window.",
+            "description": "<b>Use only english alphanumeric characters dashes and underscores.</b> A session is a representation of a user. It has it's own IP and cookies which are then used together to emulate a real user. Usage of the sessions is controlled by the Proxy rotation option. By providing a session pool name, you enable sharing of those sessions across multiple Actor runs. This is very useful when you need specific cookies for accessing the websites or when a lot of your proxies are already blocked. Instead of trying randomly, a list of working sessions will be saved and a new Actor run can reuse those sessions. Note that the IP lock on sessions expires after 24 hours, unless the session is used again in that window.",
             "editor": "textfield",
             "minLength": 3,
             "maxLength": 200,
@@ -203,7 +203,7 @@
         "debugLog": {
             "title": "Enable debug log",
             "type": "boolean",
-            "description": "If enabled, the actor log will include debug messages. Beware that this can be quite verbose. Use <code>context.log.debug('message')</code> to log your own debug messages from the <b>Page function</b>.",
+            "description": "If enabled, the Actor log will include debug messages. Beware that this can be quite verbose. Use <code>context.log.debug('message')</code> to log your own debug messages from the <b>Page function</b>.",
             "default": false,
             "groupCaption": "Logging"
         },

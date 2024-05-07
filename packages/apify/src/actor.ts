@@ -71,12 +71,12 @@ export class Actor<Data extends Dictionary = Dictionary> {
     readonly eventManager: EventManager;
 
     /**
-     * Whether the actor instance was initialized. This is set by calling {@apilink Actor.init}.
+     * Whether the Actor instance was initialized. This is set by calling {@apilink Actor.init}.
      */
     initialized = false;
 
     /**
-     * Set if the actor called a method that requires the instance to be initialized, but did not do so.
+     * Set if the Actor called a method that requires the instance to be initialized, but did not do so.
      * A call to `init` after this warning is emitted is considered  an invalid state and will throw an error.
      */
     private warnedAboutMissingInitCall = false;
@@ -89,11 +89,11 @@ export class Actor<Data extends Dictionary = Dictionary> {
     }
 
     /**
-     * Runs the main user function that performs the job of the actor
+     * Runs the main user function that performs the job of the Actor
      * and terminates the process when the user function finishes.
      *
      * **The `Actor.main()` function is optional** and is provided merely for your convenience.
-     * It is mainly useful when you're running your code as an actor on the [Apify platform](https://apify.com/actors).
+     * It is mainly useful when you're running your code as an Actor on the [Apify platform](https://apify.com/actors).
      * However, if you want to use Apify SDK tools directly inside your existing projects, e.g.
      * running in an [Express](https://expressjs.com/) server, on
      * [Google Cloud functions](https://cloud.google.com/functions)
@@ -120,7 +120,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * ```javascript
      * await Actor.main(() => {
      *   // My synchronous function that returns immediately
-     *   console.log('Hello world from actor!');
+     *   console.log('Hello world from Actor!');
      * });
      * ```
      *
@@ -297,13 +297,13 @@ export class Actor<Data extends Dictionary = Dictionary> {
     }
 
     /**
-     * Runs an actor on the Apify platform using the current user account (determined by the `APIFY_TOKEN` environment variable).
+     * Runs an Actor on the Apify platform using the current user account (determined by the `APIFY_TOKEN` environment variable).
      *
-     * The result of the function is an {@apilink ActorRun} object that contains details about the actor run.
+     * The result of the function is an {@apilink ActorRun} object that contains details about the Actor run.
      *
-     * If you want to run an actor task rather than an actor, please use the {@apilink Actor.callTask} function instead.
+     * If you want to run an Actor task rather than an Actor, please use the {@apilink Actor.callTask} function instead.
      *
-     * For more information about actors, read the [documentation](https://docs.apify.com/actor).
+     * For more information about Actors, read the [documentation](https://docs.apify.com/actor).
      *
      * **Example usage:**
      *
@@ -312,9 +312,9 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * ```
      *
      * @param actorId
-     *  Allowed formats are `username/actor-name`, `userId/actor-name` or actor ID.
+     *  Allowed formats are `username/actor-name`, `userId/actor-name` or Actor ID.
      * @param [input]
-     *  Input for the actor. If it is an object, it will be stringified to
+     *  Input for the Actor. If it is an object, it will be stringified to
      *  JSON and its content type set to `application/json; charset=utf-8`.
      *  Otherwise the `options.contentType` parameter must be provided.
      * @param [options]
@@ -328,12 +328,12 @@ export class Actor<Data extends Dictionary = Dictionary> {
     }
 
     /**
-     * Runs an actor on the Apify platform using the current user account (determined by the `APIFY_TOKEN` environment variable),
+     * Runs an Actor on the Apify platform using the current user account (determined by the `APIFY_TOKEN` environment variable),
      * unlike `Actor.call`, this method just starts the run without waiting for finish.
      *
-     * The result of the function is an {@apilink ActorRun} object that contains details about the actor run.
+     * The result of the function is an {@apilink ActorRun} object that contains details about the Actor run.
      *
-     * For more information about actors, read the
+     * For more information about Actors, read the
      * [documentation](https://docs.apify.com/actor).
      *
      * **Example usage:**
@@ -343,9 +343,9 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * ```
      *
      * @param actorId
-     *  Allowed formats are `username/actor-name`, `userId/actor-name` or actor ID.
+     *  Allowed formats are `username/actor-name`, `userId/actor-name` or Actor ID.
      * @param [input]
-     *  Input for the actor. If it is an object, it will be stringified to
+     *  Input for the Actor. If it is an object, it will be stringified to
      *  JSON and its content type set to `application/json; charset=utf-8`.
      *  Otherwise the `options.contentType` parameter must be provided.
      * @param [options]
@@ -359,11 +359,11 @@ export class Actor<Data extends Dictionary = Dictionary> {
     }
 
     /**
-     * Aborts given actor run on the Apify platform using the current user account (determined by the `APIFY_TOKEN` environment variable).
+     * Aborts given Actor run on the Apify platform using the current user account (determined by the `APIFY_TOKEN` environment variable).
      *
-     * The result of the function is an {@apilink ActorRun} object that contains details about the actor run.
+     * The result of the function is an {@apilink ActorRun} object that contains details about the Actor run.
      *
-     * For more information about actors, read the
+     * For more information about Actors, read the
      * [documentation](https://docs.apify.com/actor).
      *
      * **Example usage:**
@@ -387,13 +387,13 @@ export class Actor<Data extends Dictionary = Dictionary> {
     /**
      * Runs an actor task on the Apify platform using the current user account (determined by the `APIFY_TOKEN` environment variable).
      *
-     * The result of the function is an {@apilink ActorRun} object that contains details about the actor run.
+     * The result of the function is an {@apilink ActorRun} object that contains details about the Actor run.
      *
-     * Note that an actor task is a saved input configuration and options for an actor.
-     * If you want to run an actor directly rather than an actor task, please use the
+     * Note that an Actor task is a saved input configuration and options for an Actor.
+     * If you want to run an Actor directly rather than an Actor task, please use the
      * {@apilink Actor.call} function instead.
      *
-     * For more information about actor tasks, read the [documentation](https://docs.apify.com/tasks).
+     * For more information about Actor tasks, read the [documentation](https://docs.apify.com/tasks).
      *
      * **Example usage:**
      *
@@ -404,9 +404,9 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @param taskId
      *  Allowed formats are `username/task-name`, `userId/task-name` or task ID.
      * @param [input]
-     *  Input overrides for the actor task. If it is an object, it will be stringified to
+     *  Input overrides for the Actor task. If it is an object, it will be stringified to
      *  JSON and its content type set to `application/json; charset=utf-8`.
-     *  Provided input will be merged with actor task input.
+     *  Provided input will be merged with Actor task input.
      * @param [options]
      * @ignore
      */
@@ -418,14 +418,14 @@ export class Actor<Data extends Dictionary = Dictionary> {
     }
 
     /**
-     * Transforms this actor run to an actor run of a given actor. The system stops the current container and starts
+     * Transforms this Actor run to an Actor run of a given Actor. The system stops the current container and starts
      * the new container instead. All the default storages are preserved and the new input is stored under the `INPUT-METAMORPH-1` key
      * in the same default key-value store.
      *
      * @param targetActorId
-     *  Either `username/actor-name` or actor ID of an actor to which we want to metamorph.
+     *  Either `username/actor-name` or Actor ID of an Actor to which we want to metamorph.
      * @param [input]
-     *  Input for the actor. If it is an object, it will be stringified to
+     *  Input for the Actor. If it is an object, it will be stringified to
      *  JSON and its content type set to `application/json; charset=utf-8`.
      *  Otherwise, the `options.contentType` parameter must be provided.
      * @param [options]
@@ -449,7 +449,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
     }
 
     /**
-     * Internally reboots this actor. The system stops the current container and starts
+     * Internally reboots this Actor. The system stops the current container and starts
      * a new container with the same run ID.
      * This can be used to get the Actor out of irrecoverable error state and continue where it left off.
      *
@@ -478,10 +478,10 @@ export class Actor<Data extends Dictionary = Dictionary> {
     }
 
     /**
-     * Creates an ad-hoc webhook for the current actor run, which lets you receive a notification when the actor run finished or failed.
-     * For more information about Apify actor webhooks, please see the [documentation](https://docs.apify.com/webhooks).
+     * Creates an ad-hoc webhook for the current Actor run, which lets you receive a notification when the Actor run finished or failed.
+     * For more information about Apify Actor webhooks, please see the [documentation](https://docs.apify.com/webhooks).
      *
-     * Note that webhooks are only supported for actors running on the Apify platform.
+     * Note that webhooks are only supported for Actors running on the Apify platform.
      * In local environment, the function will print a warning and have no effect.
      *
      * @param options
@@ -522,7 +522,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
     }
 
     /**
-     * Sets the status message for the current actor run.
+     * Sets the status message for the current Actor run.
      *
      * @returns The return value is the Run object.
      * For more information, see the [Actor Runs](https://docs.apify.com/api/v2#/reference/actor-runs/) API endpoints.
@@ -578,7 +578,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
     }
 
     /**
-     * Stores an object or an array of objects to the default {@apilink Dataset} of the current actor run.
+     * Stores an object or an array of objects to the default {@apilink Dataset} of the current Actor run.
      *
      * This is just a convenient shortcut for {@apilink Dataset.pushData}.
      * For example, calling the following code:
@@ -595,7 +595,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * For more information, see {@apilink Actor.openDataset} and {@apilink Dataset.pushData}
      *
      * **IMPORTANT**: Make sure to use the `await` keyword when calling `pushData()`,
-     * otherwise the actor process might finish before the data are stored!
+     * otherwise the Actor process might finish before the data are stored!
      *
      * @param item Object or array of objects containing data to be stored in the default dataset.
      * The objects must be serializable to JSON and the JSON representation of each object must be smaller than 9MB.
@@ -619,7 +619,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      *
      * @param [datasetIdOrName]
      *   ID or name of the dataset to be opened. If `null` or `undefined`,
-     *   the function returns the default dataset associated with the actor run.
+     *   the function returns the default dataset associated with the Actor run.
      * @param [options]
      * @ignore
      */
@@ -638,7 +638,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
     }
 
     /**
-     * Gets a value from the default {@apilink KeyValueStore} associated with the current actor run.
+     * Gets a value from the default {@apilink KeyValueStore} associated with the current Actor run.
      *
      * This is just a convenient shortcut for {@apilink KeyValueStore.getValue}.
      * For example, calling the following code:
@@ -673,7 +673,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
     }
 
     /**
-     * Stores or deletes a value in the default {@apilink KeyValueStore} associated with the current actor run.
+     * Stores or deletes a value in the default {@apilink KeyValueStore} associated with the current Actor run.
      *
      * This is just a convenient shortcut for  {@apilink KeyValueStore.setValue}.
      * For example, calling the following code:
@@ -711,7 +711,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
     }
 
     /**
-     * Gets the actor input value from the default {@apilink KeyValueStore} associated with the current actor run.
+     * Gets the Actor input value from the default {@apilink KeyValueStore} associated with the current Actor run.
      *
      * This is just a convenient shortcut for [`keyValueStore.getValue('INPUT')`](core/class/KeyValueStore#getValue).
      * For example, calling the following code:
@@ -726,7 +726,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * ```
      *
      * Note that the `getInput()` function does not cache the value read from the key-value store.
-     * If you need to use the input multiple times in your actor,
+     * If you need to use the input multiple times in your Actor,
      * it is far more efficient to read it once and store it locally.
      *
      * For more information, see  {@apilink Actor.openKeyValueStore}
@@ -756,7 +756,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
     }
 
     /**
-     * Gets the actor input value just like the {@apilink Actor.getInput} method,
+     * Gets the Actor input value just like the {@apilink Actor.getInput} method,
      * but throws if it is not found.
      */
     async getInputOrThrow<T = Dictionary | string | Buffer>(): Promise<T> {
@@ -780,7 +780,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      *
      * @param [storeIdOrName]
      *   ID or name of the key-value store to be opened. If `null` or `undefined`,
-     *   the function returns the default key-value store associated with the actor run.
+     *   the function returns the default key-value store associated with the Actor run.
      * @param [options]
      * @ignore
      */
@@ -808,7 +808,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      *
      * @param [queueIdOrName]
      *   ID or name of the request queue to be opened. If `null` or `undefined`,
-     *   the function returns the default request queue associated with the actor run.
+     *   the function returns the default request queue associated with the Actor run.
      * @param [options]
      * @ignore
      */
@@ -908,7 +908,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @ignore
      */
     getEnv(): ApifyEnv {
-        // NOTE: Don't throw if env vars are invalid to simplify local development and debugging of actors
+        // NOTE: Don't throw if env vars are invalid to simplify local development and debugging of Actors
         const env = process.env || {};
         const envVars = {} as ApifyEnv;
 
@@ -992,11 +992,11 @@ export class Actor<Data extends Dictionary = Dictionary> {
     }
 
     /**
-     * Runs the main user function that performs the job of the actor
+     * Runs the main user function that performs the job of the Actor
      * and terminates the process when the user function finishes.
      *
      * **The `Actor.main()` function is optional** and is provided merely for your convenience.
-     * It is mainly useful when you're running your code as an actor on the [Apify platform](https://apify.com/actors).
+     * It is mainly useful when you're running your code as an Actor on the [Apify platform](https://apify.com/actors).
      * However, if you want to use Apify SDK tools directly inside your existing projects, e.g.
      * running in an [Express](https://expressjs.com/) server, on
      * [Google Cloud functions](https://cloud.google.com/functions)
@@ -1023,7 +1023,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * ```javascript
      * await Actor.main(() => {
      *   // My synchronous function that returns immediately
-     *   console.log('Hello world from actor!');
+     *   console.log('Hello world from Actor!');
      * });
      * ```
      *
@@ -1064,7 +1064,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
     }
 
     /**
-     * Gracefully exits the actor run with the provided status message and exit code.
+     * Gracefully exits the Actor run with the provided status message and exit code.
      * @param messageOrOptions First parameter accepts either a string (a terminal status message) or an `ExitOptions` object.
      * @param options Second parameter accepts an `ExitOptions` object.
      */
@@ -1090,13 +1090,13 @@ export class Actor<Data extends Dictionary = Dictionary> {
     }
 
     /**
-     * Runs an actor on the Apify platform using the current user account (determined by the `APIFY_TOKEN` environment variable).
+     * Runs an Actor on the Apify platform using the current user account (determined by the `APIFY_TOKEN` environment variable).
      *
-     * The result of the function is an {@apilink ActorRun} object that contains details about the actor run.
+     * The result of the function is an {@apilink ActorRun} object that contains details about the Actor run.
      *
-     * If you want to run an actor task rather than an actor, please use the {@apilink Actor.callTask} function instead.
+     * If you want to run an Actor task rather than an Actor, please use the {@apilink Actor.callTask} function instead.
      *
-     * For more information about actors, read the [documentation](https://docs.apify.com/actor).
+     * For more information about Actors, read the [documentation](https://docs.apify.com/actor).
      *
      * **Example usage:**
      *
@@ -1105,9 +1105,9 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * ```
      *
      * @param actorId
-     *  Allowed formats are `username/actor-name`, `userId/actor-name` or actor ID.
+     *  Allowed formats are `username/actor-name`, `userId/actor-name` or Actor ID.
      * @param [input]
-     *  Input for the actor. If it is an object, it will be stringified to
+     *  Input for the Actor. If it is an object, it will be stringified to
      *  JSON and its content type set to `application/json; charset=utf-8`.
      *  Otherwise the `options.contentType` parameter must be provided.
      * @param [options]
@@ -1117,15 +1117,15 @@ export class Actor<Data extends Dictionary = Dictionary> {
     }
 
     /**
-     * Runs an actor task on the Apify platform using the current user account (determined by the `APIFY_TOKEN` environment variable).
+     * Runs an Actor task on the Apify platform using the current user account (determined by the `APIFY_TOKEN` environment variable).
      *
-     * The result of the function is an {@apilink ActorRun} object that contains details about the actor run.
+     * The result of the function is an {@apilink ActorRun} object that contains details about the Actor run.
      *
-     * Note that an actor task is a saved input configuration and options for an actor.
-     * If you want to run an actor directly rather than an actor task, please use the
+     * Note that an Actor task is a saved input configuration and options for an Actor.
+     * If you want to run an Actor directly rather than an Actor task, please use the
      * {@apilink Actor.call} function instead.
      *
-     * For more information about actor tasks, read the [documentation](https://docs.apify.com/tasks).
+     * For more information about Actor tasks, read the [documentation](https://docs.apify.com/tasks).
      *
      * **Example usage:**
      *
@@ -1136,9 +1136,9 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @param taskId
      *  Allowed formats are `username/task-name`, `userId/task-name` or task ID.
      * @param [input]
-     *  Input overrides for the actor task. If it is an object, it will be stringified to
+     *  Input overrides for the Actor task. If it is an object, it will be stringified to
      *  JSON and its content type set to `application/json; charset=utf-8`.
-     *  Provided input will be merged with actor task input.
+     *  Provided input will be merged with Actor task input.
      * @param [options]
      */
     static async callTask(taskId: string, input?: Dictionary, options: CallTaskOptions = {}): Promise<ClientActorRun> {
@@ -1146,12 +1146,12 @@ export class Actor<Data extends Dictionary = Dictionary> {
     }
 
     /**
-     * Runs an actor on the Apify platform using the current user account (determined by the `APIFY_TOKEN` environment variable),
+     * Runs an Actor on the Apify platform using the current user account (determined by the `APIFY_TOKEN` environment variable),
      * unlike `Actor.call`, this method just starts the run without waiting for finish.
      *
-     * The result of the function is an {@apilink ActorRun} object that contains details about the actor run.
+     * The result of the function is an {@apilink ActorRun} object that contains details about the Actor run.
      *
-     * For more information about actors, read the
+     * For more information about Actors, read the
      * [documentation](https://docs.apify.com/actor).
      *
      * **Example usage:**
@@ -1161,9 +1161,9 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * ```
      *
      * @param actorId
-     *  Allowed formats are `username/actor-name`, `userId/actor-name` or actor ID.
+     *  Allowed formats are `username/actor-name`, `userId/actor-name` or Actor ID.
      * @param [input]
-     *  Input for the actor. If it is an object, it will be stringified to
+     *  Input for the Actor. If it is an object, it will be stringified to
      *  JSON and its content type set to `application/json; charset=utf-8`.
      *  Otherwise the `options.contentType` parameter must be provided.
      * @param [options]
@@ -1173,11 +1173,11 @@ export class Actor<Data extends Dictionary = Dictionary> {
     }
 
     /**
-     * Aborts given actor run on the Apify platform using the current user account (determined by the `APIFY_TOKEN` environment variable).
+     * Aborts given Actor run on the Apify platform using the current user account (determined by the `APIFY_TOKEN` environment variable).
      *
-     * The result of the function is an {@apilink ActorRun} object that contains details about the actor run.
+     * The result of the function is an {@apilink ActorRun} object that contains details about the Actor run.
      *
-     * For more information about actors, read the
+     * For more information about Actors, read the
      * [documentation](https://docs.apify.com/actor).
      *
      * **Example usage:**
@@ -1191,14 +1191,14 @@ export class Actor<Data extends Dictionary = Dictionary> {
     }
 
     /**
-     * Transforms this actor run to an actor run of a given actor. The system stops the current container and starts
+     * Transforms this Actor run to an Actor run of a given Actor. The system stops the current container and starts
      * the new container instead. All the default storages are preserved and the new input is stored under the `INPUT-METAMORPH-1` key
      * in the same default key-value store.
      *
      * @param targetActorId
-     *  Either `username/actor-name` or actor ID of an actor to which we want to metamorph.
+     *  Either `username/actor-name` or Actor ID of an Actor to which we want to metamorph.
      * @param [input]
-     *  Input for the actor. If it is an object, it will be stringified to
+     *  Input for the Actor. If it is an object, it will be stringified to
      *  JSON and its content type set to `application/json; charset=utf-8`.
      *  Otherwise, the `options.contentType` parameter must be provided.
      * @param [options]
@@ -1208,7 +1208,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
     }
 
     /**
-     * Internally reboots this actor run. The system stops the current container and starts
+     * Internally reboots this Actor run. The system stops the current container and starts
      * a new container with the same run id.
      * This can be used to get the Actor out of irrecoverable error state and continue where it left off.
      */
@@ -1217,10 +1217,10 @@ export class Actor<Data extends Dictionary = Dictionary> {
     }
 
     /**
-     * Creates an ad-hoc webhook for the current actor run, which lets you receive a notification when the actor run finished or failed.
-     * For more information about Apify actor webhooks, please see the [documentation](https://docs.apify.com/webhooks).
+     * Creates an ad-hoc webhook for the current Actor run, which lets you receive a notification when the Actor run finished or failed.
+     * For more information about Apify Actor webhooks, please see the [documentation](https://docs.apify.com/webhooks).
      *
-     * Note that webhooks are only supported for actors running on the Apify platform.
+     * Note that webhooks are only supported for Actors running on the Apify platform.
      * In local environment, the function will print a warning and have no effect.
      *
      * @param options
@@ -1232,7 +1232,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
     }
 
     /**
-     * Sets the status message for the current actor run.
+     * Sets the status message for the current Actor run.
      *
      * @param statusMessage The status message to set.
      * @param [options]
@@ -1246,7 +1246,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
     }
 
     /**
-     * Stores an object or an array of objects to the default {@apilink Dataset} of the current actor run.
+     * Stores an object or an array of objects to the default {@apilink Dataset} of the current Actor run.
      *
      * This is just a convenient shortcut for {@apilink Dataset.pushData}.
      * For example, calling the following code:
@@ -1263,7 +1263,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * For more information, see {@apilink Actor.openDataset} and {@apilink Dataset.pushData}
      *
      * **IMPORTANT**: Make sure to use the `await` keyword when calling `pushData()`,
-     * otherwise the actor process might finish before the data are stored!
+     * otherwise the Actor process might finish before the data are stored!
      *
      * @param item Object or array of objects containing data to be stored in the default dataset.
      * The objects must be serializable to JSON and the JSON representation of each object must be smaller than 9MB.
@@ -1283,7 +1283,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      *
      * @param [datasetIdOrName]
      *   ID or name of the dataset to be opened. If `null` or `undefined`,
-     *   the function returns the default dataset associated with the actor run.
+     *   the function returns the default dataset associated with the Actor run.
      * @param [options]
      */
     static async openDataset<Data extends Dictionary = Dictionary>(
@@ -1293,7 +1293,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
     }
 
     /**
-     * Gets a value from the default {@apilink KeyValueStore} associated with the current actor run.
+     * Gets a value from the default {@apilink KeyValueStore} associated with the current Actor run.
      *
      * This is just a convenient shortcut for {@apilink KeyValueStore.getValue}.
      * For example, calling the following code:
@@ -1324,7 +1324,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
     }
 
     /**
-     * Stores or deletes a value in the default {@apilink KeyValueStore} associated with the current actor run.
+     * Stores or deletes a value in the default {@apilink KeyValueStore} associated with the current Actor run.
      *
      * This is just a convenient shortcut for  {@apilink KeyValueStore.setValue}.
      * For example, calling the following code:
@@ -1358,7 +1358,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
     }
 
     /**
-     * Gets the actor input value from the default {@apilink KeyValueStore} associated with the current actor run.
+     * Gets the Actor input value from the default {@apilink KeyValueStore} associated with the current Actor run.
      *
      * This is just a convenient shortcut for {@apilink KeyValueStore.getValue | `keyValueStore.getValue('INPUT')`}.
      * For example, calling the following code:
@@ -1373,7 +1373,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * ```
      *
      * Note that the `getInput()` function does not cache the value read from the key-value store.
-     * If you need to use the input multiple times in your actor,
+     * If you need to use the input multiple times in your Actor,
      * it is far more efficient to read it once and store it locally.
      *
      * For more information, see {@apilink Actor.openKeyValueStore} and {@apilink KeyValueStore.getValue}.
@@ -1389,7 +1389,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
     }
 
     /**
-     * Gets the actor input value just like the {@apilink Actor.getInput} method,
+     * Gets the Actor input value just like the {@apilink Actor.getInput} method,
      * but throws if it is not found.
      */
     static async getInputOrThrow<T = Dictionary | string | Buffer>(): Promise<T> {
@@ -1407,7 +1407,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      *
      * @param [storeIdOrName]
      *   ID or name of the key-value store to be opened. If `null` or `undefined`,
-     *   the function returns the default key-value store associated with the actor run.
+     *   the function returns the default key-value store associated with the Actor run.
      * @param [options]
      */
     static async openKeyValueStore(storeIdOrName?: string | null, options: OpenStorageOptions = {}): Promise<KeyValueStore> {
@@ -1427,7 +1427,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      *
      * @param [queueIdOrName]
      *   ID or name of the request queue to be opened. If `null` or `undefined`,
-     *   the function returns the default request queue associated with the actor run.
+     *   the function returns the default request queue associated with the Actor run.
      * @param [options]
      */
     static async openRequestQueue(queueIdOrName?: string | null, options: OpenStorageOptions = {}): Promise<RequestQueue> {
@@ -1538,7 +1538,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
         this.warnedAboutMissingInitCall = true;
 
         log.warning([
-            `Actor.${methodCalled}() was called but the actor instance was not initialized.`,
+            `Actor.${methodCalled}() was called but the Actor instance was not initialized.`,
             'Did you forget to call Actor.init()?',
         ].join('\n'));
     }
@@ -1559,17 +1559,17 @@ export interface ApifyEnv {
     // are invited to check if there are any new env vars (refer to APIFY_ENV_VARS and ACTOR_ENV_VARS)
 
     /**
-     * ID of the actor (ACTOR_ID)
+     * ID of the Actor (ACTOR_ID)
      */
     actorId: string | null;
 
     /**
-     * ID of the actor run (ACTOR_RUN_ID)
+     * ID of the Actor run (ACTOR_RUN_ID)
      */
     actorRunId: string | null;
 
     /**
-     * ID of the actor task (ACTOR_TASK_ID)
+     * ID of the Actor task (ACTOR_TASK_ID)
      */
     actorTaskId: string | null;
 
@@ -1579,41 +1579,41 @@ export interface ApifyEnv {
     actorBuildId: string | null;
 
     /**
-     * ID of the user who started the actor - note that it might be
-     * different than the owner of the actor (APIFY_USER_ID)
+     * ID of the user who started the Actor - note that it might be
+     * different than the owner of the Actor (APIFY_USER_ID)
      */
     userId: string | null;
 
     /**
-     * Authentication token representing privileges given to the actor run,
+     * Authentication token representing privileges given to the Actor run,
      * it can be passed to various Apify APIs (APIFY_TOKEN)
      */
     token: string | null;
 
     /**
-     * Date when the actor was started (ACTOR_STARTED_AT)
+     * Date when the Actor was started (ACTOR_STARTED_AT)
      */
     startedAt: Date | null;
 
     /**
-     * Date when the actor will time out (ACTOR_TIMEOUT_AT)
+     * Date when the Actor will time out (ACTOR_TIMEOUT_AT)
      */
     timeoutAt: Date | null;
 
     /**
      * ID of the key-value store where input and output data of this
-     * actor is stored (ACTOR_DEFAULT_KEY_VALUE_STORE_ID)
+     * Actor is stored (ACTOR_DEFAULT_KEY_VALUE_STORE_ID)
      */
     defaultKeyValueStoreId: string | null;
 
     /**
      * ID of the dataset where input and output data of this
-     * actor is stored (ACTOR_DEFAULT_DATASET_ID)
+     * Actor is stored (ACTOR_DEFAULT_DATASET_ID)
      */
     defaultDatasetId: string | null;
 
     /**
-     * Amount of memory allocated for the actor,
+     * Amount of memory allocated for the Actor,
      * in megabytes (ACTOR_MEMORY_MBYTES)
      */
     memoryMbytes: number | null;
@@ -1666,13 +1666,13 @@ export interface ApifyEnv {
     logFormat: string | null;
 
     /**
-     * Origin for the actor run, i.e. how it was started. See [here](https://docs.apify.com/sdk/python/reference/enum/MetaOrigin)
+     * Origin for the Actor run, i.e. how it was started. See [here](https://docs.apify.com/sdk/python/reference/enum/MetaOrigin)
      * for more details. (APIFY_META_ORIGIN)
      */
     metaOrigin: string | null;
 
     /**
-     * The key of the input record in the actor’s default key-value store (ACTOR_INPUT_KEY)
+     * The key of the input record in the Actor’s default key-value store (ACTOR_INPUT_KEY)
      */
     inputKey: string | null;
     sdkLatestVersion: string | null;
@@ -1690,21 +1690,21 @@ export type UserFunc<T = unknown> = () => Awaitable<T>;
 
 export interface CallOptions extends ActorCallOptions {
     /**
-     * User API token that is used to run the actor. By default, it is taken from the `APIFY_TOKEN` environment variable.
+     * User API token that is used to run the Actor. By default, it is taken from the `APIFY_TOKEN` environment variable.
      */
     token?: string;
 }
 
 export interface CallTaskOptions extends TaskCallOptions {
     /**
-     * User API token that is used to run the actor. By default, it is taken from the `APIFY_TOKEN` environment variable.
+     * User API token that is used to run the Actor. By default, it is taken from the `APIFY_TOKEN` environment variable.
      */
     token?: string;
 }
 
 export interface AbortOptions extends RunAbortOptions {
     /**
-     * User API token that is used to run the actor. By default, it is taken from the `APIFY_TOKEN` environment variable.
+     * User API token that is used to run the Actor. By default, it is taken from the `APIFY_TOKEN` environment variable.
      */
     token?: string;
 
@@ -1714,13 +1714,13 @@ export interface AbortOptions extends RunAbortOptions {
 
 export interface WebhookOptions {
     /**
-     * Array of event types, which you can set for actor run, see
-     * the [actor run events](https://docs.apify.com/webhooks/events#actor-run) in the Apify doc.
+     * Array of event types, which you can set for Actor run, see
+     * the [Actor run events](https://docs.apify.com/webhooks/events#actor-run) in the Apify doc.
      */
     eventTypes: readonly WebhookEventType[];
 
     /**
-     * URL which will be requested using HTTP POST request, when actor run will reach the set event type.
+     * URL which will be requested using HTTP POST request, when Actor run will reach the set event type.
      */
     requestUrl: string;
 
@@ -1736,8 +1736,8 @@ export interface WebhookOptions {
 
     /**
      * Idempotency key enables you to ensure that a webhook will not be added multiple times in case of
-     * an actor restart or other situation that would cause the `addWebhook()` function to be called again.
-     * We suggest using the actor run ID as the idempotency key. You can get the run ID by calling
+     * an Actor restart or other situation that would cause the `addWebhook()` function to be called again.
+     * We suggest using the Actor run ID as the idempotency key. You can get the run ID by calling
      * {@apilink Actor.getEnv} function.
      */
     idempotencyKey?: string;
@@ -1753,8 +1753,8 @@ export interface MetamorphOptions {
     contentType?: string;
 
     /**
-     * Tag or number of the target actor build to metamorph into (e.g. `beta` or `1.2.345`).
-     * If not provided, the run uses build tag or number from the default actor run configuration (typically `latest`).
+     * Tag or number of the target Actor build to metamorph into (e.g. `beta` or `1.2.345`).
+     * If not provided, the run uses build tag or number from the default Actor run configuration (typically `latest`).
      */
     build?: string;
 
@@ -1793,7 +1793,7 @@ export interface OpenStorageOptions {
 export { ClientActorRun as ActorRun };
 
 /**
- * Exit codes for the actor process.
+ * Exit codes for the Actor process.
  * The error codes must be in the range 1-128, to avoid collision with signal exits
  * and to ensure Docker will handle them correctly!
  * @internal should be removed if we decide to remove `Actor.main()`

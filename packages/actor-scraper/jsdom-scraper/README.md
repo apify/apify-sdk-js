@@ -44,17 +44,17 @@ The web pages with various content types are parsed differently and thus the `co
 The `Content-Type` HTTP header of the web page is parsed using the
 <a href="https://www.npmjs.com/package/content-type" target="_blank">content-type</a> NPM package and the result is stored in the [`context.contentType`](#contenttype-object) object.
 
-## Limitations of JSDOM Scraper 
+## Limitations of JSDOM Scraper
 
-The actor does not employ a full-featured web browser such as Chromium or Firefox, so it will not be sufficient for web pages that render their content dynamically using client-side JavaScript. To scrape such sites, you might prefer to use [**Web Scraper**](https://apify.com/apify/web-scraper) (`apify/web-scraper`), which loads pages in a full browser and renders dynamic content.
+The Actor does not employ a full-featured web browser such as Chromium or Firefox, so it will not be sufficient for web pages that render their content dynamically using client-side JavaScript. To scrape such sites, you might prefer to use [**Web Scraper**](https://apify.com/apify/web-scraper) (`apify/web-scraper`), which loads pages in a full browser and renders dynamic content.
 
-Since JSDOM Scraper's **Page function** is executed in the context of the server, it only supports server-side code running in Node.js. If you need to combine client- and server-side libraries in Chromium using the [Puppeteer](https://github.com/puppeteer/puppeteer) library, you might prefer to use [**Puppeteer Scraper**](https://apify.com/apify/puppeteer-scraper) (`apify/puppeteer-scraper`). If you prefer Firefox and/or [Playwright](https://github.com/microsoft/playwright), check out [**Playwright Scraper**](https://apify.com/apify/playwright-scraper) (`apify/playwright-scraper`). For even more flexibility and control, you might develop a new actor from scratch in Node.js using [Apify SDK](https://sdk.apify.com/) and [Crawlee](https://crawlee.dev).
+Since JSDOM Scraper's **Page function** is executed in the context of the server, it only supports server-side code running in Node.js. If you need to combine client- and server-side libraries in Chromium using the [Puppeteer](https://github.com/puppeteer/puppeteer) library, you might prefer to use [**Puppeteer Scraper**](https://apify.com/apify/puppeteer-scraper) (`apify/puppeteer-scraper`). If you prefer Firefox and/or [Playwright](https://github.com/microsoft/playwright), check out [**Playwright Scraper**](https://apify.com/apify/playwright-scraper) (`apify/playwright-scraper`). For even more flexibility and control, you might develop a new Actor from scratch in Node.js using [Apify SDK](https://sdk.apify.com/) and [Crawlee](https://crawlee.dev).
 
-In the [**Page function**](#page-function) and **Prepare request function**, you can only use NPM modules that are already installed in this actor. If you require other modules for your scraping, you'll need to develop a completely new actor. You can use the [`JSDOMCrawler`](https://crawlee.dev/api/jsdom-crawler/class/JSDOMCrawler) class from Crawlee to get most of the functionality of JSDOM Scraper out of the box.
+In the [**Page function**](#page-function) and **Prepare request function**, you can only use NPM modules that are already installed in this Actor. If you require other modules for your scraping, you'll need to develop a completely new Actor. You can use the [`JSDOMCrawler`](https://crawlee.dev/api/jsdom-crawler/class/JSDOMCrawler) class from Crawlee to get most of the functionality of JSDOM Scraper out of the box.
 
 ## Input configuration
 
-As input, JSDOM Scraper actor accepts a number of configurations. These can be entered either manually in the user interface in [Apify Console](https://console.apify.com), or programmatically in a JSON object using the [Apify API](https://apify.com/docs/api/v2#/reference/actors/run-collection/run-actor). For a complete list of input fields and their types, please visit the [Input](https://apify.com/apify/jsdom-scraper/input-schema) tab.
+As input, JSDOM Scraper Actor accepts a number of configurations. These can be entered either manually in the user interface in [Apify Console](https://console.apify.com), or programmatically in a JSON object using the [Apify API](https://apify.com/docs/api/v2#/reference/actors/run-collection/run-actor). For a complete list of input fields and their types, please visit the [Input](https://apify.com/apify/jsdom-scraper/input-schema) tab.
 
 ### Start URLs
 
@@ -138,7 +138,7 @@ async function pageFunction(context) {
     // The "request" property contains various information about the web page loaded.
     const url = request.url;
 
-    // Use "log" object to print information to actor log.
+    // Use "log" object to print information to Actor log.
     log.info('Page scraped', { url, pageTitle });
 
     // Return an object with the data extracted from the page.
@@ -247,7 +247,7 @@ The `request` parameter is an object containing details of the request, with pro
 
 - ##### **`env: Object`**
 
-A map of all relevant values set by the Apify platform to the actor run via the `APIFY_` environment variable. For example, here you can find information such as actor run ID, timeouts, actor run memory, etc. For the full list of available values, see the [`Actor.getEnv()`](https://sdk.apify.com/api/apify/class/Actor#getEnv) function in the Apify SDK documentation.
+A map of all relevant values set by the Apify platform to the Actor run via the `APIFY_` environment variable. For example, here you can find information such as Actor run ID, timeouts, Actor run memory, etc. For the full list of available values, see the [`Actor.getEnv()`](https://sdk.apify.com/api/apify/class/Actor#getEnv) function in the Apify SDK documentation.
 
   Example:
 
@@ -257,7 +257,7 @@ A map of all relevant values set by the Apify platform to the actor run via the 
 
 - ##### **`getValue(key): AsyncFunction`**
 
-Gets a value from the default key-value store associated with the actor run. The key-value store is useful for persisting named data records, such as state objects, files, etc. The function is very similar to the [`Actor.getValue()`](https://sdk.apify.com/api/apify/class/Actor#getValue) function in Apify SDK.
+Gets a value from the default key-value store associated with the Actor run. The key-value store is useful for persisting named data records, such as state objects, files, etc. The function is very similar to the [`Actor.getValue()`](https://sdk.apify.com/api/apify/class/Actor#getValue) function in Apify SDK.
 
 To set the value, use the dual function `context.setValue(key, value)`.
 
@@ -275,7 +275,7 @@ Represents an in-memory store that can be used to share data across page functio
     - Keys must be strings and values must be JSON stringify-able.
     - The `forEach()` function is not supported.
 
-Note that stored data is not persisted. If the actor run is restarted or migrated to another worker server, the content of `globalStore` is reset. Therefore, never depend on a specific value to be present in the store.
+Note that stored data is not persisted. If the Actor run is restarted or migrated to another worker server, the content of `globalStore` is reset. Therefore, never depend on a specific value to be present in the store.
 
   Example:
 
@@ -290,7 +290,7 @@ Note that stored data is not persisted. If the actor run is restarted or migrate
 
 - ##### **`input: Object`**
 
-An object containing the actor run input, i.e. JSDOM Scraper's configuration. Each page function invocation gets a fresh copy of the `input` object, so changing its properties has no effect.
+An object containing the Actor run input, i.e. JSDOM Scraper's configuration. Each page function invocation gets a fresh copy of the `input` object, so changing its properties has no effect.
 
 - ##### **`json: Object`**
 
@@ -299,7 +299,7 @@ The parsed object from a JSON string if the response contains the content type `
 - ##### **`log: Object`**
 
 An object containing logging functions, with the same interface as provided by the
-  [`crawlee.utils.log`](https://crawlee.dev/api/core/class/Log) object in Crawlee. The log messages are written directly to the actor run log, which is useful for monitoring and debugging. Note that `log.debug()` only logs messages if the **Debug log** input setting is set.
+  [`crawlee.utils.log`](https://crawlee.dev/api/core/class/Log) object in Crawlee. The log messages are written directly to the Actor run log, which is useful for monitoring and debugging. Note that `log.debug()` only logs messages if the **Debug log** input setting is set.
 
   Example:
 
@@ -318,13 +318,13 @@ An object containing logging functions, with the same interface as provided by t
 
 - ##### **`saveSnapshot(): AsyncFunction`**
 
-Saves the full HTML of the current page to the key-value store associated with the actor run, under the `SNAPSHOT-BODY` key. This feature is useful when debugging your scraper.
+Saves the full HTML of the current page to the key-value store associated with the Actor run, under the `SNAPSHOT-BODY` key. This feature is useful when debugging your scraper.
 
-Note that each snapshot overwrites the previous one and the `saveSnapshot()` calls are throttled to at most one call in two seconds, in order to avoid excess consumption of resources and slowdown of the actor.
+Note that each snapshot overwrites the previous one and the `saveSnapshot()` calls are throttled to at most one call in two seconds, in order to avoid excess consumption of resources and slowdown of the Actor.
 
 - ##### **`setValue(key, data, options): AsyncFunction`**
 
-Sets a value to the default key-value store associated with the actor run. The key-value store is useful for persisting named data records, such as state objects, files, etc. The function is very similar to the [`Actor.setValue()`](https://sdk.apify.com/api/apify/class/Actor#setValue) function in Apify SDK.
+Sets a value to the default key-value store associated with the Actor run. The key-value store is useful for persisting named data records, such as state objects, files, etc. The function is very similar to the [`Actor.setValue()`](https://sdk.apify.com/api/apify/class/Actor#setValue) function in Apify SDK.
 
   To get the value, use the dual function `context.getValue(key)`.
 
@@ -405,7 +405,7 @@ Proxy is required to run the scraper. The following table lists the available op
     </tbody>
 </table>
 
-The proxy configuration can be set programmatically when calling the actor using the API by setting the `proxyConfiguration` field. It accepts a JSON object with the following structure:
+The proxy configuration can be set programmatically when calling the Actor using the API by setting the `proxyConfiguration` field. It accepts a JSON object with the following structure:
 
 ```javascript
 {
@@ -453,7 +453,7 @@ Check out the docs for [Pre-navigation hooks](https://crawlee.dev/api/jsdom-craw
 
 ## Results
 
-The scraping results returned by [**Page function**](#page-function) are stored in the default dataset associated with the actor run, from where you can export them to formats such as JSON, XML, CSV or Excel. For each object returned by the [**Page function**](#page-function), JSDOM Scraper pushes one record into the dataset and extends it with metadata such as the URL of the web page where the results come from.
+The scraping results returned by [**Page function**](#page-function) are stored in the default dataset associated with the Actor run, from where you can export them to formats such as JSON, XML, CSV or Excel. For each object returned by the [**Page function**](#page-function), JSDOM Scraper pushes one record into the dataset and extends it with metadata such as the URL of the web page where the results come from.
 
 For example, if your page function returned the following object:
 
@@ -487,21 +487,21 @@ To download the results, call the [Get dataset items](https://docs.apify.com/api
 https://api.apify.com/v2/datasets/[DATASET_ID]/items?format=json
 ```
 
-where `[DATASET_ID]` is the ID of the actor's run dataset, in which you can find the Run object returned when starting the actor. Alternatively, you'll find the download links for the results in Apify Console.
+where `[DATASET_ID]` is the ID of the Actor's run dataset, in which you can find the Run object returned when starting the Actor. Alternatively, you'll find the download links for the results in Apify Console.
 
 To skip the `#error` and `#debug` metadata fields from the results and not include empty result records, simply add the `clean=true` query parameter to the API URL, or select the  **Clean items** option when downloading the dataset in Apify Console.
 
 To get the results in other formats, set the `format` query parameter to `xml`, `xlsx`, `csv`, `html`, etc. For more information, see [Datasets](https://docs.apify.com/storage#dataset) in documentation or the [Get dataset items](https://docs.apify.com/api/v2#/reference/datasets/item-collection) endpoint in Apify API reference.
 
-## Additional resources 
+## Additional resources
 
 Congratulations! You've learned how JSDOM Scraper works. You might also want to see these other resources:
 
 - [Web scraping tutorial](https://docs.apify.com/tutorials/apify-scrapers) - an introduction to web scraping with Apify.
 - [Scraping with JSDOM Scraper](https://docs.apify.com/tutorials/apify-scrapers/jsdom-scraper) - a step-by-step tutorial on how to use JSDOM Scraper, with a detailed explanation and examples.
-- **Web Scraper** ([apify/web-scraper](https://apify.com/apify/web-scraper)) - Apify's basic tool for web crawling and scraping. It uses a full Chrome browser to render dynamic content. A similar web scraping actor to Puppeteer Scraper, but is simpler to use and only runs in the context of the browser. Uses the [Puppeteer](https://github.com/GoogleChrome/puppeteer) library.
-- **Cheerio Scraper** ([apify/cheerio-scraper](https://apify.com/apify/cheerio-scraper)) - a lightweight web scraping actor similar to JSDOM Scraper, but using the [Cheerio](https://cheerio.js.org/) library instead.
-- **Puppeteer Scraper** ([apify/puppeteer-scraper](https://apify.com/apify/puppeteer-scraper)) - an actor similar to Web Scraper, which provides lower-level control of the underlying [Puppeteer](https://github.com/GoogleChrome/puppeteer) library and the ability to use server-side libraries.
-- **Playwright Scraper** ([apify/playwright-scraper](https://apify.com/apify/playwright-scraper)) - a similar web scraping actor to Puppeteer Scraper, but using the [Playwright](https://github.com/microsoft/playwright) library instead.
+- **Web Scraper** ([apify/web-scraper](https://apify.com/apify/web-scraper)) - Apify's basic tool for web crawling and scraping. It uses a full Chrome browser to render dynamic content. A similar web scraping Actor to Puppeteer Scraper, but is simpler to use and only runs in the context of the browser. Uses the [Puppeteer](https://github.com/GoogleChrome/puppeteer) library.
+- **Cheerio Scraper** ([apify/cheerio-scraper](https://apify.com/apify/cheerio-scraper)) - a lightweight web scraping Actor similar to JSDOM Scraper, but using the [Cheerio](https://cheerio.js.org/) library instead.
+- **Puppeteer Scraper** ([apify/puppeteer-scraper](https://apify.com/apify/puppeteer-scraper)) - an Actor similar to Web Scraper, which provides lower-level control of the underlying [Puppeteer](https://github.com/GoogleChrome/puppeteer) library and the ability to use server-side libraries.
+- **Playwright Scraper** ([apify/playwright-scraper](https://apify.com/apify/playwright-scraper)) - a similar web scraping Actor to Puppeteer Scraper, but using the [Playwright](https://github.com/microsoft/playwright) library instead.
 - [Actors documentation](https://docs.apify.com/actors) - documentation for the Apify Actors cloud computing platform.
 - [Crawlee documentation](https://crawlee.dev) - learn how to build a new web scraping project from scratch using the world's most popular web crawling and scraping library for Node.js.

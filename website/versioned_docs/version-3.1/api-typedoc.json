@@ -301,7 +301,7 @@
 						"summary": [
 							{
 								"kind": "text",
-								"text": "Whether the actor instance was initialized. This is set by calling "
+								"text": "Whether the Actor instance was initialized. This is set by calling "
 							},
 							{
 								"kind": "inline-tag",
@@ -447,7 +447,7 @@
 								"summary": [
 									{
 										"kind": "text",
-										"text": "Gets the actor input value just like the "
+										"text": "Gets the Actor input value just like the "
 									},
 									{
 										"kind": "inline-tag",
@@ -708,7 +708,7 @@
 								"summary": [
 									{
 										"kind": "text",
-										"text": "Aborts given actor run on the Apify platform using the current user account (determined by the "
+										"text": "Aborts given Actor run on the Apify platform using the current user account (determined by the "
 									},
 									{
 										"kind": "code",
@@ -725,7 +725,7 @@
 									},
 									{
 										"kind": "text",
-										"text": " object that contains details about the actor run.\n\nFor more information about actors, read the\n[documentation](https://docs.apify.com/actor).\n\n**Example usage:**\n\n"
+										"text": " object that contains details about the Actor run.\n\nFor more information about Actors, read the\n[documentation](https://docs.apify.com/actor).\n\n**Example usage:**\n\n"
 									},
 									{
 										"kind": "code",
@@ -804,7 +804,7 @@
 								"summary": [
 									{
 										"kind": "text",
-										"text": "Creates an ad-hoc webhook for the current actor run, which lets you receive a notification when the actor run finished or failed.\nFor more information about Apify actor webhooks, please see the [documentation](https://docs.apify.com/webhooks).\n\nNote that webhooks are only supported for actors running on the Apify platform.\nIn local environment, the function will print a warning and have no effect."
+										"text": "Creates an ad-hoc webhook for the current Actor run, which lets you receive a notification when the Actor run finished or failed.\nFor more information about Apify Actor webhooks, please see the [documentation](https://docs.apify.com/webhooks).\n\nNote that webhooks are only supported for Actors running on the Apify platform.\nIn local environment, the function will print a warning and have no effect."
 									}
 								],
 								"blockTags": [
@@ -886,7 +886,7 @@
 								"summary": [
 									{
 										"kind": "text",
-										"text": "Runs an actor on the Apify platform using the current user account (determined by the "
+										"text": "Runs an Actor on the Apify platform using the current user account (determined by the "
 									},
 									{
 										"kind": "code",
@@ -903,7 +903,7 @@
 									},
 									{
 										"kind": "text",
-										"text": " object that contains details about the actor run.\n\nIf you want to run an actor task rather than an actor, please use the "
+										"text": " object that contains details about the Actor run.\n\nIf you want to run an Actor task rather than an Actor, please use the "
 									},
 									{
 										"kind": "inline-tag",
@@ -912,7 +912,7 @@
 									},
 									{
 										"kind": "text",
-										"text": " function instead.\n\nFor more information about actors, read the [documentation](https://docs.apify.com/actor).\n\n**Example usage:**\n\n"
+										"text": " function instead.\n\nFor more information about Actors, read the [documentation](https://docs.apify.com/actor).\n\n**Example usage:**\n\n"
 									},
 									{
 										"kind": "code",
@@ -947,7 +947,7 @@
 											},
 											{
 												"kind": "text",
-												"text": " or actor ID."
+												"text": " or Actor ID."
 											}
 										]
 									},
@@ -968,7 +968,7 @@
 										"summary": [
 											{
 												"kind": "text",
-												"text": "Input for the actor. If it is an object, it will be stringified to\n JSON and its content type set to "
+												"text": "Input for the Actor. If it is an object, it will be stringified to\n JSON and its content type set to "
 											},
 											{
 												"kind": "code",
@@ -1054,7 +1054,7 @@
 								"summary": [
 									{
 										"kind": "text",
-										"text": "Runs an actor task on the Apify platform using the current user account (determined by the "
+										"text": "Runs an Actor task on the Apify platform using the current user account (determined by the "
 									},
 									{
 										"kind": "code",
@@ -1071,7 +1071,7 @@
 									},
 									{
 										"kind": "text",
-										"text": " object that contains details about the actor run.\n\nNote that an actor task is a saved input configuration and options for an actor.\nIf you want to run an actor directly rather than an actor task, please use the\n"
+										"text": " object that contains details about the Actor run.\n\nNote that an Actor task is a saved input configuration and options for an Actor.\nIf you want to run an Actor directly rather than an Actor task, please use the\n"
 									},
 									{
 										"kind": "inline-tag",
@@ -1080,7 +1080,7 @@
 									},
 									{
 										"kind": "text",
-										"text": " function instead.\n\nFor more information about actor tasks, read the [documentation](https://docs.apify.com/tasks).\n\n**Example usage:**\n\n"
+										"text": " function instead.\n\nFor more information about Actor tasks, read the [documentation](https://docs.apify.com/tasks).\n\n**Example usage:**\n\n"
 									},
 									{
 										"kind": "code",
@@ -1136,7 +1136,7 @@
 										"summary": [
 											{
 												"kind": "text",
-												"text": "Input overrides for the actor task. If it is an object, it will be stringified to\n JSON and its content type set to "
+												"text": "Input overrides for the Actor task. If it is an object, it will be stringified to\n JSON and its content type set to "
 											},
 											{
 												"kind": "code",
@@ -1144,7 +1144,7 @@
 											},
 											{
 												"kind": "text",
-												"text": ".\n Provided input will be merged with actor task input."
+												"text": ".\n Provided input will be merged with Actor task input."
 											}
 										]
 									},
@@ -1393,7 +1393,7 @@
 								"summary": [
 									{
 										"kind": "text",
-										"text": "Gracefully exits the actor run with the provided status message and exit code."
+										"text": "Gracefully exits the Actor run with the provided status message and exit code."
 									}
 								]
 							},
@@ -1697,7 +1697,7 @@
 								"summary": [
 									{
 										"kind": "text",
-										"text": "Gets the actor input value from the default "
+										"text": "Gets the Actor input value from the default "
 									},
 									{
 										"kind": "inline-tag",
@@ -1706,7 +1706,7 @@
 									},
 									{
 										"kind": "text",
-										"text": " associated with the current actor run.\n\nThis is just a convenient shortcut for "
+										"text": " associated with the current Actor run.\n\nThis is just a convenient shortcut for "
 									},
 									{
 										"kind": "inline-tag",
@@ -1739,7 +1739,7 @@
 									},
 									{
 										"kind": "text",
-										"text": " function does not cache the value read from the key-value store.\nIf you need to use the input multiple times in your actor,\nit is far more efficient to read it once and store it locally.\n\nFor more information, see "
+										"text": " function does not cache the value read from the key-value store.\nIf you need to use the input multiple times in your Actor,\nit is far more efficient to read it once and store it locally.\n\nFor more information, see "
 									},
 									{
 										"kind": "inline-tag",
@@ -1876,7 +1876,7 @@
 								"summary": [
 									{
 										"kind": "text",
-										"text": "Gets the actor input value just like the "
+										"text": "Gets the Actor input value just like the "
 									},
 									{
 										"kind": "inline-tag",
@@ -1977,7 +1977,7 @@
 									},
 									{
 										"kind": "text",
-										"text": " associated with the current actor run.\n\nThis is just a convenient shortcut for "
+										"text": " associated with the current Actor run.\n\nThis is just a convenient shortcut for "
 									},
 									{
 										"kind": "inline-tag",
@@ -2253,7 +2253,7 @@
 								"summary": [
 									{
 										"kind": "text",
-										"text": "Runs the main user function that performs the job of the actor\nand terminates the process when the user function finishes.\n\n**The "
+										"text": "Runs the main user function that performs the job of the Actor\nand terminates the process when the user function finishes.\n\n**The "
 									},
 									{
 										"kind": "code",
@@ -2261,7 +2261,7 @@
 									},
 									{
 										"kind": "text",
-										"text": " function is optional** and is provided merely for your convenience.\nIt is mainly useful when you're running your code as an actor on the [Apify platform](https://apify.com/actors).\nHowever, if you want to use Apify SDK tools directly inside your existing projects, e.g.\nrunning in an [Express](https://expressjs.com/) server, on\n[Google Cloud functions](https://cloud.google.com/functions)\nor [AWS Lambda](https://aws.amazon.com/lambda/), it's better to avoid\nit since the function terminates the main process when it finishes!\n\nThe "
+										"text": " function is optional** and is provided merely for your convenience.\nIt is mainly useful when you're running your code as an Actor on the [Apify platform](https://apify.com/actors).\nHowever, if you want to use Apify SDK tools directly inside your existing projects, e.g.\nrunning in an [Express](https://expressjs.com/) server, on\n[Google Cloud functions](https://cloud.google.com/functions)\nor [AWS Lambda](https://aws.amazon.com/lambda/), it's better to avoid\nit since the function terminates the main process when it finishes!\n\nThe "
 									},
 									{
 										"kind": "code",
@@ -2330,7 +2330,7 @@
 									},
 									{
 										"kind": "code",
-										"text": "```javascript\nawait Actor.main(() => {\n  // My synchronous function that returns immediately\n  console.log('Hello world from actor!');\n});\n```"
+										"text": "```javascript\nawait Actor.main(() => {\n  // My synchronous function that returns immediately\n  console.log('Hello world from Actor!');\n});\n```"
 									},
 									{
 										"kind": "text",
@@ -2461,7 +2461,7 @@
 								"summary": [
 									{
 										"kind": "text",
-										"text": "Transforms this actor run to an actor run of a given actor. The system stops the current container and starts\nthe new container instead. All the default storages are preserved and the new input is stored under the "
+										"text": "Transforms this Actor run to an Actor run of a given Actor. The system stops the current container and starts\nthe new container instead. All the default storages are preserved and the new input is stored under the "
 									},
 									{
 										"kind": "code",
@@ -2492,7 +2492,7 @@
 											},
 											{
 												"kind": "text",
-												"text": " or actor ID of an actor to which we want to metamorph."
+												"text": " or Actor ID of an Actor to which we want to metamorph."
 											}
 										]
 									},
@@ -2513,7 +2513,7 @@
 										"summary": [
 											{
 												"kind": "text",
-												"text": "Input for the actor. If it is an object, it will be stringified to\n JSON and its content type set to "
+												"text": "Input for the Actor. If it is an object, it will be stringified to\n JSON and its content type set to "
 											},
 											{
 												"kind": "code",
@@ -2966,7 +2966,7 @@
 											},
 											{
 												"kind": "text",
-												"text": ",\n  the function returns the default dataset associated with the actor run."
+												"text": ",\n  the function returns the default dataset associated with the Actor run."
 											}
 										]
 									},
@@ -3103,7 +3103,7 @@
 											},
 											{
 												"kind": "text",
-												"text": ",\n  the function returns the default key-value store associated with the actor run."
+												"text": ",\n  the function returns the default key-value store associated with the Actor run."
 											}
 										]
 									},
@@ -3240,7 +3240,7 @@
 											},
 											{
 												"kind": "text",
-												"text": ",\n  the function returns the default request queue associated with the actor run."
+												"text": ",\n  the function returns the default request queue associated with the Actor run."
 											}
 										]
 									},
@@ -3328,7 +3328,7 @@
 									},
 									{
 										"kind": "text",
-										"text": " of the current actor run.\n\nThis is just a convenient shortcut for "
+										"text": " of the current Actor run.\n\nThis is just a convenient shortcut for "
 									},
 									{
 										"kind": "inline-tag",
@@ -3387,7 +3387,7 @@
 									},
 									{
 										"kind": "text",
-										"text": ",\notherwise the actor process might finish before the data are stored!"
+										"text": ",\notherwise the Actor process might finish before the data are stored!"
 									}
 								]
 							},
@@ -3501,7 +3501,7 @@
 								"summary": [
 									{
 										"kind": "text",
-										"text": "Internally reboots this actor run. The system stops the current container and starts\na new container with the same run id."
+										"text": "Internally reboots this Actor run. The system stops the current container and starts\na new container with the same run id."
 									}
 								]
 							},
@@ -3547,7 +3547,7 @@
 								"summary": [
 									{
 										"kind": "text",
-										"text": "Sets the status message for the current actor run."
+										"text": "Sets the status message for the current Actor run."
 									}
 								],
 								"blockTags": [
@@ -3660,7 +3660,7 @@
 									},
 									{
 										"kind": "text",
-										"text": " associated with the current actor run.\n\nThis is just a convenient shortcut for  "
+										"text": " associated with the current Actor run.\n\nThis is just a convenient shortcut for  "
 									},
 									{
 										"kind": "inline-tag",
@@ -3890,7 +3890,7 @@
 								"summary": [
 									{
 										"kind": "text",
-										"text": "Runs an actor on the Apify platform using the current user account (determined by the "
+										"text": "Runs an Actor on the Apify platform using the current user account (determined by the "
 									},
 									{
 										"kind": "code",
@@ -3915,7 +3915,7 @@
 									},
 									{
 										"kind": "text",
-										"text": " object that contains details about the actor run.\n\nFor more information about actors, read the\n[documentation](https://docs.apify.com/actor).\n\n**Example usage:**\n\n"
+										"text": " object that contains details about the Actor run.\n\nFor more information about Actors, read the\n[documentation](https://docs.apify.com/actor).\n\n**Example usage:**\n\n"
 									},
 									{
 										"kind": "code",
@@ -3950,7 +3950,7 @@
 											},
 											{
 												"kind": "text",
-												"text": " or actor ID."
+												"text": " or Actor ID."
 											}
 										]
 									},
@@ -3971,7 +3971,7 @@
 										"summary": [
 											{
 												"kind": "text",
-												"text": "Input for the actor. If it is an object, it will be stringified to\n JSON and its content type set to "
+												"text": "Input for the Actor. If it is an object, it will be stringified to\n JSON and its content type set to "
 											},
 											{
 												"kind": "code",
@@ -11360,7 +11360,7 @@
 					},
 					{
 						"kind": "code",
-						"text": "```js\nimport log from '@apify/log';\n\n// importing from the Apify SDK or Crawlee is also supported:\n// import { log } from 'apify';\n// import { log } from 'crawlee';\n\nlog.info('Information message', { someData: 123 }); // prints message\nlog.debug('Debug message', { debugData: 'hello' }); // doesn't print anything\n\nlog.setLevel(log.LEVELS.DEBUG);\nlog.debug('Debug message'); // prints message\n\nlog.setLevel(log.LEVELS.ERROR);\nlog.debug('Debug message'); // doesn't print anything\nlog.info('Info message'); // doesn't print anything\nlog.error('Error message', { errorDetails: 'This is bad!' }); // prints message\n\ntry {\n  throw new Error('Not good!');\n} catch (e) {\n  log.exception(e, 'Exception occurred', { errorDetails: 'This is really bad!' }); // prints message\n}\n\nlog.setOptions({ prefix: 'My actor' });\nlog.info('I am running!'); // prints \"My actor: I am running\"\n\nconst childLog = log.child({ prefix: 'Crawler' });\nlog.info('I am crawling!'); // prints \"My actor:Crawler: I am crawling\"\n```"
+						"text": "```js\nimport log from '@apify/log';\n\n// importing from the Apify SDK or Crawlee is also supported:\n// import { log } from 'apify';\n// import { log } from 'crawlee';\n\nlog.info('Information message', { someData: 123 }); // prints message\nlog.debug('Debug message', { debugData: 'hello' }); // doesn't print anything\n\nlog.setLevel(log.LEVELS.DEBUG);\nlog.debug('Debug message'); // prints message\n\nlog.setLevel(log.LEVELS.ERROR);\nlog.debug('Debug message'); // doesn't print anything\nlog.info('Info message'); // doesn't print anything\nlog.error('Error message', { errorDetails: 'This is bad!' }); // prints message\n\ntry {\n  throw new Error('Not good!');\n} catch (e) {\n  log.exception(e, 'Exception occurred', { errorDetails: 'This is really bad!' }); // prints message\n}\n\nlog.setOptions({ prefix: 'My Actor' });\nlog.info('I am running!'); // prints \"My Actor: I am running\"\n\nconst childLog = log.child({ prefix: 'Crawler' });\nlog.info('I am crawling!'); // prints \"My Actor:Crawler: I am crawling\"\n```"
 					},
 					{
 						"kind": "text",
@@ -25548,7 +25548,7 @@
 					},
 					{
 						"kind": "text",
-						"text": "\n  The event is emitted approximately every second\n  and it indicates whether the actor is using the maximum of available CPU resources.\n  If that's the case, the actor should not add more workload.\n  For example, this event is used by the "
+						"text": "\n  The event is emitted approximately every second\n  and it indicates whether the Actor is using the maximum of available CPU resources.\n  If that's the case, the Actor should not add more workload.\n  For example, this event is used by the "
 					},
 					{
 						"kind": "inline-tag",
@@ -25573,7 +25573,7 @@
 					},
 					{
 						"kind": "text",
-						"text": "\n  Emitted when the actor running on the Apify platform is going to be migrated to another worker server soon.\n  You can use it to persist the state of the actor and gracefully stop your in-progress tasks,\n  so that they are not interrupted by the migration.\n  For example, this is used by the "
+						"text": "\n  Emitted when the Actor running on the Apify platform is going to be migrated to another worker server soon.\n  You can use it to persist the state of the Actor and gracefully stop your in-progress tasks,\n  so that they are not interrupted by the migration.\n  For example, this is used by the "
 					},
 					{
 						"kind": "inline-tag",
@@ -25598,7 +25598,7 @@
 					},
 					{
 						"kind": "text",
-						"text": "\n  When a user aborts an actor run on the Apify platform, they can choose to abort gracefully to allow\n  the actor some time before getting killed. This graceful abort emits the "
+						"text": "\n  When a user aborts an Actor run on the Apify platform, they can choose to abort gracefully to allow\n  the Actor some time before getting killed. This graceful abort emits the "
 					},
 					{
 						"kind": "code",
@@ -25622,7 +25622,7 @@
 					},
 					{
 						"kind": "text",
-						"text": "\n  Emitted in regular intervals (by default 60 seconds) to notify all components of Apify SDK that it is time to persist\n  their state, in order to avoid repeating all work when the actor restarts.\n  This event is automatically emitted together with the "
+						"text": "\n  Emitted in regular intervals (by default 60 seconds) to notify all components of Apify SDK that it is time to persist\n  their state, in order to avoid repeating all work when the Actor restarts.\n  This event is automatically emitted together with the "
 					},
 					{
 						"kind": "code",
@@ -29192,7 +29192,7 @@
 						"summary": [
 							{
 								"kind": "text",
-								"text": "User API token that is used to run the actor. By default, it is taken from the "
+								"text": "User API token that is used to run the Actor. By default, it is taken from the "
 							},
 							{
 								"kind": "code",
@@ -30138,7 +30138,7 @@
 						"summary": [
 							{
 								"kind": "text",
-								"text": "ID of the actor (ACTOR_ID)"
+								"text": "ID of the Actor (ACTOR_ID)"
 							}
 						]
 					},
@@ -30174,7 +30174,7 @@
 						"summary": [
 							{
 								"kind": "text",
-								"text": "ID of the actor run (ACTOR_RUN_ID)"
+								"text": "ID of the Actor run (ACTOR_RUN_ID)"
 							}
 						]
 					},
@@ -30210,7 +30210,7 @@
 						"summary": [
 							{
 								"kind": "text",
-								"text": "ID of the actor task (ACTOR_TASK_ID)"
+								"text": "ID of the Actor task (ACTOR_TASK_ID)"
 							}
 						]
 					},
@@ -30246,7 +30246,7 @@
 						"summary": [
 							{
 								"kind": "text",
-								"text": "ID of the dataset where input and output data of this\nactor is stored (ACTOR_DEFAULT_DATASET_ID)"
+								"text": "ID of the dataset where input and output data of this\nActor is stored (ACTOR_DEFAULT_DATASET_ID)"
 							}
 						]
 					},
@@ -30282,7 +30282,7 @@
 						"summary": [
 							{
 								"kind": "text",
-								"text": "ID of the key-value store where input and output data of this\nactor is stored (ACTOR_DEFAULT_KEY_VALUE_STORE_ID)"
+								"text": "ID of the key-value store where input and output data of this\nActor is stored (ACTOR_DEFAULT_KEY_VALUE_STORE_ID)"
 							}
 						]
 					},
@@ -30318,7 +30318,7 @@
 						"summary": [
 							{
 								"kind": "text",
-								"text": "Amount of memory allocated for the actor,\nin megabytes (ACTOR_MEMORY_MBYTES)"
+								"text": "Amount of memory allocated for the Actor,\nin megabytes (ACTOR_MEMORY_MBYTES)"
 							}
 						]
 					},
@@ -30354,7 +30354,7 @@
 						"summary": [
 							{
 								"kind": "text",
-								"text": "Date when the actor was started (ACTOR_STARTED_AT)"
+								"text": "Date when the Actor was started (ACTOR_STARTED_AT)"
 							}
 						]
 					},
@@ -30392,7 +30392,7 @@
 						"summary": [
 							{
 								"kind": "text",
-								"text": "Date when the actor will time out (ACTOR_TIMEOUT_AT)"
+								"text": "Date when the Actor will time out (ACTOR_TIMEOUT_AT)"
 							}
 						]
 					},
@@ -30430,7 +30430,7 @@
 						"summary": [
 							{
 								"kind": "text",
-								"text": "Authentication token representing privileges given to the actor run,\nit can be passed to various Apify APIs (APIFY_TOKEN)"
+								"text": "Authentication token representing privileges given to the Actor run,\nit can be passed to various Apify APIs (APIFY_TOKEN)"
 							}
 						]
 					},
@@ -30466,7 +30466,7 @@
 						"summary": [
 							{
 								"kind": "text",
-								"text": "ID of the user who started the actor - note that it might be\ndifferent than the owner ofthe actor (APIFY_USER_ID)"
+								"text": "ID of the user who started the Actor - note that it might be\ndifferent than the owner ofthe Actor (APIFY_USER_ID)"
 							}
 						]
 					},
@@ -30539,7 +30539,7 @@
 						"summary": [
 							{
 								"kind": "text",
-								"text": "Tag or number of the actor build to run (e.g. "
+								"text": "Tag or number of the Actor build to run (e.g. "
 							},
 							{
 								"kind": "code",
@@ -30555,7 +30555,7 @@
 							},
 							{
 								"kind": "text",
-								"text": ").\nIf not provided, the run uses build tag or number from the default actor run configuration (typically "
+								"text": ").\nIf not provided, the run uses build tag or number from the default Actor run configuration (typically "
 							},
 							{
 								"kind": "code",
@@ -30685,7 +30685,7 @@
 						"summary": [
 							{
 								"kind": "text",
-								"text": "Specifies maximum number of items that the actor run should return.\nThis is used by pay per result actors to limit the maximum number of results that will be charged to customer.\nValue can be accessed in actor run using "
+								"text": "Specifies maximum number of items that the Actor run should return.\nThis is used by pay per result Actors to limit the maximum number of results that will be charged to customer.\nValue can be accessed in Actor run using "
 							},
 							{
 								"kind": "code",
@@ -30726,7 +30726,7 @@
 						"summary": [
 							{
 								"kind": "text",
-								"text": "Memory in megabytes which will be allocated for the new actor run.\nIf not provided, the run uses memory of the default actor run configuration."
+								"text": "Memory in megabytes which will be allocated for the new Actor run.\nIf not provided, the run uses memory of the default Actor run configuration."
 							}
 						]
 					},
@@ -30759,7 +30759,7 @@
 						"summary": [
 							{
 								"kind": "text",
-								"text": "Timeout for the actor run in seconds. Zero value means there is no timeout.\nIf not provided, the run uses timeout of the default actor run configuration."
+								"text": "Timeout for the Actor run in seconds. Zero value means there is no timeout.\nIf not provided, the run uses timeout of the default Actor run configuration."
 							}
 						]
 					},
@@ -30791,7 +30791,7 @@
 						"summary": [
 							{
 								"kind": "text",
-								"text": "User API token that is used to run the actor. By default, it is taken from the "
+								"text": "User API token that is used to run the Actor. By default, it is taken from the "
 							},
 							{
 								"kind": "code",
@@ -30854,7 +30854,7 @@
 						"summary": [
 							{
 								"kind": "text",
-								"text": "Specifies optional webhooks associated with the actor run, which can be used\nto receive a notification e.g. when the actor finished or failed, see\n[ad hook webhooks documentation](https://docs.apify.com/webhooks/ad-hoc-webhooks) for detailed description."
+								"text": "Specifies optional webhooks associated with the Actor run, which can be used\nto receive a notification e.g. when the Actor finished or failed, see\n[ad hook webhooks documentation](https://docs.apify.com/webhooks/ad-hoc-webhooks) for detailed description."
 							}
 						]
 					},
@@ -30936,7 +30936,7 @@
 						"summary": [
 							{
 								"kind": "text",
-								"text": "Tag or number of the actor build to run (e.g. "
+								"text": "Tag or number of the Actor build to run (e.g. "
 							},
 							{
 								"kind": "code",
@@ -30952,7 +30952,7 @@
 							},
 							{
 								"kind": "text",
-								"text": ").\nIf not provided, the run uses build tag or number from the default actor run configuration (typically "
+								"text": ").\nIf not provided, the run uses build tag or number from the default Actor run configuration (typically "
 							},
 							{
 								"kind": "code",
@@ -30993,7 +30993,7 @@
 						"summary": [
 							{
 								"kind": "text",
-								"text": "Specifies maximum number of items that the actor run should return.\nThis is used by pay per result actors to limit the maximum number of results that will be charged to customer.\nValue can be accessed in actor run using "
+								"text": "Specifies maximum number of items that the Actor run should return.\nThis is used by pay per result Actors to limit the maximum number of results that will be charged to customer.\nValue can be accessed in Actor run using "
 							},
 							{
 								"kind": "code",
@@ -31034,7 +31034,7 @@
 						"summary": [
 							{
 								"kind": "text",
-								"text": "Memory in megabytes which will be allocated for the new actor run.\nIf not provided, the run uses memory of the default actor run configuration."
+								"text": "Memory in megabytes which will be allocated for the new Actor run.\nIf not provided, the run uses memory of the default Actor run configuration."
 							}
 						]
 					},
@@ -31067,7 +31067,7 @@
 						"summary": [
 							{
 								"kind": "text",
-								"text": "Timeout for the actor run in seconds. Zero value means there is no timeout.\nIf not provided, the run uses timeout of the default actor run configuration."
+								"text": "Timeout for the Actor run in seconds. Zero value means there is no timeout.\nIf not provided, the run uses timeout of the default Actor run configuration."
 							}
 						]
 					},
@@ -31099,7 +31099,7 @@
 						"summary": [
 							{
 								"kind": "text",
-								"text": "User API token that is used to run the actor. By default, it is taken from the "
+								"text": "User API token that is used to run the Actor. By default, it is taken from the "
 							},
 							{
 								"kind": "code",
@@ -31162,7 +31162,7 @@
 						"summary": [
 							{
 								"kind": "text",
-								"text": "Specifies optional webhooks associated with the actor run, which can be used\nto receive a notification e.g. when the actor finished or failed, see\n[ad hook webhooks documentation](https://docs.apify.com/webhooks/ad-hoc-webhooks) for detailed description."
+								"text": "Specifies optional webhooks associated with the Actor run, which can be used\nto receive a notification e.g. when the Actor finished or failed, see\n[ad hook webhooks documentation](https://docs.apify.com/webhooks/ad-hoc-webhooks) for detailed description."
 							}
 						]
 					},
@@ -35458,7 +35458,7 @@
 						"summary": [
 							{
 								"kind": "text",
-								"text": "Tag or number of the target actor build to metamorph into (e.g. "
+								"text": "Tag or number of the target Actor build to metamorph into (e.g. "
 							},
 							{
 								"kind": "code",
@@ -35474,7 +35474,7 @@
 							},
 							{
 								"kind": "text",
-								"text": ").\nIf not provided, the run uses build tag or number from the default actor run configuration (typically "
+								"text": ").\nIf not provided, the run uses build tag or number from the default Actor run configuration (typically "
 							},
 							{
 								"kind": "code",
@@ -35934,7 +35934,7 @@
 							},
 							{
 								"kind": "text",
-								"text": "\nenvironment variable, which is automatically set by the system when running the actors."
+								"text": "\nenvironment variable, which is automatically set by the system when running the Actors."
 							}
 						]
 					},
@@ -36164,7 +36164,7 @@
 							},
 							{
 								"kind": "text",
-								"text": "\nenvironment variable, which is automatically set by the system when running the actors\non the Apify cloud, or when using the [Apify CLI](https://github.com/apify/apify-cli)."
+								"text": "\nenvironment variable, which is automatically set by the system when running the Actors\non the Apify cloud, or when using the [Apify CLI](https://github.com/apify/apify-cli)."
 							}
 						]
 					},
@@ -36798,7 +36798,7 @@
 						"summary": [
 							{
 								"kind": "text",
-								"text": "Array of event types, which you can set for actor run, see\nthe [actor run events](https://docs.apify.com/webhooks/events#actor-run) in the Apify doc."
+								"text": "Array of event types, which you can set for Actor run, see\nthe [Actor run events](https://docs.apify.com/webhooks/events#actor-run) in the Apify doc."
 							}
 						]
 					},
@@ -36836,7 +36836,7 @@
 						"summary": [
 							{
 								"kind": "text",
-								"text": "Idempotency key enables you to ensure that a webhook will not be added multiple times in case of\nan actor restart or other situation that would cause the "
+								"text": "Idempotency key enables you to ensure that a webhook will not be added multiple times in case of\nan Actor restart or other situation that would cause the "
 							},
 							{
 								"kind": "code",
@@ -36844,7 +36844,7 @@
 							},
 							{
 								"kind": "text",
-								"text": " function to be called again.\nWe suggest using the actor run ID as the idempotency key. You can get the run ID by calling\n"
+								"text": " function to be called again.\nWe suggest using the Actor run ID as the idempotency key. You can get the run ID by calling\n"
 							},
 							{
 								"kind": "inline-tag",
@@ -36925,7 +36925,7 @@
 						"summary": [
 							{
 								"kind": "text",
-								"text": "URL which will be requested using HTTP POST request, when actor run will reach the set event type."
+								"text": "URL which will be requested using HTTP POST request, when Actor run will reach the set event type."
 							}
 						]
 					},

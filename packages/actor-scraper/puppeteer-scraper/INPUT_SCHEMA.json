@@ -1,6 +1,6 @@
 {
     "title": "Puppeteer Scraper Input",
-    "description": "Use the following form to configure Puppeteer Scraper. The Start URLs and Page function are required and all other fields are optional. To learn more about the different options, click on their title or on the nearby question marks. For details about the Page function visit the actor's README in the ACTOR INFO tab.",
+    "description": "Use the following form to configure Puppeteer Scraper. The Start URLs and Page function are required and all other fields are optional. To learn more about the different options, click on their title or on the nearby question marks. For details about the Page function visit the Actor's README in the ACTOR INFO tab.",
     "type": "object",
     "schemaVersion": 1,
     "properties": {
@@ -95,7 +95,7 @@
         "sessionPoolName": {
             "title": "Session pool name",
             "type": "string",
-            "description": "<b>Use only english alphanumeric characters dashes and underscores.</b> A session is a representation of a user. It has it's own IP and cookies which are then used together to emulate a real user. Usage of the sessions is controlled by the Proxy rotation option. By providing a session pool name, you enable sharing of those sessions across multiple actor runs. This is very useful when you need specific cookies for accessing the websites or when a lot of your proxies are already blocked. Instead of trying randomly, a list of working sessions will be saved and a new actor run can reuse those sessions. Note that the IP lock on sessions expires after 24 hours, unless the session is used again in that window.",
+            "description": "<b>Use only english alphanumeric characters dashes and underscores.</b> A session is a representation of a user. It has it's own IP and cookies which are then used together to emulate a real user. Usage of the sessions is controlled by the Proxy rotation option. By providing a session pool name, you enable sharing of those sessions across multiple Actor runs. This is very useful when you need specific cookies for accessing the websites or when a lot of your proxies are already blocked. Instead of trying randomly, a list of working sessions will be saved and a new Actor run can reuse those sessions. Note that the IP lock on sessions expires after 24 hours, unless the session is used again in that window.",
             "editor": "textfield",
             "minLength": 3,
             "maxLength": 200,

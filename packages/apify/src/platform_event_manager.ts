@@ -23,28 +23,28 @@ import { Configuration } from './configuration';
  *
  * - `cpuInfo`: `{ "isCpuOverloaded": Boolean }`
  *   The event is emitted approximately every second
- *   and it indicates whether the actor is using the maximum of available CPU resources.
- *   If that's the case, the actor should not add more workload.
+ *   and it indicates whether the Actor is using the maximum of available CPU resources.
+ *   If that's the case, the Actor should not add more workload.
  *   For example, this event is used by the {@apilink AutoscaledPool} class.
  * - `migrating`: `void`
- *   Emitted when the actor running on the Apify platform is going to be migrated to another worker server soon.
- *   You can use it to persist the state of the actor and gracefully stop your in-progress tasks,
+ *   Emitted when the Actor running on the Apify platform is going to be migrated to another worker server soon.
+ *   You can use it to persist the state of the Actor and gracefully stop your in-progress tasks,
  *   so that they are not interrupted by the migration.
  *   For example, this is used by the {@apilink RequestList} class.
  * - `aborting`: `void`
- *   When a user aborts an actor run on the Apify platform, they can choose to abort gracefully to allow
- *   the actor some time before getting killed. This graceful abort emits the `aborting` event which the SDK
+ *   When a user aborts an Actor run on the Apify platform, they can choose to abort gracefully to allow
+ *   the Actor some time before getting killed. This graceful abort emits the `aborting` event which the SDK
  *   uses to gracefully stop running crawls and you can use it to do your own cleanup as well.
  * - `persistState`: `{ "isMigrating": Boolean }`
  *   Emitted in regular intervals (by default 60 seconds) to notify all components of Apify SDK that it is time to persist
- *   their state, in order to avoid repeating all work when the actor restarts.
+ *   their state, in order to avoid repeating all work when the Actor restarts.
  *   This event is automatically emitted together with the `migrating` event,
  *   in which case the `isMigrating` flag is set to `true`. Otherwise the flag is `false`.
  *   Note that the `persistState` event is provided merely for user convenience,
  *   you can achieve the same effect using `setInterval()` and listening for the `migrating` event.
  */
 export class PlatformEventManager extends EventManager {
-    /** Websocket connection to actor events. */
+    /** Websocket connection to Actor events. */
     private eventsWs?: WebSocket;
 
     constructor(override readonly config = Configuration.getGlobalConfig()) {
@@ -89,7 +89,7 @@ export class PlatformEventManager extends EventManager {
                     this.events.emit(EventType.PERSIST_STATE, { isMigrating: true });
                 }
             } catch (err) {
-                this.log.exception(err as Error, 'Cannot parse actor event');
+                this.log.exception(err as Error, 'Cannot parse Actor event');
             }
         });
         this.eventsWs.on('error', (err) => {

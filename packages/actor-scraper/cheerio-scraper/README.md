@@ -9,7 +9,7 @@ If you're unfamiliar with web scraping or web development in general,
 you might prefer to start with [**Scraping with Web Scraper**](https://docs.apify.com/tutorials/apify-scrapers/web-scraper) tutorial from the Apify documentation and then continue with [**Scraping with Cheerio Scraper**](https://docs.apify.com/tutorials/apify-scrapers/cheerio-scraper), a tutorial which will walk you through all the steps and provide a number of examples.
 
 ## Cost of usage
-You can find the average usage cost for this actor on the [pricing page](https://apify.com/pricing) under the `Which plan do I need?` section. Cheerio Scraper is equivalent to `Simple HTML pages` while Web Scraper, Puppeteer Scraper and Playwright Scraper are equivalent to `Full web pages`. These cost estimates are based on averages and might be lower or higher depending on how heavy the pages you scrape are.
+You can find the average usage cost for this Actor on the [pricing page](https://apify.com/pricing) under the `Which plan do I need?` section. Cheerio Scraper is equivalent to `Simple HTML pages` while Web Scraper, Puppeteer Scraper and Playwright Scraper are equivalent to `Full web pages`. These cost estimates are based on averages and might be lower or higher depending on how heavy the pages you scrape are.
 
 
 ## Usage
@@ -64,20 +64,20 @@ and the result is stored in the [`context.contentType`](#contenttype-object) obj
 
 ## Limitations
 
-The actor does not employ a full-featured web browser such as Chromium or Firefox, so it will not be sufficient for web pages that render their content dynamically using client-side JavaScript. To scrape such sites, you might prefer to use [**Web Scraper**](https://apify.com/apify/web-scraper) (`apify/web-scraper`), which loads pages in a full browser and renders dynamic content.
+The Actor does not employ a full-featured web browser such as Chromium or Firefox, so it will not be sufficient for web pages that render their content dynamically using client-side JavaScript. To scrape such sites, you might prefer to use [**Web Scraper**](https://apify.com/apify/web-scraper) (`apify/web-scraper`), which loads pages in a full browser and renders dynamic content.
 
 Since Cheerio Scraper's **Page function** is executed in the context of the server, it only supports server-side code running in Node.js. If you need to combine client- and server-side libraries in Chromium using the [Puppeteer](https://github.com/puppeteer/puppeteer) library, you might prefer to use
-[**Puppeteer Scraper**](https://apify.com/apify/puppeteer-scraper) (`apify/puppeteer-scraper`). If you prefer Firefox and/or [Playwright](https://github.com/microsoft/playwright), check out [**Playwright Scraper**](https://apify.com/apify/playwright-scraper) (`apify/playwright-scraper`). For even more flexibility and control, you might develop a new actor from scratch in Node.js using [Apify SDK](https://sdk.apify.com/) and [Crawlee](https://crawlee.dev).
+[**Puppeteer Scraper**](https://apify.com/apify/puppeteer-scraper) (`apify/puppeteer-scraper`). If you prefer Firefox and/or [Playwright](https://github.com/microsoft/playwright), check out [**Playwright Scraper**](https://apify.com/apify/playwright-scraper) (`apify/playwright-scraper`). For even more flexibility and control, you might develop a new Actor from scratch in Node.js using [Apify SDK](https://sdk.apify.com/) and [Crawlee](https://crawlee.dev).
 
 In the [**Page function**](#page-function) and **Prepare request function**,
-you can only use NPM modules that are already installed in this actor.
-If you require other modules for your scraping, you'll need to develop a completely new actor.
+you can only use NPM modules that are already installed in this Actor.
+If you require other modules for your scraping, you'll need to develop a completely new Actor.
 You can use the [`CheerioCrawler`](https://crawlee.dev/api/cheerio-crawler/class/CheerioCrawler) class
 from Crawlee to get most of the functionality of Cheerio Scraper out of the box.
 
 ## Input configuration
 
-As input, Cheerio Scraper actor accepts a number of configurations. These can be entered either manually in the user interface in [Apify Console](https://console.apify.com), or programmatically in a JSON object using the [Apify API](https://apify.com/docs/api/v2#/reference/actors/run-collection/run-actor). For a complete list of input fields and their types, please visit the [Input](https://apify.com/apify/cheerio-scraper/input-schema) tab.
+As input, Cheerio Scraper Actor accepts a number of configurations. These can be entered either manually in the user interface in [Apify Console](https://console.apify.com), or programmatically in a JSON object using the [Apify API](https://apify.com/docs/api/v2#/reference/actors/run-collection/run-actor). For a complete list of input fields and their types, please visit the [Input](https://apify.com/apify/cheerio-scraper/input-schema) tab.
 
 ### Start URLs
 
@@ -171,7 +171,7 @@ async function pageFunction(context) {
     // The "request" property contains various information about the web page loaded.
     const url = request.url;
 
-    // Use "log" object to print information to actor log.
+    // Use "log" object to print information to Actor log.
     log.info('Page scraped', { url, pageTitle });
 
     // Return an object with the data extracted from the page.
@@ -297,7 +297,7 @@ visit the [Mozilla documentation](https://developer.mozilla.org/en-US/docs/Web/J
 
 - ##### **`env: Object`**
 
-  A map of all relevant values set by the Apify platform to the actor run via the `APIFY_` environment variable. For example, here you can find information such as actor run ID, timeouts, actor run memory, etc.
+  A map of all relevant values set by the Apify platform to the Actor run via the `APIFY_` environment variable. For example, here you can find information such as Actor run ID, timeouts, Actor run memory, etc.
   For the full list of available values, see the [`Actor.getEnv()`](https://sdk.apify.com/api/apify/class/Actor#getEnv) function in the Apify SDK documentation.
 
   Example:
@@ -308,7 +308,7 @@ visit the [Mozilla documentation](https://developer.mozilla.org/en-US/docs/Web/J
 
 - ##### **`getValue(key): AsyncFunction`**
 
-  Gets a value from the default key-value store associated with the actor run. The key-value store is useful for persisting named data records, such as state objects, files, etc. The function is very similar to the [`Actor.getValue()`](https://sdk.apify.com/api/apify/class/Actor#getValue) function in Apify SDK.
+  Gets a value from the default key-value store associated with the Actor run. The key-value store is useful for persisting named data records, such as state objects, files, etc. The function is very similar to the [`Actor.getValue()`](https://sdk.apify.com/api/apify/class/Actor#getValue) function in Apify SDK.
 
   To set the value, use the dual function `context.setValue(key, value)`.
 
@@ -326,7 +326,7 @@ visit the [Mozilla documentation](https://developer.mozilla.org/en-US/docs/Web/J
     - Keys must be strings and values must be JSON stringify-able.
     - The `forEach()` function is not supported.
 
-  Note that stored data is not persisted. If the actor run is restarted or migrated to another worker server,
+  Note that stored data is not persisted. If the Actor run is restarted or migrated to another worker server,
   the content of `globalStore` is reset. Therefore, never depend on a specific value to be present
   in the store.
 
@@ -343,7 +343,7 @@ visit the [Mozilla documentation](https://developer.mozilla.org/en-US/docs/Web/J
 
 - ##### **`input: Object`**
 
-  An object containing the actor run input, i.e. Cheerio Scraper's configuration. Each page function invocation gets a fresh copy of the `input` object, so changing its properties has no effect.
+  An object containing the Actor run input, i.e. Cheerio Scraper's configuration. Each page function invocation gets a fresh copy of the `input` object, so changing its properties has no effect.
 
 - ##### **`json: Object`**
 
@@ -352,7 +352,7 @@ visit the [Mozilla documentation](https://developer.mozilla.org/en-US/docs/Web/J
 - ##### **`log: Object`**
 
   An object containing logging functions, with the same interface as provided by the
-  [`crawlee.utils.log`](https://crawlee.dev/api/core/class/Log) object in Crawlee. The log messages are written directly to the actor run log, which is useful for monitoring and debugging.
+  [`crawlee.utils.log`](https://crawlee.dev/api/core/class/Log) object in Crawlee. The log messages are written directly to the Actor run log, which is useful for monitoring and debugging.
   Note that `log.debug()` only logs messages if the **Debug log** input setting is set.
 
   Example:
@@ -373,14 +373,14 @@ visit the [Mozilla documentation](https://developer.mozilla.org/en-US/docs/Web/J
 - ##### **`saveSnapshot(): AsyncFunction`**
 
   Saves the full HTML of the current page to the key-value store
-  associated with the actor run, under the `SNAPSHOT-BODY` key.
+  associated with the Actor run, under the `SNAPSHOT-BODY` key.
   This feature is useful when debugging your scraper.
 
-  Note that each snapshot overwrites the previous one and the `saveSnapshot()` calls are throttled to at most one call in two seconds, in order to avoid excess consumption of resources and slowdown of the actor.
+  Note that each snapshot overwrites the previous one and the `saveSnapshot()` calls are throttled to at most one call in two seconds, in order to avoid excess consumption of resources and slowdown of the Actor.
 
 - ##### **`setValue(key, data, options): AsyncFunction`**
 
-  Sets a value to the default key-value store associated with the actor run. The key-value store is useful for persisting named data records, such as state objects, files, etc. The function is very similar to the [`Actor.setValue()`](https://sdk.apify.com/api/apify/class/Actor#setValue) function in Apify SDK.
+  Sets a value to the default key-value store associated with the Actor run. The key-value store is useful for persisting named data records, such as state objects, files, etc. The function is very similar to the [`Actor.setValue()`](https://sdk.apify.com/api/apify/class/Actor#setValue) function in Apify SDK.
 
   To get the value, use the dual function `context.getValue(key)`.
 
@@ -462,7 +462,7 @@ Proxy is required to run the scraper. The following table lists the available op
     </tbody>
 </table>
 
-The proxy configuration can be set programmatically when calling the actor using the API
+The proxy configuration can be set programmatically when calling the Actor using the API
 by setting the `proxyConfiguration` field.
 It accepts a JSON object with the following structure:
 
@@ -512,7 +512,7 @@ Check out the docs for [Pre-navigation hooks](https://crawlee.dev/api/cheerio-cr
 
 ## Results
 
-The scraping results returned by [**Page function**](#page-function) are stored in the default dataset associated with the actor run, from where you can export them to formats such as JSON, XML, CSV or Excel.
+The scraping results returned by [**Page function**](#page-function) are stored in the default dataset associated with the Actor run, from where you can export them to formats such as JSON, XML, CSV or Excel.
 For each object returned by the [**Page function**](#page-function), Cheerio Scraper pushes one record into the dataset and extends it with metadata such as the URL of the web page where the results come from.
 
 For example, if your page function returned the following object:
@@ -550,7 +550,7 @@ API endpoint:
 https://api.apify.com/v2/datasets/[DATASET_ID]/items?format=json
 ```
 
-where `[DATASET_ID]` is the ID of the actor's run dataset, in which you can find the Run object returned when starting the actor. Alternatively, you'll find the download links for the results in Apify Console.
+where `[DATASET_ID]` is the ID of the Actor's run dataset, in which you can find the Run object returned when starting the Actor. Alternatively, you'll find the download links for the results in Apify Console.
 
 To skip the `#error` and `#debug` metadata fields from the results and not include empty result records,
 simply add the `clean=true` query parameter to the API URL, or select the  **Clean items** option when downloading the dataset in Apify Console.
@@ -571,14 +571,14 @@ You might also want to see these other resources:
   A step-by-step tutorial on how to use Cheerio Scraper, with a detailed explanation and examples.
 - **Web Scraper** ([apify/web-scraper](https://apify.com/apify/web-scraper)) -
   Apify's basic tool for web crawling and scraping. It uses a full Chrome browser to render dynamic content.
-  A similar web scraping actor to Puppeteer Scraper, but is simpler to use and only runs in the context of the browser.
+  A similar web scraping Actor to Puppeteer Scraper, but is simpler to use and only runs in the context of the browser.
   Uses the [Puppeteer](https://github.com/GoogleChrome/puppeteer) library.
 - **Puppeteer Scraper** ([apify/puppeteer-scraper](https://apify.com/apify/puppeteer-scraper)) -
-  An actor similar to Web Scraper, which provides lower-level control of the underlying
+  An Actor similar to Web Scraper, which provides lower-level control of the underlying
   [Puppeteer](https://github.com/GoogleChrome/puppeteer) library and the ability to use server-side libraries.
 - **Playwright Scraper** ([apify/playwright-scraper](https://apify.com/apify/playwright-scraper)) -
-  A similar web scraping actor to Puppeteer Scraper, but using the [Playwright](https://github.com/microsoft/playwright) library instead.
+  A similar web scraping Actor to Puppeteer Scraper, but using the [Playwright](https://github.com/microsoft/playwright) library instead.
 - [Actors documentation](https://docs.apify.com/actors) -
   Documentation for the Apify Actors cloud computing platform.
-- [Apify SDK documentation](https://sdk.apify.com) - Learn more about the tools required to run your own Apify actors.
+- [Apify SDK documentation](https://sdk.apify.com) - Learn more about the tools required to run your own Apify Actors.
 - [Crawlee documentation](https://crawlee.dev) - Learn how to build a new web scraping project from scratch using the world's most popular web crawling and scraping library for Node.js.
