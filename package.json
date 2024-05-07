@@ -76,8 +76,8 @@
         "puppeteer": "^21.3.8",
         "rimraf": "^5.0.1",
         "tsx": "^4.6.2",
-        "turbo": "1.11.3",
-        "typescript": "~5.3.0",
+        "turbo": "1.13.3",
+        "typescript": "~5.4.5",
         "vite-tsconfig-paths": "^4.2.1",
         "vitest": "^1.0.0",
         "ws": "^7.5.9"
