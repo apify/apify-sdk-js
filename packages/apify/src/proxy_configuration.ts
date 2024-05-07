@@ -23,7 +23,7 @@ const COUNTRY_CODE_REGEX = /^[A-Z]{2}$/;
 export interface ProxyConfigurationOptions extends CoreProxyConfigurationOptions {
     /**
      * User's password for the proxy. By default, it is taken from the `APIFY_PROXY_PASSWORD`
-     * environment variable, which is automatically set by the system when running the actors.
+     * environment variable, which is automatically set by the system when running the Actors.
      */
     password?: string;
 
@@ -118,7 +118,7 @@ export interface ProxyInfo extends CoreProxyInfo {
 
     /**
      * User's password for the proxy. By default, it is taken from the `APIFY_PROXY_PASSWORD`
-     * environment variable, which is automatically set by the system when running the actors
+     * environment variable, which is automatically set by the system when running the Actors
      * on the Apify cloud, or when using the [Apify CLI](https://github.com/apify/apify-cli).
      */
     password: string;

@@ -194,7 +194,7 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 ### Features
 
 * add `statusMessage` to `AbortOptions` ([fb10bb6](https://github.com/apify/apify-sdk-js/commit/fb10bb60c12c0af97e41ae88adcf0b2000286235))
-* warn about actor not being initialized before using storage methods ([#126](https://github.com/apify/apify-sdk-js/issues/126)) ([91cd246](https://github.com/apify/apify-sdk-js/commit/91cd2467d111de19490a6bf47b4a9138f26a37d4))
+* warn about Actor not being initialized before using storage methods ([#126](https://github.com/apify/apify-sdk-js/issues/126)) ([91cd246](https://github.com/apify/apify-sdk-js/commit/91cd2467d111de19490a6bf47b4a9138f26a37d4))
 
 
 
@@ -206,7 +206,7 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 ### Bug Fixes
 
 * **apify:** add `@apify/timeout` to dependencies ([#76](https://github.com/apify/apify-sdk-js/issues/76)) ([1d64a1f](https://github.com/apify/apify-sdk-js/commit/1d64a1fa8f0e88a96eb82c2669e85b09dd4f372d))
-* use correct event manager for actor methods ([#49](https://github.com/apify/apify-sdk-js/issues/49)) ([ef3a0c5](https://github.com/apify/apify-sdk-js/commit/ef3a0c54359be64c89e76b0cac600cd780281321))
+* use correct event manager for Actor methods ([#49](https://github.com/apify/apify-sdk-js/issues/49)) ([ef3a0c5](https://github.com/apify/apify-sdk-js/commit/ef3a0c54359be64c89e76b0cac600cd780281321))
 * wait for memory storage to write changes before `Actor.exit` exists the process ([c721d98](https://github.com/apify/apify-sdk-js/commit/c721d988141cf5b7aa170fddeffb792ded769622))
 
 
@@ -214,7 +214,7 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
 * add `Actor.useState()` helper ([#98](https://github.com/apify/apify-sdk-js/issues/98)) ([27dc413](https://github.com/apify/apify-sdk-js/commit/27dc4139caa0a2d94c570edac2cb628f6b3f747c))
 * **apify:** add decryption for input secrets ([#83](https://github.com/apify/apify-sdk-js/issues/83)) ([78bb990](https://github.com/apify/apify-sdk-js/commit/78bb990817c01254de19c828937181c1263e21eb))
-* re-export the logger in actor sdk ([#54](https://github.com/apify/apify-sdk-js/issues/54)) ([c78d8a4](https://github.com/apify/apify-sdk-js/commit/c78d8a44d7af5de7fda7bf2e436fefda752a4b1a))
+* re-export the logger in Actor sdk ([#54](https://github.com/apify/apify-sdk-js/issues/54)) ([c78d8a4](https://github.com/apify/apify-sdk-js/commit/c78d8a44d7af5de7fda7bf2e436fefda752a4b1a))
 * update @apify/scraper-tools ([#37](https://github.com/apify/apify-sdk-js/issues/37)) ([788913e](https://github.com/apify/apify-sdk-js/commit/788913e0cc669b15b35359df30202a449b881b5f))
 * update the scrapers ([#70](https://github.com/apify/apify-sdk-js/issues/70)) ([efbfc44](https://github.com/apify/apify-sdk-js/commit/efbfc442bc8be4f07b5f2432a750cb861d7f05e8))
 
@@ -699,12 +699,12 @@ In addition to the existing events, we now have an `exit` event fired when calli
 * feat: requestList accepts proxyConfiguration for requestsFromUrls (#1317)
 * feat: update `playwright` to v1.20.2
 * feat: update `puppeteer` to v13.5.2
-  > We noticed that with this version of puppeteer actor run could crash with
+  > We noticed that with this version of puppeteer Actor run could crash with
   > `We either navigate top level or have old version of the navigated frame` error
   > (puppeteer issue [here](https://github.com/puppeteer/puppeteer/issues/7050)).
   > It should not happen while running the browser in headless mode.
   > In case you need to run the browser in headful mode (`headless: false`),
-  > we recommend pinning puppeteer version to `10.4.0` in actor `package.json` file.
+  > we recommend pinning puppeteer version to `10.4.0` in Actor `package.json` file.
 * feat: stealth deprecation (#1314)
 * feat: allow passing a stream to KeyValueStore.setRecord (#1325)
 * fix: use correct apify-client instance for snapshotting (#1308)

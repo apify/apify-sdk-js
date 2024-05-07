@@ -26,7 +26,7 @@ code changes are needed.
 The key-value store is used for saving and reading data records or files. Each data record is represented by a unique key and associated with a MIME
 content type. Key-value stores are ideal for saving screenshots of web pages, PDFs or to persist the state of crawlers.
 
-Each actor run is associated with a **default key-value store**, which is created exclusively for the actor run. By convention, the actor run input and output is stored in the default key-value store under the `INPUT` and `OUTPUT` key, respectively. Typically the input and output is a JSON file, although it can be any other format.
+Each Actor run is associated with a **default key-value store**, which is created exclusively for the Actor run. By convention, the Actor run input and output is stored in the default key-value store under the `INPUT` and `OUTPUT` key, respectively. Typically the input and output is a JSON file, although it can be any other format.
 
 In the Apify SDK, the key-value store is represented by the <ApiLink to="apify/class/KeyValueStore">`KeyValueStore`</ApiLink> class. In order to simplify access to the default key-value store, the SDK also provides <ApiLink to="apify/class/Actor#getValue">`Actor.getValue()`</ApiLink> and <ApiLink to="apify/class/Actor#setValue">`Actor.setValue()`</ApiLink> functions.
 
@@ -43,10 +43,10 @@ data value.
 The following code demonstrates basic operations of key-value stores:
 
 ```javascript
-// Get actor input from the default key-value store
+// Get Actor input from the default key-value store
 const input = await Actor.getInput();
 
-// Write actor output to the default key-value store.
+// Write Actor output to the default key-value store.
 await Actor.setValue('OUTPUT', { myResult: 123 });
 
 // Open a named key-value store
@@ -73,13 +73,13 @@ can imagine a dataset as a table, where each object is a row and its attributes 
 records to it but you cannot modify or remove existing records.
 
 When the dataset is stored on the [Apify platform](../guides/apify-platform), you can export its data to the following formats: HTML,
-JSON, CSV, Excel, XML and RSS. The datasets are displayed on the actor run details page and in the
+JSON, CSV, Excel, XML and RSS. The datasets are displayed on the Actor run details page and in the
 [Storage](https://console.apify.com/storage) section in the Apify Console. The actual data is exported using the
 [Get dataset items](https://apify.com/docs/api/v2#/reference/datasets/item-collection/get-items) Apify API endpoint. This
 way you can easily share crawling results.
 
-Each actor run is associated with a **default dataset**, which is created exclusively for the actor run. Typically, it is used to store crawling
-results specific for the actor run. Its usage is optional.
+Each Actor run is associated with a **default dataset**, which is created exclusively for the Actor run. Typically, it is used to store crawling
+results specific for the Actor run. Its usage is optional.
 
 In the Apify SDK, the dataset is represented by the <ApiLink to="apify/class/Dataset">`Dataset`</ApiLink> class. In order to simplify writes to the default dataset, the SDK
 also provides the <ApiLink to="apify/class/Actor#pushData">`Actor.pushData()`</ApiLink> function.

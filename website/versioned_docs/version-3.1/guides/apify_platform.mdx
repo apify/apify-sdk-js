@@ -40,7 +40,7 @@ either by utilizing [Apify CLI](https://github.com/apify/apify-cli) or with envi
 variables.
 
 Once you provide credentials to your scraper, you will be able to use all the Apify platform
-features, such as calling actors, saving to cloud storages, using Apify proxies,
+features, such as calling Actors, saving to cloud storages, using Apify proxies,
 setting up webhooks and so on.
 
 ### Log in with CLI
@@ -73,48 +73,48 @@ import { Actor } from 'apify';
 const sdk = new Actor({ token: 'your_api_token' });
 ```
 
-## What is an actor
+## What is an Actor
 
-When you deploy your script to the Apify platform, it becomes an [actor](https://apify.com/actors).
-An actor is a serverless microservice that accepts an input and produces an output. It can run for
-a few seconds, hours or even infinitely. An actor can perform anything from a simple action such
+When you deploy your script to the Apify platform, it becomes an [Actor](https://apify.com/actors).
+An Actor is a serverless microservice that accepts an input and produces an output. It can run for
+a few seconds, hours or even infinitely. An Actor can perform anything from a simple action such
 as filling out a web form or sending an email, to complex operations such as crawling an entire website
 and removing duplicates from a large dataset.
 
 Actors can be shared in the [Apify Store](https://apify.com/store) so that other people can use them.
-But don't worry, if you share your actor in the store and somebody uses it, it runs under their account,
+But don't worry, if you share your Actor in the store and somebody uses it, it runs under their account,
 not yours.
 
 **Related links**
 
-- [Store of existing actors](https://apify.com/store)
+- [Store of existing Actors](https://apify.com/store)
 - [Documentation](https://docs.apify.com/actors)
-- [View actors in Apify Console](https://console.apify.com/actors)
+- [View Actors in Apify Console](https://console.apify.com/actors)
 - [API reference](https://apify.com/docs/api/v2#/reference/actors)
 
-## Running an actor locally
+## Running an Actor locally
 
-First let's create a boilerplate of the new actor. You could use Apify CLI and just run:
+First let's create a boilerplate of the new Actor. You could use Apify CLI and just run:
 
 ```bash
 apify create my-hello-world
 ```
 
-The CLI will prompt you to select a project boilerplate template - let's pick "Hello world". The tool will create a directory called `my-hello-world` with a Node.js project files. You can run the actor as follows:
+The CLI will prompt you to select a project boilerplate template - let's pick "Hello world". The tool will create a directory called `my-hello-world` with a Node.js project files. You can run the Actor as follows:
 
 ```bash
 cd my-hello-world
 apify run
 ```
 
-## Running Crawlee code as an actor
+## Running Crawlee code as an Actor
 
-For running Crawlee code as an actor on [Apify platform](https://apify.com/actors) you should either:
+For running Crawlee code as an Actor on [Apify platform](https://apify.com/actors) you should either:
 - use a combination of [`Actor.init()`](https://sdk.apify.com/api/apify/class/Actor#init) and [`Actor.exit()`](https://sdk.apify.com/api/apify/class/Actor#exit) functions;
 - or wrap it into [`Actor.main()`](https://sdk.apify.com/api/apify/class/Actor#main) function.
 
 :::info NOTE
-- Adding [`Actor.init()`](https://sdk.apify.com/api/apify/class/Actor#init) and [`Actor.exit()`](https://sdk.apify.com/api/apify/class/Actor#exit) to your code are the only two important things needed to run it on Apify platform as an actor. `Actor.init()` is needed to initialize your actor (e.g. to set the correct storage implementation), while without `Actor.exit()` the process will simply never stop.
+- Adding [`Actor.init()`](https://sdk.apify.com/api/apify/class/Actor#init) and [`Actor.exit()`](https://sdk.apify.com/api/apify/class/Actor#exit) to your code are the only two important things needed to run it on Apify platform as an Actor. `Actor.init()` is needed to initialize your Actor (e.g. to set the correct storage implementation), while without `Actor.exit()` the process will simply never stop.
 - [`Actor.main()`](https://sdk.apify.com/api/apify/class/Actor#main) is an alternative to `Actor.init()` and `Actor.exit()` as it calls both behind the scenes.
 :::
 
@@ -133,13 +133,13 @@ Let's look at the `CheerioCrawler` example from the <CrawleeLink to="docs/quick-
     </TabItem>
 </Tabs>
 
-Note that you could also run your actor (that is using Crawlee) locally with Apify CLI. You could start it via the following command in your project folder:
+Note that you could also run your Actor (that is using Crawlee) locally with Apify CLI. You could start it via the following command in your project folder:
 
 ```bash
 apify run
 ```
 
-## Deploying an actor to Apify platform
+## Deploying an Actor to Apify platform
 
 Now (assuming you are already logged in to your Apify account) you can easily deploy your code to the Apify platform by running:
 
@@ -152,7 +152,7 @@ Your script will be uploaded to and built on the Apify platform so that it can b
 
 ## Usage on Apify platform
 
-You can also develop your actor in an online code editor directly on the platform (you'll need an Apify Account). Let's go to the [Actors](https://console.apify.com/actors) page in the app, click *Create new* and then go to the *Source* tab and start writing the code or paste one of the examples from the [Examples](../examples) section.
+You can also develop your Actor in an online code editor directly on the platform (you'll need an Apify Account). Let's go to the [Actors](https://console.apify.com/actors) page in the app, click *Create new* and then go to the *Source* tab and start writing the code or paste one of the examples from the [Examples](../examples) section.
 
 ## Storages
 
@@ -164,14 +164,14 @@ To simplify access to the _default_ storages, instead of using the helper functi
 - [`Actor.setValue()`](https://sdk.apify.com/api/apify/class/Actor#setValue), [`Actor.getValue()`](https://sdk.apify.com/api/apify/class/Actor#getValue), [`Actor.getInput()`](https://sdk.apify.com/api/apify/class/Actor#getInput) for `Key-Value Store`
 - [`Actor.pushData()`](https://sdk.apify.com/api/apify/class/Actor#pushData) for `Dataset`
 
-### Using platform storage in a local actor
+### Using platform storage in a local Actor
 
-When you plan to use the platform storage while developing and running your actor locally, you should use [`Actor.openKeyValueStore()`](https://sdk.apify.com/api/apify/class/Actor#openKeyValueStore), [`Actor.openDataset()`](https://sdk.apify.com/api/apify/class/Actor#openDataset) and [`Actor.openRequestQueue()`](https://sdk.apify.com/api/apify/class/Actor#openRequestQueue) to open the respective storage.
+When you plan to use the platform storage while developing and running your Actor locally, you should use [`Actor.openKeyValueStore()`](https://sdk.apify.com/api/apify/class/Actor#openKeyValueStore), [`Actor.openDataset()`](https://sdk.apify.com/api/apify/class/Actor#openDataset) and [`Actor.openRequestQueue()`](https://sdk.apify.com/api/apify/class/Actor#openRequestQueue) to open the respective storage.
 
 Using each of these methods allows to pass the [`OpenStorageOptions`](https://sdk.apify.com/api/apify/interface/OpenStorageOptions) as a second argument, which has only one optional property: [`forceCloud`](https://sdk.apify.com/api/apify/interface/OpenStorageOptions#forceCloud). If set to `true` - cloud storage will be used instead of the folder on the local disk.
 
 :::note
-If you don't plan to force usage of the platform storages when running the actor locally, there is no need to use the [`Actor`](https://sdk.apify.com/api/apify/class/Actor) class for it. The Crawlee variants <ApiLink to="apify/class/KeyValueStore#open">`KeyValueStore.open()`</ApiLink>, <ApiLink to="apify/class/Dataset#open">`Dataset.open()`</ApiLink> and <ApiLink to="apify/class/RequestQueue#open">`RequestQueue.open()`</ApiLink> will work the same.
+If you don't plan to force usage of the platform storages when running the Actor locally, there is no need to use the [`Actor`](https://sdk.apify.com/api/apify/class/Actor) class for it. The Crawlee variants <ApiLink to="apify/class/KeyValueStore#open">`KeyValueStore.open()`</ApiLink>, <ApiLink to="apify/class/Dataset#open">`Dataset.open()`</ApiLink> and <ApiLink to="apify/class/RequestQueue#open">`RequestQueue.open()`</ApiLink> will work the same.
 :::
 
 ### Getting public url of an item in the platform storage
@@ -189,7 +189,7 @@ const url = store.getPublicUrl('your-file');
 
 ### Exporting dataset data
 
-When the <ApiLink to="apify/class/Dataset">`Dataset`</ApiLink> is stored on the [Apify platform](https://apify.com/actors), you can export its data to the following formats: HTML, JSON, CSV, Excel, XML and RSS. The datasets are displayed on the actor run details page and in the [Storage](https://console.apify.com/storage) section in the Apify Console. The actual data is exported using the [Get dataset items](https://apify.com/docs/api/v2#/reference/datasets/item-collection/get-items) Apify API endpoint. This way you can easily share the crawling results.
+When the <ApiLink to="apify/class/Dataset">`Dataset`</ApiLink> is stored on the [Apify platform](https://apify.com/actors), you can export its data to the following formats: HTML, JSON, CSV, Excel, XML and RSS. The datasets are displayed on the Actor run details page and in the [Storage](https://console.apify.com/storage) section in the Apify Console. The actual data is exported using the [Get dataset items](https://apify.com/docs/api/v2#/reference/datasets/item-collection/get-items) Apify API endpoint. This way you can easily share the crawling results.
 
 **Related links**
 
@@ -212,14 +212,14 @@ It's important to notice that `CRAWLEE_` environment variables don't need to be 
 ### `APIFY_TOKEN`
 
 The API token for your Apify account. It is used to access the Apify API, e.g. to access cloud storage
-or to run an actor on the Apify platform. You can find your API token on the
+or to run an Actor on the Apify platform. You can find your API token on the
 [Account Settings / Integrations](https://console.apify.com/account?tab=integrations) page.
 
 ### Combinations of `APIFY_TOKEN` and `CRAWLEE_STORAGE_DIR`
 
 > `CRAWLEE_STORAGE_DIR` env variable description could be found in <CrawleeLink to="docs/guides/configuration#crawlee_storage_dir">Environment Variables</CrawleeLink> guide.
 
-By combining the env vars in various ways, you can greatly influence the actor's behavior.
+By combining the env vars in various ways, you can greatly influence the Actor's behavior.
 
 | Env Vars                                | API | Storages         |
 | --------------------------------------- | --- | ---------------- |

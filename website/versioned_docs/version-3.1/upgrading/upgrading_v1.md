@@ -74,7 +74,7 @@ that best suits your needs.
 
 Note that your `package.json` **MUST** include `puppeteer` and/or `playwright` as dependencies.
 If you don't list them, the libraries will be uninstalled from your `node_modules` folder
-when you build your actors.
+when you build your Actors.
 
 ## Handler arguments are now Crawling Context
 Previously, arguments of user provided handler functions were provided in separate
