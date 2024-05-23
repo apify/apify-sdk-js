@@ -32,14 +32,22 @@ export function logSystemInfo() {
  * @internal
  */
 export function checkCrawleeVersion() {
+    const resolve = (name: string) => {
+        try {
+            return require.resolve(name);
+        } catch {
+            return name;
+        }
+    };
+
     const paths = [
         // when users install `crawlee` package, we need to check its core dependency
         normalize(`${process.cwd()}/node_modules/crawlee/node_modules/@crawlee/core/package.json`),
         // when users install `@crawlee/cheerio` or other crawler package, we need to check the dependency under basic crawler package
         normalize(`${process.cwd()}/node_modules/@crawlee/basic/node_modules/@crawlee/core/package.json`),
         // also check paths via `require.resolve` to support pnpm
-        require.resolve('crawlee/package.json'),
-        require.resolve('@crawlee/basic/package.json'),
+        resolve('crawlee/package.json'),
+        resolve('@crawlee/basic/package.json'),
     ];
 
     for (const path of paths) {
