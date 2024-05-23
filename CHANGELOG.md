@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [3.2.2](https://github.com/apify/apify-sdk-js/compare/apify@3.2.1...apify@3.2.2) (2024-05-23)
+
+
+### Bug Fixes
+
+* dont fail on resolution of not installed packages ([0cea251](https://github.com/apify/apify-sdk-js/commit/0cea251b35c652d529320a0570d6b283f52f0ac1))
+
+
+
+
+
 ## [3.2.1](https://github.com/apify/apify-sdk-js/compare/apify@3.2.0...apify@3.2.1) (2024-05-23)
 
 
