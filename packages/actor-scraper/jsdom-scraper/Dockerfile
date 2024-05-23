@@ -1,4 +1,4 @@
-FROM apify/actor-node:18 AS builder
+FROM apify/actor-node:22 AS builder
 
 COPY package*.json ./
 
@@ -8,7 +8,7 @@ COPY . ./
 
 RUN npm run build
 
-FROM apify/actor-node:18
+FROM apify/actor-node:22
 
 COPY --from=builder /usr/src/app/dist ./dist
 
