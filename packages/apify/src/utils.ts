@@ -53,7 +53,9 @@ export function checkCrawleeVersion() {
         }
 
         if (version != null && version !== crawleeVersion) {
-            throw new Error(`Detected incompatible Crawlee version used by the SDK. User installed ${version} but the SDK uses ${crawleeVersion}.`);
+            const details = `User installed version (${version}) found in ${path}.\nSDK uses ${crawleeVersion} from ${require.resolve('@crawlee/core')}`;
+            // eslint-disable-next-line max-len
+            throw new Error(`Detected incompatible Crawlee version used by the SDK. User installed ${version} but the SDK uses ${crawleeVersion}.\n\n${details}`);
         }
     }
 }
