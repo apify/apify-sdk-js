@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [3.2.1](https://github.com/apify/apify-sdk-js/compare/apify@3.2.0...apify@3.2.1) (2024-05-23)
+
+
+### Features
+
+* validate crawlee versions in `Actor.init` ([#301](https://github.com/apify/apify-sdk-js/issues/301)) ([66ff6a9](https://github.com/apify/apify-sdk-js/commit/66ff6a9090e9e3321a217e14019e8c3001e3df4d)), closes [#237](https://github.com/apify/apify-sdk-js/issues/237)
+
+
+
+
+
 # [3.2.0](https://github.com/apify/apify-sdk-js/compare/apify@3.1.16...apify@3.2.0) (2024-04-11)
 
 
