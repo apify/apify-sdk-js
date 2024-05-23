@@ -1,4 +1,5 @@
 import { type } from 'node:os';
+import { normalize } from 'node:path';
 
 import { APIFY_ENV_VARS } from '@apify/consts';
 import log from '@apify/log';
@@ -33,9 +34,9 @@ export function logSystemInfo() {
 export function checkCrawleeVersion() {
     const paths = [
         // when users install `crawlee` package, we need to check its core dependency
-        `${process.cwd()}/node_modules/crawlee/node_modules/@crawlee/core/package.json`,
+        normalize(`${process.cwd()}/node_modules/crawlee/node_modules/@crawlee/core/package.json`),
         // when users install `@crawlee/cheerio` or other crawler package, we need to check the dependency under basic crawler package
-        `${process.cwd()}/node_modules/@crawlee/basic/node_modules/@crawlee/core/package.json`,
+        normalize(`${process.cwd()}/node_modules/@crawlee/basic/node_modules/@crawlee/core/package.json`),
     ];
 
     for (const path of paths) {
