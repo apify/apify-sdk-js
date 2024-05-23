@@ -6,6 +6,7 @@ import log from '@apify/log';
 import { version as crawleeVersion } from '@crawlee/core/package.json';
 // @ts-expect-error if we enable resolveJsonModule, we end up with `src` folder in `dist`
 import { version as apifyClientVersion } from 'apify-client/package.json';
+import { pathExistsSync, readJSONSync } from 'fs-extra';
 import semver from 'semver';
 
 // @ts-expect-error if we enable resolveJsonModule, we end up with `src` folder in `dist`
@@ -23,6 +24,37 @@ export function logSystemInfo() {
         osType: type(),
         nodeVersion: process.version,
     });
+}
+
+/**
+ * Logs info about system, node version and apify package version.
+ * @internal
+ */
+export function checkCrawleeVersion() {
+    const paths = [
+        // when users install `crawlee` package, we need to check its core dependency
+        `${process.cwd()}/node_modules/crawlee/node_modules/@crawlee/core/package.json`,
+        // when users install `@crawlee/cheerio` or other crawler package, we need to check the dependency under basic crawler package
+        `${process.cwd()}/node_modules/@crawlee/basic/node_modules/@crawlee/core/package.json`,
+    ];
+
+    for (const path of paths) {
+        if (!pathExistsSync(path)) {
+            continue;
+        }
+
+        let version;
+
+        try {
+            version = readJSONSync(path).version;
+        } catch {
+            //
+        }
+
+        if (version != null && version !== crawleeVersion) {
+            throw new Error(`Detected incompatible Crawlee version used by the SDK. User installed ${version} but the SDK uses ${crawleeVersion}.`);
+        }
+    }
 }
 
 /**
