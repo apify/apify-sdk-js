@@ -37,6 +37,9 @@ export function checkCrawleeVersion() {
         normalize(`${process.cwd()}/node_modules/crawlee/node_modules/@crawlee/core/package.json`),
         // when users install `@crawlee/cheerio` or other crawler package, we need to check the dependency under basic crawler package
         normalize(`${process.cwd()}/node_modules/@crawlee/basic/node_modules/@crawlee/core/package.json`),
+        // also check paths via `require.resolve` to support pnpm
+        require.resolve('crawlee/package.json'),
+        require.resolve('@crawlee/basic/package.json'),
     ];
 
     for (const path of paths) {
