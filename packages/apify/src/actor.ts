@@ -41,7 +41,7 @@ import { KeyValueStore } from './key_value_store';
 import { PlatformEventManager } from './platform_event_manager';
 import type { ProxyConfigurationOptions } from './proxy_configuration';
 import { ProxyConfiguration } from './proxy_configuration';
-import { logSystemInfo, printOutdatedSdkWarning } from './utils';
+import { checkCrawleeVersion, logSystemInfo, printOutdatedSdkWarning } from './utils';
 
 /**
  * `Actor` class serves as an alternative approach to the static helpers exported from the package. It allows to pass configuration
@@ -193,6 +193,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
 
         this.initialized = true;
 
+        checkCrawleeVersion();
         logSystemInfo();
         printOutdatedSdkWarning();
 
