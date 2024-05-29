@@ -1,6 +1,11 @@
 import type { StorageManagerOptions } from '@crawlee/core';
 import { KeyValueStore as CoreKeyValueStore } from '@crawlee/core';
 
+import type { Configuration } from './configuration';
+
+// @ts-ignore newer crawlee versions already declare this method in core
+const { getPublicUrl } = CoreKeyValueStore.prototype;
+
 /**
  * @inheritDoc
  */
@@ -10,6 +15,10 @@ export class KeyValueStore extends CoreKeyValueStore {
      * access the value in the remote key-value store.
      */
     getPublicUrl(key: string): string {
+        if (!(this.config as Configuration).get('isAtHome') && getPublicUrl) {
+            return getPublicUrl.call(this, key);
+        }
+
         return `https://api.apify.com/v2/key-value-stores/${this.id}/records/${key}`;
     }
 
@@ -21,5 +30,5 @@ export class KeyValueStore extends CoreKeyValueStore {
     }
 }
 
-// @ts-expect-error extension of the core class to make this only a type-issue
+// @ts-ignore newer crawlee versions already declare this method in core
 CoreKeyValueStore.prototype.getPublicUrl = KeyValueStore.prototype.getPublicUrl;
