@@ -217,7 +217,7 @@
 							"fileName": "packages/apify/src/actor.ts",
 							"line": 84,
 							"character": 4,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/actor.ts#L84"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/actor.ts#L84"
 						}
 					],
 					"signatures": [
@@ -307,7 +307,7 @@
 							"fileName": "packages/apify/src/actor.ts",
 							"line": 76,
 							"character": 4,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/actor.ts#L76"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/actor.ts#L76"
 						}
 					],
 					"type": {
@@ -327,9 +327,9 @@
 					"sources": [
 						{
 							"fileName": "packages/apify/src/actor.ts",
-							"line": 1528,
+							"line": 1526,
 							"character": 15,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/actor.ts#L1528"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/actor.ts#L1526"
 						}
 					],
 					"getSignature": {
@@ -375,9 +375,9 @@
 					"sources": [
 						{
 							"fileName": "packages/apify/src/actor.ts",
-							"line": 1533,
+							"line": 1531,
 							"character": 15,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/actor.ts#L1533"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/actor.ts#L1531"
 						}
 					],
 					"getSignature": {
@@ -421,7 +421,7 @@
 							"fileName": "packages/apify/src/actor.ts",
 							"line": 760,
 							"character": 10,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/actor.ts#L760"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/actor.ts#L760"
 						}
 					],
 					"signatures": [
@@ -505,7 +505,7 @@
 							"fileName": "packages/apify/src/actor.ts",
 							"line": 966,
 							"character": 10,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/actor.ts#L966"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/actor.ts#L966"
 						}
 					],
 					"signatures": [
@@ -662,9 +662,9 @@
 					"sources": [
 						{
 							"fileName": "packages/apify/src/actor.ts",
-							"line": 1209,
+							"line": 1207,
 							"character": 17,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/actor.ts#L1209"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/actor.ts#L1207"
 						}
 					],
 					"signatures": [
@@ -758,9 +758,9 @@
 					"sources": [
 						{
 							"fileName": "packages/apify/src/actor.ts",
-							"line": 1250,
+							"line": 1248,
 							"character": 17,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/actor.ts#L1250"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/actor.ts#L1248"
 						}
 					],
 					"signatures": [
@@ -840,9 +840,9 @@
 					"sources": [
 						{
 							"fileName": "packages/apify/src/actor.ts",
-							"line": 1135,
+							"line": 1133,
 							"character": 17,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/actor.ts#L1135"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/actor.ts#L1133"
 						}
 					],
 					"signatures": [
@@ -1008,9 +1008,9 @@
 					"sources": [
 						{
 							"fileName": "packages/apify/src/actor.ts",
-							"line": 1164,
+							"line": 1162,
 							"character": 17,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/actor.ts#L1164"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/actor.ts#L1162"
 						}
 					],
 					"signatures": [
@@ -1170,9 +1170,9 @@
 					"sources": [
 						{
 							"fileName": "packages/apify/src/actor.ts",
-							"line": 1492,
+							"line": 1490,
 							"character": 17,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/actor.ts#L1492"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/actor.ts#L1490"
 						}
 					],
 					"signatures": [
@@ -1271,9 +1271,9 @@
 															"sources": [
 																{
 																	"fileName": "packages/apify/src/actor.ts",
-																	"line": 1493,
+																	"line": 1491,
 																	"character": 65,
-																	"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/actor.ts#L1493"
+																	"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/actor.ts#L1491"
 																}
 															],
 															"type": {
@@ -1293,9 +1293,9 @@
 													"sources": [
 														{
 															"fileName": "packages/apify/src/actor.ts",
-															"line": 1493,
+															"line": 1491,
 															"character": 63,
-															"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/actor.ts#L1493"
+															"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/actor.ts#L1491"
 														}
 													]
 												}
@@ -1341,9 +1341,9 @@
 					"sources": [
 						{
 							"fileName": "packages/apify/src/actor.ts",
-							"line": 1091,
+							"line": 1089,
 							"character": 17,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/actor.ts#L1091"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/actor.ts#L1089"
 						}
 					],
 					"signatures": [
@@ -1457,9 +1457,9 @@
 					"sources": [
 						{
 							"fileName": "packages/apify/src/actor.ts",
-							"line": 1100,
+							"line": 1098,
 							"character": 17,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/actor.ts#L1100"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/actor.ts#L1098"
 						}
 					],
 					"signatures": [
@@ -1597,9 +1597,9 @@
 					"sources": [
 						{
 							"fileName": "packages/apify/src/actor.ts",
-							"line": 1505,
+							"line": 1503,
 							"character": 11,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/actor.ts#L1505"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/actor.ts#L1503"
 						}
 					],
 					"signatures": [
@@ -1645,9 +1645,9 @@
 					"sources": [
 						{
 							"fileName": "packages/apify/src/actor.ts",
-							"line": 1407,
+							"line": 1405,
 							"character": 17,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/actor.ts#L1407"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/actor.ts#L1405"
 						}
 					],
 					"signatures": [
@@ -1818,9 +1818,9 @@
 					"sources": [
 						{
 							"fileName": "packages/apify/src/actor.ts",
-							"line": 1415,
+							"line": 1413,
 							"character": 17,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/actor.ts#L1415"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/actor.ts#L1413"
 						}
 					],
 					"signatures": [
@@ -1904,9 +1904,9 @@
 					"sources": [
 						{
 							"fileName": "packages/apify/src/actor.ts",
-							"line": 1342,
+							"line": 1340,
 							"character": 17,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/actor.ts#L1342"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/actor.ts#L1340"
 						}
 					],
 					"signatures": [
@@ -2082,9 +2082,9 @@
 					"sources": [
 						{
 							"fileName": "packages/apify/src/actor.ts",
-							"line": 1082,
+							"line": 1080,
 							"character": 17,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/actor.ts#L1082"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/actor.ts#L1080"
 						}
 					],
 					"signatures": [
@@ -2131,15 +2131,7 @@
 									},
 									{
 										"kind": "text",
-										"text": " for details), which needs to be terminated for the code to finish.\n\nThe "
-									},
-									{
-										"kind": "code",
-										"text": "`Actor.init()`"
-									},
-									{
-										"kind": "text",
-										"text": " function performs the following actions:\n\n"
+										"text": " for details), which needs to be terminated for the code to finish.\n\n"
 									},
 									{
 										"kind": "code",
@@ -2188,9 +2180,9 @@
 					"sources": [
 						{
 							"fileName": "packages/apify/src/actor.ts",
-							"line": 1523,
+							"line": 1521,
 							"character": 11,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/actor.ts#L1523"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/actor.ts#L1521"
 						}
 					],
 					"signatures": [
@@ -2244,7 +2236,7 @@
 							"fileName": "packages/apify/src/actor.ts",
 							"line": 1053,
 							"character": 17,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/actor.ts#L1053"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/actor.ts#L1053"
 						}
 					],
 					"signatures": [
@@ -2418,9 +2410,9 @@
 					"sources": [
 						{
 							"fileName": "packages/apify/src/actor.ts",
-							"line": 1226,
+							"line": 1224,
 							"character": 17,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/actor.ts#L1226"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/actor.ts#L1224"
 						}
 					],
 					"signatures": [
@@ -2553,9 +2545,9 @@
 					"sources": [
 						{
 							"fileName": "packages/apify/src/actor.ts",
-							"line": 1516,
+							"line": 1514,
 							"character": 11,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/actor.ts#L1516"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/actor.ts#L1514"
 						}
 					],
 					"signatures": [
@@ -2635,9 +2627,9 @@
 					"sources": [
 						{
 							"fileName": "packages/apify/src/actor.ts",
-							"line": 1108,
+							"line": 1106,
 							"character": 11,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/actor.ts#L1108"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/actor.ts#L1106"
 						}
 					],
 					"signatures": [
@@ -2680,9 +2672,9 @@
 											"sources": [
 												{
 													"fileName": "packages/apify/src/actor.ts",
-													"line": 1108,
+													"line": 1106,
 													"character": 48,
-													"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/actor.ts#L1108"
+													"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/actor.ts#L1106"
 												}
 											],
 											"signatures": [
@@ -2738,9 +2730,9 @@
 					"sources": [
 						{
 							"fileName": "packages/apify/src/actor.ts",
-							"line": 1104,
+							"line": 1102,
 							"character": 11,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/actor.ts#L1104"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/actor.ts#L1102"
 						}
 					],
 					"signatures": [
@@ -2781,9 +2773,9 @@
 											"sources": [
 												{
 													"fileName": "packages/apify/src/actor.ts",
-													"line": 1104,
+													"line": 1102,
 													"character": 46,
-													"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/actor.ts#L1104"
+													"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/actor.ts#L1102"
 												}
 											],
 											"signatures": [
@@ -2839,9 +2831,9 @@
 					"sources": [
 						{
 							"fileName": "packages/apify/src/actor.ts",
-							"line": 1309,
+							"line": 1307,
 							"character": 17,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/actor.ts#L1309"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/actor.ts#L1307"
 						}
 					],
 					"signatures": [
@@ -2997,9 +2989,9 @@
 					"sources": [
 						{
 							"fileName": "packages/apify/src/actor.ts",
-							"line": 1433,
+							"line": 1431,
 							"character": 17,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/actor.ts#L1433"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/actor.ts#L1431"
 						}
 					],
 					"signatures": [
@@ -3125,9 +3117,9 @@
 					"sources": [
 						{
 							"fileName": "packages/apify/src/actor.ts",
-							"line": 1453,
+							"line": 1451,
 							"character": 17,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/actor.ts#L1453"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/actor.ts#L1451"
 						}
 					],
 					"signatures": [
@@ -3264,9 +3256,9 @@
 					"sources": [
 						{
 							"fileName": "packages/apify/src/actor.ts",
-							"line": 1291,
+							"line": 1289,
 							"character": 17,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/actor.ts#L1291"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/actor.ts#L1289"
 						}
 					],
 					"signatures": [
@@ -3434,9 +3426,9 @@
 					"sources": [
 						{
 							"fileName": "packages/apify/src/actor.ts",
-							"line": 1235,
+							"line": 1233,
 							"character": 17,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/actor.ts#L1235"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/actor.ts#L1233"
 						}
 					],
 					"signatures": [
@@ -3495,9 +3487,9 @@
 					"sources": [
 						{
 							"fileName": "packages/apify/src/actor.ts",
-							"line": 1264,
+							"line": 1262,
 							"character": 17,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/actor.ts#L1264"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/actor.ts#L1262"
 						}
 					],
 					"signatures": [
@@ -3599,9 +3591,9 @@
 					"sources": [
 						{
 							"fileName": "packages/apify/src/actor.ts",
-							"line": 1376,
+							"line": 1374,
 							"character": 17,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/actor.ts#L1376"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/actor.ts#L1374"
 						}
 					],
 					"signatures": [
@@ -3838,9 +3830,9 @@
 					"sources": [
 						{
 							"fileName": "packages/apify/src/actor.ts",
-							"line": 1191,
+							"line": 1189,
 							"character": 17,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/actor.ts#L1191"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/actor.ts#L1189"
 						}
 					],
 					"signatures": [
@@ -4009,7 +4001,7 @@
 							"fileName": "packages/apify/src/actor.ts",
 							"line": 984,
 							"character": 17,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/actor.ts#L984"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/actor.ts#L984"
 						}
 					],
 					"signatures": [
@@ -4216,7 +4208,7 @@
 					"fileName": "packages/apify/src/actor.ts",
 					"line": 51,
 					"character": 13,
-					"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/actor.ts#L51"
+					"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/actor.ts#L51"
 				}
 			],
 			"typeParameters": [
@@ -6448,7 +6440,7 @@
 							"fileName": "packages/apify/src/configuration.ts",
 							"line": 100,
 							"character": 20,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/configuration.ts#L100"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/configuration.ts#L100"
 						}
 					],
 					"type": {
@@ -6472,7 +6464,7 @@
 							"fileName": "packages/apify/src/configuration.ts",
 							"line": 179,
 							"character": 13,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/configuration.ts#L179"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/configuration.ts#L179"
 						}
 					],
 					"signatures": [
@@ -7101,7 +7093,7 @@
 							"fileName": "packages/apify/src/configuration.ts",
 							"line": 186,
 							"character": 13,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/configuration.ts#L186"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/configuration.ts#L186"
 						}
 					],
 					"signatures": [
@@ -7350,7 +7342,7 @@
 							"fileName": "packages/apify/src/configuration.ts",
 							"line": 193,
 							"character": 20,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/configuration.ts#L193"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/configuration.ts#L193"
 						}
 					],
 					"signatures": [
@@ -7457,7 +7449,7 @@
 							"fileName": "packages/apify/src/configuration.ts",
 							"line": 206,
 							"character": 20,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/configuration.ts#L206"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/configuration.ts#L206"
 						}
 					],
 					"signatures": [
@@ -7691,7 +7683,7 @@
 					"fileName": "packages/apify/src/configuration.ts",
 					"line": 98,
 					"character": 13,
-					"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/configuration.ts#L98"
+					"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/configuration.ts#L98"
 				}
 			],
 			"extendedTypes": [
@@ -10289,7 +10281,7 @@
 							"fileName": "packages/apify/src/key_value_store.ts",
 							"line": 17,
 							"character": 4,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/key_value_store.ts#L17"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/key_value_store.ts#L17"
 						}
 					],
 					"signatures": [
@@ -11363,7 +11355,7 @@
 							"fileName": "packages/apify/src/key_value_store.ts",
 							"line": 28,
 							"character": 26,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/key_value_store.ts#L28"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/key_value_store.ts#L28"
 						}
 					],
 					"signatures": [
@@ -11586,7 +11578,7 @@
 					"fileName": "packages/apify/src/key_value_store.ts",
 					"line": 12,
 					"character": 13,
-					"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/key_value_store.ts#L12"
+					"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/key_value_store.ts#L12"
 				}
 			],
 			"extendedTypes": [
@@ -27262,7 +27254,7 @@
 							"fileName": "packages/apify/src/platform_event_manager.ts",
 							"line": 50,
 							"character": 4,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/platform_event_manager.ts#L50"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/platform_event_manager.ts#L50"
 						}
 					],
 					"signatures": [
@@ -27316,7 +27308,7 @@
 							"fileName": "packages/apify/src/platform_event_manager.ts",
 							"line": 50,
 							"character": 34,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/platform_event_manager.ts#L50"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/platform_event_manager.ts#L50"
 						}
 					],
 					"type": {
@@ -27341,7 +27333,7 @@
 							"fileName": "packages/apify/src/platform_event_manager.ts",
 							"line": 112,
 							"character": 19,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/platform_event_manager.ts#L112"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/platform_event_manager.ts#L112"
 						}
 					],
 					"signatures": [
@@ -27482,7 +27474,7 @@
 							"fileName": "packages/apify/src/platform_event_manager.ts",
 							"line": 58,
 							"character": 19,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/platform_event_manager.ts#L58"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/platform_event_manager.ts#L58"
 						}
 					],
 					"signatures": [
@@ -27846,7 +27838,7 @@
 					"fileName": "packages/apify/src/platform_event_manager.ts",
 					"line": 46,
 					"character": 13,
-					"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/platform_event_manager.ts#L46"
+					"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/platform_event_manager.ts#L46"
 				}
 			],
 			"extendedTypes": [
@@ -27908,7 +27900,7 @@
 							"fileName": "packages/apify/src/proxy_configuration.ts",
 							"line": 171,
 							"character": 66,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/proxy_configuration.ts#L171"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/proxy_configuration.ts#L171"
 						}
 					],
 					"type": {
@@ -27953,7 +27945,7 @@
 							"fileName": "packages/apify/src/proxy_configuration.ts",
 							"line": 234,
 							"character": 10,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/proxy_configuration.ts#L234"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/proxy_configuration.ts#L234"
 						}
 					],
 					"signatures": [
@@ -28014,7 +28006,7 @@
 							"fileName": "packages/apify/src/proxy_configuration.ts",
 							"line": 260,
 							"character": 19,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/proxy_configuration.ts#L260"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/proxy_configuration.ts#L260"
 						}
 					],
 					"signatures": [
@@ -28235,7 +28227,7 @@
 							"fileName": "packages/apify/src/proxy_configuration.ts",
 							"line": 293,
 							"character": 19,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/proxy_configuration.ts#L293"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/proxy_configuration.ts#L293"
 						}
 					],
 					"signatures": [
@@ -28444,7 +28436,7 @@
 					"fileName": "packages/apify/src/proxy_configuration.ts",
 					"line": 160,
 					"character": 13,
-					"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/proxy_configuration.ts#L160"
+					"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/proxy_configuration.ts#L160"
 				}
 			],
 			"extendedTypes": [
@@ -30310,9 +30302,9 @@
 					"sources": [
 						{
 							"fileName": "packages/apify/src/actor.ts",
-							"line": 1732,
+							"line": 1730,
 							"character": 4,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/actor.ts#L1732"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/actor.ts#L1730"
 						}
 					],
 					"type": {
@@ -30347,9 +30339,9 @@
 					"sources": [
 						{
 							"fileName": "packages/apify/src/actor.ts",
-							"line": 1729,
+							"line": 1727,
 							"character": 4,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/actor.ts#L1729"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/actor.ts#L1727"
 						}
 					],
 					"type": {
@@ -30371,9 +30363,9 @@
 			"sources": [
 				{
 					"fileName": "packages/apify/src/actor.ts",
-					"line": 1725,
+					"line": 1723,
 					"character": 17,
-					"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/actor.ts#L1725"
+					"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/actor.ts#L1723"
 				}
 			],
 			"extendedTypes": [
@@ -31360,9 +31352,9 @@
 					"sources": [
 						{
 							"fileName": "packages/apify/src/actor.ts",
-							"line": 1599,
+							"line": 1597,
 							"character": 4,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/actor.ts#L1599"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/actor.ts#L1597"
 						}
 					],
 					"type": {
@@ -31388,9 +31380,9 @@
 					"sources": [
 						{
 							"fileName": "packages/apify/src/actor.ts",
-							"line": 1701,
+							"line": 1699,
 							"character": 4,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/actor.ts#L1701"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/actor.ts#L1699"
 						}
 					],
 					"type": {
@@ -31416,9 +31408,9 @@
 					"sources": [
 						{
 							"fileName": "packages/apify/src/actor.ts",
-							"line": 1702,
+							"line": 1700,
 							"character": 4,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/actor.ts#L1702"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/actor.ts#L1700"
 						}
 					],
 					"type": {
@@ -31452,9 +31444,9 @@
 					"sources": [
 						{
 							"fileName": "packages/apify/src/actor.ts",
-							"line": 1584,
+							"line": 1582,
 							"character": 4,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/actor.ts#L1584"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/actor.ts#L1582"
 						}
 					],
 					"type": {
@@ -31480,9 +31472,9 @@
 					"sources": [
 						{
 							"fileName": "packages/apify/src/actor.ts",
-							"line": 1703,
+							"line": 1701,
 							"character": 4,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/actor.ts#L1703"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/actor.ts#L1701"
 						}
 					],
 					"type": {
@@ -31516,9 +31508,9 @@
 					"sources": [
 						{
 							"fileName": "packages/apify/src/actor.ts",
-							"line": 1589,
+							"line": 1587,
 							"character": 4,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/actor.ts#L1589"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/actor.ts#L1587"
 						}
 					],
 					"type": {
@@ -31552,9 +31544,9 @@
 					"sources": [
 						{
 							"fileName": "packages/apify/src/actor.ts",
-							"line": 1594,
+							"line": 1592,
 							"character": 4,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/actor.ts#L1594"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/actor.ts#L1592"
 						}
 					],
 					"type": {
@@ -31580,9 +31572,9 @@
 					"sources": [
 						{
 							"fileName": "packages/apify/src/actor.ts",
-							"line": 1664,
+							"line": 1662,
 							"character": 4,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/actor.ts#L1664"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/actor.ts#L1662"
 						}
 					],
 					"type": {
@@ -31608,9 +31600,9 @@
 					"sources": [
 						{
 							"fileName": "packages/apify/src/actor.ts",
-							"line": 1665,
+							"line": 1663,
 							"character": 4,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/actor.ts#L1665"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/actor.ts#L1663"
 						}
 					],
 					"type": {
@@ -31636,9 +31628,9 @@
 					"sources": [
 						{
 							"fileName": "packages/apify/src/actor.ts",
-							"line": 1666,
+							"line": 1664,
 							"character": 4,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/actor.ts#L1666"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/actor.ts#L1664"
 						}
 					],
 					"type": {
@@ -31664,9 +31656,9 @@
 					"sources": [
 						{
 							"fileName": "packages/apify/src/actor.ts",
-							"line": 1704,
+							"line": 1702,
 							"character": 4,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/actor.ts#L1704"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/actor.ts#L1702"
 						}
 					],
 					"type": {
@@ -31692,9 +31684,9 @@
 					"sources": [
 						{
 							"fileName": "packages/apify/src/actor.ts",
-							"line": 1705,
+							"line": 1703,
 							"character": 4,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/actor.ts#L1705"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/actor.ts#L1703"
 						}
 					],
 					"type": {
@@ -31720,9 +31712,9 @@
 					"sources": [
 						{
 							"fileName": "packages/apify/src/actor.ts",
-							"line": 1667,
+							"line": 1665,
 							"character": 4,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/actor.ts#L1667"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/actor.ts#L1665"
 						}
 					],
 					"type": {
@@ -31756,9 +31748,9 @@
 					"sources": [
 						{
 							"fileName": "packages/apify/src/actor.ts",
-							"line": 1633,
+							"line": 1631,
 							"character": 4,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/actor.ts#L1633"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/actor.ts#L1631"
 						}
 					],
 					"type": {
@@ -31792,9 +31784,9 @@
 					"sources": [
 						{
 							"fileName": "packages/apify/src/actor.ts",
-							"line": 1627,
+							"line": 1625,
 							"character": 4,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/actor.ts#L1627"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/actor.ts#L1625"
 						}
 					],
 					"type": {
@@ -31820,9 +31812,9 @@
 					"sources": [
 						{
 							"fileName": "packages/apify/src/actor.ts",
-							"line": 1706,
+							"line": 1704,
 							"character": 4,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/actor.ts#L1706"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/actor.ts#L1704"
 						}
 					],
 					"type": {
@@ -31848,9 +31840,9 @@
 					"sources": [
 						{
 							"fileName": "packages/apify/src/actor.ts",
-							"line": 1668,
+							"line": 1666,
 							"character": 4,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/actor.ts#L1668"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/actor.ts#L1666"
 						}
 					],
 					"type": {
@@ -31876,9 +31868,9 @@
 					"sources": [
 						{
 							"fileName": "packages/apify/src/actor.ts",
-							"line": 1669,
+							"line": 1667,
 							"character": 4,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/actor.ts#L1669"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/actor.ts#L1667"
 						}
 					],
 					"type": {
@@ -31912,9 +31904,9 @@
 					"sources": [
 						{
 							"fileName": "packages/apify/src/actor.ts",
-							"line": 1645,
+							"line": 1643,
 							"character": 4,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/actor.ts#L1645"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/actor.ts#L1643"
 						}
 					],
 					"type": {
@@ -31948,9 +31940,9 @@
 					"sources": [
 						{
 							"fileName": "packages/apify/src/actor.ts",
-							"line": 1697,
+							"line": 1695,
 							"character": 4,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/actor.ts#L1697"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/actor.ts#L1695"
 						}
 					],
 					"type": {
@@ -31976,9 +31968,9 @@
 					"sources": [
 						{
 							"fileName": "packages/apify/src/actor.ts",
-							"line": 1670,
+							"line": 1668,
 							"character": 4,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/actor.ts#L1670"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/actor.ts#L1668"
 						}
 					],
 					"type": {
@@ -32004,9 +31996,9 @@
 					"sources": [
 						{
 							"fileName": "packages/apify/src/actor.ts",
-							"line": 1671,
+							"line": 1669,
 							"character": 4,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/actor.ts#L1671"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/actor.ts#L1669"
 						}
 					],
 					"type": {
@@ -32040,9 +32032,9 @@
 					"sources": [
 						{
 							"fileName": "packages/apify/src/actor.ts",
-							"line": 1651,
+							"line": 1649,
 							"character": 4,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/actor.ts#L1651"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/actor.ts#L1649"
 						}
 					],
 					"type": {
@@ -32076,9 +32068,9 @@
 					"sources": [
 						{
 							"fileName": "packages/apify/src/actor.ts",
-							"line": 1679,
+							"line": 1677,
 							"character": 4,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/actor.ts#L1679"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/actor.ts#L1677"
 						}
 					],
 					"type": {
@@ -32104,9 +32096,9 @@
 					"sources": [
 						{
 							"fileName": "packages/apify/src/actor.ts",
-							"line": 1686,
+							"line": 1684,
 							"character": 4,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/actor.ts#L1686"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/actor.ts#L1684"
 						}
 					],
 					"type": {
@@ -32140,9 +32132,9 @@
 					"sources": [
 						{
 							"fileName": "packages/apify/src/actor.ts",
-							"line": 1685,
+							"line": 1683,
 							"character": 4,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/actor.ts#L1685"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/actor.ts#L1683"
 						}
 					],
 					"type": {
@@ -32176,9 +32168,9 @@
 					"sources": [
 						{
 							"fileName": "packages/apify/src/actor.ts",
-							"line": 1639,
+							"line": 1637,
 							"character": 4,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/actor.ts#L1639"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/actor.ts#L1637"
 						}
 					],
 					"type": {
@@ -32212,9 +32204,9 @@
 					"sources": [
 						{
 							"fileName": "packages/apify/src/actor.ts",
-							"line": 1692,
+							"line": 1690,
 							"character": 4,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/actor.ts#L1692"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/actor.ts#L1690"
 						}
 					],
 					"type": {
@@ -32240,9 +32232,9 @@
 					"sources": [
 						{
 							"fileName": "packages/apify/src/actor.ts",
-							"line": 1657,
+							"line": 1655,
 							"character": 4,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/actor.ts#L1657"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/actor.ts#L1655"
 						}
 					],
 					"type": {
@@ -32276,9 +32268,9 @@
 					"sources": [
 						{
 							"fileName": "packages/apify/src/actor.ts",
-							"line": 1656,
+							"line": 1654,
 							"character": 4,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/actor.ts#L1656"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/actor.ts#L1654"
 						}
 					],
 					"type": {
@@ -32304,9 +32296,9 @@
 					"sources": [
 						{
 							"fileName": "packages/apify/src/actor.ts",
-							"line": 1658,
+							"line": 1656,
 							"character": 4,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/actor.ts#L1658"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/actor.ts#L1656"
 						}
 					],
 					"type": {
@@ -32340,9 +32332,9 @@
 					"sources": [
 						{
 							"fileName": "packages/apify/src/actor.ts",
-							"line": 1663,
+							"line": 1661,
 							"character": 4,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/actor.ts#L1663"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/actor.ts#L1661"
 						}
 					],
 					"type": {
@@ -32368,9 +32360,9 @@
 					"sources": [
 						{
 							"fileName": "packages/apify/src/actor.ts",
-							"line": 1698,
+							"line": 1696,
 							"character": 4,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/actor.ts#L1698"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/actor.ts#L1696"
 						}
 					],
 					"type": {
@@ -32404,9 +32396,9 @@
 					"sources": [
 						{
 							"fileName": "packages/apify/src/actor.ts",
-							"line": 1616,
+							"line": 1614,
 							"character": 4,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/actor.ts#L1616"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/actor.ts#L1614"
 						}
 					],
 					"type": {
@@ -32434,9 +32426,9 @@
 					"sources": [
 						{
 							"fileName": "packages/apify/src/actor.ts",
-							"line": 1699,
+							"line": 1697,
 							"character": 4,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/actor.ts#L1699"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/actor.ts#L1697"
 						}
 					],
 					"type": {
@@ -32470,9 +32462,9 @@
 					"sources": [
 						{
 							"fileName": "packages/apify/src/actor.ts",
-							"line": 1621,
+							"line": 1619,
 							"character": 4,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/actor.ts#L1621"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/actor.ts#L1619"
 						}
 					],
 					"type": {
@@ -32508,9 +32500,9 @@
 					"sources": [
 						{
 							"fileName": "packages/apify/src/actor.ts",
-							"line": 1611,
+							"line": 1609,
 							"character": 4,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/actor.ts#L1611"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/actor.ts#L1609"
 						}
 					],
 					"type": {
@@ -32544,9 +32536,9 @@
 					"sources": [
 						{
 							"fileName": "packages/apify/src/actor.ts",
-							"line": 1605,
+							"line": 1603,
 							"character": 4,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/actor.ts#L1605"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/actor.ts#L1603"
 						}
 					],
 					"type": {
@@ -32572,9 +32564,9 @@
 					"sources": [
 						{
 							"fileName": "packages/apify/src/actor.ts",
-							"line": 1700,
+							"line": 1698,
 							"character": 4,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/actor.ts#L1700"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/actor.ts#L1698"
 						}
 					],
 					"type": {
@@ -32641,9 +32633,9 @@
 			"sources": [
 				{
 					"fileName": "packages/apify/src/actor.ts",
-					"line": 1577,
+					"line": 1575,
 					"character": 17,
-					"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/actor.ts#L1577"
+					"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/actor.ts#L1575"
 				}
 			]
 		},
@@ -32934,9 +32926,9 @@
 					"sources": [
 						{
 							"fileName": "packages/apify/src/actor.ts",
-							"line": 1715,
+							"line": 1713,
 							"character": 4,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/actor.ts#L1715"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/actor.ts#L1713"
 						}
 					],
 					"type": {
@@ -33030,9 +33022,9 @@
 			"sources": [
 				{
 					"fileName": "packages/apify/src/actor.ts",
-					"line": 1711,
+					"line": 1709,
 					"character": 17,
-					"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/actor.ts#L1711"
+					"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/actor.ts#L1709"
 				}
 			],
 			"extendedTypes": [
@@ -33242,9 +33234,9 @@
 					"sources": [
 						{
 							"fileName": "packages/apify/src/actor.ts",
-							"line": 1722,
+							"line": 1720,
 							"character": 4,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/actor.ts#L1722"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/actor.ts#L1720"
 						}
 					],
 					"type": {
@@ -33337,9 +33329,9 @@
 			"sources": [
 				{
 					"fileName": "packages/apify/src/actor.ts",
-					"line": 1718,
+					"line": 1716,
 					"character": 17,
-					"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/actor.ts#L1718"
+					"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/actor.ts#L1716"
 				}
 			],
 			"extendedTypes": [
@@ -33371,7 +33363,7 @@
 							"fileName": "packages/apify/src/configuration.ts",
 							"line": 12,
 							"character": 4,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/configuration.ts#L12"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/configuration.ts#L12"
 						}
 					],
 					"type": {
@@ -33392,7 +33384,7 @@
 							"fileName": "packages/apify/src/configuration.ts",
 							"line": 14,
 							"character": 4,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/configuration.ts#L14"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/configuration.ts#L14"
 						}
 					],
 					"type": {
@@ -33413,7 +33405,7 @@
 							"fileName": "packages/apify/src/configuration.ts",
 							"line": 15,
 							"character": 4,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/configuration.ts#L15"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/configuration.ts#L15"
 						}
 					],
 					"type": {
@@ -33434,7 +33426,7 @@
 							"fileName": "packages/apify/src/configuration.ts",
 							"line": 16,
 							"character": 4,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/configuration.ts#L16"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/configuration.ts#L16"
 						}
 					],
 					"type": {
@@ -33455,7 +33447,7 @@
 							"fileName": "packages/apify/src/configuration.ts",
 							"line": 17,
 							"character": 4,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/configuration.ts#L17"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/configuration.ts#L17"
 						}
 					],
 					"type": {
@@ -33578,7 +33570,7 @@
 							"fileName": "packages/apify/src/configuration.ts",
 							"line": 18,
 							"character": 4,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/configuration.ts#L18"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/configuration.ts#L18"
 						}
 					],
 					"type": {
@@ -33599,7 +33591,7 @@
 							"fileName": "packages/apify/src/configuration.ts",
 							"line": 19,
 							"character": 4,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/configuration.ts#L19"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/configuration.ts#L19"
 						}
 					],
 					"type": {
@@ -34034,7 +34026,7 @@
 							"fileName": "packages/apify/src/configuration.ts",
 							"line": 27,
 							"character": 4,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/configuration.ts#L27"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/configuration.ts#L27"
 						}
 					],
 					"type": {
@@ -34055,7 +34047,7 @@
 							"fileName": "packages/apify/src/configuration.ts",
 							"line": 26,
 							"character": 4,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/configuration.ts#L26"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/configuration.ts#L26"
 						}
 					],
 					"type": {
@@ -34076,7 +34068,7 @@
 							"fileName": "packages/apify/src/configuration.ts",
 							"line": 24,
 							"character": 4,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/configuration.ts#L24"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/configuration.ts#L24"
 						}
 					],
 					"type": {
@@ -34615,7 +34607,7 @@
 							"fileName": "packages/apify/src/configuration.ts",
 							"line": 11,
 							"character": 4,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/configuration.ts#L11"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/configuration.ts#L11"
 						}
 					],
 					"type": {
@@ -34737,7 +34729,7 @@
 							"fileName": "packages/apify/src/configuration.ts",
 							"line": 20,
 							"character": 4,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/configuration.ts#L20"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/configuration.ts#L20"
 						}
 					],
 					"type": {
@@ -34758,7 +34750,7 @@
 							"fileName": "packages/apify/src/configuration.ts",
 							"line": 21,
 							"character": 4,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/configuration.ts#L21"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/configuration.ts#L21"
 						}
 					],
 					"type": {
@@ -34779,7 +34771,7 @@
 							"fileName": "packages/apify/src/configuration.ts",
 							"line": 22,
 							"character": 4,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/configuration.ts#L22"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/configuration.ts#L22"
 						}
 					],
 					"type": {
@@ -34800,7 +34792,7 @@
 							"fileName": "packages/apify/src/configuration.ts",
 							"line": 23,
 							"character": 4,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/configuration.ts#L23"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/configuration.ts#L23"
 						}
 					],
 					"type": {
@@ -35025,7 +35017,7 @@
 							"fileName": "packages/apify/src/configuration.ts",
 							"line": 13,
 							"character": 4,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/configuration.ts#L13"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/configuration.ts#L13"
 						}
 					],
 					"type": {
@@ -35046,7 +35038,7 @@
 							"fileName": "packages/apify/src/configuration.ts",
 							"line": 25,
 							"character": 4,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/configuration.ts#L25"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/configuration.ts#L25"
 						}
 					],
 					"type": {
@@ -35156,7 +35148,7 @@
 					"fileName": "packages/apify/src/configuration.ts",
 					"line": 10,
 					"character": 17,
-					"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/configuration.ts#L10"
+					"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/configuration.ts#L10"
 				}
 			],
 			"extendedTypes": [
@@ -36532,9 +36524,9 @@
 					"sources": [
 						{
 							"fileName": "packages/apify/src/actor.ts",
-							"line": 1801,
+							"line": 1799,
 							"character": 4,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/actor.ts#L1801"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/actor.ts#L1799"
 						}
 					],
 					"type": {
@@ -36561,9 +36553,9 @@
 					"sources": [
 						{
 							"fileName": "packages/apify/src/actor.ts",
-							"line": 1799,
+							"line": 1797,
 							"character": 4,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/actor.ts#L1799"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/actor.ts#L1797"
 						}
 					],
 					"type": {
@@ -36590,9 +36582,9 @@
 					"sources": [
 						{
 							"fileName": "packages/apify/src/actor.ts",
-							"line": 1792,
+							"line": 1790,
 							"character": 4,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/actor.ts#L1792"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/actor.ts#L1790"
 						}
 					],
 					"type": {
@@ -36630,9 +36622,9 @@
 					"sources": [
 						{
 							"fileName": "packages/apify/src/actor.ts",
-							"line": 1797,
+							"line": 1795,
 							"character": 4,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/actor.ts#L1797"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/actor.ts#L1795"
 						}
 					],
 					"type": {
@@ -36655,9 +36647,9 @@
 			"sources": [
 				{
 					"fileName": "packages/apify/src/actor.ts",
-					"line": 1790,
+					"line": 1788,
 					"character": 17,
-					"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/actor.ts#L1790"
+					"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/actor.ts#L1788"
 				}
 			],
 			"extendedBy": [
@@ -36686,9 +36678,9 @@
 					"sources": [
 						{
 							"fileName": "packages/apify/src/actor.ts",
-							"line": 1568,
+							"line": 1566,
 							"character": 4,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/actor.ts#L1568"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/actor.ts#L1566"
 						}
 					],
 					"type": {
@@ -36710,9 +36702,9 @@
 			"sources": [
 				{
 					"fileName": "packages/apify/src/actor.ts",
-					"line": 1567,
+					"line": 1565,
 					"character": 17,
-					"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/actor.ts#L1567"
+					"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/actor.ts#L1565"
 				}
 			],
 			"extendedBy": [
@@ -37371,9 +37363,9 @@
 					"sources": [
 						{
 							"fileName": "packages/apify/src/actor.ts",
-							"line": 1801,
+							"line": 1799,
 							"character": 4,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/actor.ts#L1801"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/actor.ts#L1799"
 						}
 					],
 					"type": {
@@ -37405,9 +37397,9 @@
 					"sources": [
 						{
 							"fileName": "packages/apify/src/actor.ts",
-							"line": 1799,
+							"line": 1797,
 							"character": 4,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/actor.ts#L1799"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/actor.ts#L1797"
 						}
 					],
 					"type": {
@@ -37439,9 +37431,9 @@
 					"sources": [
 						{
 							"fileName": "packages/apify/src/actor.ts",
-							"line": 1792,
+							"line": 1790,
 							"character": 4,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/actor.ts#L1792"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/actor.ts#L1790"
 						}
 					],
 					"type": {
@@ -37465,9 +37457,9 @@
 					"sources": [
 						{
 							"fileName": "packages/apify/src/actor.ts",
-							"line": 1568,
+							"line": 1566,
 							"character": 4,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/actor.ts#L1568"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/actor.ts#L1566"
 						}
 					],
 					"type": {
@@ -37512,9 +37504,9 @@
 					"sources": [
 						{
 							"fileName": "packages/apify/src/actor.ts",
-							"line": 1797,
+							"line": 1795,
 							"character": 4,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/actor.ts#L1797"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/actor.ts#L1795"
 						}
 					],
 					"type": {
@@ -37543,9 +37535,9 @@
 			"sources": [
 				{
 					"fileName": "packages/apify/src/actor.ts",
-					"line": 1571,
+					"line": 1569,
 					"character": 17,
-					"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/actor.ts#L1571"
+					"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/actor.ts#L1569"
 				}
 			],
 			"extendedTypes": [
@@ -37611,9 +37603,9 @@
 					"sources": [
 						{
 							"fileName": "packages/apify/src/actor.ts",
-							"line": 1779,
+							"line": 1777,
 							"character": 4,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/actor.ts#L1779"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/actor.ts#L1777"
 						}
 					],
 					"type": {
@@ -37696,9 +37688,9 @@
 					"sources": [
 						{
 							"fileName": "packages/apify/src/actor.ts",
-							"line": 1773,
+							"line": 1771,
 							"character": 4,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/actor.ts#L1773"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/actor.ts#L1771"
 						}
 					],
 					"type": {
@@ -37719,9 +37711,9 @@
 			"sources": [
 				{
 					"fileName": "packages/apify/src/actor.ts",
-					"line": 1766,
+					"line": 1764,
 					"character": 17,
-					"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/actor.ts#L1766"
+					"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/actor.ts#L1764"
 				}
 			]
 		},
@@ -37778,9 +37770,9 @@
 					"sources": [
 						{
 							"fileName": "packages/apify/src/actor.ts",
-							"line": 1810,
+							"line": 1808,
 							"character": 4,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/actor.ts#L1810"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/actor.ts#L1808"
 						}
 					],
 					"type": {
@@ -37800,9 +37792,9 @@
 			"sources": [
 				{
 					"fileName": "packages/apify/src/actor.ts",
-					"line": 1804,
+					"line": 1802,
 					"character": 17,
-					"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/actor.ts#L1804"
+					"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/actor.ts#L1802"
 				}
 			]
 		},
@@ -37850,7 +37842,7 @@
 							"fileName": "packages/apify/src/proxy_configuration.ts",
 							"line": 59,
 							"character": 4,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/proxy_configuration.ts#L59"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/proxy_configuration.ts#L59"
 						}
 					],
 					"type": {
@@ -37895,7 +37887,7 @@
 							"fileName": "packages/apify/src/proxy_configuration.ts",
 							"line": 53,
 							"character": 4,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/proxy_configuration.ts#L53"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/proxy_configuration.ts#L53"
 						}
 					],
 					"type": {
@@ -37935,7 +37927,7 @@
 							"fileName": "packages/apify/src/proxy_configuration.ts",
 							"line": 47,
 							"character": 4,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/proxy_configuration.ts#L47"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/proxy_configuration.ts#L47"
 						}
 					],
 					"type": {
@@ -37964,7 +37956,7 @@
 							"fileName": "packages/apify/src/proxy_configuration.ts",
 							"line": 34,
 							"character": 4,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/proxy_configuration.ts#L34"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/proxy_configuration.ts#L34"
 						}
 					],
 					"type": {
@@ -38081,7 +38073,7 @@
 							"fileName": "packages/apify/src/proxy_configuration.ts",
 							"line": 28,
 							"character": 4,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/proxy_configuration.ts#L28"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/proxy_configuration.ts#L28"
 						}
 					],
 					"type": {
@@ -38146,7 +38138,7 @@
 							"fileName": "packages/apify/src/proxy_configuration.ts",
 							"line": 65,
 							"character": 4,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/proxy_configuration.ts#L65"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/proxy_configuration.ts#L65"
 						}
 					],
 					"type": {
@@ -38254,7 +38246,7 @@
 					"fileName": "packages/apify/src/proxy_configuration.ts",
 					"line": 23,
 					"character": 17,
-					"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/proxy_configuration.ts#L23"
+					"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/proxy_configuration.ts#L23"
 				}
 			],
 			"extendedTypes": [
@@ -38323,7 +38315,7 @@
 							"fileName": "packages/apify/src/proxy_configuration.ts",
 							"line": 117,
 							"character": 4,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/proxy_configuration.ts#L117"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/proxy_configuration.ts#L117"
 						}
 					],
 					"type": {
@@ -38350,7 +38342,7 @@
 							"fileName": "packages/apify/src/proxy_configuration.ts",
 							"line": 105,
 							"character": 4,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/proxy_configuration.ts#L105"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/proxy_configuration.ts#L105"
 						}
 					],
 					"type": {
@@ -38420,7 +38412,7 @@
 							"fileName": "packages/apify/src/proxy_configuration.ts",
 							"line": 124,
 							"character": 4,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/proxy_configuration.ts#L124"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/proxy_configuration.ts#L124"
 						}
 					],
 					"type": {
@@ -38643,7 +38635,7 @@
 					"fileName": "packages/apify/src/proxy_configuration.ts",
 					"line": 100,
 					"character": 17,
-					"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/proxy_configuration.ts#L100"
+					"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/proxy_configuration.ts#L100"
 				}
 			],
 			"extendedTypes": [
@@ -38802,9 +38794,9 @@
 			"sources": [
 				{
 					"fileName": "packages/apify/src/actor.ts",
-					"line": 1785,
+					"line": 1783,
 					"character": 17,
-					"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/actor.ts#L1785"
+					"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/actor.ts#L1783"
 				}
 			]
 		},
@@ -39156,9 +39148,9 @@
 					"sources": [
 						{
 							"fileName": "packages/apify/src/actor.ts",
-							"line": 1740,
+							"line": 1738,
 							"character": 4,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/actor.ts#L1740"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/actor.ts#L1738"
 						}
 					],
 					"type": {
@@ -39211,9 +39203,9 @@
 					"sources": [
 						{
 							"fileName": "packages/apify/src/actor.ts",
-							"line": 1763,
+							"line": 1761,
 							"character": 4,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/actor.ts#L1763"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/actor.ts#L1761"
 						}
 					],
 					"type": {
@@ -39256,9 +39248,9 @@
 					"sources": [
 						{
 							"fileName": "packages/apify/src/actor.ts",
-							"line": 1755,
+							"line": 1753,
 							"character": 4,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/actor.ts#L1755"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/actor.ts#L1753"
 						}
 					],
 					"type": {
@@ -39283,9 +39275,9 @@
 					"sources": [
 						{
 							"fileName": "packages/apify/src/actor.ts",
-							"line": 1745,
+							"line": 1743,
 							"character": 4,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/actor.ts#L1745"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/actor.ts#L1743"
 						}
 					],
 					"type": {
@@ -39308,9 +39300,9 @@
 			"sources": [
 				{
 					"fileName": "packages/apify/src/actor.ts",
-					"line": 1735,
+					"line": 1733,
 					"character": 17,
-					"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/actor.ts#L1735"
+					"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/actor.ts#L1733"
 				}
 			]
 		},
@@ -39323,9 +39315,9 @@
 			"sources": [
 				{
 					"fileName": "packages/apify/src/actor.ts",
-					"line": 1709,
+					"line": 1707,
 					"character": 12,
-					"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/actor.ts#L1709"
+					"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/actor.ts#L1707"
 				}
 			],
 			"typeParameters": [
@@ -39352,9 +39344,9 @@
 					"sources": [
 						{
 							"fileName": "packages/apify/src/actor.ts",
-							"line": 1709,
+							"line": 1707,
 							"character": 36,
-							"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/actor.ts#L1709"
+							"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/actor.ts#L1707"
 						}
 					],
 					"signatures": [
@@ -39519,7 +39511,7 @@
 			"fileName": "packages/apify/src/index.ts",
 			"line": 1,
 			"character": 0,
-			"url": "https://github.com/apify/apify-sdk-js/blob/a7566096ff/packages/apify/src/index.ts#L1"
+			"url": "https://github.com/apify/apify-sdk-js/blob/7bce4a9a88/packages/apify/src/index.ts#L1"
 		}
 	]
 }

@@ -1064,8 +1064,6 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * Calling `Actor.exit()` is required if you use the `Actor.init()` method, since it opens websocket connection
      * (see {@apilink Actor.events} for details), which needs to be terminated for the code to finish.
      *
-     * The `Actor.init()` function performs the following actions:
-     *
      * ```js
      * import { gotScraping } from 'got-scraping';
      *
