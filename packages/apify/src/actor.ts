@@ -106,9 +106,6 @@ export class Actor<Data extends Dictionary = Dictionary> {
      *   it sets up a connection to listen for platform events.
      *   For example, to get a notification about an imminent migration to another server.
      *   See {@apilink Actor.events} for details.
-     * - It checks that either `APIFY_TOKEN` or `APIFY_LOCAL_STORAGE_DIR` environment variable
-     *   is defined. If not, the functions sets `APIFY_LOCAL_STORAGE_DIR` to `./apify_storage`
-     *   inside the current working directory. This is to simplify running code examples.
      * - It invokes the user function passed as the `userFunc` parameter.
      * - If the user function returned a promise, waits for it to resolve.
      * - If the user function throws an exception or some other error is encountered,
@@ -117,7 +114,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      *
      * The user function can be synchronous:
      *
-     * ```javascript
+     * ```js
      * await Actor.main(() => {
      *   // My synchronous function that returns immediately
      *   console.log('Hello world from Actor!');
@@ -125,7 +122,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * ```
      *
      * If the user function returns a promise, it is considered asynchronous:
-     * ```javascript
+     * ```js
      * import { gotScraping } from 'got-scraping';
      *
      * await Actor.main(() => {
@@ -138,7 +135,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      *
      * To simplify your code, you can take advantage of the `async`/`await` keywords:
      *
-     * ```javascript
+     * ```js
      * import { gotScraping } from 'got-scraping';
      *
      * await Actor.main(async () => {
@@ -308,7 +305,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      *
      * **Example usage:**
      *
-     * ```javascript
+     * ```js
      * const run = await Actor.call('apify/hello-world', { myInput: 123 });
      * ```
      *
@@ -339,7 +336,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      *
      * **Example usage:**
      *
-     * ```javascript
+     * ```js
      * const run = await Actor.start('apify/hello-world', { myInput: 123 });
      * ```
      *
@@ -369,7 +366,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      *
      * **Example usage:**
      *
-     * ```javascript
+     * ```js
      * const run = await Actor.abort(runId);
      * ```
      * @ignore
@@ -398,7 +395,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      *
      * **Example usage:**
      *
-     * ```javascript
+     * ```js
      * const run = await Actor.callTask('bob/some-task');
      * ```
      *
@@ -583,12 +580,12 @@ export class Actor<Data extends Dictionary = Dictionary> {
      *
      * This is just a convenient shortcut for {@apilink Dataset.pushData}.
      * For example, calling the following code:
-     * ```javascript
+     * ```js
      * await Actor.pushData({ myValue: 123 });
      * ```
      *
      * is equivalent to:
-     * ```javascript
+     * ```js
      * const dataset = await Actor.openDataset();
      * await dataset.pushData({ myValue: 123 });
      * ```
@@ -643,12 +640,12 @@ export class Actor<Data extends Dictionary = Dictionary> {
      *
      * This is just a convenient shortcut for {@apilink KeyValueStore.getValue}.
      * For example, calling the following code:
-     * ```javascript
+     * ```js
      * const value = await Actor.getValue('my-key');
      * ```
      *
      * is equivalent to:
-     * ```javascript
+     * ```js
      * const store = await Actor.openKeyValueStore();
      * const value = await store.getValue('my-key');
      * ```
@@ -678,12 +675,12 @@ export class Actor<Data extends Dictionary = Dictionary> {
      *
      * This is just a convenient shortcut for  {@apilink KeyValueStore.setValue}.
      * For example, calling the following code:
-     * ```javascript
+     * ```js
      * await Actor.setValue('OUTPUT', { foo: "bar" });
      * ```
      *
      * is equivalent to:
-     * ```javascript
+     * ```js
      * const store = await Actor.openKeyValueStore();
      * await store.setValue('OUTPUT', { foo: "bar" });
      * ```
@@ -716,12 +713,12 @@ export class Actor<Data extends Dictionary = Dictionary> {
      *
      * This is just a convenient shortcut for [`keyValueStore.getValue('INPUT')`](core/class/KeyValueStore#getValue).
      * For example, calling the following code:
-     * ```javascript
+     * ```js
      * const input = await Actor.getInput();
      * ```
      *
      * is equivalent to:
-     * ```javascript
+     * ```js
      * const store = await Actor.openKeyValueStore();
      * await store.getValue('INPUT');
      * ```
@@ -834,7 +831,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      *
      * For more details and code examples, see the {@apilink ProxyConfiguration} class.
      *
-     * ```javascript
+     * ```js
      *
      * // Returns initialized proxy configuration class
      * const proxyConfiguration = await Actor.createProxyConfiguration({
@@ -1010,9 +1007,6 @@ export class Actor<Data extends Dictionary = Dictionary> {
      *   it sets up a connection to listen for platform events.
      *   For example, to get a notification about an imminent migration to another server.
      *   See {@apilink Actor.events} for details.
-     * - It checks that either `APIFY_TOKEN` or `APIFY_LOCAL_STORAGE_DIR` environment variable
-     *   is defined. If not, the functions sets `APIFY_LOCAL_STORAGE_DIR` to `./apify_storage`
-     *   inside the current working directory. This is to simplify running code examples.
      * - It invokes the user function passed as the `userFunc` parameter.
      * - If the user function returned a promise, waits for it to resolve.
      * - If the user function throws an exception or some other error is encountered,
@@ -1021,7 +1015,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      *
      * The user function can be synchronous:
      *
-     * ```javascript
+     * ```js
      * await Actor.main(() => {
      *   // My synchronous function that returns immediately
      *   console.log('Hello world from Actor!');
@@ -1029,7 +1023,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * ```
      *
      * If the user function returns a promise, it is considered asynchronous:
-     * ```javascript
+     * ```js
      * import { gotScraping } from 'got-scraping';
      *
      * await Actor.main(() => {
@@ -1042,7 +1036,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      *
      * To simplify your code, you can take advantage of the `async`/`await` keywords:
      *
-     * ```javascript
+     * ```js
      * import { gotScraping } from 'got-scraping';
      *
      * await Actor.main(async () => {
@@ -1060,6 +1054,31 @@ export class Actor<Data extends Dictionary = Dictionary> {
         return Actor.getDefaultInstance().main<T>(userFunc, options);
     }
 
+    /**
+     * Initializes the Actor, enabling support for the [Apify platform](https://apify.com/actors) dynamically
+     * based on `APIFY_IS_AT_HOME` env var. If you are not running the code on Apify, you don't need to use it.
+     * The method will switch storage client implementation automatically, so when you run on the Apify platform,
+     * it will use its API instead of the default memory storage. It also increases the available memory ratio
+     * from 25% to 100% on the platform.
+     *
+     * Calling `Actor.exit()` is required if you use the `Actor.init()` method, since it opens websocket connection
+     * (see {@apilink Actor.events} for details), which needs to be terminated for the code to finish.
+     *
+     * The `Actor.init()` function performs the following actions:
+     *
+     * ```js
+     * import { gotScraping } from 'got-scraping';
+     *
+     * await Actor.init();
+     *
+     * const html = await gotScraping('http://www.example.com');
+     * console.log(html);
+     *
+     * await Actor.exit();
+     * ```
+     *
+     * @param options
+     */
     static async init(options: InitOptions = {}): Promise<void> {
         return Actor.getDefaultInstance().init(options);
     }
@@ -1101,7 +1120,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      *
      * **Example usage:**
      *
-     * ```javascript
+     * ```js
      * const run = await Actor.call('apify/hello-world', { myInput: 123 });
      * ```
      *
@@ -1130,7 +1149,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      *
      * **Example usage:**
      *
-     * ```javascript
+     * ```js
      * const run = await Actor.callTask('bob/some-task');
      * ```
      *
@@ -1157,7 +1176,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      *
      * **Example usage:**
      *
-     * ```javascript
+     * ```js
      * const run = await Actor.start('apify/hello-world', { myInput: 123 });
      * ```
      *
@@ -1183,7 +1202,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      *
      * **Example usage:**
      *
-     * ```javascript
+     * ```js
      * const run = await Actor.abort(runId);
      * ```
      */
@@ -1251,12 +1270,12 @@ export class Actor<Data extends Dictionary = Dictionary> {
      *
      * This is just a convenient shortcut for {@apilink Dataset.pushData}.
      * For example, calling the following code:
-     * ```javascript
+     * ```js
      * await Actor.pushData({ myValue: 123 });
      * ```
      *
      * is equivalent to:
-     * ```javascript
+     * ```js
      * const dataset = await Actor.openDataset();
      * await dataset.pushData({ myValue: 123 });
      * ```
@@ -1298,12 +1317,12 @@ export class Actor<Data extends Dictionary = Dictionary> {
      *
      * This is just a convenient shortcut for {@apilink KeyValueStore.getValue}.
      * For example, calling the following code:
-     * ```javascript
+     * ```js
      * const value = await Actor.getValue('my-key');
      * ```
      *
      * is equivalent to:
-     * ```javascript
+     * ```js
      * const store = await Actor.openKeyValueStore();
      * const value = await store.getValue('my-key');
      * ```
@@ -1329,12 +1348,12 @@ export class Actor<Data extends Dictionary = Dictionary> {
      *
      * This is just a convenient shortcut for  {@apilink KeyValueStore.setValue}.
      * For example, calling the following code:
-     * ```javascript
+     * ```js
      * await Actor.setValue('OUTPUT', { foo: "bar" });
      * ```
      *
      * is equivalent to:
-     * ```javascript
+     * ```js
      * const store = await Actor.openKeyValueStore();
      * await store.setValue('OUTPUT', { foo: "bar" });
      * ```
@@ -1363,12 +1382,12 @@ export class Actor<Data extends Dictionary = Dictionary> {
      *
      * This is just a convenient shortcut for {@apilink KeyValueStore.getValue | `keyValueStore.getValue('INPUT')`}.
      * For example, calling the following code:
-     * ```javascript
+     * ```js
      * const input = await Actor.getInput();
      * ```
      *
      * is equivalent to:
-     * ```javascript
+     * ```js
      * const store = await Actor.openKeyValueStore();
      * await store.getValue('INPUT');
      * ```
@@ -1445,7 +1464,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      *
      * For more details and code examples, see the {@apilink ProxyConfiguration} class.
      *
-     * ```javascript
+     * ```js
      *
      * // Returns initialized proxy configuration class
      * const proxyConfiguration = await Actor.createProxyConfiguration({
@@ -1655,7 +1674,7 @@ export interface ApifyEnv {
      * Defines the path to a local directory where KeyValueStore, Dataset, and RequestQueue
      * store their data. Typically, it is set to ./storage. If omitted, you should define the
      * APIFY_TOKEN environment variable instead. See more info on combination of this and
-     * APIFY_TOKEN [here](https://docs.apify.com/sdk/js/docs/guides/environment-variables#combinations-of-apify_local_storage_dir-and-apify_token)(APIFY_LOCAL_STORAGE_DIR)
+     * APIFY_TOKEN [here](https://docs.apify.com/sdk/js/docs/guides/environment-variables#combinations-of-apify_local_storage_dir-and-apify_token)(CRAWLEE_STORAGE_DIR)
      */
     localStorageDir: string | null;
 
@@ -1784,7 +1803,7 @@ export interface ExitOptions {
 
 export interface OpenStorageOptions {
     /**
-     * If set to `true` then the cloud storage is used even if the `APIFY_LOCAL_STORAGE_DIR`
+     * If set to `true` then the cloud storage is used even if the `CRAWLEE_STORAGE_DIR`
      * environment variable is set. This way it is possible to combine local and cloud storage.
      * @default false
      */
