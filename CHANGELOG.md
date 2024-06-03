@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [3.2.3](https://github.com/apify/apify-sdk-js/compare/apify@3.2.2...apify@3.2.3) (2024-06-03)
+
+
+### Bug Fixes
+
+* respect `KVS.getPublicUrl()` from core when not on apify platform ([#302](https://github.com/apify/apify-sdk-js/issues/302)) ([a4d80bb](https://github.com/apify/apify-sdk-js/commit/a4d80bbeee2fd2db145638b17757fa5f673e7452))
+
+
+
+
+
 ## [3.2.2](https://github.com/apify/apify-sdk-js/compare/apify@3.2.1...apify@3.2.2) (2024-05-23)
 
 
