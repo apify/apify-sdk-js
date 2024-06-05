@@ -117,7 +117,7 @@
         "initialCookies": {
             "title": "Initial cookies",
             "type": "array",
-            "description": "A JSON array with cookies that will be set to every Chrome browser tab opened before loading the page, in the format accepted by Puppeteer's <a href='https://pptr.dev/#?product=Puppeteer&show=api-pagesetcookiecookies' target='_blank' rel='noopener'><code>Page.setCookie()</code></a> function. This option is useful for transferring a logged-in session from an external web browser. For details how to do this, read this <a href='https://help.apify.com/en/articles/1444249-log-in-to-website-by-transferring-cookies-from-web-browser-legacy' target='_blank' rel='noopener'>help article</a>.",
+            "description": "A JSON array with cookies that will be set to every Chrome browser tab opened before loading the page, in the format accepted by Puppeteer's <a href='https://pptr.dev/api/puppeteer.cookie' target='_blank' rel='noopener'><code>Page.setCookie()</code></a> function. This option is useful for transferring a logged-in session from an external web browser.",
             "default": [],
             "prefill": [],
             "editor": "json"
