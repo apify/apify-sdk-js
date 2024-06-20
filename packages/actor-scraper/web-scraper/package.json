@@ -20,7 +20,7 @@
         "@types/content-type": "^1.1.5",
         "@types/node": "^20.8.2",
         "tsx": "^4.6.2",
-        "typescript": "~5.4.0"
+        "typescript": "~5.5.0"
     },
     "scripts": {
         "start": "npm run start:dev",
