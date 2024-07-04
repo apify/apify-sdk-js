@@ -149,7 +149,7 @@ export class Configuration extends CoreConfiguration {
         ACTOR_INPUT_KEY: 'inputKey',
         ACTOR_MEMORY_MBYTES: 'memoryMbytes',
         ACTOR_RUN_ID: 'actorRunId',
-        [ACTOR_ENV_VARS.STANDBY_PORT]: 'standbyPort',
+        ACTOR_STANDBY_PORT: 'standbyPort',
         ACTOR_TASK_ID: 'actorTaskId',
         ACTOR_WEB_SERVER_PORT: 'containerPort',
         ACTOR_WEB_SERVER_URL: 'containerUrl',
