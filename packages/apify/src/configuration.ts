@@ -92,6 +92,7 @@ export interface ConfigurationOptions extends CoreConfigurationOptions {
  * `proxyStatusUrl` | `APIFY_PROXY_STATUS_URL` | `'http://proxy.apify.com'`
  * `userId` | `APIFY_USER_ID` | -
  * `xvfb` | `APIFY_XVFB` | -
+ * `standbyPort` | `ACTOR_STANDBY_PORT` | `4322`
  * `chromeExecutablePath` | `APIFY_CHROME_EXECUTABLE_PATH` | -
  * `defaultBrowserPath` | `APIFY_DEFAULT_BROWSER_PATH` | -
  */
@@ -148,6 +149,7 @@ export class Configuration extends CoreConfiguration {
         ACTOR_INPUT_KEY: 'inputKey',
         ACTOR_MEMORY_MBYTES: 'memoryMbytes',
         ACTOR_RUN_ID: 'actorRunId',
+        ACTOR_STANDBY_PORT: 'standbyPort',
         ACTOR_TASK_ID: 'actorTaskId',
         ACTOR_WEB_SERVER_PORT: 'containerPort',
         ACTOR_WEB_SERVER_URL: 'containerUrl',
@@ -169,6 +171,7 @@ export class Configuration extends CoreConfiguration {
         proxyPort: +LOCAL_APIFY_ENV_VARS[APIFY_ENV_VARS.PROXY_PORT],
         containerPort: +LOCAL_ACTOR_ENV_VARS[ACTOR_ENV_VARS.WEB_SERVER_PORT],
         containerUrl: LOCAL_ACTOR_ENV_VARS[ACTOR_ENV_VARS.WEB_SERVER_URL],
+        standbyPort: +LOCAL_ACTOR_ENV_VARS[ACTOR_ENV_VARS.STANDBY_PORT],
         metamorphAfterSleepMillis: 300e3,
         persistStateIntervalMillis: 60e3, // This value is mentioned in jsdoc in `events.js`, if you update it here, update it there too.
     };
