@@ -3,6 +3,22 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [3.2.4](https://github.com/apify/apify-sdk-js/compare/apify@3.2.3...apify@3.2.4) (2024-07-04)
+
+
+### Bug Fixes
+
+* add `standbyPort` to `ConfigurationOptions` ([#311](https://github.com/apify/apify-sdk-js/issues/311)) ([530b8a1](https://github.com/apify/apify-sdk-js/commit/530b8a133f2808c61e079449156e5ed1fe73ce64))
+
+
+### Features
+
+* add standby port to configuration ([#310](https://github.com/apify/apify-sdk-js/issues/310)) ([cc26098](https://github.com/apify/apify-sdk-js/commit/cc26098da862a7338fdf776956b904d5672a5daf))
+
+
+
+
+
 ## [3.2.3](https://github.com/apify/apify-sdk-js/compare/apify@3.2.2...apify@3.2.3) (2024-06-03)
 
 
