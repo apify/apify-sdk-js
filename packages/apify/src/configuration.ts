@@ -21,6 +21,7 @@ export interface ConfigurationOptions extends CoreConfigurationOptions {
     proxyPassword?: string;
     proxyPort?: number;
     proxyStatusUrl?: string;
+    standbyPort?: number;
     isAtHome?: boolean;
     userId?: string;
     inputSecretsPrivateKeyPassphrase?: string;
