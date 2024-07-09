@@ -74,7 +74,7 @@
         "lint-staged": "^15.0.0",
         "playwright": "^1.39.0",
         "puppeteer": "^21.3.8",
-        "rimraf": "^5.0.1",
+        "rimraf": "^6.0.0",
         "tsx": "^4.6.2",
         "turbo": "1.13.3",
         "typescript": "~5.5.0",
