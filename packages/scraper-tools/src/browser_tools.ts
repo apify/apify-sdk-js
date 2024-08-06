@@ -109,8 +109,12 @@ export interface DumpConsoleOptions {
  * Chromium messages, usually internal errors, occurring in page.
  */
 export function dumpConsole(page: Page, options: DumpConsoleOptions = {}) {
+    const translateType = {
+        warn: 'warning',
+    } as Record<string, string>;
+
     page.on('console', async (msg: any) => {
-        const msgType = msg.type();
+        const msgType = translateType[msg.type()] ?? msg.type();
 
         if (msgType === 'error' && !options.logErrors) return;
 
