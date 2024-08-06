@@ -80,7 +80,7 @@
         "typescript": "~5.5.0",
         "vite-tsconfig-paths": "^4.2.1",
         "vitest": "^2.0.0",
-        "ws": "^7.5.9"
+        "ws": "^8.0.0"
     },
     "packageManager": "npm@10.8.2"
 }
