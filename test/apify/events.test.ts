@@ -3,16 +3,16 @@ import { EventType } from '@crawlee/core';
 import type { Dictionary } from '@crawlee/utils';
 import { sleep } from '@crawlee/utils';
 import { Actor, Configuration, PlatformEventManager } from 'apify';
-import WebSocket from 'ws';
+import { WebSocketServer } from 'ws';
 
 describe('events', () => {
-    let wss: WebSocket.Server = null;
+    let wss: WebSocketServer = null;
     const config = Configuration.getGlobalConfig();
     const events = new PlatformEventManager(config);
     config.useEventManager(events);
 
     beforeEach(() => {
-        wss = new WebSocket.Server({ port: 9099 });
+        wss = new WebSocketServer({ port: 9099 });
         vitest.useFakeTimers();
         process.env[ACTOR_ENV_VARS.EVENTS_WEBSOCKET_URL] = 'ws://localhost:9099/someRunId';
         process.env[APIFY_ENV_VARS.TOKEN] = 'dummy';

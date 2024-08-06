@@ -58,7 +58,6 @@
         "@types/content-type": "^1.1.5",
         "@types/fs-extra": "^11.0.1",
         "@types/node": "^20.4.2",
-        "@types/rimraf": "^4.0.5",
         "@types/semver": "^7.5.0",
         "@types/tough-cookie": "^4.0.2",
         "@types/ws": "^8.5.5",
@@ -79,8 +78,7 @@
         "turbo": "1.13.3",
         "typescript": "~5.5.0",
         "vite-tsconfig-paths": "^4.2.1",
-        "vitest": "^2.0.0",
-        "ws": "^7.5.9"
+        "vitest": "^2.0.0"
     },
     "packageManager": "npm@10.8.2"
 }
