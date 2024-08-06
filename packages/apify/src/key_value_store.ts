@@ -14,7 +14,7 @@ export class KeyValueStore extends CoreKeyValueStore {
      * Returns a URL for the given key that may be used to publicly
      * access the value in the remote key-value store.
      */
-    getPublicUrl(key: string): string {
+    override getPublicUrl(key: string): string {
         if (!(this.config as Configuration).get('isAtHome') && getPublicUrl) {
             return getPublicUrl.call(this, key);
         }
