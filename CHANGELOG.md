@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [3.2.5](https://github.com/apify/apify-sdk-js/compare/apify@3.2.4...apify@3.2.5) (2024-08-14)
+
+
+### Features
+
+* add `metaOrigin` to `Actor.config` ([#320](https://github.com/apify/apify-sdk-js/issues/320)) ([5a4d2eb](https://github.com/apify/apify-sdk-js/commit/5a4d2ebb9218bd342438f740d035a563444037d3))
+
+
+
+
+
 ## [3.2.4](https://github.com/apify/apify-sdk-js/compare/apify@3.2.3...apify@3.2.4) (2024-07-04)
 
 
