@@ -3,6 +3,7 @@ import {
     APIFY_ENV_VARS,
     LOCAL_ACTOR_ENV_VARS,
     LOCAL_APIFY_ENV_VARS,
+    META_ORIGINS,
 } from '@apify/consts';
 import { Configuration as CoreConfiguration } from '@crawlee/core';
 import type { ConfigurationOptions as CoreConfigurationOptions } from '@crawlee/core';
@@ -26,6 +27,7 @@ export interface ConfigurationOptions extends CoreConfigurationOptions {
     userId?: string;
     inputSecretsPrivateKeyPassphrase?: string;
     inputSecretsPrivateKeyFile?: string;
+    metaOrigin?: typeof META_ORIGINS[keyof typeof META_ORIGINS];
 }
 
 /**
@@ -87,6 +89,7 @@ export interface ConfigurationOptions extends CoreConfigurationOptions {
  * `containerUrl` | `ACTOR_WEB_SERVER_URL` | `'http://localhost:4321'`
  * `inputKey` | `ACTOR_INPUT_KEY` | `'INPUT'`
  * `metamorphAfterSleepMillis` | `APIFY_METAMORPH_AFTER_SLEEP_MILLIS` | `300e3`
+ * `metaOrigin` | `APIFY_META_ORIGIN` | -
  * `proxyHostname` | `APIFY_PROXY_HOSTNAME` | `'proxy.apify.com'`
  * `proxyPassword` | `APIFY_PROXY_PASSWORD` | -
  * `proxyPort` | `APIFY_PROXY_PORT` | `8000`
@@ -140,6 +143,7 @@ export class Configuration extends CoreConfiguration {
         APIFY_PROXY_PORT: 'proxyPort',
         APIFY_INPUT_SECRETS_PRIVATE_KEY_FILE: 'inputSecretsPrivateKeyFile',
         APIFY_INPUT_SECRETS_PRIVATE_KEY_PASSPHRASE: 'inputSecretsPrivateKeyPassphrase',
+        APIFY_META_ORIGIN: 'metaOrigin',
 
         // Actor env vars
         ACTOR_DEFAULT_DATASET_ID: 'defaultDatasetId',
