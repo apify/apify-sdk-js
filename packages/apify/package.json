@@ -5,16 +5,31 @@
     "engines": {
         "node": ">=16.0.0"
     },
-    "main": "./dist/index.js",
-    "module": "./dist/index.mjs",
-    "types": "./dist/index.d.ts",
+    "type": "module",
+    "main": "./dist/commonjs/index.js",
+    "types": "./dist/commonjs/index.d.ts",
+    "module": "./dist/esm/index.js",
     "exports": {
+        "./package.json": "./package.json",
         ".": {
-            "import": "./dist/index.mjs",
-            "require": "./dist/index.js",
-            "types": "./dist/index.d.ts"
-        },
-        "./package.json": "./package.json"
+            "import": {
+                "types": "./dist/esm/index.d.ts",
+                "default": "./dist/esm/index.js"
+            },
+            "require": {
+                "types": "./dist/commonjs/index.d.ts",
+                "default": "./dist/commonjs/index.js"
+            }
+        }
+    },
+    "files": [
+        "dist"
+    ],
+    "tshy": {
+        "exports": {
+            "./package.json": "./package.json",
+            ".": "./src/index.ts"
+        }
     },
     "keywords": [
         "apify",
@@ -44,11 +59,9 @@
     },
     "homepage": "https://docs.apify.com/sdk/js",
     "scripts": {
-        "build": "npm run clean && npm run compile && npm run copy && npm run fixApifyExport",
+        "build": "npm run clean && npm run compile",
         "clean": "rimraf ./dist",
-        "compile": "tsc -p tsconfig.build.json && gen-esm-wrapper ./dist/index.js ./dist/index.mjs",
-        "copy": "tsx ../../scripts/copy.ts --readme=local",
-        "fixApifyExport": "tsx ../../scripts/temp_fix_apify_exports.ts"
+        "compile": "tshy"
     },
     "publishConfig": {
         "access": "public"
@@ -64,7 +77,7 @@
         "@crawlee/utils": "^3.9.0",
         "apify-client": "^2.9.0",
         "fs-extra": "^11.2.0",
-        "ow": "^0.28.2",
+        "ow": "^2.0.0",
         "semver": "^7.5.4",
         "tslib": "^2.6.2",
         "ws": "^8.18.0"

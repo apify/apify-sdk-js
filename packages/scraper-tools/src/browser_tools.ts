@@ -4,8 +4,8 @@ import log from '@apify/log';
 import type { CommonPage } from '@crawlee/browser-pool';
 import { Actor } from 'apify';
 
-import { RESOURCE_LOAD_ERROR_MESSAGE, SNAPSHOT } from './consts';
-import { createRandomHash } from './tools';
+import { RESOURCE_LOAD_ERROR_MESSAGE, SNAPSHOT } from './consts.js';
+import { createRandomHash } from './tools.js';
 
 export interface Page extends CommonPage {
     exposeFunction(name: string, callback: () => unknown): Promise<void>;

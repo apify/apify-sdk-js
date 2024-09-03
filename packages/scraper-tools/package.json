@@ -2,11 +2,14 @@
     "name": "@apify/scraper-tools",
     "version": "1.1.4",
     "description": "Tools shared by Apify actor-scrapers.",
-    "types": "dist/index.d.ts",
-    "exports": {
-        ".": {
-            "import": "./dist/index.mjs",
-            "require": "./dist/index.js"
+    "type": "module",
+    "files": [
+        "dist"
+    ],
+    "tshy": {
+        "exports": {
+            "./package.json": "./package.json",
+            ".": "./src/index.ts"
         }
     },
     "author": {
@@ -25,10 +28,9 @@
     },
     "homepage": "https://github.com/apify/apify-sdk-js",
     "scripts": {
-        "build": "npm run clean && npm run compile && npm run copy",
-        "clean": "rimraf ./dist",
-        "compile": "tsc -p tsconfig.build.json && gen-esm-wrapper ./dist/index.js ./dist/index.mjs",
-        "copy": "tsx ../../scripts/copy.ts --readme=false"
+        "build": "npm run clean && npm run compile",
+        "compile": "tshy",
+        "clean": "rimraf ./dist"
     },
     "publishConfig": {
         "access": "public"
@@ -44,14 +46,14 @@
         "@crawlee/core": "^3.8.2",
         "@crawlee/types": "^3.8.2",
         "@crawlee/utils": "^3.8.2",
-        "apify": "^3.1.8"
+        "apify": "workspace:^"
     },
     "peerDependencies": {
         "@crawlee/browser-pool": "^3.8.2",
         "@crawlee/core": "^3.8.2",
         "@crawlee/types": "^3.8.2",
         "@crawlee/utils": "^3.8.2",
-        "apify": "^3.1.8"
+        "apify": "workspace:^"
     },
     "peerDependenciesMeta": {
         "@crawlee/puppeteer": {
@@ -60,5 +62,21 @@
         "@crawlee/playwright": {
             "optional": true
         }
-    }
+    },
+    "exports": {
+        "./package.json": "./package.json",
+        ".": {
+            "import": {
+                "types": "./dist/esm/index.d.ts",
+                "default": "./dist/esm/index.js"
+            },
+            "require": {
+                "types": "./dist/commonjs/index.d.ts",
+                "default": "./dist/commonjs/index.js"
+            }
+        }
+    },
+    "main": "./dist/commonjs/index.js",
+    "types": "./dist/commonjs/index.d.ts",
+    "module": "./dist/esm/index.js"
 }

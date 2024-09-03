@@ -27,3 +27,5 @@ apify_storage
 crawlee_storage
 storage
 .turbo
+.tshy
+.tshy-build

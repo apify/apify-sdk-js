@@ -1,0 +1,58 @@
+diff --git a/events/event_manager.d.ts b/events/event_manager.d.ts
+index bd10b39527eab717d694d095ddfd719aed568588..e0a5cd7be9b44ffddbb40c1d9d94f90edb7ac39f 100644
+--- a/events/event_manager.d.ts
++++ b/events/event_manager.d.ts
+@@ -1,14 +1,17 @@
+ import type { BetterIntervalID } from '@apify/utilities';
+ import { AsyncEventEmitter } from '@vladfrangu/async_event_emitter';
+ import { Configuration } from '../configuration';
+-export declare const enum EventType {
+-    PERSIST_STATE = "persistState",
+-    SYSTEM_INFO = "systemInfo",
+-    MIGRATING = "migrating",
+-    ABORTING = "aborting",
+-    EXIT = "exit"
+-}
+-export type EventTypeName = EventType | 'systemInfo' | 'persistState' | 'migrating' | 'aborting' | 'exit';
++
++export declare const EventType = {
++    readonly PERSIST_STATE: "persistState",
++    readonly SYSTEM_INFO: "systemInfo",
++    readonly MIGRATING: "migrating",
++    readonly ABORTING: "aborting",
++    readonly EXIT: "exit",
++} as const
++
++export type EventTypeName = typeof EventType[keyof typeof EventType]
++
+ interface Intervals {
+     persistState?: BetterIntervalID;
+     systemInfo?: BetterIntervalID;
+diff --git a/events/event_manager.js b/events/event_manager.js
+index 18ff3ecd5f9c7e3ca531b69684e219e09a446387..0e322bae6f2964bf464151573da60d967d3d162c 100644
+--- a/events/event_manager.js
++++ b/events/event_manager.js
+@@ -6,14 +6,15 @@ const log_1 = tslib_1.__importDefault(require("@apify/log"));
+ const utilities_1 = require("@apify/utilities");
+ const async_event_emitter_1 = require("@vladfrangu/async_event_emitter");
+ const configuration_1 = require("../configuration");
+-var EventType;
+-(function (EventType) {
+-    EventType["PERSIST_STATE"] = "persistState";
+-    EventType["SYSTEM_INFO"] = "systemInfo";
+-    EventType["MIGRATING"] = "migrating";
+-    EventType["ABORTING"] = "aborting";
+-    EventType["EXIT"] = "exit";
+-})(EventType || (exports.EventType = EventType = {}));
++
++exports.EventType = {
++    PERSIST_STATE: "persistState",
++    SYSTEM_INFO: "systemInfo",
++    MIGRATING: "migrating",
++    ABORTING: "aborting",
++    EXIT: "exit",
++}
++
+ class EventManager {
+     constructor(config = configuration_1.Configuration.getGlobalConfig()) {
+         Object.defineProperty(this, "config", {

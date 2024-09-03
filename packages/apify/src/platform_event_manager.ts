@@ -3,7 +3,7 @@ import { betterClearInterval } from '@apify/utilities';
 import { EventType, EventManager } from '@crawlee/core';
 import { WebSocket } from 'ws';
 
-import { Configuration } from './configuration';
+import { Configuration } from './configuration.js';
 
 /**
  * Gets an instance of a Node.js'

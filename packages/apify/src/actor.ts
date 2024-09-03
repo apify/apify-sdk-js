@@ -34,14 +34,14 @@ import {
     ActorRun as ClientActorRun,
     ApifyClient,
 } from 'apify-client';
-import ow from 'ow';
 
-import { Configuration } from './configuration';
-import { KeyValueStore } from './key_value_store';
-import { PlatformEventManager } from './platform_event_manager';
-import type { ProxyConfigurationOptions } from './proxy_configuration';
-import { ProxyConfiguration } from './proxy_configuration';
-import { checkCrawleeVersion, logSystemInfo, printOutdatedSdkWarning } from './utils';
+import { Configuration } from './configuration.js';
+import { KeyValueStore } from './key_value_store.js';
+import ow from './ow.js';
+import { PlatformEventManager } from './platform_event_manager.js';
+import type { ProxyConfigurationOptions } from './proxy_configuration.js';
+import { ProxyConfiguration } from './proxy_configuration.js';
+import { checkCrawleeVersion, logSystemInfo, printOutdatedSdkWarning } from './utils.js';
 
 /**
  * `Actor` class serves as an alternative approach to the static helpers exported from the package. It allows to pass configuration
@@ -1808,7 +1808,7 @@ export interface OpenStorageOptions {
     forceCloud?: boolean;
 }
 
-export { ClientActorRun as ActorRun };
+export type { ClientActorRun as ActorRun };
 
 /**
  * Exit codes for the Actor process.
