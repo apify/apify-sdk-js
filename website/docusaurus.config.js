@@ -108,7 +108,7 @@ module.exports = {
     ]),
     plugins: [
         [
-            'docusaurus-plugin-typedoc-api',
+            '@apify/docusaurus-plugin-typedoc-api',
             {
                 projectRoot: `${__dirname}/..`,
                 changelogs: true,
