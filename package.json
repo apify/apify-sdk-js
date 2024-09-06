@@ -2,10 +2,6 @@
     "name": "apify-sdk-js",
     "private": true,
     "description": "Apify SDK monorepo",
-    "workspaces": [
-        "packages/*",
-        "packages/actor-scraper/*"
-    ],
     "keywords": [
         "apify",
         "headless",
@@ -55,6 +51,7 @@
         "@apify/tsconfig": "^0.1.0",
         "@commitlint/config-conventional": "^19.2.2",
         "@playwright/browser-chromium": "^1.46.0",
+        "@total-typescript/tsconfig": "^1.0.4",
         "@types/content-type": "^1.1.8",
         "@types/fs-extra": "^11.0.4",
         "@types/node": "^22.1.0",
@@ -74,11 +71,17 @@
         "playwright": "^1.46.0",
         "puppeteer": "^22.15.0",
         "rimraf": "^6.0.1",
+        "tshy": "^3.0.2",
         "tsx": "^4.16.5",
         "turbo": "2.1.1",
         "typescript": "~5.5.4",
         "vite-tsconfig-paths": "^4.3.2",
         "vitest": "^2.0.5"
     },
-    "packageManager": "npm@10.8.3"
+    "packageManager": "pnpm@9.9.0+sha512.60c18acd138bff695d339be6ad13f7e936eea6745660d4cc4a776d5247c540d0edee1a563695c183a66eb917ef88f2b4feb1fc25f32a7adcadc7aaf3438e99c1",
+    "pnpm": {
+        "patchedDependencies": {
+            "@crawlee/core@3.11.2": "patches/@crawlee__core@3.11.2.patch"
+        }
+    }
 }

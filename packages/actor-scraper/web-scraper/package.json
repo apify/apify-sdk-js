@@ -6,6 +6,7 @@
     "main": "dist/main.js",
     "type": "module",
     "dependencies": {
+        "@apify/log": "^2.5.5",
         "@apify/scraper-tools": "^1.1.1",
         "@crawlee/puppeteer": "^3.8.2",
         "apify": "^3.1.8",

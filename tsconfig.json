@@ -1,10 +1,6 @@
 {
-    "extends": "./tsconfig.build.json",
+    "extends": "@total-typescript/tsconfig/tsc/no-dom/library-monorepo",
     "compilerOptions": {
-        "baseUrl": ".",
-        "paths": {
-            "apify": ["packages/apify/src"],
-            "@apify/scraper-tools": ["packages/scraper-tools/src"]
-        }
+        "verbatimModuleSyntax": false
     }
 }

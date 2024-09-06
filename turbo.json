@@ -5,7 +5,9 @@
                 "^build"
             ],
             "outputs": [
-                "dist/**"
+                "dist/**",
+                ".tshy",
+                ".tshy-build"
             ]
         },
         "copy": {

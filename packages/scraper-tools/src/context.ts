@@ -14,10 +14,10 @@ import { Actor } from 'apify';
 import type { MediaType } from 'content-type';
 import contentTypeParser from 'content-type';
 
-import type { SnapshotOptions } from './browser_tools';
-import { saveSnapshot } from './browser_tools';
-import { META_KEY } from './consts';
-import type { RequestMetadata } from './tools';
+import type { SnapshotOptions } from './browser_tools.js';
+import { saveSnapshot } from './browser_tools.js';
+import { META_KEY } from './consts.js';
+import type { RequestMetadata } from './tools.js';
 
 export interface CrawlerSetupOptions {
     rawInput: string;

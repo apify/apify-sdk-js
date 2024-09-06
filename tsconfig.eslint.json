@@ -1,8 +1,9 @@
 {
-	"extends": "./tsconfig.json",
+	"extends": "@total-typescript/tsconfig/tsc/no-dom/library-monorepo",
 	"include": [
 		"packages/**/src/**/*.js",
 		"packages/**/src/**/*.ts",
+		"packages/**/src/**/*.cts",
 		"scripts/**/*.js",
 		"scripts/**/*.ts",
 		"test/**/*.js",

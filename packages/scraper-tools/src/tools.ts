@@ -9,9 +9,9 @@ import type { Request, Session } from '@crawlee/core';
 import type { Cookie } from '@crawlee/types';
 import { createRequestDebugInfo } from '@crawlee/utils';
 import type { Dictionary } from '@crawlee/utils';
-import Ajv from 'ajv';
 
-import { META_KEY, PAGE_FUNCTION_FILENAME } from './consts';
+import Ajv from './ajv.js';
+import { META_KEY, PAGE_FUNCTION_FILENAME } from './consts.js';
 
 const randomBytes = promisify(callbackRandomBytes);
 
