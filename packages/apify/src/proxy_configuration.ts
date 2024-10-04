@@ -271,7 +271,8 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
             sessionId,
             groups,
             countryCode,
-            password: password ?? '',
+            // this.password is not encoded, but the password from the URL will be, we need to normalize
+            password: this.usesApifyProxy ? (password ?? '') : decodeURIComponent(password!),
             hostname,
             port: port!,
         };
@@ -464,7 +465,7 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
      * @internal
      */
     protected _throwCannotCombineCustomWithApify() {
-        throw new Error('Cannot combine custom proxies with Apify Proxy!'
+        throw new Error('Cannot combine custom proxies with Apify Proxy! '
             + 'It is not allowed to set "options.proxyUrls" or "options.newUrlFunction" combined with '
             + '"options.groups" or "options.apifyProxyGroups" and "options.countryCode" or "options.apifyProxyCountry".');
     }
