@@ -354,9 +354,12 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
 
     protected composeDefaultUrl(sessionId?: string): string {
         const username = this._getUsername(sessionId);
-        const { password, hostname, port } = this;
+        const url = new URL(`http://${this.hostname}:${this.port}`);
+        url.username = `${username}`;
+        url.password = `${this.password}`;
+        const urlString = url.toString();
 
-        return `http://${username}:${password}@${hostname}:${port}`;
+        return urlString.substring(0, urlString.length - 1);
     }
 
     /**
