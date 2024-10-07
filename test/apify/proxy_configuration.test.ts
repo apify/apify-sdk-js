@@ -78,6 +78,21 @@ describe('ProxyConfiguration', () => {
         expect(await proxyConfiguration.newProxyInfo(sessionId)).toEqual(proxyInfo);
     });
 
+    test('newProxyInfo() works with special characters', async () => {
+        const url = 'http://user%40name:pass%40word@proxy.com:1111';
+        const proxyConfiguration = new ProxyConfiguration({ proxyUrls: [url] });
+
+        const proxyInfo = {
+            sessionId: `${sessionId}`,
+            url,
+            username: 'user@name',
+            password: 'pass@word',
+            hostname: 'proxy.com',
+            port: '1111',
+        };
+        expect(await proxyConfiguration.newProxyInfo(sessionId)).toEqual(proxyInfo);
+    });
+
     test('actor UI input schema should work', () => {
         const apifyProxyGroups = ['GROUP1', 'GROUP2'];
         const apifyProxyCountry = 'CZ';
