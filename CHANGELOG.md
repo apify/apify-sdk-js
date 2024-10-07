@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [3.2.6](https://github.com/apify/apify-sdk-js/compare/apify@3.2.5...apify@3.2.6) (2024-10-07)
+
+
+### Bug Fixes
+
+* decode special characters in proxy `username` and `password` ([#326](https://github.com/apify/apify-sdk-js/issues/326)) ([9a7a4d0](https://github.com/apify/apify-sdk-js/commit/9a7a4d0ecc30f21d2be607840ce28903dbf1d191))
+
+
+
+
+
 ## [3.2.5](https://github.com/apify/apify-sdk-js/compare/apify@3.2.4...apify@3.2.5) (2024-08-14)
 
 
