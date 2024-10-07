@@ -1,6 +1,6 @@
 # Change Log
 
-## 1.0.15 (2024-10-07)
+## 1.0.15 (2024-10-25)
 
 - Updated Crawlee version to v3.11.5 and SDK v3.2.6
 - Updated Node to v22
