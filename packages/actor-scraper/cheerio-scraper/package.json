@@ -5,14 +5,14 @@
     "description": "Crawl web pages using HTTP requests and Cheerio",
     "type": "module",
     "dependencies": {
-        "@apify/scraper-tools": "^1.1.1",
-        "@crawlee/cheerio": "^3.8.2",
-        "apify": "^3.1.8"
+        "@apify/scraper-tools": "^1.1.4",
+        "@crawlee/cheerio": "^3.11.5",
+        "apify": "^3.2.6"
     },
     "devDependencies": {
         "@apify/tsconfig": "^0.1.0",
-        "@types/node": "^20.8.2",
-        "tsx": "^4.6.2",
+        "@types/node": "^22.7.4",
+        "tsx": "^4.19.1",
         "typescript": "~5.6.0"
     },
     "peerDependencies": {

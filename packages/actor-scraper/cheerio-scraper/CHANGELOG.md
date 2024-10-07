@@ -1,6 +1,11 @@
 # Change Log
 
-## 3.0.15 (2024-04-09)
+## 3.0.15 (2024-10-07)
+
+- Updated Crawlee version to v3.11.5 and SDK v3.2.6
+- Updated Node to v22
+
+## 3.0.14 (2024-04-09)
 
 - Updated Crawlee version to v3.8.0.
 - Updated to use new request queue in scraper
