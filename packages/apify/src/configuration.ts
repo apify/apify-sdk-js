@@ -22,6 +22,7 @@ export interface ConfigurationOptions extends CoreConfigurationOptions {
     proxyPort?: number;
     proxyStatusUrl?: string;
     standbyPort?: number;
+    standbyUrl?: string;
     isAtHome?: boolean;
     userId?: string;
     inputSecretsPrivateKeyPassphrase?: string;
@@ -93,7 +94,8 @@ export interface ConfigurationOptions extends CoreConfigurationOptions {
  * `proxyStatusUrl` | `APIFY_PROXY_STATUS_URL` | `'http://proxy.apify.com'`
  * `userId` | `APIFY_USER_ID` | -
  * `xvfb` | `APIFY_XVFB` | -
- * `standbyPort` | `ACTOR_STANDBY_PORT` | `4322`
+ * `standbyPort` | `ACTOR_STANDBY_PORT` | `4321`
+ * `standbyUrl` | `ACTOR_STANDBY_URL` | -
  * `chromeExecutablePath` | `APIFY_CHROME_EXECUTABLE_PATH` | -
  * `defaultBrowserPath` | `APIFY_DEFAULT_BROWSER_PATH` | -
  */
@@ -151,6 +153,7 @@ export class Configuration extends CoreConfiguration {
         ACTOR_MEMORY_MBYTES: 'memoryMbytes',
         ACTOR_RUN_ID: 'actorRunId',
         ACTOR_STANDBY_PORT: 'standbyPort',
+        ACTOR_STANDBY_URL: 'standbyUrl',
         ACTOR_TASK_ID: 'actorTaskId',
         ACTOR_WEB_SERVER_PORT: 'containerPort',
         ACTOR_WEB_SERVER_URL: 'containerUrl',
