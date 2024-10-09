@@ -21,6 +21,9 @@ export interface ConfigurationOptions extends CoreConfigurationOptions {
     proxyPassword?: string;
     proxyPort?: number;
     proxyStatusUrl?: string;
+    /**
+     * @deprecated use `containerPort` instead
+    */
     standbyPort?: number;
     standbyUrl?: string;
     isAtHome?: boolean;
