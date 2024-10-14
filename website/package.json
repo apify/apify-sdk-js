@@ -28,7 +28,7 @@
     },
     "dependencies": {
         "@apify/docs-theme": "^1.0.131",
-        "@apify/docusaurus-plugin-typedoc-api": "^4.2.5",
+        "@apify/docusaurus-plugin-typedoc-api": "^4.2.6",
         "@docusaurus/core": "^3.5.2",
         "@docusaurus/plugin-client-redirects": "^3.5.2",
         "@docusaurus/preset-classic": "^3.5.2",
