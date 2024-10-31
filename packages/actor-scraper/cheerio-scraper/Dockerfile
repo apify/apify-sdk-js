@@ -14,7 +14,8 @@ COPY --from=builder /usr/src/app/dist ./dist
 
 COPY package*.json ./
 
-RUN npm --quiet set progress=false \
+RUN rm -rf node_modules \
+    && npm --quiet set progress=false \
     && npm install --omit=dev --omit=optional \
     && echo "Installed NPM packages:" \
     && (npm list --omit=dev --all || true) \
