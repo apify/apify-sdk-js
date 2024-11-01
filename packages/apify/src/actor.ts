@@ -41,7 +41,7 @@ import { KeyValueStore } from './key_value_store';
 import { PlatformEventManager } from './platform_event_manager';
 import type { ProxyConfigurationOptions } from './proxy_configuration';
 import { ProxyConfiguration } from './proxy_configuration';
-import { checkCrawleeVersion, logSystemInfo, printOutdatedSdkWarning } from './utils';
+import { checkCrawleeVersion, getSystemInfo, printOutdatedSdkWarning } from './utils';
 
 /**
  * `Actor` class serves as an alternative approach to the static helpers exported from the package. It allows to pass configuration
@@ -191,7 +191,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
         this.initialized = true;
 
         checkCrawleeVersion();
-        logSystemInfo();
+        log.info('System info', getSystemInfo());
         printOutdatedSdkWarning();
 
         // reset global config instance to respect APIFY_ prefixed env vars
@@ -938,9 +938,11 @@ export class Actor<Data extends Dictionary = Dictionary> {
      */
     newClient(options: ApifyClientOptions = {}): ApifyClient {
         const { storageDir, ...storageClientOptions } = this.config.get('storageClientOptions') as Dictionary;
+        const { apifyVersion, crawleeVersion } = getSystemInfo();
         return new ApifyClient({
             baseUrl: this.config.get('apiBaseUrl'),
             token: this.config.get('token'),
+            userAgentSuffix: [`SDK/${apifyVersion}`, `Crawlee/${crawleeVersion}`],
             ...storageClientOptions,
             ...options, // allow overriding the instance configuration
         });
