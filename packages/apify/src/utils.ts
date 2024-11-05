@@ -14,21 +14,20 @@ import semver from 'semver';
 import { version as apifyVersion } from '../package.json';
 
 /**
- * Logs info about system, node version and apify package version.
+ * Gets info about system, node version and apify package version.
  * @internal
  */
-export function logSystemInfo() {
-    log.info('System info', {
+export function getSystemInfo() {
+    return {
         apifyVersion,
         apifyClientVersion,
         crawleeVersion,
         osType: type(),
         nodeVersion: process.version,
-    });
+    };
 }
 
 /**
- * Logs info about system, node version and apify package version.
  * @internal
  */
 export function checkCrawleeVersion() {
