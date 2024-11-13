@@ -604,10 +604,15 @@ describe('Actor', () => {
                 const queueId = 'abc';
                 const options = { forceCloud: true };
                 const openStorageSpy = vitest.spyOn(StorageManager.prototype, 'openStorage');
-                openStorageSpy.mockImplementationOnce(async (i) => i);
-                await sdk.openRequestQueue(queueId, options);
+
+                const mockRQ = { client: { get: () => ({ totalRequestCount: 10 }) } };
+
+                openStorageSpy.mockImplementationOnce(async () => mockRQ);
+                const queue = await sdk.openRequestQueue(queueId, options);
                 expect(openStorageSpy).toBeCalledWith(queueId, sdk.apifyClient);
                 expect(openStorageSpy).toBeCalledTimes(1);
+
+                expect(queue.initialCount).toBe(10);
             });
 
             test('openDataset should open storage', async () => {
