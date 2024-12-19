@@ -81,6 +81,11 @@ export class Actor<Data extends Dictionary = Dictionary> {
      */
     private warnedAboutMissingInitCall = false;
 
+    /**
+     * Set if the Actor is currently rebooting.
+     */
+    private isRebooting = false;
+
     constructor(options: ConfigurationOptions = {}) {
         // use default configuration object if nothing overridden (it fallbacks to env vars)
         this.config = Object.keys(options).length === 0 ? Configuration.getGlobalConfig() : new Configuration(options);
@@ -458,6 +463,13 @@ export class Actor<Data extends Dictionary = Dictionary> {
             log.warning('Actor.reboot() is only supported when running on the Apify platform.');
             return;
         }
+
+        if (this.isRebooting) {
+            log.debug('Actor is already rebooting, skipping the additional reboot call.');
+            return;
+        }
+
+        this.isRebooting = true;
 
         // Waiting for all the listeners to finish, as `.reboot()` kills the container.
         await Promise.all([
