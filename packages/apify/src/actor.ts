@@ -37,6 +37,8 @@ import {
 import ow from 'ow';
 
 import { Configuration } from './configuration';
+import { ChargingManager } from './internals/charging';
+import type { ChargeOptions, ChargeResult } from './internals/charging';
 import { KeyValueStore } from './key_value_store';
 import { PlatformEventManager } from './platform_event_manager';
 import type { ProxyConfigurationOptions } from './proxy_configuration';
@@ -86,11 +88,14 @@ export class Actor<Data extends Dictionary = Dictionary> {
      */
     private isRebooting = false;
 
+    private chargingManager: ChargingManager;
+
     constructor(options: ConfigurationOptions = {}) {
         // use default configuration object if nothing overridden (it fallbacks to env vars)
         this.config = Object.keys(options).length === 0 ? Configuration.getGlobalConfig() : new Configuration(options);
         this.apifyClient = this.newClient();
         this.eventManager = new PlatformEventManager(this.config);
+        this.chargingManager = new ChargingManager(this.config, this.apifyClient);
     }
 
     /**
@@ -222,6 +227,9 @@ export class Actor<Data extends Dictionary = Dictionary> {
         log.debug(`Default storages purged`);
 
         Configuration.storage.enterWith(this.config);
+
+        await this.chargingManager.init();
+        log.debug(`ChargingManager initialized`);
     }
 
     /**
@@ -907,21 +915,21 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * TODO
      */
     async charge(options: ChargeOptions): Promise<ChargeResult> {
-        return { eventChargeLimitReached: false };
+        return this.chargingManager.charge(options);
     }
 
     /**
      * TODO
      */
     async getMaxTotalChargeUsd(): Promise<number> {
-        return 0;
+        return this.config.get('maxTotalChargeUsd') ?? Infinity;
     }
 
     /**
      * TODO
      */
     async getChargedEventCount(eventName: string): Promise<number> {
-        return 0;
+        return this.chargingManager.getChargedEventCount(eventName);
     }
 
     /**
@@ -1883,15 +1891,6 @@ export interface OpenStorageOptions {
 }
 
 export { ClientActorRun as ActorRun };
-
-interface ChargeOptions {
-    eventName: string;
-    count?: number;
-}
-
-interface ChargeResult {
-    eventChargeLimitReached: boolean;
-}
 
 /**
  * Exit codes for the Actor process.
