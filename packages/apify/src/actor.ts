@@ -609,13 +609,20 @@ export class Actor<Data extends Dictionary = Dictionary> {
      *
      * @param item Object or array of objects containing data to be stored in the default dataset.
      * The objects must be serializable to JSON and the JSON representation of each object must be smaller than 9MB.
+     * @param eventId TODO
      * @ignore
      */
-    async pushData(item: Data | Data[]): Promise<void> {
+    async pushData(item: Data | Data[]): Promise<void>;
+    async pushData(item: Data | Data[], eventId: string): Promise<ChargeResult>;
+    async pushData(item: Data | Data[], eventId?: string): Promise<ChargeResult | void> {
         this._ensureActorInit('pushData');
 
         const dataset = await this.openDataset();
-        return dataset.pushData(item);
+        await dataset.pushData(item);
+
+        if (eventId !== undefined) {
+            return await this.charge(eventId);
+        }
     }
 
     /**
@@ -894,6 +901,27 @@ export class Actor<Data extends Dictionary = Dictionary> {
         }
 
         return undefined;
+    }
+
+    /**
+     * TODO
+     */
+    async charge(eventId: string): Promise<ChargeResult> {
+        return { eventChargeLimitReached: false };
+    }
+
+    /**
+     * TODO
+     */
+    async getMaxTotalChargeUsd(): Promise<number> {
+        return 0;
+    }
+
+    /**
+     * TODO
+     */
+    async getChargedEventCount(eventId: string): Promise<number> {
+        return 0;
     }
 
     /**
@@ -1304,9 +1332,12 @@ export class Actor<Data extends Dictionary = Dictionary> {
      *
      * @param item Object or array of objects containing data to be stored in the default dataset.
      * The objects must be serializable to JSON and the JSON representation of each object must be smaller than 9MB.
+     * @param eventId TODO
      */
-    static async pushData<Data extends Dictionary = Dictionary>(item: Data | Data[]): Promise<void> {
-        return Actor.getDefaultInstance().pushData(item);
+    static async pushData<Data extends Dictionary = Dictionary>(item: Data | Data[]): Promise<void>;
+    static async pushData<Data extends Dictionary = Dictionary>(item: Data | Data[], eventId: string): Promise<ChargeResult>;
+    static async pushData<Data extends Dictionary = Dictionary>(item: Data | Data[], eventId?: string): Promise<ChargeResult | void> {
+        return await Actor.getDefaultInstance().pushData(item, eventId);
     }
 
     /**
@@ -1510,6 +1541,27 @@ export class Actor<Data extends Dictionary = Dictionary> {
         proxyConfigurationOptions: ProxyConfigurationOptions & { useApifyProxy?: boolean } = {},
     ): Promise<ProxyConfiguration | undefined> {
         return Actor.getDefaultInstance().createProxyConfiguration(proxyConfigurationOptions);
+    }
+
+    /**
+     * TODO
+     */
+    static async charge(eventId: string): Promise<ChargeResult> {
+        return Actor.getDefaultInstance().charge(eventId);
+    }
+
+    /**
+     * TODO
+     */
+    static async getMaxTotalChargeUsd(): Promise<number> {
+        return Actor.getDefaultInstance().getMaxTotalChargeUsd();
+    }
+
+    /**
+     * TODO
+     */
+    static async getChargedEventCount(eventId: string): Promise<number> {
+        return Actor.getDefaultInstance().getChargedEventCount(eventId);
     }
 
     /**
@@ -1828,6 +1880,10 @@ export interface OpenStorageOptions {
 }
 
 export { ClientActorRun as ActorRun };
+
+interface ChargeResult {
+    eventChargeLimitReached: boolean;
+}
 
 /**
  * Exit codes for the Actor process.
