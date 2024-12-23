@@ -613,15 +613,15 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @ignore
      */
     async pushData(item: Data | Data[]): Promise<void>;
-    async pushData(item: Data | Data[], eventId: string): Promise<ChargeResult>;
-    async pushData(item: Data | Data[], eventId?: string | undefined): Promise<ChargeResult | void> {
+    async pushData(item: Data | Data[], eventName: string): Promise<ChargeResult>;
+    async pushData(item: Data | Data[], eventName?: string | undefined): Promise<ChargeResult | void> {
         this._ensureActorInit('pushData');
 
         const dataset = await this.openDataset();
         await dataset.pushData(item);
 
-        if (eventId !== undefined) {
-            return await this.charge(eventId);
+        if (eventName !== undefined) {
+            return await this.charge({ eventName, count: Array.isArray(item) ? item.length : 1 });
         }
     }
 
@@ -906,7 +906,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
     /**
      * TODO
      */
-    async charge(eventId: string): Promise<ChargeResult> {
+    async charge(options: ChargeOptions): Promise<ChargeResult> {
         return { eventChargeLimitReached: false };
     }
 
@@ -920,7 +920,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
     /**
      * TODO
      */
-    async getChargedEventCount(eventId: string): Promise<number> {
+    async getChargedEventCount(eventName: string): Promise<number> {
         return 0;
     }
 
@@ -1549,8 +1549,8 @@ export class Actor<Data extends Dictionary = Dictionary> {
     /**
      * TODO
      */
-    static async charge(eventId: string): Promise<ChargeResult> {
-        return Actor.getDefaultInstance().charge(eventId);
+    static async charge(options: ChargeOptions): Promise<ChargeResult> {
+        return Actor.getDefaultInstance().charge(options);
     }
 
     /**
@@ -1563,8 +1563,8 @@ export class Actor<Data extends Dictionary = Dictionary> {
     /**
      * TODO
      */
-    static async getChargedEventCount(eventId: string): Promise<number> {
-        return Actor.getDefaultInstance().getChargedEventCount(eventId);
+    static async getChargedEventCount(eventName: string): Promise<number> {
+        return Actor.getDefaultInstance().getChargedEventCount(eventName);
     }
 
     /**
@@ -1883,6 +1883,11 @@ export interface OpenStorageOptions {
 }
 
 export { ClientActorRun as ActorRun };
+
+interface ChargeOptions {
+    eventName: string;
+    count?: number;
+}
 
 interface ChargeResult {
     eventChargeLimitReached: boolean;
