@@ -31,6 +31,7 @@ export interface ConfigurationOptions extends CoreConfigurationOptions {
     userId?: string;
     inputSecretsPrivateKeyPassphrase?: string;
     inputSecretsPrivateKeyFile?: string;
+    maxTotalChargeUsd?: number;
     metaOrigin?: typeof META_ORIGINS[keyof typeof META_ORIGINS];
 }
 
@@ -164,6 +165,7 @@ export class Configuration extends CoreConfiguration {
         ACTOR_TASK_ID: 'actorTaskId',
         ACTOR_WEB_SERVER_PORT: 'containerPort',
         ACTOR_WEB_SERVER_URL: 'containerUrl',
+        ACTOR_MAX_TOTAL_CHARGE_USD: 'maxTotalChargeUsd',
     };
 
     protected static override INTEGER_VARS = [...super.INTEGER_VARS, 'proxyPort', 'containerPort', 'metamorphAfterSleepMillis'];
