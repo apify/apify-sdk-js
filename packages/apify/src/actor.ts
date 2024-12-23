@@ -614,7 +614,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      */
     async pushData(item: Data | Data[]): Promise<void>;
     async pushData(item: Data | Data[], eventId: string): Promise<ChargeResult>;
-    async pushData(item: Data | Data[], eventId?: string): Promise<ChargeResult | void> {
+    async pushData(item: Data | Data[], eventId?: string | undefined): Promise<ChargeResult | void> {
         this._ensureActorInit('pushData');
 
         const dataset = await this.openDataset();
@@ -1337,6 +1337,9 @@ export class Actor<Data extends Dictionary = Dictionary> {
     static async pushData<Data extends Dictionary = Dictionary>(item: Data | Data[]): Promise<void>;
     static async pushData<Data extends Dictionary = Dictionary>(item: Data | Data[], eventId: string): Promise<ChargeResult>;
     static async pushData<Data extends Dictionary = Dictionary>(item: Data | Data[], eventId?: string): Promise<ChargeResult | void> {
+        if (eventId === undefined) {
+            return await Actor.getDefaultInstance().pushData(item);
+        }
         return await Actor.getDefaultInstance().pushData(item, eventId);
     }
 
