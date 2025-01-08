@@ -627,6 +627,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
 
         const dataset = await this.openDataset();
         await dataset.pushData(item);
+        // TODO check maxTotalChargeUsd
 
         if (eventName !== undefined) {
             return await this.charge({ eventName, count: Array.isArray(item) ? item.length : 1 });
