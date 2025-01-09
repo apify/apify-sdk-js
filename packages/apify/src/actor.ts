@@ -625,12 +625,21 @@ export class Actor<Data extends Dictionary = Dictionary> {
     async pushData(item: Data | Data[], eventName?: string | undefined): Promise<ChargeResult | void> {
         this._ensureActorInit('pushData');
 
+        const chargeResult = eventName !== undefined
+            ? await this.charge({ eventName, count: Array.isArray(item) ? item.length : 1 })
+            : undefined;
+
         const dataset = await this.openDataset();
-        await dataset.pushData(item);
-        // TODO check maxTotalChargeUsd
+
+        if (chargeResult?.eventChargeLimitReached) {
+            const items = Array.isArray(item) ? item : [item];
+            await dataset.pushData(items.slice(0, chargeResult.chargedCount));
+        } else {
+            await dataset.pushData(item);
+        }
 
         if (eventName !== undefined) {
-            return await this.charge({ eventName, count: Array.isArray(item) ? item.length : 1 });
+            return chargeResult;
         }
     }
 

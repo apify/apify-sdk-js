@@ -96,16 +96,29 @@ export class ChargingManager {
             log.info('Ignored attempt to charge for an event - the Actor does not use the pay-per-event pricing');
             return {
                 eventChargeLimitReached: false,
+                chargedCount: 0,
             };
         }
 
-        // TODO check against maxTotalChargeUsd
         if (this.chargingState === undefined || this.chargingLogDataset === undefined) {
             throw new Error('ChargingManager is not initialized');
         }
 
+        const chargedCount = Math.min(count, this.calculateEventChargeCountTillLimit(eventName));
+
+        if (chargedCount === 0) {
+            return {
+                eventChargeLimitReached: true,
+                chargedCount: 0,
+            };
+        }
+
         if (this.isAtHome) {
-            await this.apifyClient.run(this.actorRunId!).charge({ eventName, count });
+            if (this.pricingInfo[eventName] !== undefined) {
+                await this.apifyClient.run(this.actorRunId!).charge({ eventName, count: chargedCount });
+            } else {
+                log.warning(`Attempting to charge for an unknown event '${eventName}'`);
+            }
         }
 
         const timestamp = new Date().toISOString();
@@ -119,9 +132,7 @@ export class ChargingManager {
         this.chargingState[eventName].chargeCount += count;
         this.chargingState[eventName].totalChargedAmount += count * pricingInfo.price;
 
-        const totalCharged = Object.values(this.chargingState).map(({ totalChargedAmount }) => totalChargedAmount).reduce((sum, inc) => sum + inc, 0);
-
-        for (let i = 0; i < count; i++) {
+        for (let i = 0; i < chargedCount; i++) {
             await this.chargingLogDataset.pushData({
                 eventName,
                 eventTitle: pricingInfo.title,
@@ -130,7 +141,10 @@ export class ChargingManager {
             });
         }
 
-        return { eventChargeLimitReached: totalCharged >= this.maxTotalChargeUsd };
+        return {
+            eventChargeLimitReached: this.calculateTotalChargedAmount() >= this.maxTotalChargeUsd,
+            chargedCount,
+        };
     }
 
     async getChargedEventCount(eventName: string): Promise<number> {
@@ -139,6 +153,39 @@ export class ChargingManager {
         }
 
         return this.chargingState[eventName]?.chargeCount ?? 0;
+    }
+
+    private calculateTotalChargedAmount(): number {
+        if (this.chargingState === undefined) {
+            throw new Error('ChargingManager is not initialized');
+        }
+
+        const result = Object.values(this.chargingState).map(({ totalChargedAmount }) => totalChargedAmount).reduce((sum, inc) => sum + inc, 0);
+
+        // Keeping float precision issues at bay
+        return Number(result.toFixed(6));
+    }
+
+    /**
+     * How many events of a given type can still be charged for before reaching the limit;
+     * If the event is not registered, returns Infinity (free of charge)
+     */
+    private calculateEventChargeCountTillLimit(eventName: string): number {
+        if (this.chargingState === undefined) {
+            throw new Error('ChargingManager is not initialized');
+        }
+
+        if (!this.pricingInfo[eventName]) {
+            return Infinity;
+        }
+
+        // First round as Math.floor(4.9999999999999999) will incorrectly return 5
+        return Math.floor(
+            Number(
+                ((this.maxTotalChargeUsd - this.calculateTotalChargedAmount())
+                 / (this.pricingInfo[eventName].price)).toFixed(4),
+            ),
+        );
     }
 }
 
@@ -149,4 +196,5 @@ export interface ChargeOptions {
 
 export interface ChargeResult {
     eventChargeLimitReached: boolean;
+    chargedCount: number;
 }
