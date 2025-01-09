@@ -4,11 +4,6 @@ import { ApifyClient } from 'apify-client';
 
 import { Configuration } from '../configuration.js';
 
-interface ChargingStateItem {
-    chargeCount: number;
-    totalChargedAmount: number;
-}
-
 export class ChargingManager {
     public readonly LOCAL_CHARGING_LOG_DATASET_NAME = 'charging_log';
     public readonly PLATFORM_CHARGING_LOG_DATASET_ID_KEY = 'CHARGING_LOG_DATASET_ID';
@@ -187,6 +182,11 @@ export class ChargingManager {
             ),
         );
     }
+}
+
+interface ChargingStateItem {
+    chargeCount: number;
+    totalChargedAmount: number;
 }
 
 export interface ChargeOptions {
