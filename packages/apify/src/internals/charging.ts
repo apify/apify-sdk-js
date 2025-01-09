@@ -4,6 +4,11 @@ import { ApifyClient } from 'apify-client';
 
 import { Configuration } from '../configuration.js';
 
+/**
+ * Handles pay-per-event charging.
+ *
+ * @internal
+ */
 export class ChargingManager {
     public readonly LOCAL_CHARGING_LOG_DATASET_NAME = 'charging_log';
     public readonly PLATFORM_CHARGING_LOG_DATASET_ID_KEY = 'CHARGING_LOG_DATASET_ID';
@@ -29,6 +34,9 @@ export class ChargingManager {
         this.apifyClient = apifyClient;
     }
 
+    /**
+     * Initialize the ChargingManager by loading pricing information and charging state via Apify API.
+     */
     async init(): Promise<void> {
         this.chargingState = {};
 
@@ -86,6 +94,11 @@ export class ChargingManager {
         }
     }
 
+    /**
+     * Charge for a specified number of events - sub-operations of the Actor.
+     *
+     * @param options The name of the event to charge for and the number of events to be charged.
+     */
     async charge({ eventName, count = 1 }: ChargeOptions): Promise<ChargeResult> {
         if (!this.isPayPerEvent) {
             log.info('Ignored attempt to charge for an event - the Actor does not use the pay-per-event pricing');
@@ -142,12 +155,26 @@ export class ChargingManager {
         };
     }
 
-    async getChargedEventCount(eventName: string): Promise<number> {
+    /**
+     * Get the maximum amount of money that the Actor is allowed to charge.
+     */
+    getChargedEventCount(eventName: string): number {
         if (this.chargingState === undefined) {
             throw new Error('ChargingManager is not initialized');
         }
 
         return this.chargingState[eventName]?.chargeCount ?? 0;
+    }
+
+    /**
+     * Get the number of events with given name that the Actor has charged for so far.
+     */
+    getMaxTotalChargeUsd(): number {
+        if (this.chargingState === undefined) {
+            throw new Error('ChargingManager is not initialized');
+        }
+
+        return this.maxTotalChargeUsd;
     }
 
     private calculateTotalChargedAmount(): number {

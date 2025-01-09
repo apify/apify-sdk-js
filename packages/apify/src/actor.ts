@@ -617,7 +617,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      *
      * @param item Object or array of objects containing data to be stored in the default dataset.
      * The objects must be serializable to JSON and the JSON representation of each object must be smaller than 9MB.
-     * @param eventId TODO
+     * @param eventName If provided, the method will attempt to charge for the event for each pushed item.
      * @ignore
      */
     async pushData(item: Data | Data[]): Promise<void>;
@@ -922,23 +922,25 @@ export class Actor<Data extends Dictionary = Dictionary> {
     }
 
     /**
-     * TODO
+     * Charge for a specified number of events - sub-operations of the Actor.
+     *
+     * @param options The name of the event to charge for and the number of events to be charged.
      */
     async charge(options: ChargeOptions): Promise<ChargeResult> {
         return this.chargingManager.charge(options);
     }
 
     /**
-     * TODO
+     * Get the maximum amount of money that the Actor is allowed to charge.
      */
-    async getMaxTotalChargeUsd(): Promise<number> {
-        return this.config.get('maxTotalChargeUsd') ?? Infinity;
+    getMaxTotalChargeUsd(): number {
+        return this.chargingManager.getMaxTotalChargeUsd();
     }
 
     /**
-     * TODO
+     * Get the number of events with given name that the Actor has charged for so far.
      */
-    async getChargedEventCount(eventName: string): Promise<number> {
+    getChargedEventCount(eventName: string): number {
         return this.chargingManager.getChargedEventCount(eventName);
     }
 
@@ -1350,15 +1352,15 @@ export class Actor<Data extends Dictionary = Dictionary> {
      *
      * @param item Object or array of objects containing data to be stored in the default dataset.
      * The objects must be serializable to JSON and the JSON representation of each object must be smaller than 9MB.
-     * @param eventId TODO
+     * @param eventName If provided, the method will attempt to charge for the event for each pushed item.
      */
     static async pushData<Data extends Dictionary = Dictionary>(item: Data | Data[]): Promise<void>;
-    static async pushData<Data extends Dictionary = Dictionary>(item: Data | Data[], eventId: string): Promise<ChargeResult>;
-    static async pushData<Data extends Dictionary = Dictionary>(item: Data | Data[], eventId?: string): Promise<ChargeResult | void> {
-        if (eventId === undefined) {
+    static async pushData<Data extends Dictionary = Dictionary>(item: Data | Data[], eventName: string): Promise<ChargeResult>;
+    static async pushData<Data extends Dictionary = Dictionary>(item: Data | Data[], eventName?: string): Promise<ChargeResult | void> {
+        if (eventName === undefined) {
             return await Actor.getDefaultInstance().pushData(item);
         }
-        return await Actor.getDefaultInstance().pushData(item, eventId);
+        return await Actor.getDefaultInstance().pushData(item, eventName);
     }
 
     /**
@@ -1565,23 +1567,25 @@ export class Actor<Data extends Dictionary = Dictionary> {
     }
 
     /**
-     * TODO
+     * Charge for a specified number of events - sub-operations of the Actor.
+     *
+     * @param options The name of the event to charge for and the number of events to be charged.
      */
     static async charge(options: ChargeOptions): Promise<ChargeResult> {
         return Actor.getDefaultInstance().charge(options);
     }
 
     /**
-     * TODO
+     * Get the maximum amount of money that the Actor is allowed to charge.
      */
-    static async getMaxTotalChargeUsd(): Promise<number> {
+    static getMaxTotalChargeUsd(): number {
         return Actor.getDefaultInstance().getMaxTotalChargeUsd();
     }
 
     /**
-     * TODO
+     * Get the number of events with given name that the Actor has charged for so far.
      */
-    static async getChargedEventCount(eventName: string): Promise<number> {
+    static getChargedEventCount(eventName: string): number {
         return Actor.getDefaultInstance().getChargedEventCount(eventName);
     }
 
