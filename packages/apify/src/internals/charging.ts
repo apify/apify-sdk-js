@@ -42,17 +42,25 @@ export class ChargingManager {
             const run = (await this.apifyClient.run(this.actorRunId!).get())!;
             this.isPayPerEvent = run.pricingInfo?.pricingModel === 'PAY_PER_EVENT';
 
+            // Load per-event pricing information
             if (this.isPayPerEvent) {
-                Object.entries(run.pricingInfo.pricingPerEvent.actorChargeEvents).forEach(([eventName, eventPricing]) => {
+                for (const [eventName, eventPricing] of run.pricingInfo.pricingPerEvent.actorChargeEvents) {
                     this.pricingInfo[eventName] = {
                         price: eventPricing.eventPriceUsd,
                         title: eventPricing.eventTitle,
                     };
-                });
+                }
+
+                this.maxTotalChargeUsd = run.options.maxTotalChargeUsd ?? this.maxTotalChargeUsd;
             }
 
-            // TODO load charged event counts
-            // TODO load maxTotalChargeUsd
+            // Load charged event counts
+            for (const [eventName, chargeCount] of Object.entries(run.chargedEventCounts ?? {})) {
+                this.chargingState[eventName] = {
+                    chargeCount,
+                    totalChargedAmount: chargeCount * (this.pricingInfo[eventName]?.price ?? 0),
+                };
+            }
         }
 
         if (this.isPayPerEvent) {
