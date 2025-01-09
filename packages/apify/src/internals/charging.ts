@@ -112,6 +112,7 @@ export class ChargingManager {
             throw new Error('ChargingManager is not initialized');
         }
 
+        /* START OF CRITICAL SECTION - no awaits here */
         const chargedCount = Math.min(count, this.calculateEventChargeCountTillLimit(eventName));
 
         if (chargedCount === 0) {
@@ -120,6 +121,17 @@ export class ChargingManager {
                 chargedCount: 0,
             };
         }
+
+        const pricingInfo = this.pricingInfo[eventName] ?? {
+            price: 0,
+            title: 'Unknown event',
+        };
+
+        this.chargingState[eventName] ??= { chargeCount: 0, totalChargedAmount: 0 };
+        this.chargingState[eventName].chargeCount += chargedCount;
+        this.chargingState[eventName].totalChargedAmount += chargedCount * pricingInfo.price;
+
+        /* END OF CRITICAL SECTION */
 
         if (this.isAtHome) {
             if (this.pricingInfo[eventName] !== undefined) {
@@ -130,15 +142,6 @@ export class ChargingManager {
         }
 
         const timestamp = new Date().toISOString();
-
-        const pricingInfo = this.pricingInfo[eventName] ?? {
-            price: 0,
-            title: 'Unknown event',
-        };
-
-        this.chargingState[eventName] ??= { chargeCount: 0, totalChargedAmount: 0 };
-        this.chargingState[eventName].chargeCount += count;
-        this.chargingState[eventName].totalChargedAmount += count * pricingInfo.price;
 
         for (let i = 0; i < chargedCount; i++) {
             await this.chargingLogDataset.pushData({
