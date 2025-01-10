@@ -40,7 +40,7 @@
         "build": "turbo run build",
         "ci:build": "turbo run build --cache-dir=\".turbo\"",
         "test": "vitest run --silent",
-        "test:e2e": "node test/e2e/run.mjs",
+        "test:e2e": "node test/e2e/runScraperTests.mjs",
         "coverage": "vitest --coverage",
         "release": "npm run build && lerna publish from-package --contents dist",
         "publish:next": "lerna publish --canary --preid beta --dist-tag next",
