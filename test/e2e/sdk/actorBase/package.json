@@ -1,0 +1,17 @@
+{
+    "name": "apify-sdk-js-test-harness",
+    "version": "0.0.1",
+    "type": "module",
+    "description": "This is an example of an Apify actor.",
+    "engines": {
+        "node": ">=22.0.0"
+    },
+    "dependencies": {
+        "apify": "*"
+    },
+    "scripts": {
+        "start": "node ./src/main.js"
+    },
+    "author": "It's not you it's me",
+    "license": "ISC"
+}
