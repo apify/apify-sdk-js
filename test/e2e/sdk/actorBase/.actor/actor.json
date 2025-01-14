@@ -1,3 +1,5 @@
 {
-    "name": "apify-sdk-js-test-harness"
+    "actorSpecification": 1,
+    "name": "apify-sdk-js-test-harness",
+    "version": "0.0"
 }

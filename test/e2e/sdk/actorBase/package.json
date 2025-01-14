@@ -10,7 +10,7 @@
         "apify": "*"
     },
     "scripts": {
-        "start": "node ./src/main.js"
+        "start": "node ./src/main.mjs"
     },
     "author": "It's not you it's me",
     "license": "ISC"
