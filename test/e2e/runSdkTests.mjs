@@ -34,10 +34,18 @@ async function runWorker(dirName) {
     worker.on('exit', (exitCode) => {
         if (exitCode !== 0) {
             console.error(`Test ${dirName} failed`);
-            console.log('Captured stdout:');
-            worker.stdout.pipe(process.stdout);
-            console.log('Captured stderr:');
-            worker.stdout.pipe(process.stderr);
+
+            const out = worker.stdout.read();
+            if (out) {
+                console.log('Captured stdout:');
+                process.stdout.write(out);
+            }
+
+            const err = worker.stderr.read();
+            if (err) {
+                console.log('Captured stderr:');
+                process.stderr.write(err);
+            }
         } else {
             console.log(`${dirName} OK`);
         }
@@ -109,24 +117,54 @@ async function runTest(dirName) {
     });
 
     const actorClient = client.actor(actor.id);
-    await actorClient.build('0.0', { waitForFinish: 30 * 60 * 1000 });
+    const build = await actorClient.build('0.0');
+    const buildResult = await client.build(build.id).waitForFinish({ waitSecs: 30 * 60 });
+    let exitCode = 0;
 
-    const testProcessFinished = Promise.withResolvers();
-    const testProcess = spawn(
-        process.argv[0],
-        [join(testDir, 'test.mjs'), actor.id],
-        {stdio: 'inherit'},
-    );
+    if (buildResult.status === 'SUCCEEDED') {
+        const testProcessFinished = Promise.withResolvers();
+        const testProcess = spawn(
+            process.argv[0],
+            [join(testDir, 'test.mjs'), actor.id],
+            {
+                stdio: 'pipe',
+                shell: false,
+            },
+        );
 
-    testProcess.on('close', testProcessFinished.resolve);
+        testProcess.stdout.on('data', (chunk) => process.stdout.write(chunk));
+        testProcess.stderr.on('data', (chunk) => process.stderr.write(chunk));
 
-    await testProcessFinished.promise;
+        testProcess.on('exit', testProcessFinished.resolve);
 
-    if (testProcess.exitCode === 0) {
+        await testProcessFinished.promise;
+
+        // Remove any monetization so that the Actor can be deleted
+        const { pricingInfos = [] } = await actorClient.get();
+
+        if (pricingInfos.length > 0) {
+            await actorClient.update(
+                {
+                    pricingInfos: [
+                        ...pricingInfos,
+                        {
+                            pricingModel: 'FREE',
+                        },
+                    ],
+                },
+            );
+        }
+
+        exitCode = testProcess.exitCode;
+    } else {
+        throw new Error('Build failed');
+    }
+
+    if (exitCode === 0) {
         await actorClient.delete();
     }
 
-    process.exit(testProcess.exitCode);
+    process.exit(exitCode);
 }
 
 if (isMainThread) {
