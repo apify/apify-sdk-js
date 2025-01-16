@@ -119,52 +119,49 @@ async function runTest(dirName) {
     const actorClient = client.actor(actor.id);
     const build = await actorClient.build('0.0');
     const buildResult = await client.build(build.id).waitForFinish({ waitSecs: 30 * 60 });
-    let exitCode = 0;
 
-    if (buildResult.status === 'SUCCEEDED') {
-        const testProcessFinished = Promise.withResolvers();
-        const testProcess = spawn(
-            process.argv[0],
-            [join(testDir, 'test.mjs'), actor.id],
-            {
-                stdio: 'pipe',
-                shell: false,
-            },
-        );
-
-        testProcess.stdout.on('data', (chunk) => process.stdout.write(chunk));
-        testProcess.stderr.on('data', (chunk) => process.stderr.write(chunk));
-
-        testProcess.on('exit', testProcessFinished.resolve);
-
-        await testProcessFinished.promise;
-
-        // Remove any monetization so that the Actor can be deleted
-        const { pricingInfos = [] } = await actorClient.get();
-
-        if (pricingInfos.length > 0) {
-            await actorClient.update(
-                {
-                    pricingInfos: [
-                        ...pricingInfos,
-                        {
-                            pricingModel: 'FREE',
-                        },
-                    ],
-                },
-            );
-        }
-
-        exitCode = testProcess.exitCode;
-    } else {
+    if (buildResult.status !== 'SUCCEEDED') {
         throw new Error('Build failed');
     }
 
-    if (exitCode === 0) {
+    const testProcessFinished = Promise.withResolvers();
+    const testProcess = spawn(
+        process.argv[0],
+        [join(testDir, 'test.mjs'), actor.id],
+        {
+            stdio: 'pipe',
+            shell: false,
+        },
+    );
+
+    testProcess.stdout.on('data', (chunk) => process.stdout.write(chunk));
+    testProcess.stderr.on('data', (chunk) => process.stderr.write(chunk));
+
+    testProcess.on('exit', testProcessFinished.resolve);
+
+    await testProcessFinished.promise;
+
+    // Remove any monetization so that the Actor can be deleted
+    const { pricingInfos = [] } = await actorClient.get();
+
+    if (pricingInfos.length > 0) {
+        await actorClient.update(
+            {
+                pricingInfos: [
+                    ...pricingInfos,
+                    {
+                        pricingModel: 'FREE',
+                    },
+                ],
+            },
+        );
+    }
+
+    if (testProcess.exitCode === 0) {
         await actorClient.delete();
     }
 
-    process.exit(exitCode);
+    process.exit(testProcess.exitCode);
 }
 
 if (isMainThread) {
