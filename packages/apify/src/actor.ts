@@ -927,6 +927,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @param options The name of the event to charge for and the number of events to be charged.
      */
     async charge(options: ChargeOptions): Promise<ChargeResult> {
+        this._ensureActorInit('charge');
         return this.chargingManager.charge(options);
     }
 
@@ -934,6 +935,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * Get the maximum amount of money that the Actor is allowed to charge.
      */
     getMaxTotalChargeUsd(): number {
+        this._ensureActorInit('getMaxTotalChargeUsd');
         return this.chargingManager.getMaxTotalChargeUsd();
     }
 
@@ -941,6 +943,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * Get the number of events with given name that the Actor has charged for so far.
      */
     getChargedEventCount(eventName: string): number {
+        this._ensureActorInit('getChargedEventCount');
         return this.chargingManager.getChargedEventCount(eventName);
     }
 
