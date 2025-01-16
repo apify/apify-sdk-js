@@ -17,6 +17,7 @@ export class ChargingManager {
     private isAtHome: boolean;
     private actorRunId: string | undefined;
     private purgeChargingLogDataset: boolean;
+    private notPpeWarningPrinted = false;
 
     private isPayPerEvent = false;
     private pricingInfo: Record<string, {price: number; title: string}> = {};
@@ -101,7 +102,11 @@ export class ChargingManager {
      */
     async charge({ eventName, count = 1 }: ChargeOptions): Promise<ChargeResult> {
         if (!this.isPayPerEvent) {
-            log.info('Ignored attempt to charge for an event - the Actor does not use the pay-per-event pricing');
+            if (!this.notPpeWarningPrinted) {
+                log.warning('Ignored attempt to charge for an event - the Actor does not use the pay-per-event pricing');
+                this.notPpeWarningPrinted = true;
+            }
+
             return {
                 eventChargeLimitReached: false,
                 chargedCount: 0,
@@ -150,6 +155,10 @@ export class ChargingManager {
                 eventPriceUsd: pricingInfo.price,
                 timestamp,
             });
+        }
+
+        if (chargedCount < count) {
+            log.info(`Charging ${count} instances of ${eventName} event would exceed maxTotalChargeUsd - only ${chargedCount} events were charged`);
         }
 
         return {
