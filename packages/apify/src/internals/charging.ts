@@ -101,6 +101,12 @@ export class ChargingManager {
      * @param options The name of the event to charge for and the number of events to be charged.
      */
     async charge({ eventName, count = 1 }: ChargeOptions): Promise<ChargeResult> {
+        const calculateChargeableWithinLimit = () => Object.fromEntries(
+            Object.keys(this.pricingInfo).map(
+                (name) => [name, this.calculateEventChargeCountTillLimit(name)],
+            ),
+        );
+
         if (!this.isPayPerEvent) {
             if (!this.notPpeWarningPrinted) {
                 log.warning('Ignored attempt to charge for an event - the Actor does not use the pay-per-event pricing');
@@ -110,6 +116,7 @@ export class ChargingManager {
             return {
                 eventChargeLimitReached: false,
                 chargedCount: 0,
+                chargeableWithinLimit: calculateChargeableWithinLimit(),
             };
         }
 
@@ -124,6 +131,7 @@ export class ChargingManager {
             return {
                 eventChargeLimitReached: true,
                 chargedCount: 0,
+                chargeableWithinLimit: calculateChargeableWithinLimit(),
             };
         }
 
@@ -162,8 +170,9 @@ export class ChargingManager {
         }
 
         return {
-            eventChargeLimitReached: this.calculateTotalChargedAmount() >= this.maxTotalChargeUsd,
+            eventChargeLimitReached: this.calculateEventChargeCountTillLimit(eventName) <= 0,
             chargedCount,
+            chargeableWithinLimit: calculateChargeableWithinLimit(),
         };
     }
 
@@ -236,4 +245,5 @@ export interface ChargeOptions {
 export interface ChargeResult {
     eventChargeLimitReached: boolean;
     chargedCount: number;
+    chargeableWithinLimit: Record<string, number>;
 }
