@@ -38,7 +38,7 @@ import ow from 'ow';
 
 import { Configuration } from './configuration';
 import { ChargingManager } from './internals/charging';
-import type { ChargeOptions, ChargeResult } from './internals/charging';
+import type { ActorPricingInfo, ChargeOptions, ChargeResult } from './internals/charging';
 import { KeyValueStore } from './key_value_store';
 import { PlatformEventManager } from './platform_event_manager';
 import type { ProxyConfigurationOptions } from './proxy_configuration';
@@ -924,6 +924,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * Charge for a specified number of events - sub-operations of the Actor.
      *
      * @param options The name of the event to charge for and the number of events to be charged.
+     * @ignore
      */
     async charge(options: ChargeOptions): Promise<ChargeResult> {
         this._ensureActorInit('charge');
@@ -932,6 +933,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
 
     /**
      * Get the maximum amount of money that the Actor is allowed to charge.
+     * @ignore
      */
     getMaxTotalChargeUsd(): number {
         this._ensureActorInit('getMaxTotalChargeUsd');
@@ -940,10 +942,20 @@ export class Actor<Data extends Dictionary = Dictionary> {
 
     /**
      * Get the number of events with given name that the Actor has charged for so far.
+     * @ignore
      */
     getChargedEventCount(eventName: string): number {
         this._ensureActorInit('getChargedEventCount');
         return this.chargingManager.getChargedEventCount(eventName);
+    }
+
+    /**
+     * Get information about the pricing for this Actor.
+     * @ignore
+     */
+    getPricingInfo(): ActorPricingInfo {
+        this._ensureActorInit('getPricingInfo');
+        return this.chargingManager.getPricingInfo();
     }
 
     /**
@@ -1589,6 +1601,13 @@ export class Actor<Data extends Dictionary = Dictionary> {
      */
     static getChargedEventCount(eventName: string): number {
         return Actor.getDefaultInstance().getChargedEventCount(eventName);
+    }
+
+    /**
+     * Get information about the pricing for this Actor.
+     */
+    static getPricingInfo(): ActorPricingInfo {
+        return Actor.getDefaultInstance().getPricingInfo();
     }
 
     /**

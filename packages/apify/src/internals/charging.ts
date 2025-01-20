@@ -16,10 +16,10 @@ export class ChargingManager {
     private maxTotalChargeUsd: number;
     private isAtHome: boolean;
     private actorRunId: string | undefined;
+    private pricingModel: string | undefined = undefined;
     private purgeChargingLogDataset: boolean;
     private notPpeWarningPrinted = false;
 
-    private isPayPerEvent = false;
     private pricingInfo: Record<string, {price: number; title: string}> = {};
     private chargingState: Record<string, ChargingStateItem> | undefined = undefined;
     private chargingLogDataset: Dataset | undefined;
@@ -35,6 +35,10 @@ export class ChargingManager {
         this.apifyClient = apifyClient;
     }
 
+    private get isPayPerEvent() {
+        return this.pricingModel === 'PAY_PER_EVENT';
+    }
+
     /**
      * Initialize the ChargingManager by loading pricing information and charging state via Apify API.
      */
@@ -44,7 +48,7 @@ export class ChargingManager {
         // Retrieve pricing information
         if (this.isAtHome) {
             const run = (await this.apifyClient.run(this.actorRunId!).get())!;
-            this.isPayPerEvent = run.pricingInfo?.pricingModel === 'PAY_PER_EVENT';
+            this.pricingModel = run.pricingInfo?.pricingModel;
 
             // Load per-event pricing information
             if (run.pricingInfo?.pricingModel === 'PAY_PER_EVENT') {
@@ -93,6 +97,20 @@ export class ChargingManager {
                 this.chargingLogDataset = await Dataset.open(this.LOCAL_CHARGING_LOG_DATASET_NAME);
             }
         }
+    }
+
+    getPricingInfo(): ActorPricingInfo {
+        if (this.chargingState === undefined) {
+            throw new Error('ChargingManager is not initialized');
+        }
+
+        return {
+            pricingModel: this.pricingModel,
+            isPayPerEvent: this.isPayPerEvent,
+            perEventPrices: Object.fromEntries(
+                Object.entries(this.pricingInfo).map(([eventName, { price }]) => [eventName, price]),
+            ),
+        };
     }
 
     /**
@@ -246,4 +264,10 @@ export interface ChargeResult {
     eventChargeLimitReached: boolean;
     chargedCount: number;
     chargeableWithinLimit: Record<string, number>;
+}
+
+export interface ActorPricingInfo {
+    pricingModel: string | undefined;
+    isPayPerEvent: boolean;
+    perEventPrices: Record<string, number>;
 }
