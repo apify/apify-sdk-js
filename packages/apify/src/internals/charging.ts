@@ -103,7 +103,7 @@ export class ChargingManager {
     async charge({ eventName, count = 1 }: ChargeOptions): Promise<ChargeResult> {
         const calculateChargeableWithinLimit = () => Object.fromEntries(
             Object.keys(this.pricingInfo).map(
-                (name) => [name, this.calculateEventChargeCountTillLimit(name)],
+                (name) => [name, this.calculateMaxEventChargeCountWithinLimit(name)],
             ),
         );
 
@@ -125,7 +125,7 @@ export class ChargingManager {
         }
 
         /* START OF CRITICAL SECTION - no awaits here */
-        const chargedCount = Math.min(count, this.calculateEventChargeCountTillLimit(eventName));
+        const chargedCount = Math.min(count, this.calculateMaxEventChargeCountWithinLimit(eventName));
 
         if (chargedCount === 0) {
             return {
@@ -170,7 +170,7 @@ export class ChargingManager {
         }
 
         return {
-            eventChargeLimitReached: this.calculateEventChargeCountTillLimit(eventName) <= 0,
+            eventChargeLimitReached: this.calculateMaxEventChargeCountWithinLimit(eventName) <= 0,
             chargedCount,
             chargeableWithinLimit: calculateChargeableWithinLimit(),
         };
@@ -213,7 +213,7 @@ export class ChargingManager {
      * How many events of a given type can still be charged for before reaching the limit;
      * If the event is not registered, returns Infinity (free of charge)
      */
-    private calculateEventChargeCountTillLimit(eventName: string): number {
+    calculateMaxEventChargeCountWithinLimit(eventName: string): number {
         if (this.chargingState === undefined) {
             throw new Error('ChargingManager is not initialized');
         }

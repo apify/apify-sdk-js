@@ -625,21 +625,20 @@ export class Actor<Data extends Dictionary = Dictionary> {
     async pushData(item: Data | Data[], eventName?: string | undefined): Promise<ChargeResult | void> {
         this._ensureActorInit('pushData');
 
-        const chargeResult = eventName !== undefined
-            ? await this.charge({ eventName, count: Array.isArray(item) ? item.length : 1 })
-            : undefined;
-
         const dataset = await this.openDataset();
 
-        if (chargeResult?.eventChargeLimitReached) {
+        const maxChargedCount = eventName !== undefined ? this.chargingManager.calculateMaxEventChargeCountWithinLimit(eventName) : Infinity;
+        const toCharge = Array.isArray(item) ? item.length : 1;
+
+        if (toCharge > maxChargedCount) {
             const items = Array.isArray(item) ? item : [item];
-            await dataset.pushData(items.slice(0, chargeResult.chargedCount));
+            await dataset.pushData(items.slice(0, toCharge));
         } else {
             await dataset.pushData(item);
         }
 
-        if (eventName !== undefined) {
-            return chargeResult;
+        if (eventName) {
+            return await this.chargingManager.charge({ eventName, count: Math.min(toCharge, maxChargedCount) });
         }
     }
 
