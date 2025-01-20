@@ -32,6 +32,14 @@ export class ChargingManager {
         this.actorRunId = configuration.get('actorRunId');
         this.purgeChargingLogDataset = configuration.get('purgeOnStart');
 
+        if (configuration.get('testPayPerEvent') === true) {
+            if (this.isAtHome) {
+                throw new Error('Using the ACTOR_TEST_PAY_PER_EVENT environment variable is only supported in a local development environment');
+            }
+
+            this.pricingModel = 'PAY_PER_EVENT';
+        }
+
         this.apifyClient = apifyClient;
     }
 

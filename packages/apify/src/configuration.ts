@@ -33,6 +33,7 @@ export interface ConfigurationOptions extends CoreConfigurationOptions {
     inputSecretsPrivateKeyFile?: string;
     maxTotalChargeUsd?: number;
     metaOrigin?: typeof META_ORIGINS[keyof typeof META_ORIGINS];
+    testPayPerEvent?: boolean;
 }
 
 /**
@@ -166,11 +167,12 @@ export class Configuration extends CoreConfiguration {
         ACTOR_WEB_SERVER_PORT: 'containerPort',
         ACTOR_WEB_SERVER_URL: 'containerUrl',
         ACTOR_MAX_TOTAL_CHARGE_USD: 'maxTotalChargeUsd',
+        ACTOR_TEST_PAY_PER_EVENT: 'testPayPerEvent',
     };
 
     protected static override INTEGER_VARS = [...super.INTEGER_VARS, 'proxyPort', 'containerPort', 'metamorphAfterSleepMillis'];
 
-    protected static override BOOLEAN_VARS = [...super.BOOLEAN_VARS, 'isAtHome'];
+    protected static override BOOLEAN_VARS = [...super.BOOLEAN_VARS, 'isAtHome', 'testPayPerEvent'];
 
     protected static override DEFAULTS = {
         ...super.DEFAULTS,
@@ -187,6 +189,7 @@ export class Configuration extends CoreConfiguration {
         standbyPort: +LOCAL_ACTOR_ENV_VARS[ACTOR_ENV_VARS.STANDBY_PORT],
         metamorphAfterSleepMillis: 300e3,
         persistStateIntervalMillis: 60e3, // This value is mentioned in jsdoc in `events.js`, if you update it here, update it there too.
+        testPayPerEvent: false,
     };
 
     /**
