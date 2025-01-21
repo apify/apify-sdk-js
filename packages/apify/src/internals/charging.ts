@@ -275,7 +275,7 @@ export interface ChargeResult {
 }
 
 export interface ActorPricingInfo {
-    pricingModel: string | undefined;
+    pricingModel?: string;
     isPayPerEvent: boolean;
     perEventPrices: Record<string, number>;
 }
