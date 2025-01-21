@@ -5,7 +5,7 @@ import { readdir } from 'node:fs/promises';
 import { isMainThread, Worker, workerData } from 'node:worker_threads';
 import { colors, clearStorage, SKIPPED_TEST_CLOSE_CODE } from './tools.mjs';
 
-const basePath = join(dirname(fileURLToPath(import.meta.url)), "scrapers");
+const basePath = join(dirname(fileURLToPath(import.meta.url)), 'scrapers');
 
 // If any of the tests failed - we want to exit with a non-zero code
 // so that the CI knows that e2e test suite has failed
