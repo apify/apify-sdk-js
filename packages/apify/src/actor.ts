@@ -631,8 +631,9 @@ export class Actor<Data extends Dictionary = Dictionary> {
         const toCharge = Array.isArray(item) ? item.length : 1;
 
         if (toCharge > maxChargedCount) {
+            // Push as many items as we can charge for
             const items = Array.isArray(item) ? item : [item];
-            await dataset.pushData(items.slice(0, toCharge));
+            await dataset.pushData(items.slice(0, maxChargedCount));
         } else {
             await dataset.pushData(item);
         }
