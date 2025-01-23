@@ -1,6 +1,6 @@
 import log from '@apify/log';
 import { Dataset, KeyValueStore } from '@crawlee/core';
-import { ApifyClient } from 'apify-client';
+import { type ActorRunPricingInfo, ApifyClient } from 'apify-client';
 
 import { Configuration } from '../configuration.js';
 
@@ -16,7 +16,7 @@ export class ChargingManager {
     private maxTotalChargeUsd: number;
     private isAtHome: boolean;
     private actorRunId: string | undefined;
-    private pricingModel: string | undefined = undefined;
+    private pricingModel: ActorRunPricingInfo['pricingModel'] | undefined = undefined;
     private purgeChargingLogDataset: boolean;
     private notPpeWarningPrinted = false;
 
@@ -275,7 +275,7 @@ export interface ChargeResult {
 }
 
 export interface ActorPricingInfo {
-    pricingModel?: string;
+    pricingModel?: ActorRunPricingInfo['pricingModel'];
     isPayPerEvent: boolean;
     perEventPrices: Record<string, number>;
 }
