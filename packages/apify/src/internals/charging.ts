@@ -10,8 +10,8 @@ import { Configuration } from '../configuration.js';
  * @internal
  */
 export class ChargingManager {
-    public readonly LOCAL_CHARGING_LOG_DATASET_NAME = 'charging_log';
-    public readonly PLATFORM_CHARGING_LOG_DATASET_ID_KEY = 'CHARGING_LOG_DATASET_ID';
+    readonly LOCAL_CHARGING_LOG_DATASET_NAME = 'charging_log';
+    readonly PLATFORM_CHARGING_LOG_DATASET_ID_KEY = 'CHARGING_LOG_DATASET_ID';
 
     private maxTotalChargeUsd: number;
     private isAtHome: boolean;
@@ -57,7 +57,15 @@ export class ChargingManager {
 
         // Retrieve pricing information
         if (this.isAtHome) {
-            const run = (await this.apifyClient.run(this.actorRunId!).get())!;
+            if (this.actorRunId === undefined) {
+                throw new Error('Actor run ID not found even though the Actor is running on Apify');
+            }
+
+            const run = await this.apifyClient.run(this.actorRunId).get();
+            if (run === undefined) {
+                throw new Error('Actor run not found');
+            }
+
             this.pricingModel = run.pricingInfo?.pricingModel;
 
             // Load per-event pricing information
