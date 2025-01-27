@@ -38,7 +38,7 @@ import ow from 'ow';
 
 import { Configuration } from './configuration';
 import { ChargingManager } from './internals/charging';
-import type { ActorPricingInfo, ChargeOptions, ChargeResult } from './internals/charging';
+import type { ChargeOptions, ChargeResult } from './internals/charging';
 import { KeyValueStore } from './key_value_store';
 import { PlatformEventManager } from './platform_event_manager';
 import type { ProxyConfigurationOptions } from './proxy_configuration';
