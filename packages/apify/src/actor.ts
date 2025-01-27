@@ -617,11 +617,60 @@ export class Actor<Data extends Dictionary = Dictionary> {
      *
      * @param item Object or array of objects containing data to be stored in the default dataset.
      * The objects must be serializable to JSON and the JSON representation of each object must be smaller than 9MB.
-     * @param eventName If provided, the method will attempt to charge for the event for each pushed item.
      * @ignore
      */
     async pushData(item: Data | Data[]): Promise<void>;
+    /**
+     * Stores an object or an array of objects to the default {@apilink Dataset} of the current Actor run.
+     *
+     * This is just a convenient shortcut for {@apilink Dataset.pushData}.
+     * For example, calling the following code:
+     * ```js
+     * await Actor.pushData({ myValue: 123 });
+     * ```
+     *
+     * is equivalent to:
+     * ```js
+     * const dataset = await Actor.openDataset();
+     * await dataset.pushData({ myValue: 123 });
+     * ```
+     *
+     * For more information, see {@apilink Actor.openDataset} and {@apilink Dataset.pushData}
+     *
+     * **IMPORTANT**: Make sure to use the `await` keyword when calling `pushData()`,
+     * otherwise the Actor process might finish before the data are stored!
+     *
+     * @param item Object or array of objects containing data to be stored in the default dataset.
+     * The objects must be serializable to JSON and the JSON representation of each object must be smaller than 9MB.
+     * @param eventName If provided, the method will attempt to charge for the event for each pushed item.
+     * @ignore
+     */
     async pushData(item: Data | Data[], eventName: string): Promise<ChargeResult>;
+    /**
+     * Stores an object or an array of objects to the default {@apilink Dataset} of the current Actor run.
+     *
+     * This is just a convenient shortcut for {@apilink Dataset.pushData}.
+     * For example, calling the following code:
+     * ```js
+     * await Actor.pushData({ myValue: 123 });
+     * ```
+     *
+     * is equivalent to:
+     * ```js
+     * const dataset = await Actor.openDataset();
+     * await dataset.pushData({ myValue: 123 });
+     * ```
+     *
+     * For more information, see {@apilink Actor.openDataset} and {@apilink Dataset.pushData}
+     *
+     * **IMPORTANT**: Make sure to use the `await` keyword when calling `pushData()`,
+     * otherwise the Actor process might finish before the data are stored!
+     *
+     * @param item Object or array of objects containing data to be stored in the default dataset.
+     * The objects must be serializable to JSON and the JSON representation of each object must be smaller than 9MB.
+     * @param eventName If provided, the method will attempt to charge for the event for each pushed item.
+     * @ignore
+     */
     async pushData(item: Data | Data[], eventName?: string | undefined): Promise<ChargeResult | void> {
         this._ensureActorInit('pushData');
 
@@ -1348,10 +1397,57 @@ export class Actor<Data extends Dictionary = Dictionary> {
      *
      * @param item Object or array of objects containing data to be stored in the default dataset.
      * The objects must be serializable to JSON and the JSON representation of each object must be smaller than 9MB.
-     * @param eventName If provided, the method will attempt to charge for the event for each pushed item.
      */
     static async pushData<Data extends Dictionary = Dictionary>(item: Data | Data[]): Promise<void>;
+    /**
+     * Stores an object or an array of objects to the default {@apilink Dataset} of the current Actor run.
+     *
+     * This is just a convenient shortcut for {@apilink Dataset.pushData}.
+     * For example, calling the following code:
+     * ```js
+     * await Actor.pushData({ myValue: 123 });
+     * ```
+     *
+     * is equivalent to:
+     * ```js
+     * const dataset = await Actor.openDataset();
+     * await dataset.pushData({ myValue: 123 });
+     * ```
+     *
+     * For more information, see {@apilink Actor.openDataset} and {@apilink Dataset.pushData}
+     *
+     * **IMPORTANT**: Make sure to use the `await` keyword when calling `pushData()`,
+     * otherwise the Actor process might finish before the data are stored!
+     *
+     * @param item Object or array of objects containing data to be stored in the default dataset.
+     * The objects must be serializable to JSON and the JSON representation of each object must be smaller than 9MB.
+     * @param eventName If provided, the method will attempt to charge for the event for each pushed item.
+     */
     static async pushData<Data extends Dictionary = Dictionary>(item: Data | Data[], eventName: string): Promise<ChargeResult>;
+    /**
+     * Stores an object or an array of objects to the default {@apilink Dataset} of the current Actor run.
+     *
+     * This is just a convenient shortcut for {@apilink Dataset.pushData}.
+     * For example, calling the following code:
+     * ```js
+     * await Actor.pushData({ myValue: 123 });
+     * ```
+     *
+     * is equivalent to:
+     * ```js
+     * const dataset = await Actor.openDataset();
+     * await dataset.pushData({ myValue: 123 });
+     * ```
+     *
+     * For more information, see {@apilink Actor.openDataset} and {@apilink Dataset.pushData}
+     *
+     * **IMPORTANT**: Make sure to use the `await` keyword when calling `pushData()`,
+     * otherwise the Actor process might finish before the data are stored!
+     *
+     * @param item Object or array of objects containing data to be stored in the default dataset.
+     * The objects must be serializable to JSON and the JSON representation of each object must be smaller than 9MB.
+     * @param eventName If provided, the method will attempt to charge for the event for each pushed item.
+     */
     static async pushData<Data extends Dictionary = Dictionary>(item: Data | Data[], eventName?: string): Promise<ChargeResult | void> {
         if (eventName === undefined) {
             return await Actor.getDefaultInstance().pushData(item);
