@@ -15,15 +15,15 @@ export class ChargingManager {
 
     private maxTotalChargeUsd: number;
     private isAtHome: boolean;
-    private actorRunId: string | undefined;
-    private pricingModel: ActorRunPricingInfo['pricingModel'] | undefined = undefined;
+    private actorRunId?: string;
+    private pricingModel?: ActorRunPricingInfo['pricingModel'];
     private purgeChargingLogDataset: boolean;
     private useChargingLogDataset: boolean;
     private notPpeWarningPrinted = false;
 
-    private pricingInfo: Record<string, {price: number; title: string}> = {};
-    private chargingState: Record<string, ChargingStateItem> | undefined = undefined;
-    private chargingLogDataset: Dataset | undefined;
+    private pricingInfo: Record<string, { price: number; title: string }> = {};
+    private chargingState?: Record<string, ChargingStateItem>;
+    private chargingLogDataset?: Dataset;
 
     private apifyClient: ApifyClient;
 
@@ -34,7 +34,7 @@ export class ChargingManager {
         this.purgeChargingLogDataset = configuration.get('purgeOnStart');
         this.useChargingLogDataset = configuration.get('useChargingLogDataset');
 
-        if (configuration.get('testPayPerEvent') === true) {
+        if (configuration.get('testPayPerEvent')) {
             if (this.isAtHome) {
                 throw new Error('Using the ACTOR_TEST_PAY_PER_EVENT environment variable is only supported in a local development environment');
             }
@@ -81,32 +81,36 @@ export class ChargingManager {
             }
         }
 
-        if (this.isPayPerEvent && this.useChargingLogDataset) {
-            // Set up charging log dataset
-            if (this.isAtHome) {
-                const datasetId = await (async () => {
-                    const defaultStore = await KeyValueStore.open();
-
-                    const storedDatasetId = await defaultStore.getValue<string>(this.PLATFORM_CHARGING_LOG_DATASET_ID_KEY);
-                    if (storedDatasetId !== null) {
-                        return storedDatasetId;
-                    }
-
-                    const dataset = await this.apifyClient.datasets().getOrCreate();
-                    await defaultStore.setValue(this.PLATFORM_CHARGING_LOG_DATASET_ID_KEY, dataset.id);
-                    return dataset.id;
-                })();
-
-                this.chargingLogDataset = await Dataset.open(datasetId);
-            } else {
-                if (this.purgeChargingLogDataset) {
-                    const dataset = await Dataset.open(this.LOCAL_CHARGING_LOG_DATASET_NAME);
-                    await dataset.drop();
-                }
-
-                this.chargingLogDataset = await Dataset.open(this.LOCAL_CHARGING_LOG_DATASET_NAME);
-            }
+        if (!this.isPayPerEvent || !this.useChargingLogDataset) {
+            return;
         }
+
+        // Set up charging log dataset
+        if (this.isAtHome) {
+            const datasetId = await this.ensureChargingLogDatasetOnPlatform();
+
+            this.chargingLogDataset = await Dataset.open(datasetId);
+        } else {
+            if (this.purgeChargingLogDataset) {
+                const dataset = await Dataset.open(this.LOCAL_CHARGING_LOG_DATASET_NAME);
+                await dataset.drop();
+            }
+
+            this.chargingLogDataset = await Dataset.open(this.LOCAL_CHARGING_LOG_DATASET_NAME);
+        }
+    }
+
+    private async ensureChargingLogDatasetOnPlatform(): Promise<string> {
+        const defaultStore = await KeyValueStore.open();
+
+        const storedDatasetId = await defaultStore.getValue<string>(this.PLATFORM_CHARGING_LOG_DATASET_ID_KEY);
+        if (storedDatasetId !== null) {
+            return storedDatasetId;
+        }
+
+        const dataset = await this.apifyClient.datasets().getOrCreate();
+        await defaultStore.setValue(this.PLATFORM_CHARGING_LOG_DATASET_ID_KEY, dataset.id);
+        return dataset.id;
     }
 
     getPricingInfo(): ActorPricingInfo {
@@ -164,8 +168,8 @@ export class ChargingManager {
         }
 
         const pricingInfo = this.pricingInfo[eventName] ?? {
-            price: 0,
-            title: 'Unknown event',
+            price: this.isAtHome ? 0 : 1, // Use a nonzero price for local development so that the maximum budget can be reached
+            title: `Unknown event '${eventName}'`,
         };
 
         this.chargingState[eventName] ??= { chargeCount: 0, totalChargedAmount: 0 };
@@ -196,7 +200,8 @@ export class ChargingManager {
         }
 
         if (chargedCount < count) {
-            log.info(`Charging ${count} instances of ${eventName} event would exceed maxTotalChargeUsd - only ${chargedCount} events were charged`);
+            const subject = count === 1 ? 'instance' : 'instances';
+            log.info(`Charging ${count} ${subject} of '${eventName}' event would exceed maxTotalChargeUsd - only ${chargedCount} events were charged`);
         }
 
         return {
