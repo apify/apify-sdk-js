@@ -121,6 +121,9 @@ export class ChargingManager {
         return dataset.id;
     }
 
+    /**
+     * Get information about the pricing for this Actor.
+     */
     getPricingInfo(): ActorPricingInfo {
         if (this.chargingState === undefined) {
             throw new Error('ChargingManager is not initialized');
@@ -220,7 +223,7 @@ export class ChargingManager {
     }
 
     /**
-     * Get the maximum amount of money that the Actor is allowed to charge.
+     * Get the number of events with given name that the Actor has charged for so far.
      */
     getChargedEventCount(eventName: string): number {
         if (this.chargingState === undefined) {
@@ -231,7 +234,7 @@ export class ChargingManager {
     }
 
     /**
-     * Get the number of events with given name that the Actor has charged for so far.
+     * Get the maximum amount of money that the Actor is allowed to charge.
      */
     getMaxTotalChargeUsd(): number {
         if (this.chargingState === undefined) {

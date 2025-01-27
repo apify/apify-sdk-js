@@ -933,30 +933,11 @@ export class Actor<Data extends Dictionary = Dictionary> {
     }
 
     /**
-     * Get the maximum amount of money that the Actor is allowed to charge.
-     * @ignore
+     * Retrieve the charging manager to access granular pricing information.
      */
-    getMaxTotalChargeUsd(): number {
-        this._ensureActorInit('getMaxTotalChargeUsd');
-        return this.chargingManager.getMaxTotalChargeUsd();
-    }
-
-    /**
-     * Get the number of events with given name that the Actor has charged for so far.
-     * @ignore
-     */
-    getChargedEventCount(eventName: string): number {
-        this._ensureActorInit('getChargedEventCount');
-        return this.chargingManager.getChargedEventCount(eventName);
-    }
-
-    /**
-     * Get information about the pricing for this Actor.
-     * @ignore
-     */
-    getPricingInfo(): ActorPricingInfo {
-        this._ensureActorInit('getPricingInfo');
-        return this.chargingManager.getPricingInfo();
+    getChargingManager(): ChargingManager {
+        this._ensureActorInit('getChargingManager');
+        return this.chargingManager;
     }
 
     /**
@@ -1591,24 +1572,10 @@ export class Actor<Data extends Dictionary = Dictionary> {
     }
 
     /**
-     * Get the maximum amount of money that the Actor is allowed to charge.
+     * Retrieve the charging manager to access granular pricing information.
      */
-    static getMaxTotalChargeUsd(): number {
-        return Actor.getDefaultInstance().getMaxTotalChargeUsd();
-    }
-
-    /**
-     * Get the number of events with given name that the Actor has charged for so far.
-     */
-    static getChargedEventCount(eventName: string): number {
-        return Actor.getDefaultInstance().getChargedEventCount(eventName);
-    }
-
-    /**
-     * Get information about the pricing for this Actor.
-     */
-    static getPricingInfo(): ActorPricingInfo {
-        return Actor.getDefaultInstance().getPricingInfo();
+    static getChargingManager(): ChargingManager {
+        return Actor.getDefaultInstance().getChargingManager();
     }
 
     /**
