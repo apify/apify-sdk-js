@@ -1,12 +1,14 @@
 import { Actor, log } from 'apify';
 
-await Actor.init();
+const actor = new Actor({useChargingLogDataset: true});
 
-const chargeResult = await Actor.charge({
+await actor.init();
+
+const chargeResult = await actor.charge({
     eventName: 'foobar',
     count: 4,
 });
 
 log.info(`Charged: ${JSON.stringify(chargeResult)}`);
 
-await Actor.exit();
+await actor.exit();
