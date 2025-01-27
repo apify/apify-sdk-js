@@ -18,6 +18,7 @@ export class ChargingManager {
     private actorRunId: string | undefined;
     private pricingModel: ActorRunPricingInfo['pricingModel'] | undefined = undefined;
     private purgeChargingLogDataset: boolean;
+    private useChargingLogDataset: boolean;
     private notPpeWarningPrinted = false;
 
     private pricingInfo: Record<string, {price: number; title: string}> = {};
@@ -31,6 +32,7 @@ export class ChargingManager {
         this.isAtHome = configuration.get('isAtHome');
         this.actorRunId = configuration.get('actorRunId');
         this.purgeChargingLogDataset = configuration.get('purgeOnStart');
+        this.useChargingLogDataset = configuration.get('useChargingLogDataset');
 
         if (configuration.get('testPayPerEvent') === true) {
             if (this.isAtHome) {
@@ -79,7 +81,7 @@ export class ChargingManager {
             }
         }
 
-        if (this.isPayPerEvent) {
+        if (this.isPayPerEvent && this.useChargingLogDataset) {
             // Set up charging log dataset
             if (this.isAtHome) {
                 const datasetId = await (async () => {
@@ -146,7 +148,7 @@ export class ChargingManager {
             };
         }
 
-        if (this.chargingState === undefined || this.chargingLogDataset === undefined) {
+        if (this.chargingState === undefined) {
             throw new Error('ChargingManager is not initialized');
         }
 
@@ -182,13 +184,15 @@ export class ChargingManager {
 
         const timestamp = new Date().toISOString();
 
-        for (let i = 0; i < chargedCount; i++) {
-            await this.chargingLogDataset.pushData({
-                eventName,
-                eventTitle: pricingInfo.title,
-                eventPriceUsd: pricingInfo.price,
-                timestamp,
-            });
+        if (this.chargingLogDataset !== undefined) {
+            for (let i = 0; i < chargedCount; i++) {
+                await this.chargingLogDataset.pushData({
+                    eventName,
+                    eventTitle: pricingInfo.title,
+                    eventPriceUsd: pricingInfo.price,
+                    timestamp,
+                });
+            }
         }
 
         if (chargedCount < count) {

@@ -34,6 +34,7 @@ export interface ConfigurationOptions extends CoreConfigurationOptions {
     maxTotalChargeUsd?: number;
     metaOrigin?: typeof META_ORIGINS[keyof typeof META_ORIGINS];
     testPayPerEvent?: boolean;
+    useChargingLogDataset?: boolean;
 }
 
 /**
@@ -168,11 +169,12 @@ export class Configuration extends CoreConfiguration {
         ACTOR_WEB_SERVER_URL: 'containerUrl',
         ACTOR_MAX_TOTAL_CHARGE_USD: 'maxTotalChargeUsd',
         ACTOR_TEST_PAY_PER_EVENT: 'testPayPerEvent',
+        ACTOR_USE_CHARGING_LOG_DATASET: 'useChargingLogDataset',
     };
 
     protected static override INTEGER_VARS = [...super.INTEGER_VARS, 'proxyPort', 'containerPort', 'metamorphAfterSleepMillis'];
 
-    protected static override BOOLEAN_VARS = [...super.BOOLEAN_VARS, 'isAtHome', 'testPayPerEvent'];
+    protected static override BOOLEAN_VARS = [...super.BOOLEAN_VARS, 'isAtHome', 'testPayPerEvent', 'useChargingLogDataset'];
 
     protected static override DEFAULTS = {
         ...super.DEFAULTS,
@@ -190,6 +192,7 @@ export class Configuration extends CoreConfiguration {
         metamorphAfterSleepMillis: 300e3,
         persistStateIntervalMillis: 60e3, // This value is mentioned in jsdoc in `events.js`, if you update it here, update it there too.
         testPayPerEvent: false,
+        useChargingLogDataset: false,
     };
 
     /**
