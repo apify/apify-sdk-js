@@ -43,7 +43,7 @@
         "test:e2e": "npm run test:e2e:scrapers && npm run test:e2e:sdk",
         "test:e2e:scrapers": "node test/e2e/runScraperTests.mjs",
         "test:e2e:sdk": "npm run test:e2e:sdk:tarball && node test/e2e/runSdkTests.mjs",
-        "test:e2e:sdk:tarball": "cd packages/apify && mv $(npm pack | tail -n 1) ../../test/e2e/apify.tgz",
+        "test:e2e:sdk:tarball": "npm run build && cd packages/apify && mv $(npm pack | tail -n 1) ../../test/e2e/apify.tgz",
         "coverage": "vitest --coverage",
         "release": "npm run build && lerna publish from-package --contents dist",
         "publish:next": "lerna publish --canary --preid beta --dist-tag next",

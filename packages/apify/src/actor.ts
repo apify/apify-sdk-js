@@ -229,7 +229,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
         Configuration.storage.enterWith(this.config);
 
         await this.chargingManager.init();
-        log.debug(`ChargingManager initialized`);
+        log.debug(`ChargingManager initialized`, this.chargingManager.getPricingInfo());
     }
 
     /**

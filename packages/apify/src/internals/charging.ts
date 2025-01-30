@@ -132,6 +132,7 @@ export class ChargingManager {
         return {
             pricingModel: this.pricingModel,
             isPayPerEvent: this.isPayPerEvent,
+            maxTotalChargeUsd: this.maxTotalChargeUsd,
             perEventPrices: Object.fromEntries(
                 Object.entries(this.pricingInfo).map(([eventName, { price }]) => [eventName, price]),
             ),
@@ -264,7 +265,9 @@ export class ChargingManager {
             throw new Error('ChargingManager is not initialized');
         }
 
-        if (!this.pricingInfo[eventName]) {
+        const price = this.isAtHome ? this.pricingInfo[eventName].price : 1; // Use a nonzero price for local development so that the maximum budget can be reached
+
+        if (!price) {
             return Infinity;
         }
 
@@ -272,7 +275,7 @@ export class ChargingManager {
         return Math.floor(
             Number(
                 ((this.maxTotalChargeUsd - this.calculateTotalChargedAmount())
-                 / (this.pricingInfo[eventName].price)).toFixed(4),
+                 / price).toFixed(4),
             ),
         );
     }
@@ -296,6 +299,7 @@ export interface ChargeResult {
 
 export interface ActorPricingInfo {
     pricingModel?: ActorRunPricingInfo['pricingModel'];
+    maxTotalChargeUsd: number;
     isPayPerEvent: boolean;
     perEventPrices: Record<string, number>;
 }
