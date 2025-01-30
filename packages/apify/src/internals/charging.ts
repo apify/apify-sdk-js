@@ -265,7 +265,9 @@ export class ChargingManager {
             throw new Error('ChargingManager is not initialized');
         }
 
-        const price = this.isAtHome ? this.pricingInfo[eventName].price : 1; // Use a nonzero price for local development so that the maximum budget can be reached
+        const price = this.isAtHome
+            ? this.pricingInfo[eventName].price
+            : 1; // Use a nonzero price for local development so that the maximum budget can be reached
 
         if (!price) {
             return Infinity;
