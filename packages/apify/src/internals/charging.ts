@@ -34,6 +34,10 @@ export class ChargingManager {
         this.purgeChargingLogDataset = configuration.get('purgeOnStart');
         this.useChargingLogDataset = configuration.get('useChargingLogDataset');
 
+        if (this.useChargingLogDataset && this.isAtHome) {
+            throw new Error('Using the ACTOR_USE_CHARGING_LOG_DATASET environment variable is only supported in a local development environment');
+        }
+
         if (configuration.get('testPayPerEvent')) {
             if (this.isAtHome) {
                 throw new Error('Using the ACTOR_TEST_PAY_PER_EVENT environment variable is only supported in a local development environment');
