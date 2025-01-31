@@ -10,8 +10,8 @@ import { Configuration } from '../configuration.js';
  * @internal
  */
 export class ChargingManager {
-    readonly LOCAL_CHARGING_LOG_DATASET_NAME = 'charging_log';
-    readonly PLATFORM_CHARGING_LOG_DATASET_ID_KEY = 'CHARGING_LOG_DATASET_ID';
+    private readonly LOCAL_CHARGING_LOG_DATASET_NAME = 'charging_log';
+    private readonly PLATFORM_CHARGING_LOG_DATASET_ID_KEY = 'CHARGING_LOG_DATASET_ID';
 
     private maxTotalChargeUsd: number;
     private isAtHome: boolean;
