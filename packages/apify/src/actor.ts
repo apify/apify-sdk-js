@@ -983,6 +983,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
 
     /**
      * Retrieve the charging manager to access granular pricing information.
+     * @ignore
      */
     getChargingManager(): ChargingManager {
         this._ensureActorInit('getChargingManager');
