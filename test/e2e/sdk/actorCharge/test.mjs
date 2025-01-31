@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { ApifyClient, Dataset, KeyValueStore } from 'apify';
+import { ApifyClient, KeyValueStore } from 'apify';
 import { sleep } from 'crawlee';
 
 const client = new ApifyClient({
@@ -33,25 +33,16 @@ const runActor = async (input, options) => {
     return await client.run(runId).get();
 };
 
-const openChargingDataset = async (run) => {
-    const store = await KeyValueStore.open(run.defaultKeyValueStoreId, { storageClient: client });
-
-    const chargingDatasetId = await store.getValue('CHARGING_LOG_DATASET_ID');
-    assert.notStrictEqual(chargingDatasetId, null, 'Charging dataset ID must be present');
-    assert.notStrictEqual(chargingDatasetId.match(/^[0-9a-zA-Z]+$/), null, 'Charging dataset ID must be alphanumeric');
-
-    return await Dataset.open(chargingDatasetId, { storageClient: client });
-};
-
 test('basic functionality', async () => {
     const run = await runActor({}, { maxTotalChargeUsd: 10 });
 
     assert.strictEqual(run.status, 'SUCCEEDED');
     assert.deepEqual(run.chargedEventCounts, { foobar: 4 });
 
-    const chargingDataset = await openChargingDataset(run);
-    const chargingRecords = await chargingDataset.getData();
-    assert.strictEqual(chargingRecords.count, 4, `There must be exactly four items in the charging dataset (ID ${chargingDataset.id})`);
+    const store = await KeyValueStore.open(run.defaultKeyValueStoreId, { storageClient: client });
+
+    const chargingDatasetId = await store.getValue('CHARGING_LOG_DATASET_ID');
+    assert.equal(chargingDatasetId, null, 'Charging dataset ID must not be present');
 });
 
 test('charge limit', async () => {
@@ -59,10 +50,6 @@ test('charge limit', async () => {
 
     assert.strictEqual(run.status, 'SUCCEEDED');
     assert.deepEqual(run.chargedEventCounts, { foobar: 2 });
-
-    const chargingDataset = await openChargingDataset(run);
-    const chargingRecords = await chargingDataset.getData();
-    assert.strictEqual(chargingRecords.count, 2, `There must be exactly two items in the charging dataset (ID ${chargingDataset.id})`);
 });
 
 test('default charge limit 0', async () => {
@@ -70,8 +57,4 @@ test('default charge limit 0', async () => {
 
     assert.strictEqual(run.status, 'SUCCEEDED');
     assert.deepEqual(run.chargedEventCounts, { foobar: 0 });
-
-    const chargingDataset = await openChargingDataset(run);
-    const chargingRecords = await chargingDataset.getData();
-    assert.strictEqual(chargingRecords.count, 0, `There must be exactly 0 items in the charging dataset (ID ${chargingDataset.id})`);
 });

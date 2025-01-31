@@ -205,14 +205,13 @@ export class ChargingManager {
         const timestamp = new Date().toISOString();
 
         if (this.chargingLogDataset !== undefined) {
-            for (let i = 0; i < chargedCount; i++) {
-                await this.chargingLogDataset.pushData({
-                    eventName,
-                    eventTitle: pricingInfo.title,
-                    eventPriceUsd: pricingInfo.price,
-                    timestamp,
-                });
-            }
+            await this.chargingLogDataset.pushData({
+                eventName,
+                eventTitle: pricingInfo.title,
+                eventPriceUsd: pricingInfo.price,
+                chargedCount,
+                timestamp,
+            });
         }
 
         if (chargedCount < count) {

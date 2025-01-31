@@ -1,6 +1,6 @@
 import { Actor, log } from 'apify';
 
-const actor = new Actor({ useChargingLogDataset: true });
+const actor = new Actor();
 
 await actor.init();
 
