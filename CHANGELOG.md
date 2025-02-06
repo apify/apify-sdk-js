@@ -3,6 +3,25 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [3.3.0](https://github.com/apify/apify-sdk-js/compare/apify@3.2.6...apify@3.3.0) (2025-02-06)
+
+
+### Bug Fixes
+
+* load `initialCount` in `openRequestQueue()` ([#339](https://github.com/apify/apify-sdk-js/issues/339)) ([48548cd](https://github.com/apify/apify-sdk-js/commit/48548cd088365b84a0178ba38c5d3da7f4922ade))
+* prevent reboot loops ([#345](https://github.com/apify/apify-sdk-js/issues/345)) ([271bc99](https://github.com/apify/apify-sdk-js/commit/271bc999c1a6c75f8e8359214237b51f8ade03c7))
+
+
+### Features
+
+* Actor.charge() ([#346](https://github.com/apify/apify-sdk-js/issues/346)) ([e26e496](https://github.com/apify/apify-sdk-js/commit/e26e49669cae04df11f2138b80549e5cd8611b3c))
+* add SDK and Crawlee version to the `ApifyClient`'s user agent ([#335](https://github.com/apify/apify-sdk-js/issues/335)) ([9c069a1](https://github.com/apify/apify-sdk-js/commit/9c069a1643f0a5f417765e9391550ae06c50160f)), closes [#331](https://github.com/apify/apify-sdk-js/issues/331)
+* add standby URL, change default port ([#328](https://github.com/apify/apify-sdk-js/issues/328)) ([7d265f3](https://github.com/apify/apify-sdk-js/commit/7d265f3e2a7dfdda232e0bbf7c6bb73736112950))
+
+
+
+
+
 ## [3.2.6](https://github.com/apify/apify-sdk-js/compare/apify@3.2.5...apify@3.2.6) (2024-10-07)
 
 
