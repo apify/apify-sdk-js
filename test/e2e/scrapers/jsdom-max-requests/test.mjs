@@ -1,4 +1,4 @@
-import { getTestDir, getStats, getDatasetItems, run, expect, validateDataset, skipTest } from '../tools.mjs';
+import { getTestDir, getStats, getDatasetItems, run, expect, validateDataset, skipTest } from '../../tools.mjs';
 
 skipTest('broken test');
 

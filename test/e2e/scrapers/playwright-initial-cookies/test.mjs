@@ -1,4 +1,4 @@
-import { getTestDir, getStats, run, expect, getDatasetItems } from '../tools.mjs';
+import { getTestDir, getStats, run, expect, getDatasetItems } from '../../tools.mjs';
 
 const testDir = getTestDir(import.meta.url);
 
