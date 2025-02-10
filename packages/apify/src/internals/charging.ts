@@ -6,8 +6,6 @@ import { Configuration } from '../configuration.js';
 
 /**
  * Handles pay-per-event charging.
- *
- * @internal
  */
 export class ChargingManager {
     private readonly LOCAL_CHARGING_LOG_DATASET_NAME = 'charging_log';

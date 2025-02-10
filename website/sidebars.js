@@ -16,6 +16,7 @@ module.exports = {
                 'guides/environment-variables',
                 'guides/proxy-management',
                 'guides/session-management',
+                'guides/pay-per-event',
                 'guides/type-script-actor',
                 'guides/docker-images',
             ],
