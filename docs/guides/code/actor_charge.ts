@@ -9,11 +9,11 @@ await Actor.charge({ eventName: 'init' });
 
 // Prepare some mock results
 const result = [
-    { word: "Lorem" }, 
-    { word: "Ipsum" }, 
-    { word: "Dolor" }, 
-    { word: "Sit" }, 
-    { word: "Amet" },
+    { word: 'Lorem' }, 
+    { word: 'Ipsum' }, 
+    { word: 'Dolor' }, 
+    { word: 'Sit' }, 
+    { word: 'Amet' },
 ];
 
 // highlight-start
