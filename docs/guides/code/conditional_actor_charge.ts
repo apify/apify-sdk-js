@@ -2,7 +2,9 @@ import { Actor } from 'apify';
 
 await Actor.init();
 
-let chargedItems = 0;
+// Check the dataset because there might already be items if the run migrated or was restarted
+const defaultDataset = Actor.openDataset();
+let chargedItems = (await defaultDataset.getInfo()!).itemCount;
 
 // highlight-start
 if (Actor.getChargingManager().getPricingInfo().isPayPerEvent) {
