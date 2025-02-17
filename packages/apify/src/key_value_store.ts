@@ -20,7 +20,7 @@ export class KeyValueStore extends CoreKeyValueStore {
             return getPublicUrl.call(this, key);
         }
 
-        const publicUrl = new URL(`https://api.apify.com/v2/key-value-stores/${this.id}/records/${key}`, 'https://api.apify.com');
+        const publicUrl = new URL(`https://api.apify.com/v2/key-value-stores/${this.id}/records/${key}`);
 
         if (this.storageObject?.urlSigningSecretKey) {
             publicUrl.searchParams.append('signature', createHmacSignature(this.storageObject.urlSigningSecretKey as string, key));
