@@ -20,11 +20,13 @@ export class KeyValueStore extends CoreKeyValueStore {
             return getPublicUrl.call(this, key);
         }
 
-        if (!this.storageObject?.urlSigningSecretKea) {
-            return `https://api.apify.com/v2/key-value-stores/${this.id}/records/${key}`;
+        const publicUrl = new URL(`https://api.apify.com/v2/key-value-stores/${this.id}/records/${key}`, 'https://api.apify.com');
+
+        if (this.storageObject?.urlSigningSecretKey) {
+            publicUrl.searchParams.append('signature', createHmacSignature(this.storageObject.urlSigningSecretKey as string, key));
         }
 
-        return `https://api.apify.com/v2/key-value-stores/${this.id}/records/${key}?signature=${createHmacSignature(this.storageObject.urlSigningSecretKea as string, key)}`;
+        return publicUrl.toString();
     }
 
     /**
