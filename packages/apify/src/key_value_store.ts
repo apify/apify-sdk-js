@@ -1,3 +1,4 @@
+import { createHmacSignature } from '@apify/utilities';
 import type { StorageManagerOptions } from '@crawlee/core';
 import { KeyValueStore as CoreKeyValueStore } from '@crawlee/core';
 
@@ -19,7 +20,11 @@ export class KeyValueStore extends CoreKeyValueStore {
             return getPublicUrl.call(this, key);
         }
 
-        return `https://api.apify.com/v2/key-value-stores/${this.id}/records/${key}`;
+        if (!this.storageObject?.urlSigningSecretKea) {
+            return `https://api.apify.com/v2/key-value-stores/${this.id}/records/${key}`;
+        }
+
+        return `https://api.apify.com/v2/key-value-stores/${this.id}/records/${key}?signature=${createHmacSignature(this.storageObject.urlSigningSecretKea as string, key)}`;
     }
 
     /**
