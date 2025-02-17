@@ -1,4 +1,5 @@
 export * from './actor';
+export * from './charging';
 export * from './configuration';
 export * from './proxy_configuration';
 export * from './platform_event_manager';

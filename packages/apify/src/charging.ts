@@ -2,12 +2,10 @@ import log from '@apify/log';
 import { Dataset, KeyValueStore } from '@crawlee/core';
 import { type ActorRunPricingInfo, ApifyClient } from 'apify-client';
 
-import { Configuration } from '../configuration.js';
+import { Configuration } from './configuration.js';
 
 /**
  * Handles pay-per-event charging.
- *
- * @internal
  */
 export class ChargingManager {
     private readonly LOCAL_CHARGING_LOG_DATASET_NAME = 'charging_log';
