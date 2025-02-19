@@ -1,1 +1,1 @@
-[{"entryPoints":{"index":{"label":"Index","path":"src/index.ts"}},"packageRoot":"/home/janbuchar/Projekty/Apify/apify-sdk-js/packages/apify","packagePath":"packages/apify","packageSlug":"apify","packageName":"apify","packageVersion":"3.3.0"}]
+[{"entryPoints":{"index":{"label":"Index","path":"src/index.ts"}},"packagePath":"packages/apify","packageSlug":"apify","packageName":"apify","packageVersion":"3.3.0"}]
