@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [3.3.2](https://github.com/apify/apify-sdk-js/compare/apify@3.3.1...apify@3.3.2) (2025-02-20)
+
+
+### Bug Fixes
+
+* ensure `maxTotalChargeUsd` is correctly mapped to number, consider empty string as infinity ([#361](https://github.com/apify/apify-sdk-js/issues/361)) ([bb65f70](https://github.com/apify/apify-sdk-js/commit/bb65f70be4750c8dc1bee368f849fafa924add39))
+
+
+
+
+
 ## [3.3.1](https://github.com/apify/apify-sdk-js/compare/apify@3.3.0...apify@3.3.1) (2025-02-19)
 
 
