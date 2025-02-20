@@ -26,10 +26,7 @@ export class ChargingManager {
     private apifyClient: ApifyClient;
 
     constructor(configuration: Configuration, apifyClient: ApifyClient) {
-        this.maxTotalChargeUsd = configuration.get('maxTotalChargeUsd') ?? Infinity;
-        if (typeof this.maxTotalChargeUsd === 'string') { // TODO workaround for incorrect Configuration class behavior
-            this.maxTotalChargeUsd = Infinity;
-        }
+        this.maxTotalChargeUsd = configuration.get('maxTotalChargeUsd') || Infinity; // convert `0` to `Infinity` in case the value is an empty string
         this.isAtHome = configuration.get('isAtHome');
         this.actorRunId = configuration.get('actorRunId');
         this.purgeChargingLogDataset = configuration.get('purgeOnStart');

@@ -612,6 +612,7 @@ describe('Actor', () => {
                 expect(openStorageSpy).toBeCalledWith(queueId, sdk.apifyClient);
                 expect(openStorageSpy).toBeCalledTimes(1);
 
+                // @ts-expect-error private prop
                 expect(queue.initialCount).toBe(10);
             });
 
@@ -1028,6 +1029,20 @@ describe('Actor', () => {
             await Actor.pushData({ hello: 'apify' });
 
             expect(pushDataSpy).toHaveBeenCalledWith({ hello: 'apify' });
+        });
+    });
+
+    describe('Actor.config and PPE', () => {
+        test('should work', async () => {
+            await Actor.init();
+            process.env.ACTOR_MAX_TOTAL_CHARGE_USD = '';
+            expect(Actor.config.get('maxTotalChargeUsd')).toBe(0);
+            expect(Actor.getChargingManager().getMaxTotalChargeUsd()).toBe(Infinity);
+
+            // the value in charging manager is cached, so we cant test that here
+            process.env.ACTOR_MAX_TOTAL_CHARGE_USD = '123';
+            expect(Actor.config.get('maxTotalChargeUsd')).toBe(123);
+            await Actor.exit({ exit: false });
         });
     });
 });
