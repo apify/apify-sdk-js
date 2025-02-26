@@ -262,7 +262,7 @@
             "editor": "textfield"
         },
         "os": {
-            "sectionCaption": "Camoufox config",
+            "sectionCaption": "Camoufox options",
             "title": "Emulated operating system",
             "type": "array",
             "description": "Operating system to use for the fingerprint generation. Can be 'windows', 'macos', 'linux', or a list to randomly choose from.",
