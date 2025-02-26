@@ -18,7 +18,7 @@ To get started with Camoufox Scraper, you only need a few things. First, with `S
 
 The scraper starts by loading pages specified in the [**Start URLs**](#start-urls) input setting. You can make the scraper follow page links on the fly by setting a **[Link selector](#link-selector)**, **[Glob Patterns](#glob-patterns)** and/or **[Pseudo-URLs](#pseudo-urls)** to tell the scraper which links it should add to the crawler's request queue. This is useful for the recursive crawling of entire websites (e.g. finding all products available in an online store).
 
-To tell the scraper how to handle requests and extra data, you need to provide a **[Page function](#page-function)**, and optionally arrays of **[Pre-navigation hooks](#pre-navigation-hooks)** and **[Post-navigation hooks](#post-navigation-hooks)**. This is JavaScript code that is executed in the Node.js environment. Since the scraper uses the full-featured Chromium or Firefox browser, client-side logic to be executed within the context of the web-page can be done using the **[`page`](#page)** object within the Page function's context.
+To tell the scraper how to handle requests and extra data, you need to provide a **[Page function](#page-function)**, and optionally arrays of **[Pre-navigation hooks](#pre-navigation-hooks)** and **[Post-navigation hooks](#post-navigation-hooks)**. This is JavaScript code that is executed in the Node.js environment. Since the scraper uses the full-featured Camoufox browser, client-side logic to be executed within the context of the web-page can be done using the **[`page`](#page)** object within the Page function's context.
 
 In summary, Camoufox Scraper works as follows:
 
