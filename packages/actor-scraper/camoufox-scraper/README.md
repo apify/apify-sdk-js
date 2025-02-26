@@ -3,6 +3,12 @@ Camoufox Scraper is the most powerful scraper tool in our arsenal (aside from de
 It uses the Playwright library to programmatically control an instance of [Camoufox](https://github.com/daijro/camoufox) browser, a stealthy fork of Firefox.
 If using [Web Scraper](https://apify.com/apify/web-scraper) doesn't cut it for your use case, then Camoufox Scraper is what you need.
 
+> ⚠️ **Warning**
+>
+> Our experiments showed that Camoufox browser tends to be more resource heavy than other browsers.
+> This means that it might be slower and require larger memory allocation than other similar Actors.
+> Consider using Camoufox Scraper only when you need to scrape websites that are able to detect and block Playwright-controlled Chromium / Firefox.
+
 [Playwright](https://github.com/microsoft/playwright) is a Node.js library, so knowledge of Node.js and its paradigms is expected when working with this Actor.
 
 If you need either a faster, or a simpler tool, check out [Cheerio Scraper](https://apify.com/apify/cheerio-scraper) for optimization and speed, or [Web Scraper](https://apify.com/apify/web-scraper) for simplicity.
