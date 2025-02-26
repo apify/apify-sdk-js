@@ -40,6 +40,18 @@ export interface Input {
     keyValueStoreName?: string;
     requestQueueName?: string;
     headless: boolean;
+    os: string[];
+    blockImages: boolean;
+    blockWebrtc: boolean;
+    blockWebgl: boolean;
+    disableCoop: boolean;
+    geoip: boolean;
+    humanize: string;
+    locale: string[];
+    fonts: string[];
+    customFontsOnly: boolean;
+    enableCache: boolean;
+    debug: boolean;
 }
 
 export const enum ProxyRotation {

@@ -171,6 +171,7 @@ export class CrawlerSetup implements CrawlerSetupOptions {
                 launcher: firefox,
                 launchOptions: await launchOptions({
                     ...this.input,
+                    humanize: this.input.humanize ? Number(this.input.humanize) : 0,
                 }),
             } as PlaywrightLaunchContext,
             useSessionPool: true,
