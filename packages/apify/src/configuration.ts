@@ -172,7 +172,7 @@ export class Configuration extends CoreConfiguration {
         ACTOR_USE_CHARGING_LOG_DATASET: 'useChargingLogDataset',
     };
 
-    protected static override INTEGER_VARS = [...super.INTEGER_VARS, 'proxyPort', 'containerPort', 'metamorphAfterSleepMillis'];
+    protected static override INTEGER_VARS = [...super.INTEGER_VARS, 'proxyPort', 'containerPort', 'metamorphAfterSleepMillis', 'maxTotalChargeUsd'];
 
     protected static override BOOLEAN_VARS = [...super.BOOLEAN_VARS, 'isAtHome', 'testPayPerEvent', 'useChargingLogDataset'];
 
