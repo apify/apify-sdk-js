@@ -16,11 +16,12 @@ export class KeyValueStore extends CoreKeyValueStore {
      * access the value in the remote key-value store.
      */
     override getPublicUrl(key: string): string {
-        if (!(this.config as Configuration).get('isAtHome') && getPublicUrl) {
+        const config = this.config as Configuration;
+        if (!config.get('isAtHome') && getPublicUrl) {
             return getPublicUrl.call(this, key);
         }
 
-        const publicUrl = new URL(`https://api.apify.com/v2/key-value-stores/${this.id}/records/${key}`);
+        const publicUrl = new URL(`${config.get('apiPublicBaseUrl', 'https://api.apify.com')}/v2/key-value-stores/${this.id}/records/${key}`);
 
         if (this.storageObject?.urlSigningSecretKey) {
             publicUrl.searchParams.append('signature', createHmacSignature(this.storageObject.urlSigningSecretKey as string, key));

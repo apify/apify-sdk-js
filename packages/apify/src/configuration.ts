@@ -16,6 +16,7 @@ export interface ConfigurationOptions extends CoreConfigurationOptions {
     actorRunId?: string;
     actorTaskId?: string;
     apiBaseUrl?: string;
+    apiPublicBaseUrl?: string;
     containerPort?: number;
     containerUrl?: string;
     proxyHostname?: string;
@@ -139,6 +140,7 @@ export class Configuration extends CoreConfiguration {
         APIFY_ACTOR_EVENTS_WS_URL: 'actorEventsWsUrl',
         APIFY_ACTOR_ID: 'actorId',
         APIFY_API_BASE_URL: 'apiBaseUrl',
+        APIFY_API_PUBLIC_BASE_URL: 'apiPublicBaseUrl',
         APIFY_IS_AT_HOME: 'isAtHome',
         APIFY_ACTOR_RUN_ID: 'actorRunId',
         APIFY_ACTOR_TASK_ID: 'actorTaskId',
@@ -183,6 +185,7 @@ export class Configuration extends CoreConfiguration {
         defaultRequestQueueId: LOCAL_ACTOR_ENV_VARS[ACTOR_ENV_VARS.DEFAULT_REQUEST_QUEUE_ID],
         inputKey: 'INPUT',
         apiBaseUrl: 'https://api.apify.com',
+        apiPublicBaseUrl: 'https://api.apify.com',
         proxyStatusUrl: 'http://proxy.apify.com',
         proxyHostname: LOCAL_APIFY_ENV_VARS[APIFY_ENV_VARS.PROXY_HOSTNAME],
         proxyPort: +LOCAL_APIFY_ENV_VARS[APIFY_ENV_VARS.PROXY_PORT],
