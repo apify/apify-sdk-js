@@ -2,12 +2,12 @@ import { Actor, log } from 'apify';
 
 await Actor.init();
 
-const { data, recordKey } = await Actor.getInput();
+const { data } = await Actor.getInput();
 
-await Actor.setValue(recordKey, JSON.stringify(data), { contentType: `application/json` });
+await Actor.setValue('public-record-key', JSON.stringify(data), { contentType: `application/json` });
 
 const defaultKeyValueStore = await Actor.openKeyValueStore();
-const publicUrl = defaultKeyValueStore.getPublicUrl(recordKey);
+const publicUrl = defaultKeyValueStore.getPublicUrl('public-record-key');
 
 // Here we store the url itself
 await Actor.setValue('urlToPublicData', publicUrl);

@@ -16,6 +16,8 @@ export interface ConfigurationOptions extends CoreConfigurationOptions {
     actorRunId?: string;
     actorTaskId?: string;
     apiBaseUrl?: string;
+    // apiBaseUrl is the internal API URL, accessible only within the platform(private network),
+    // while apiPublicBaseUrl is the public API URL, available externally(through internet).
     apiPublicBaseUrl?: string;
     containerPort?: number;
     containerUrl?: string;

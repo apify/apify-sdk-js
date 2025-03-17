@@ -10,7 +10,7 @@ const client = new ApifyClient({
 
 const actor = client.actor(process.argv[2]);
 
-const run = await actor.call({ data: PUBLIC_DATA, recordKey: 'public-record-key' }, { waitSecs: 15 });
+const run = await actor.call({ data: PUBLIC_DATA }, { waitSecs: 15 });
 assert.equal(run.exitCode, 0);
 
 const publicUrl = await client.keyValueStore(run.defaultKeyValueStoreId).getRecord('urlToPublicData');
