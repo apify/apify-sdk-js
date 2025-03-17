@@ -2,7 +2,6 @@ import assert from 'node:assert/strict';
 
 import { ApifyClient } from 'apify';
 
-// Also needs to be changed in main.mjs
 const PUBLIC_DATA = { exposedData: 'test' };
 
 const client = new ApifyClient({
@@ -11,7 +10,7 @@ const client = new ApifyClient({
 
 const actor = client.actor(process.argv[2]);
 
-const run = await actor.call({}, { waitSecs: 15 });
+const run = await actor.call({ data: PUBLIC_DATA, recordKey: 'public-record-key' }, { waitSecs: 15 });
 assert.equal(run.exitCode, 0);
 
 const publicUrl = await client.keyValueStore(run.defaultKeyValueStoreId).getRecord('urlToPublicData');
