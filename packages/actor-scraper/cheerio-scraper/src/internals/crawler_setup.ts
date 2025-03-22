@@ -24,6 +24,8 @@ import {
     log,
     Dictionary,
     Awaitable,
+    RequestOptions,
+    RequestTransform,
 } from '@crawlee/cheerio';
 import { Actor, ApifyEnv } from 'apify';
 import { load } from 'cheerio';
@@ -56,6 +58,7 @@ export class CrawlerSetup implements CrawlerSetupOptions {
     evaledPageFunction: (...args: unknown[]) => unknown;
     evaledPreNavigationHooks: ((...args: unknown[]) => Awaitable<void>)[];
     evaledPostNavigationHooks: ((...args: unknown[]) => Awaitable<void>)[];
+    evaledTransformRequestFunction?: RequestTransform;
     datasetName?: string;
     keyValueStoreName?: string;
     requestQueueName?: string;
@@ -98,6 +101,10 @@ export class CrawlerSetup implements CrawlerSetupOptions {
 
         // Functions need to be evaluated.
         this.evaledPageFunction = tools.evalFunctionOrThrow(this.input.pageFunction);
+
+        if (this.input.transformRequestFunction) {
+            this.evaledTransformRequestFunction = tools.evalFunctionOrThrow(this.input.transformRequestFunction) as RequestTransform;
+        }
 
         if (this.input.preNavigationHooks) {
             this.evaledPreNavigationHooks = tools.evalFunctionArrayOrThrow(this.input.preNavigationHooks, 'preNavigationHooks');
@@ -340,22 +347,38 @@ export class CrawlerSetup implements CrawlerSetupOptions {
             return;
         }
 
+        const baseTransformRequestFunction = (requestOptions: RequestOptions) => {
+            requestOptions.userData ??= {};
+            requestOptions.userData[META_KEY] = {
+                parentRequestId: request.id || request.uniqueKey,
+                depth: currentDepth + 1,
+            };
+
+            requestOptions.useExtendedUniqueKey = true;
+            requestOptions.keepUrlFragment = this.input.keepUrlFragments;
+            return requestOptions;
+        }
+
+        let transformRequestFunction: RequestTransform;
+
+        if (this.evaledTransformRequestFunction) {
+            transformRequestFunction = (requestOptions: RequestOptions) => {
+                const updatedOptions = this.evaledTransformRequestFunction!(requestOptions);
+                if (updatedOptions) {
+                    return baseTransformRequestFunction(requestOptions);
+                }
+                return updatedOptions;
+            }
+        } else {
+            transformRequestFunction = baseTransformRequestFunction;
+        }
+
         await enqueueLinks({
             selector: this.input.linkSelector,
             pseudoUrls: this.input.pseudoUrls,
             globs: this.input.globs,
             exclude: this.input.excludes,
-            transformRequestFunction: (requestOptions) => {
-                requestOptions.userData ??= {};
-                requestOptions.userData[META_KEY] = {
-                    parentRequestId: request.id || request.uniqueKey,
-                    depth: currentDepth + 1,
-                };
-
-                requestOptions.useExtendedUniqueKey = true;
-                requestOptions.keepUrlFragment = this.input.keepUrlFragments;
-                return requestOptions;
-            },
+            transformRequestFunction,
         });
     }
 
