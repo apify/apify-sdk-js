@@ -10,7 +10,7 @@
         "@crawlee/playwright": "^3.11.5",
         "@crawlee/utils": "^3.11.5",
         "apify": "^3.2.6",
-        "camoufox-js": "^0.2.0",
+        "camoufox-js": "^0.3.0",
         "idcac-playwright": "^0.1.3",
         "playwright": "*"
     },
