@@ -1,7 +1,8 @@
-import { APIFY_ENV_VARS, LOCAL_APIFY_ENV_VARS } from '@apify/consts';
 import { Actor, ProxyConfiguration } from 'apify';
 import { UserClient } from 'apify-client';
 import { Request } from 'crawlee';
+
+import { APIFY_ENV_VARS, LOCAL_APIFY_ENV_VARS } from '@apify/consts';
 
 const groups = ['GROUP1', 'GROUP2'];
 const hostname = LOCAL_APIFY_ENV_VARS[APIFY_ENV_VARS.PROXY_HOSTNAME];

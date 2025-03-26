@@ -1,14 +1,15 @@
 import { type } from 'node:os';
 import { normalize } from 'node:path';
 
-import { APIFY_ENV_VARS } from '@apify/consts';
-import log from '@apify/log';
 // @ts-expect-error if we enable resolveJsonModule, we end up with `src` folder in `dist`
 import { version as crawleeVersion } from '@crawlee/core/package.json';
 // @ts-expect-error if we enable resolveJsonModule, we end up with `src` folder in `dist`
 import { version as apifyClientVersion } from 'apify-client/package.json';
 import { pathExistsSync, readJSONSync } from 'fs-extra';
 import semver from 'semver';
+
+import { APIFY_ENV_VARS } from '@apify/consts';
+import log from '@apify/log';
 
 // @ts-expect-error if we enable resolveJsonModule, we end up with `src` folder in `dist`
 import { version as apifyVersion } from '../package.json';
@@ -64,7 +65,7 @@ export function checkCrawleeVersion() {
 
         if (version != null && version !== crawleeVersion) {
             const details = `User installed version (${version}) found in ${path}.\nSDK uses ${crawleeVersion} from ${require.resolve('@crawlee/core')}`;
-            // eslint-disable-next-line max-len
+
             throw new Error(`Detected incompatible Crawlee version used by the SDK. User installed ${version} but the SDK uses ${crawleeVersion}.\n\n${details}`);
         }
     }

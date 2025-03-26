@@ -1,5 +1,3 @@
-import { APIFY_PROXY_VALUE_REGEX, APIFY_ENV_VARS } from '@apify/consts';
-import { cryptoRandomObjectId } from '@apify/utilities';
 import type {
     ProxyConfigurationOptions as CoreProxyConfigurationOptions,
     ProxyInfo as CoreProxyInfo,
@@ -10,6 +8,9 @@ import {
 import { gotScraping } from '@crawlee/utils';
 import type { UserProxy } from 'apify-client';
 import ow from 'ow';
+
+import { APIFY_ENV_VARS, APIFY_PROXY_VALUE_REGEX } from '@apify/consts';
+import { cryptoRandomObjectId } from '@apify/utilities';
 
 import { Actor } from './actor';
 import { Configuration } from './configuration';

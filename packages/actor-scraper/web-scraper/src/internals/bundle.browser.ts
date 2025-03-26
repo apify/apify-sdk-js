@@ -1,20 +1,21 @@
 /* eslint-disable max-classes-per-file */
 
-import { Log } from '@apify/log';
-import type { CrawlerSetupOptions, constants, RequestMetadata } from '@apify/scraper-tools';
 import type {
+    Dictionary,
     KeyValueStore,
     RecordOptions,
     Request,
     RequestOptions,
     RequestQueue,
     RequestQueueOperationOptions,
-    Dictionary,
 } from '@crawlee/puppeteer';
 import type { ApifyEnv } from 'apify';
 
-import { Input } from './consts';
-import { GlobalStore } from './global_store';
+import type { Log } from '@apify/log';
+import type { constants, CrawlerSetupOptions, RequestMetadata } from '@apify/scraper-tools';
+
+import type { Input } from './consts';
+import type { GlobalStore } from './global_store';
 
 /**
  * Command to be evaluated for Browser side code injection.

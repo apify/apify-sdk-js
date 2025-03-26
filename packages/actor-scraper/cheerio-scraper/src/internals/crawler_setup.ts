@@ -1,34 +1,37 @@
 import { readFile } from 'node:fs/promises';
-import { IncomingMessage } from 'node:http';
+import type { IncomingMessage } from 'node:http';
 import { dirname } from 'node:path';
 import { fileURLToPath, URL } from 'node:url';
 
-import {
-    constants as scraperToolsConstants,
-    CrawlerSetupOptions,
-    createContext,
-    RequestMetadata,
-    tools,
-} from '@apify/scraper-tools';
-import {
-    AutoscaledPool,
-    CheerioCrawler,
+import type { AutoscaledPool,
+    Awaitable,
     CheerioCrawlerOptions,
     CheerioCrawlingContext,
+    Dictionary,
+    ProxyConfiguration,
+    Request } from '@crawlee/cheerio';
+import {
+    CheerioCrawler,
     Dataset,
     KeyValueStore,
-    ProxyConfiguration,
-    Request,
+    log,
     RequestList,
     RequestQueueV2,
-    log,
-    Dictionary,
-    Awaitable,
 } from '@crawlee/cheerio';
-import { Actor, ApifyEnv } from 'apify';
+import type { ApifyEnv } from 'apify';
+import { Actor } from 'apify';
 import { load } from 'cheerio';
 
-import { Input, ProxyRotation } from './consts.js';
+import type { CrawlerSetupOptions,
+    RequestMetadata } from '@apify/scraper-tools';
+import {
+    constants as scraperToolsConstants,
+    createContext,
+    tools,
+} from '@apify/scraper-tools';
+
+import type { Input } from './consts.js';
+import { ProxyRotation } from './consts.js';
 
 const { SESSION_MAX_USAGE_COUNTS, META_KEY } = scraperToolsConstants;
 const SCHEMA = JSON.parse(await readFile(new URL('../../INPUT_SCHEMA.json', import.meta.url), 'utf8'));

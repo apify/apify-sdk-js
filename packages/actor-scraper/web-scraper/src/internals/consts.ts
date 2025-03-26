@@ -1,5 +1,5 @@
-import type { ProxyConfigurationOptions, GlobInput, RegExpInput, PseudoUrlInput, RequestOptions, Session, Dictionary } from '@crawlee/puppeteer';
-import { PuppeteerLifeCycleEvent } from 'puppeteer';
+import type { Dictionary, GlobInput, ProxyConfigurationOptions, PseudoUrlInput, RegExpInput, RequestOptions, Session } from '@crawlee/puppeteer';
+import type { PuppeteerLifeCycleEvent } from 'puppeteer';
 
 /**
  * Port where the remote debugging interface in Chrome

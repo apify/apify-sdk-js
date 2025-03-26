@@ -1,9 +1,10 @@
-import { ACTOR_ENV_VARS, APIFY_ENV_VARS } from '@apify/consts';
 import { EventType } from '@crawlee/core';
 import type { Dictionary } from '@crawlee/utils';
 import { sleep } from '@crawlee/utils';
 import { Actor, Configuration, PlatformEventManager } from 'apify';
 import { WebSocketServer } from 'ws';
+
+import { ACTOR_ENV_VARS, APIFY_ENV_VARS } from '@apify/consts';
 
 describe('events', () => {
     let wss: WebSocketServer = null;

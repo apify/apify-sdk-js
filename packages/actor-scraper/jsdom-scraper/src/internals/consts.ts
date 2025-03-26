@@ -1,4 +1,4 @@
-import { ProxyConfigurationOptions, GlobInput, RegExpInput, PseudoUrlInput, RequestOptions, Session, Dictionary } from '@crawlee/jsdom';
+import type { Dictionary, GlobInput, ProxyConfigurationOptions, PseudoUrlInput, RegExpInput, RequestOptions, Session } from '@crawlee/jsdom';
 
 /**
  * Replicates the INPUT_SCHEMA with JavaScript types for quick reference

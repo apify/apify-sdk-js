@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url';
 
 import { purgeDefaultStorages } from '@crawlee/core';
 import { Configuration, KeyValueStore } from 'apify';
-import { URL_NO_COMMAS_REGEX, sleep } from 'crawlee';
+import { sleep, URL_NO_COMMAS_REGEX } from 'crawlee';
 import fs from 'fs-extra';
 
 export const SKIPPED_TEST_CLOSE_CODE = 404;

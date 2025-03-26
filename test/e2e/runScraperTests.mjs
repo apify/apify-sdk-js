@@ -1,9 +1,10 @@
-import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { once } from 'node:events';
 import { readdir } from 'node:fs/promises';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { isMainThread, Worker, workerData } from 'node:worker_threads';
-import { colors, clearStorage, SKIPPED_TEST_CLOSE_CODE } from './tools.mjs';
+
+import { clearStorage, colors, SKIPPED_TEST_CLOSE_CODE } from './tools.mjs';
 
 const basePath = join(dirname(fileURLToPath(import.meta.url)), 'scrapers');
 

@@ -3,11 +3,12 @@ import { once } from 'node:events';
 import { readdir, readFile } from 'node:fs/promises';
 import { basename, dirname, join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { Worker, isMainThread, workerData } from 'node:worker_threads';
+import { isMainThread, Worker, workerData } from 'node:worker_threads';
+
+import { ApifyClient } from 'apify-client';
 
 import { ACTOR_SOURCE_TYPES } from '@apify/consts';
 import { cryptoRandomObjectId } from '@apify/utilities';
-import { ApifyClient } from 'apify-client';
 
 const rootPath = dirname(fileURLToPath(import.meta.url));
 const basePath = join(rootPath, 'sdk');

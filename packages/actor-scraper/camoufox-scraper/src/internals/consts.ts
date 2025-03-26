@@ -1,5 +1,5 @@
-import { Session, ProxyConfigurationOptions, GlobInput, RegExpInput, PseudoUrlInput, RequestOptions } from '@crawlee/core';
-import { Dictionary } from '@crawlee/utils';
+import type { GlobInput, ProxyConfigurationOptions, PseudoUrlInput, RegExpInput, RequestOptions, Session } from '@crawlee/core';
+import type { Dictionary } from '@crawlee/utils';
 
 /**
  * Replicates the INPUT_SCHEMA with TypeScript types for quick reference

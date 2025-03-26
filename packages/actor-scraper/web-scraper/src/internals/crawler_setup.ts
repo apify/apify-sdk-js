@@ -3,32 +3,36 @@ import { dirname } from 'node:path';
 import { setTimeout } from 'node:timers/promises';
 import { fileURLToPath, URL } from 'node:url';
 
-import { browserTools, constants as scraperToolsConstants, CrawlerSetupOptions, createContext, tools } from '@apify/scraper-tools';
-import {
-    AutoscaledPool,
-    Dataset,
-    KeyValueStore,
-    PuppeteerCrawlingContext,
-    PuppeteerCrawler,
-    PuppeteerCrawlerOptions,
-    puppeteerUtils,
-    Request,
-    RequestList,
-    RequestQueueV2,
-    log,
+import type { AutoscaledPool,
     Awaitable,
     Dictionary,
     ProxyConfiguration,
+    PuppeteerCrawlerOptions,
+    PuppeteerCrawlingContext,
+    Request } from '@crawlee/puppeteer';
+import {
+    Dataset,
+    KeyValueStore,
+    log,
+    PuppeteerCrawler,
+    puppeteerUtils,
+    RequestList,
+    RequestQueueV2,
 } from '@crawlee/puppeteer';
-import { Actor, ApifyEnv } from 'apify';
+import type { ApifyEnv } from 'apify';
+import { Actor } from 'apify';
 import contentType from 'content-type';
 // @ts-expect-error no typings
 import DevToolsServer from 'devtools-server';
 import { getInjectableScript } from 'idcac-playwright';
-import { HTTPResponse, Page } from 'puppeteer';
+import type { HTTPResponse, Page } from 'puppeteer';
+
+import type { CrawlerSetupOptions, createContext } from '@apify/scraper-tools';
+import { browserTools, constants as scraperToolsConstants, tools } from '@apify/scraper-tools';
 
 import { createBundle } from './bundle.browser.js';
-import { BreakpointLocation, CHROME_DEBUGGER_PORT, Input, ProxyRotation, RunMode } from './consts.js';
+import type { Input } from './consts.js';
+import { BreakpointLocation, CHROME_DEBUGGER_PORT, ProxyRotation, RunMode } from './consts.js';
 import { GlobalStore } from './global_store.js';
 
 const SESSION_STORE_NAME = 'APIFY-WEB-SCRAPER-SESSION-STORE';

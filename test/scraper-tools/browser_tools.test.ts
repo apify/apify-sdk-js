@@ -1,6 +1,7 @@
+import { KeyValueStore, launchPuppeteer } from 'crawlee';
+
 import log from '@apify/log';
 import { browserTools } from '@apify/scraper-tools';
-import { launchPuppeteer, KeyValueStore } from 'crawlee';
 
 describe('browserTools', () => {
     let browser: Awaited<ReturnType<typeof launchPuppeteer>>;

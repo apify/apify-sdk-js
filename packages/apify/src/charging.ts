@@ -1,8 +1,9 @@
-import log from '@apify/log';
 import { Dataset, KeyValueStore } from '@crawlee/core';
-import { type ActorRunPricingInfo, ApifyClient } from 'apify-client';
+import type { type ActorRunPricingInfo, ApifyClient } from 'apify-client';
 
-import { Configuration } from './configuration.js';
+import log from '@apify/log';
+
+import type { Configuration } from './configuration.js';
 
 /**
  * Handles pay-per-event charging.

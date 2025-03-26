@@ -1,12 +1,13 @@
+import type { ConfigurationOptions as CoreConfigurationOptions } from '@crawlee/core';
+import { Configuration as CoreConfiguration } from '@crawlee/core';
+
+import type { META_ORIGINS } from '@apify/consts';
 import {
     ACTOR_ENV_VARS,
     APIFY_ENV_VARS,
     LOCAL_ACTOR_ENV_VARS,
     LOCAL_APIFY_ENV_VARS,
-    META_ORIGINS,
 } from '@apify/consts';
-import { Configuration as CoreConfiguration } from '@crawlee/core';
-import type { ConfigurationOptions as CoreConfigurationOptions } from '@crawlee/core';
 
 export interface ConfigurationOptions extends CoreConfigurationOptions {
     metamorphAfterSleepMillis?: number;

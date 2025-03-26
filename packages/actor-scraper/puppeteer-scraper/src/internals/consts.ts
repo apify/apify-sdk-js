@@ -1,6 +1,6 @@
-import { Session, ProxyConfigurationOptions, GlobInput, RegExpInput, PseudoUrlInput, RequestOptions } from '@crawlee/puppeteer';
-import { Dictionary } from '@crawlee/utils';
-import { PuppeteerLifeCycleEvent } from 'puppeteer';
+import type { GlobInput, ProxyConfigurationOptions, PseudoUrlInput, RegExpInput, RequestOptions, Session } from '@crawlee/puppeteer';
+import type { Dictionary } from '@crawlee/utils';
+import type { PuppeteerLifeCycleEvent } from 'puppeteer';
 
 /**
  * Replicates the INPUT_SCHEMA with TypeScript types for quick reference

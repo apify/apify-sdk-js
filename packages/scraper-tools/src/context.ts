@@ -1,18 +1,19 @@
 /* eslint-disable @typescript-eslint/no-unsafe-declaration-merging */
-import log from '@apify/log';
 import type {
     KeyValueStore,
     RecordOptions,
     Request,
     RequestOptions,
-    RequestQueueV2,
     RequestQueueOperationOptions,
+    RequestQueueV2,
 } from '@crawlee/core';
 import type { Dictionary } from '@crawlee/utils';
 import type { ApifyEnv } from 'apify';
 import { Actor } from 'apify';
 import type { MediaType } from 'content-type';
 import contentTypeParser from 'content-type';
+
+import log from '@apify/log';
 
 import type { SnapshotOptions } from './browser_tools';
 import { saveSnapshot } from './browser_tools';

@@ -1,11 +1,12 @@
 import type { IncomingMessage } from 'node:http';
 
-import { APIFY_ENV_VARS } from '@apify/consts';
-import log from '@apify/log';
 import type { Request } from '@crawlee/core';
 import { createRequestDebugInfo } from '@crawlee/utils';
 import { Actor } from 'apify';
 import semver from 'semver';
+
+import { APIFY_ENV_VARS } from '@apify/consts';
+import log from '@apify/log';
 
 import { printOutdatedSdkWarning } from '../../packages/apify/src/utils';
 
