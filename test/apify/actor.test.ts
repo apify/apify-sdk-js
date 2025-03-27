@@ -860,7 +860,7 @@ describe('Actor', () => {
             const persistenceStore = [];
 
             const persistResource = (delay: number) => async () : Promise<void> => {
-                await new Promise((res) => setTimeout(res, delay));
+                await sleep(delay);
                 persistenceStore.push('PERSISTED ITEM');
             };
 

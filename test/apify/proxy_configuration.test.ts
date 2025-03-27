@@ -1,6 +1,6 @@
 import { Actor, ProxyConfiguration } from 'apify';
 import { UserClient } from 'apify-client';
-import { Request } from 'crawlee';
+import { Request, sleep } from 'crawlee';
 
 import { APIFY_ENV_VARS, LOCAL_APIFY_ENV_VARS } from '@apify/consts';
 
@@ -211,7 +211,7 @@ describe('ProxyConfiguration', () => {
         const customUrls = ['http://proxy.com:1111', 'http://proxy.com:2222', 'http://proxy.com:3333',
             'http://proxy.com:4444', 'http://proxy.com:5555', 'http://proxy.com:6666'];
         const newUrlFunction = async () => {
-            await new Promise((r) => setTimeout(r, 5));
+            await sleep(5);
             return customUrls.pop();
         };
         const proxyConfiguration = new ProxyConfiguration({
