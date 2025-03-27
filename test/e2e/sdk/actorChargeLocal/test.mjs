@@ -17,7 +17,7 @@ const runActor = async (input = {}, options = {}) => {
     return await client.run(runId).get();
 };
 
-test('basic functionality', async () => {
+void test('basic functionality', async () => {
     const run = await runActor();
 
     assert.strictEqual(run.status, 'SUCCEEDED');
@@ -31,7 +31,7 @@ test('basic functionality', async () => {
     assert.strictEqual(chargingRecords.items[0].eventName, 'foobar');
 });
 
-test('charge limit', async () => {
+void test('charge limit', async () => {
     const run = await runActor({ maxTotalChargeUsd: 2 });
 
     assert.strictEqual(run.status, 'SUCCEEDED');

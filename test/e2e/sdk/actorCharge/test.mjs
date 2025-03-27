@@ -33,7 +33,7 @@ const runActor = async (input, options) => {
     return await client.run(runId).get();
 };
 
-test('basic functionality', async () => {
+void test('basic functionality', async () => {
     const run = await runActor({}, { maxTotalChargeUsd: 10 });
 
     assert.strictEqual(run.status, 'SUCCEEDED');
@@ -45,14 +45,14 @@ test('basic functionality', async () => {
     assert.equal(chargingDatasetId, null, 'Charging dataset ID must not be present');
 });
 
-test('charge limit', async () => {
+void test('charge limit', async () => {
     const run = await runActor({}, { maxTotalChargeUsd: 0.2 });
 
     assert.strictEqual(run.status, 'SUCCEEDED');
     assert.deepEqual(run.chargedEventCounts, { foobar: 2 });
 });
 
-test('default charge limit 0', async () => {
+void test('default charge limit 0', async () => {
     const run = await runActor({}, {});
 
     assert.strictEqual(run.status, 'SUCCEEDED');

@@ -1,6 +1,6 @@
 import { expect, getDatasetItems, getStats, getTestDir, run, skipTest, validateDataset } from '../../tools.mjs';
 
-skipTest('httpstat.us is very unstable');
+void skipTest('httpstat.us is very unstable');
 
 const testDir = getTestDir(import.meta.url);
 

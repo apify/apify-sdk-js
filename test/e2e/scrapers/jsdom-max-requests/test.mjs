@@ -1,6 +1,6 @@
 import { expect, getDatasetItems, getStats, getTestDir, run, skipTest, validateDataset } from '../../tools.mjs';
 
-skipTest('broken test');
+void skipTest('broken test');
 
 const testDir = getTestDir(import.meta.url);
 
