@@ -94,7 +94,7 @@ describe('browserTools', () => {
                 console.error('error');
                 console.debug('debug');
 
-                await sleep(10);
+                await new Promise((resolve) => { setTimeout(resolve, 10); });
             });
 
             expect(debug).toBeCalledTimes(1);
@@ -110,7 +110,7 @@ describe('browserTools', () => {
             await page.evaluate(async () => {
                 /* eslint-disable no-console */
                 console.error('error');
-                await sleep(10);
+                await new Promise((resolve) => { setTimeout(resolve, 10); });
             });
 
             expect(error).toBeCalledTimes(1);
