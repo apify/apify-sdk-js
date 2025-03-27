@@ -20,6 +20,13 @@ import { saveSnapshot } from './browser_tools';
 import { META_KEY } from './consts';
 import type { RequestMetadata } from './tools';
 
+export interface MapLike<K, V> extends Omit<Map<K, V>, 'values' | 'keys' | 'entries'| 'set'> {
+    keys: () => K[];
+    values: () => V[];
+    entries: () => [K, V][];
+    set: (key: K, value: V) => MapLike<K, V>;
+}
+
 export interface CrawlerSetupOptions {
     rawInput: string;
     env: ApifyEnv;
@@ -27,13 +34,6 @@ export interface CrawlerSetupOptions {
     requestQueue: RequestQueueV2;
     keyValueStore: KeyValueStore;
     customData: unknown;
-}
-
-export interface MapLike<K, V> extends Omit<Map<K, V>, 'values' | 'keys' | 'entries'| 'set'> {
-    keys: () => K[];
-    values: () => V[];
-    entries: () => [K, V][];
-    set: (key: K, value: V) => MapLike<K, V>;
 }
 
 export interface ContextOptions {

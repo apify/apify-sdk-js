@@ -17,6 +17,33 @@ import type { constants, CrawlerSetupOptions, RequestMetadata } from '@apify/scr
 import type { Input } from './consts';
 import type { GlobalStore } from './global_store';
 
+interface PoolOptions {
+    pollingIntervalMillis?: number;
+    timeoutMillis?: number;
+}
+
+interface InternalState {
+    browserHandles: Dictionary<string | Record<string, { value: unknown; type: 'METHOD' | 'VALUE' | 'GETTER' }>>;
+    requestQueue: RequestQueue | null;
+    keyValueStore: KeyValueStore | null;
+}
+
+interface ProvidedResponse {
+    status: number;
+    headers: Dictionary<string>;
+}
+
+interface BrowserCrawlerSetup extends CrawlerSetupOptions {
+    injectJQuery?: boolean;
+    META_KEY: typeof constants.META_KEY;
+}
+
+interface ContextOptions {
+    crawlerSetup: BrowserCrawlerSetup;
+    browserHandles: InternalState['browserHandles'];
+    pageFunctionArguments: Dictionary<unknown>;
+}
+
 /**
  * Command to be evaluated for Browser side code injection.
  * @param apifyNamespace
@@ -248,31 +275,4 @@ export function createBundle(apifyNamespace: string) {
             return new Context(options);
         };
     }(window, apifyNamespace));
-}
-
-interface PoolOptions {
-    pollingIntervalMillis?: number;
-    timeoutMillis?: number;
-}
-
-interface InternalState {
-    browserHandles: Dictionary<string | Record<string, { value: unknown; type: 'METHOD' | 'VALUE' | 'GETTER' }>>;
-    requestQueue: RequestQueue | null;
-    keyValueStore: KeyValueStore | null;
-}
-
-interface ContextOptions {
-    crawlerSetup: BrowserCrawlerSetup;
-    browserHandles: InternalState['browserHandles'];
-    pageFunctionArguments: Dictionary<unknown>;
-}
-
-interface ProvidedResponse {
-    status: number;
-    headers: Dictionary<string>;
-}
-
-interface BrowserCrawlerSetup extends CrawlerSetupOptions {
-    injectJQuery?: boolean;
-    META_KEY: typeof constants.META_KEY;
 }

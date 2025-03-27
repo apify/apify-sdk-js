@@ -2,6 +2,12 @@ import type { GlobInput, ProxyConfigurationOptions, PseudoUrlInput, RegExpInput,
 import type { Dictionary } from '@crawlee/utils';
 import type { PuppeteerLifeCycleEvent } from 'puppeteer';
 
+export const enum ProxyRotation {
+    Recommended = 'RECOMMENDED',
+    PerRequest = 'PER_REQUEST',
+    UntilFailure = 'UNTIL_FAILURE',
+}
+
 /**
  * Replicates the INPUT_SCHEMA with TypeScript types for quick reference
  * and IDE type check integration.
@@ -44,10 +50,4 @@ export interface Input {
     keyValueStoreName?: string;
     requestQueueName?: string;
     headless: boolean;
-}
-
-export const enum ProxyRotation {
-    Recommended = 'RECOMMENDED',
-    PerRequest = 'PER_REQUEST',
-    UntilFailure = 'UNTIL_FAILURE',
 }

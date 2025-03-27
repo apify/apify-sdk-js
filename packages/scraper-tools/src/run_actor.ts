@@ -3,16 +3,15 @@ import { Actor } from 'apify';
 
 import log from '@apify/log';
 
+export interface CommonCrawler {
+    run(): Promise<FinalStatistics>;
+}
 export interface CrawlerSetup {
     name: string;
     createCrawler: () => Promise<CommonCrawler>;
 }
 
 export type CrawlerSetupConstructor = new (input: any) => CrawlerSetup;
-
-export interface CommonCrawler {
-    run(): Promise<FinalStatistics>;
-}
 
 export function runActor(CrawlerSetup: CrawlerSetupConstructor) {
     void Actor.main(async () => {

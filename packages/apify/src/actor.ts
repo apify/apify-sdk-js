@@ -46,6 +46,266 @@ import type { ProxyConfigurationOptions } from './proxy_configuration';
 import { ProxyConfiguration } from './proxy_configuration';
 import { checkCrawleeVersion, getSystemInfo, printOutdatedSdkWarning } from './utils';
 
+export interface InitOptions {
+    storage?: StorageClient;
+}
+
+export interface ExitOptions {
+    /** Exit with given status message */
+    statusMessage?: string;
+    /**
+     * Amount of time, in seconds, to wait for all event handlers to finish before exiting the process.
+     * @default 30
+     */
+    timeoutSecs?: number;
+    /** Exit code, defaults to 0 */
+    exitCode?: number;
+    /** Call `process.exit()`? Defaults to true */
+    exit?: boolean;
+}
+
+export interface MainOptions extends ExitOptions, InitOptions {}
+
+/**
+ * Parsed representation of the Apify environment variables.
+ * This object is returned by the {@apilink Actor.getEnv} function.
+ */
+export interface ApifyEnv {
+    // TODO: if this interface hasn't been changed for a while, you
+    // are invited to check if there are any new env vars (refer to APIFY_ENV_VARS and ACTOR_ENV_VARS)
+
+    /**
+     * ID of the Actor (ACTOR_ID)
+     */
+    actorId: string | null;
+
+    /**
+     * ID of the Actor run (ACTOR_RUN_ID)
+     */
+    actorRunId: string | null;
+
+    /**
+     * ID of the Actor task (ACTOR_TASK_ID)
+     */
+    actorTaskId: string | null;
+
+    /**
+     * ID of the Actor build used in the run. (ACTOR_BUILD_ID)
+     */
+    actorBuildId: string | null;
+
+    /**
+     * ID of the user who started the Actor - note that it might be
+     * different than the owner of the Actor (APIFY_USER_ID)
+     */
+    userId: string | null;
+
+    /**
+     * Authentication token representing privileges given to the Actor run,
+     * it can be passed to various Apify APIs (APIFY_TOKEN)
+     */
+    token: string | null;
+
+    /**
+     * Date when the Actor was started (ACTOR_STARTED_AT)
+     */
+    startedAt: Date | null;
+
+    /**
+     * Date when the Actor will time out (ACTOR_TIMEOUT_AT)
+     */
+    timeoutAt: Date | null;
+
+    /**
+     * ID of the key-value store where input and output data of this
+     * Actor is stored (ACTOR_DEFAULT_KEY_VALUE_STORE_ID)
+     */
+    defaultKeyValueStoreId: string | null;
+
+    /**
+     * ID of the dataset where input and output data of this
+     * Actor is stored (ACTOR_DEFAULT_DATASET_ID)
+     */
+    defaultDatasetId: string | null;
+
+    /**
+     * Amount of memory allocated for the Actor,
+     * in megabytes (ACTOR_MEMORY_MBYTES)
+     */
+    memoryMbytes: number | null;
+
+    /**
+     * If set to "1", the web browsers inside the Actor should run in headless
+     * mode because there is no windowing system available. (APIFY_HEADLESS)
+     */
+    headless: string | null;
+
+    /**
+     * Is set to "1" if the Actor is running on Apify servers.
+     * (APIFY_IS_AT_HOME)
+     */
+    isAtHome: string | null;
+
+    /**
+     * The Apify Proxy password of the user who started the Actor. (APIFY_PROXY_PASSWORD)
+     */
+    proxyPassword: string | null;
+    proxyHostname: string | null;
+    proxyPort: string | null;
+
+    /**
+     * You can visit this page to troubleshoot your proxy connection. (APIFY_PROXY_STATUS_URL)
+     */
+    proxyStatusUrl: string | null;
+    apiBaseUrl: string | null;
+    apiPublicBaseUrl: string | null;
+    chromeExecutablePath: string | null;
+    dedicatedCpus: string | null;
+    disableOutdatedWarning: 1 | null;
+    fact: string | null;
+    inputSecretsPrivateKeyFile: string | null;
+    inputSecretsPrivateKeyPassphrase: string | null;
+
+    /**
+     * Defines the path to a local directory where KeyValueStore, Dataset, and RequestQueue
+     * store their data. Typically, it is set to ./storage. If omitted, you should define the
+     * APIFY_TOKEN environment variable instead. See more info on combination of this and
+     * APIFY_TOKEN [here](https://docs.apify.com/sdk/js/docs/guides/environment-variables#combinations-of-apify_local_storage_dir-and-apify_token)(CRAWLEE_STORAGE_DIR)
+     */
+    localStorageDir: string | null;
+
+    /**
+     * Specifies the minimum log level, which can be one of the following values (in order of severity): DEBUG, INFO, WARNING and ERROR
+     * (APIFY_LOG_LEVEL)
+     */
+    logLevel: string | null;
+    logFormat: string | null;
+
+    /**
+     * Origin for the Actor run, i.e. how it was started. See [here](https://docs.apify.com/sdk/python/reference/enum/MetaOrigin)
+     * for more details. (APIFY_META_ORIGIN)
+     */
+    metaOrigin: string | null;
+
+    /**
+     * The key of the input record in the Actor’s default key-value store (ACTOR_INPUT_KEY)
+     */
+    inputKey: string | null;
+    sdkLatestVersion: string | null;
+    systemInfoIntervalMillis: string | null;
+    workflowKey: string | null;
+    actorBuildNumber: string | null;
+    actorEventsWsUrl: string | null;
+    actorMaxPaidDatasetItems: number | null;
+    containerPort: number | null;
+    containerUrl: string | null;
+    defaultRequestQueueId: string | null;
+}
+
+export type UserFunc<T = unknown> = () => Awaitable<T>;
+
+export interface CallOptions extends ActorCallOptions {
+    /**
+     * User API token that is used to run the Actor. By default, it is taken from the `APIFY_TOKEN` environment variable.
+     */
+    token?: string;
+}
+
+export interface CallTaskOptions extends TaskCallOptions {
+    /**
+     * User API token that is used to run the Actor. By default, it is taken from the `APIFY_TOKEN` environment variable.
+     */
+    token?: string;
+}
+
+export interface AbortOptions extends RunAbortOptions {
+    /**
+     * User API token that is used to run the Actor. By default, it is taken from the `APIFY_TOKEN` environment variable.
+     */
+    token?: string;
+
+    /** Exit with given status message */
+    statusMessage?: string;
+}
+
+export interface WebhookOptions {
+    /**
+     * Array of event types, which you can set for Actor run, see
+     * the [Actor run events](https://docs.apify.com/webhooks/events#actor-run) in the Apify doc.
+     */
+    eventTypes: readonly WebhookEventType[];
+
+    /**
+     * URL which will be requested using HTTP POST request, when Actor run will reach the set event type.
+     */
+    requestUrl: string;
+
+    /**
+     * Payload template is a JSON-like string that describes the structure of the webhook POST request payload.
+     * It uses JSON syntax, extended with a double curly braces syntax for injecting variables `{{variable}}`.
+     * Those variables are resolved at the time of the webhook's dispatch, and a list of available variables with their descriptions
+     * is available in the [Apify webhook documentation](https://docs.apify.com/webhooks).
+     * If `payloadTemplate` is omitted, the default payload template is used
+     * ([view docs](https://docs.apify.com/webhooks/actions#payload-template)).
+     */
+    payloadTemplate?: string;
+
+    /**
+     * Idempotency key enables you to ensure that a webhook will not be added multiple times in case of
+     * an Actor restart or other situation that would cause the `addWebhook()` function to be called again.
+     * We suggest using the Actor run ID as the idempotency key. You can get the run ID by calling
+     * {@apilink Actor.getEnv} function.
+     */
+    idempotencyKey?: string;
+}
+
+export interface MetamorphOptions {
+    /**
+     * Content type for the `input`. If not specified,
+     * `input` is expected to be an object that will be stringified to JSON and content type set to
+     * `application/json; charset=utf-8`. If `options.contentType` is specified, then `input` must be a
+     * `String` or `Buffer`.
+     */
+    contentType?: string;
+
+    /**
+     * Tag or number of the target Actor build to metamorph into (e.g. `beta` or `1.2.345`).
+     * If not provided, the run uses build tag or number from the default Actor run configuration (typically `latest`).
+     */
+    build?: string;
+
+    /** @internal */
+    customAfterSleepMillis?: number;
+}
+
+export interface RebootOptions {
+    /** @internal */
+    customAfterSleepMillis?: number;
+}
+
+export interface OpenStorageOptions {
+    /**
+     * If set to `true` then the cloud storage is used even if the `CRAWLEE_STORAGE_DIR`
+     * environment variable is set. This way it is possible to combine local and cloud storage.
+     * @default false
+     */
+    forceCloud?: boolean;
+}
+
+export { ClientActorRun as ActorRun };
+
+/**
+ * Exit codes for the Actor process.
+ * The error codes must be in the range 1-128, to avoid collision with signal exits
+ * and to ensure Docker will handle them correctly!
+ * @internal should be removed if we decide to remove `Actor.main()`
+ */
+export const EXIT_CODES = {
+    SUCCESS: 0,
+    ERROR_USER_FUNCTION_THREW: 91,
+    ERROR_UNKNOWN: 92,
+};
+
 /**
  * `Actor` class serves as an alternative approach to the static helpers exported from the package. It allows to pass configuration
  * that will be used on the instance methods. Environment variables will have precedence over this configuration.
@@ -53,6 +313,7 @@ import { checkCrawleeVersion, getSystemInfo, printOutdatedSdkWarning } from './u
  */
 export class Actor<Data extends Dictionary = Dictionary> {
     /** @internal */
+    // eslint-disable-next-line no-use-before-define -- self-reference
     static _instance: Actor;
 
     /**
@@ -1744,263 +2005,3 @@ export class Actor<Data extends Dictionary = Dictionary> {
         ].join('\n'));
     }
 }
-
-export interface InitOptions {
-    storage?: StorageClient;
-}
-
-export interface MainOptions extends ExitOptions, InitOptions {}
-
-/**
- * Parsed representation of the Apify environment variables.
- * This object is returned by the {@apilink Actor.getEnv} function.
- */
-export interface ApifyEnv {
-    // TODO: if this interface hasn't been changed for a while, you
-    // are invited to check if there are any new env vars (refer to APIFY_ENV_VARS and ACTOR_ENV_VARS)
-
-    /**
-     * ID of the Actor (ACTOR_ID)
-     */
-    actorId: string | null;
-
-    /**
-     * ID of the Actor run (ACTOR_RUN_ID)
-     */
-    actorRunId: string | null;
-
-    /**
-     * ID of the Actor task (ACTOR_TASK_ID)
-     */
-    actorTaskId: string | null;
-
-    /**
-     * ID of the Actor build used in the run. (ACTOR_BUILD_ID)
-     */
-    actorBuildId: string | null;
-
-    /**
-     * ID of the user who started the Actor - note that it might be
-     * different than the owner of the Actor (APIFY_USER_ID)
-     */
-    userId: string | null;
-
-    /**
-     * Authentication token representing privileges given to the Actor run,
-     * it can be passed to various Apify APIs (APIFY_TOKEN)
-     */
-    token: string | null;
-
-    /**
-     * Date when the Actor was started (ACTOR_STARTED_AT)
-     */
-    startedAt: Date | null;
-
-    /**
-     * Date when the Actor will time out (ACTOR_TIMEOUT_AT)
-     */
-    timeoutAt: Date | null;
-
-    /**
-     * ID of the key-value store where input and output data of this
-     * Actor is stored (ACTOR_DEFAULT_KEY_VALUE_STORE_ID)
-     */
-    defaultKeyValueStoreId: string | null;
-
-    /**
-     * ID of the dataset where input and output data of this
-     * Actor is stored (ACTOR_DEFAULT_DATASET_ID)
-     */
-    defaultDatasetId: string | null;
-
-    /**
-     * Amount of memory allocated for the Actor,
-     * in megabytes (ACTOR_MEMORY_MBYTES)
-     */
-    memoryMbytes: number | null;
-
-    /**
-     * If set to "1", the web browsers inside the Actor should run in headless
-     * mode because there is no windowing system available. (APIFY_HEADLESS)
-     */
-    headless: string | null;
-
-    /**
-     * Is set to "1" if the Actor is running on Apify servers.
-     * (APIFY_IS_AT_HOME)
-     */
-    isAtHome: string | null;
-
-    /**
-     * The Apify Proxy password of the user who started the Actor. (APIFY_PROXY_PASSWORD)
-     */
-    proxyPassword: string | null;
-    proxyHostname: string | null;
-    proxyPort: string | null;
-
-    /**
-     * You can visit this page to troubleshoot your proxy connection. (APIFY_PROXY_STATUS_URL)
-     */
-    proxyStatusUrl: string | null;
-    apiBaseUrl: string | null;
-    apiPublicBaseUrl: string | null;
-    chromeExecutablePath: string | null;
-    dedicatedCpus: string | null;
-    disableOutdatedWarning: 1 | null;
-    fact: string | null;
-    inputSecretsPrivateKeyFile: string | null;
-    inputSecretsPrivateKeyPassphrase: string | null;
-
-    /**
-     * Defines the path to a local directory where KeyValueStore, Dataset, and RequestQueue
-     * store their data. Typically, it is set to ./storage. If omitted, you should define the
-     * APIFY_TOKEN environment variable instead. See more info on combination of this and
-     * APIFY_TOKEN [here](https://docs.apify.com/sdk/js/docs/guides/environment-variables#combinations-of-apify_local_storage_dir-and-apify_token)(CRAWLEE_STORAGE_DIR)
-     */
-    localStorageDir: string | null;
-
-    /**
-     * Specifies the minimum log level, which can be one of the following values (in order of severity): DEBUG, INFO, WARNING and ERROR
-     * (APIFY_LOG_LEVEL)
-     */
-    logLevel: string | null;
-    logFormat: string | null;
-
-    /**
-     * Origin for the Actor run, i.e. how it was started. See [here](https://docs.apify.com/sdk/python/reference/enum/MetaOrigin)
-     * for more details. (APIFY_META_ORIGIN)
-     */
-    metaOrigin: string | null;
-
-    /**
-     * The key of the input record in the Actor’s default key-value store (ACTOR_INPUT_KEY)
-     */
-    inputKey: string | null;
-    sdkLatestVersion: string | null;
-    systemInfoIntervalMillis: string | null;
-    workflowKey: string | null;
-    actorBuildNumber: string | null;
-    actorEventsWsUrl: string | null;
-    actorMaxPaidDatasetItems: number | null;
-    containerPort: number | null;
-    containerUrl: string | null;
-    defaultRequestQueueId: string | null;
-}
-
-export type UserFunc<T = unknown> = () => Awaitable<T>;
-
-export interface CallOptions extends ActorCallOptions {
-    /**
-     * User API token that is used to run the Actor. By default, it is taken from the `APIFY_TOKEN` environment variable.
-     */
-    token?: string;
-}
-
-export interface CallTaskOptions extends TaskCallOptions {
-    /**
-     * User API token that is used to run the Actor. By default, it is taken from the `APIFY_TOKEN` environment variable.
-     */
-    token?: string;
-}
-
-export interface AbortOptions extends RunAbortOptions {
-    /**
-     * User API token that is used to run the Actor. By default, it is taken from the `APIFY_TOKEN` environment variable.
-     */
-    token?: string;
-
-    /** Exit with given status message */
-    statusMessage?: string;
-}
-
-export interface WebhookOptions {
-    /**
-     * Array of event types, which you can set for Actor run, see
-     * the [Actor run events](https://docs.apify.com/webhooks/events#actor-run) in the Apify doc.
-     */
-    eventTypes: readonly WebhookEventType[];
-
-    /**
-     * URL which will be requested using HTTP POST request, when Actor run will reach the set event type.
-     */
-    requestUrl: string;
-
-    /**
-     * Payload template is a JSON-like string that describes the structure of the webhook POST request payload.
-     * It uses JSON syntax, extended with a double curly braces syntax for injecting variables `{{variable}}`.
-     * Those variables are resolved at the time of the webhook's dispatch, and a list of available variables with their descriptions
-     * is available in the [Apify webhook documentation](https://docs.apify.com/webhooks).
-     * If `payloadTemplate` is omitted, the default payload template is used
-     * ([view docs](https://docs.apify.com/webhooks/actions#payload-template)).
-     */
-    payloadTemplate?: string;
-
-    /**
-     * Idempotency key enables you to ensure that a webhook will not be added multiple times in case of
-     * an Actor restart or other situation that would cause the `addWebhook()` function to be called again.
-     * We suggest using the Actor run ID as the idempotency key. You can get the run ID by calling
-     * {@apilink Actor.getEnv} function.
-     */
-    idempotencyKey?: string;
-}
-
-export interface MetamorphOptions {
-    /**
-     * Content type for the `input`. If not specified,
-     * `input` is expected to be an object that will be stringified to JSON and content type set to
-     * `application/json; charset=utf-8`. If `options.contentType` is specified, then `input` must be a
-     * `String` or `Buffer`.
-     */
-    contentType?: string;
-
-    /**
-     * Tag or number of the target Actor build to metamorph into (e.g. `beta` or `1.2.345`).
-     * If not provided, the run uses build tag or number from the default Actor run configuration (typically `latest`).
-     */
-    build?: string;
-
-    /** @internal */
-    customAfterSleepMillis?: number;
-}
-
-export interface RebootOptions {
-    /** @internal */
-    customAfterSleepMillis?: number;
-}
-
-export interface ExitOptions {
-    /** Exit with given status message */
-    statusMessage?: string;
-    /**
-     * Amount of time, in seconds, to wait for all event handlers to finish before exiting the process.
-     * @default 30
-     */
-    timeoutSecs?: number;
-    /** Exit code, defaults to 0 */
-    exitCode?: number;
-    /** Call `process.exit()`? Defaults to true */
-    exit?: boolean;
-}
-
-export interface OpenStorageOptions {
-    /**
-     * If set to `true` then the cloud storage is used even if the `CRAWLEE_STORAGE_DIR`
-     * environment variable is set. This way it is possible to combine local and cloud storage.
-     * @default false
-     */
-    forceCloud?: boolean;
-}
-
-export { ClientActorRun as ActorRun };
-
-/**
- * Exit codes for the Actor process.
- * The error codes must be in the range 1-128, to avoid collision with signal exits
- * and to ensure Docker will handle them correctly!
- * @internal should be removed if we decide to remove `Actor.main()`
- */
-export const EXIT_CODES = {
-    SUCCESS: 0,
-    ERROR_USER_FUNCTION_THREW: 91,
-    ERROR_UNKNOWN: 92,
-};

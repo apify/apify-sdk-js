@@ -1,5 +1,11 @@
 import type { Dictionary, GlobInput, ProxyConfigurationOptions, PseudoUrlInput, RegExpInput, RequestOptions, Session } from '@crawlee/cheerio';
 
+export const enum ProxyRotation {
+    Recommended = 'RECOMMENDED',
+    PerRequest = 'PER_REQUEST',
+    UntilFailure = 'UNTIL_FAILURE',
+}
+
 /**
  * Replicates the INPUT_SCHEMA with JavaScript types for quick reference
  * and IDE type check integration.
@@ -35,10 +41,4 @@ export interface Input {
     datasetName?: string;
     keyValueStoreName?: string;
     requestQueueName?: string;
-}
-
-export const enum ProxyRotation {
-    Recommended = 'RECOMMENDED',
-    PerRequest = 'PER_REQUEST',
-    UntilFailure = 'UNTIL_FAILURE',
 }

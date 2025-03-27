@@ -48,6 +48,7 @@ interface PageContext {
         start: [number, number];
         navStart?: [number, number];
     };
+    // eslint-disable-next-line no-use-before-define -- Circular dependency with WeakMap
     browserHandles?: Awaited<ReturnType<CrawlerSetup['_injectBrowserHandles']>>;
 }
 
