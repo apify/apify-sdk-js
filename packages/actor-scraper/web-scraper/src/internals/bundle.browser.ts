@@ -231,7 +231,7 @@ export function createBundle(apifyNamespace: string) {
             }
 
             async _waitForMillis(millis: number) {
-                return new Promise((res) => setTimeout(res, millis));
+                return new Promise((res) => { setTimeout(res, millis); });
             }
 
             async _waitForFunction(predicate: () => boolean, options: PoolOptions = {}) {

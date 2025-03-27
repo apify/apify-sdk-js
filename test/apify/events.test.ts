@@ -22,7 +22,7 @@ describe('events', () => {
         vitest.useRealTimers();
         delete process.env[ACTOR_ENV_VARS.EVENTS_WEBSOCKET_URL];
         delete process.env[APIFY_ENV_VARS.TOKEN];
-        await new Promise((resolve) => wss.close(resolve));
+        await new Promise((resolve) => { wss.close(resolve); });
     });
 
     test('should work in main()', async () => {
