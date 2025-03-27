@@ -56,6 +56,7 @@ async function run() {
                 log.info(`${colors.yellow(`[${dir.name}] `)}${match[2]}: ${c(match[1])}`);
             }
         });
+        // eslint-disable-next-line no-loop-func -- we actually want to closure the reference to `failure`
         worker.on('exit', async (code) => {
             if (code === SKIPPED_TEST_CLOSE_CODE) {
                 log.info(`Test ${colors.yellow(`[${dir.name}]`)} was skipped`);

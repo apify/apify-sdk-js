@@ -950,7 +950,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
         }
 
         if (eventName) {
-            return await this.chargingManager.charge({ eventName, count: Math.min(toCharge, maxChargedCount) });
+            await this.chargingManager.charge({ eventName, count: Math.min(toCharge, maxChargedCount) });
         }
     }
 

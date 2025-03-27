@@ -19,6 +19,7 @@ const basicOptsProxyUrl = 'http://groups-GROUP1+GROUP2,session-538909250932,coun
 const proxyUrlNoSession = 'http://groups-GROUP1+GROUP2,country-CZ:test12345@proxy.apify.com:8000';
 
 vitest.mock('@crawlee/utils', async (importActual) => {
+    // eslint-disable-next-line @typescript-eslint/consistent-type-imports -- importing from an ESM package (`got-scraping`)
     const mod = await importActual<typeof import('@crawlee/utils')>();
 
     return {

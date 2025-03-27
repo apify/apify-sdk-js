@@ -148,6 +148,7 @@ class Context<Options extends ContextOptions = ContextOptions, ExtraFields = Opt
 }
 
 // @ts-expect-error -- Extensions actually work but TS complains
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type -- intentional for better type inference
 interface Context<
     Options extends ContextOptions = ContextOptions,
     ExtraFields extends ContextOptions['pageFunctionArguments'] = Options['pageFunctionArguments'],

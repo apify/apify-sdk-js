@@ -174,7 +174,7 @@ export async function skipTest(reason) {
  * @returns {boolean}
  */
 function checkDatasetItem(item, propName) {
-    if (!item.hasOwnProperty(propName)) {
+    if (!Object.hasOwn(item, propName)) {
         return false;
     }
 
