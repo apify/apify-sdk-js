@@ -933,6 +933,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @param eventName If provided, the method will attempt to charge for the event for each pushed item.
      * @ignore
      */
+    // eslint-disable-next-line consistent-return -- The `return` is inconsistent by design here (`ChargeResult` with `eventName` parameter)
     async pushData(item: Data | Data[], eventName?: string | undefined): Promise<ChargeResult | void> {
         this._ensureActorInit('pushData');
 
@@ -950,7 +951,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
         }
 
         if (eventName) {
-            await this.chargingManager.charge({ eventName, count: Math.min(toCharge, maxChargedCount) });
+            return await this.chargingManager.charge({ eventName, count: Math.min(toCharge, maxChargedCount) });
         }
     }
 
