@@ -5,10 +5,10 @@ import { basename, dirname, join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { isMainThread, Worker, workerData } from 'node:worker_threads';
 
-import { log } from '@apify/log';
 import { ApifyClient } from 'apify-client';
 
 import { ACTOR_SOURCE_TYPES } from '@apify/consts';
+import { log } from '@apify/log';
 import { cryptoRandomObjectId } from '@apify/utilities';
 
 const rootPath = dirname(fileURLToPath(import.meta.url));
