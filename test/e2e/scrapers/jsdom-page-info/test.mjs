@@ -18,6 +18,7 @@ await run(testDir, 'jsdom-scraper', {
         userData: { label: 'DETAIL' },
     }],
     linkSelector: 'a',
+    // eslint-disable-next-line consistent-return -- simplifies branching in pageFunction
     pageFunction: async function pageFunction(context) {
         const { request, log, skipLinks, window } = context;
         const { userData: { label } } = request;

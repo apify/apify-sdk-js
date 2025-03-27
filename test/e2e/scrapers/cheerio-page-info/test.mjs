@@ -18,6 +18,7 @@ await run(testDir, 'cheerio-scraper', {
         userData: { label: 'DETAIL' },
     }],
     linkSelector: 'a',
+    // eslint-disable-next-line consistent-return -- simplifies branching in pageFunction
     pageFunction: async function pageFunction(context) {
         const { request, log, skipLinks, $ } = context;
         const { userData: { label } } = request;

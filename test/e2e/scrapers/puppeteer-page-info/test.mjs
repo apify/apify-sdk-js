@@ -18,6 +18,7 @@ await run(testDir, 'puppeteer-scraper', {
     }],
     linkSelector: 'a',
     keepUrlFragments: false,
+    // eslint-disable-next-line consistent-return -- simplifies branching in pageFunction
     pageFunction: async function pageFunction(context) {
         const { request, log, skipLinks, page } = context;
 
