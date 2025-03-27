@@ -36,7 +36,9 @@ export default [
             "@typescript-eslint/no-empty-interface": "off",
             "@typescript-eslint/no-explicit-any": "off",
             "@typescript-eslint/no-empty-function": "off",
-            "import/no-extraneous-dependencies": "off"
+            "import/no-extraneous-dependencies": "off",
+            // Used extensively in generic scrapers
+            "no-param-reassign": "off"
         }
     },
 ];
