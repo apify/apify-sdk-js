@@ -1,9 +1,9 @@
-export * from './actor';
-export * from './charging';
-export * from './configuration';
-export * from './proxy_configuration';
-export * from './platform_event_manager';
-export * from './key_value_store';
+export * from './actor.js';
+export * from './charging.js';
+export * from './configuration.js';
+export * from './proxy_configuration.js';
+export * from './platform_event_manager.js';
+export * from './key_value_store.js';
 export {
     Dataset, DatasetDataOptions, DatasetIteratorOptions, DatasetConsumer, DatasetMapper, DatasetReducer, DatasetOptions, DatasetContent,
     RequestQueue, QueueOperationInfo, RequestQueueOperationOptions, RequestQueueOptions,

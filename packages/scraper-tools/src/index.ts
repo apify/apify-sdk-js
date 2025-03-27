@@ -1,8 +1,8 @@
-export * as browserTools from './browser_tools';
-export * as constants from './consts';
-export * as tools from './tools';
-export * from './context';
-export * from './run_actor';
+export * as browserTools from './browser_tools.js';
+export * as constants from './consts.js';
+export * as tools from './tools.js';
+export * from './context.js';
+export * from './run_actor.js';
 
 export type {
     RequestMetadata,

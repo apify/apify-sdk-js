@@ -8,7 +8,7 @@ import semver from 'semver';
 import { APIFY_ENV_VARS } from '@apify/consts';
 import log from '@apify/log';
 
-import { printOutdatedSdkWarning } from '../../packages/apify/src/utils';
+import { printOutdatedSdkWarning } from '../../packages/apify/src/utils.js';
 
 describe('Actor.isAtHome()', () => {
     test('works', () => {

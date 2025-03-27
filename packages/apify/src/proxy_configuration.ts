@@ -12,8 +12,8 @@ import ow from 'ow';
 import { APIFY_ENV_VARS, APIFY_PROXY_VALUE_REGEX } from '@apify/consts';
 import { cryptoRandomObjectId } from '@apify/utilities';
 
-import { Actor } from './actor';
-import { Configuration } from './configuration';
+import { Actor } from './actor.js';
+import { Configuration } from './configuration.js';
 
 // https://docs.apify.com/proxy/datacenter-proxy#username-parameters
 const MAX_SESSION_ID_LENGTH = 50;

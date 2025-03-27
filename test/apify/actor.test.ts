@@ -11,7 +11,7 @@ import { ACT_JOB_STATUSES, ACTOR_ENV_VARS, APIFY_ENV_VARS, KEY_VALUE_STORE_KEYS,
 import { encryptInputSecrets } from '@apify/input_secrets';
 import log from '@apify/log';
 
-import { MemoryStorageEmulator } from '../MemoryStorageEmulator';
+import { MemoryStorageEmulator } from '../MemoryStorageEmulator.js';
 
 const getEmptyEnv = () => {
     return {

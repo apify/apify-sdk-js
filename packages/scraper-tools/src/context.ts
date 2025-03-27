@@ -16,8 +16,8 @@ import contentTypeParser from 'content-type';
 import log from '@apify/log';
 
 import type { SnapshotOptions } from './browser_tools';
-import { saveSnapshot } from './browser_tools';
-import { META_KEY } from './consts';
+import { saveSnapshot } from './browser_tools.js';
+import { META_KEY } from './consts.js';
 import type { RequestMetadata } from './tools';
 
 export interface MapLike<K, V> extends Omit<Map<K, V>, 'values' | 'keys' | 'entries'| 'set'> {

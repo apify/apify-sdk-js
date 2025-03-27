@@ -12,7 +12,7 @@ import Ajv from 'ajv';
 
 import log from '@apify/log';
 
-import { META_KEY, PAGE_FUNCTION_FILENAME } from './consts';
+import { META_KEY, PAGE_FUNCTION_FILENAME } from './consts.js';
 
 const randomBytes = promisify(callbackRandomBytes);
 

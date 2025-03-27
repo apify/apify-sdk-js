@@ -37,14 +37,14 @@ import { decryptInputSecrets } from '@apify/input_secrets';
 import log from '@apify/log';
 import { addTimeoutToPromise } from '@apify/timeout';
 
-import type { ChargeOptions, ChargeResult } from './charging';
-import { ChargingManager } from './charging';
-import { Configuration } from './configuration';
-import { KeyValueStore } from './key_value_store';
-import { PlatformEventManager } from './platform_event_manager';
-import type { ProxyConfigurationOptions } from './proxy_configuration';
-import { ProxyConfiguration } from './proxy_configuration';
-import { checkCrawleeVersion, getSystemInfo, printOutdatedSdkWarning } from './utils';
+import type { ChargeOptions, ChargeResult } from './charging.js';
+import { ChargingManager } from './charging.js';
+import { Configuration } from './configuration.js';
+import { KeyValueStore } from './key_value_store.js';
+import { PlatformEventManager } from './platform_event_manager.js';
+import type { ProxyConfigurationOptions } from './proxy_configuration.js';
+import { ProxyConfiguration } from './proxy_configuration.js';
+import { checkCrawleeVersion, getSystemInfo, printOutdatedSdkWarning } from './utils.js';
 
 export interface InitOptions {
     storage?: StorageClient;

@@ -4,7 +4,7 @@ import { WebSocket } from 'ws';
 import { ACTOR_ENV_VARS, ACTOR_EVENT_NAMES } from '@apify/consts';
 import { betterClearInterval } from '@apify/utilities';
 
-import { Configuration } from './configuration';
+import { Configuration } from './configuration.js';
 
 /**
  * Gets an instance of a Node.js'
