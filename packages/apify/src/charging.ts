@@ -1,5 +1,5 @@
 import { Dataset, KeyValueStore } from '@crawlee/core';
-import type { type ActorRunPricingInfo, ApifyClient } from 'apify-client';
+import type { ActorRunPricingInfo, ApifyClient } from 'apify-client';
 
 import log from '@apify/log';
 
