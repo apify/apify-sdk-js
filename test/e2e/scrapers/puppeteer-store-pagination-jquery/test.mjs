@@ -17,6 +17,7 @@ await run(testDir, 'puppeteer-scraper', {
         switch (label) {
             case 'START': return handleStart(context);
             case 'DETAIL': return handleDetail(context);
+            default: throw new Error(`Unrecognized request label: ${label}`);
         }
 
         async function handleStart({ log, page, enqueueLinks }) {

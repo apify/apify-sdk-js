@@ -19,6 +19,7 @@ await run(testDir, 'jsdom-scraper', {
         switch (context.request.userData.label) {
             case 'START': return handleStart(context);
             case 'DETAIL': return handleDetail(context);
+            default: throw new Error(`Unrecognized request label: ${context.request.userData.label}`);
         }
 
         async function handleStart({ enqueueRequest, window }) {
