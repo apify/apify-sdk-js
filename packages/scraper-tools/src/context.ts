@@ -1,12 +1,11 @@
 /* eslint-disable @typescript-eslint/no-unsafe-declaration-merging */
-import log from '@apify/log';
 import type {
     KeyValueStore,
     RecordOptions,
     Request,
     RequestOptions,
-    RequestQueueV2,
     RequestQueueOperationOptions,
+    RequestQueueV2,
 } from '@crawlee/core';
 import type { Dictionary } from '@crawlee/utils';
 import type { ApifyEnv } from 'apify';
@@ -14,10 +13,19 @@ import { Actor } from 'apify';
 import type { MediaType } from 'content-type';
 import contentTypeParser from 'content-type';
 
+import log from '@apify/log';
+
 import type { SnapshotOptions } from './browser_tools';
-import { saveSnapshot } from './browser_tools';
-import { META_KEY } from './consts';
+import { saveSnapshot } from './browser_tools.js';
+import { META_KEY } from './consts.js';
 import type { RequestMetadata } from './tools';
+
+export interface MapLike<K, V> extends Omit<Map<K, V>, 'values' | 'keys' | 'entries'| 'set'> {
+    keys: () => K[];
+    values: () => V[];
+    entries: () => [K, V][];
+    set: (key: K, value: V) => MapLike<K, V>;
+}
 
 export interface CrawlerSetupOptions {
     rawInput: string;
@@ -26,13 +34,6 @@ export interface CrawlerSetupOptions {
     requestQueue: RequestQueueV2;
     keyValueStore: KeyValueStore;
     customData: unknown;
-}
-
-export interface MapLike<K, V> extends Omit<Map<K, V>, 'values' | 'keys' | 'entries'| 'set'> {
-    keys: () => K[];
-    values: () => V[];
-    entries: () => [K, V][];
-    set: (key: K, value: V) => MapLike<K, V>;
 }
 
 export interface ContextOptions {
@@ -147,6 +148,7 @@ class Context<Options extends ContextOptions = ContextOptions, ExtraFields = Opt
 }
 
 // @ts-expect-error -- Extensions actually work but TS complains
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type -- intentional for better type inference
 interface Context<
     Options extends ContextOptions = ContextOptions,
     ExtraFields extends ContextOptions['pageFunctionArguments'] = Options['pageFunctionArguments'],

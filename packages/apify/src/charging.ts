@@ -1,8 +1,32 @@
-import log from '@apify/log';
 import { Dataset, KeyValueStore } from '@crawlee/core';
-import { type ActorRunPricingInfo, ApifyClient } from 'apify-client';
+import type { ActorRunPricingInfo, ApifyClient } from 'apify-client';
 
-import { Configuration } from './configuration.js';
+import log from '@apify/log';
+
+import type { Configuration } from './configuration.js';
+
+interface ChargingStateItem {
+    chargeCount: number;
+    totalChargedAmount: number;
+}
+
+export interface ChargeOptions {
+    eventName: string;
+    count?: number;
+}
+
+export interface ChargeResult {
+    eventChargeLimitReached: boolean;
+    chargedCount: number;
+    chargeableWithinLimit: Record<string, number>;
+}
+
+export interface ActorPricingInfo {
+    pricingModel?: ActorRunPricingInfo['pricingModel'];
+    maxTotalChargeUsd: number;
+    isPayPerEvent: boolean;
+    perEventPrices: Record<string, number>;
+}
 
 /**
  * Handles pay-per-event charging.
@@ -282,27 +306,4 @@ export class ChargingManager {
             ),
         );
     }
-}
-
-interface ChargingStateItem {
-    chargeCount: number;
-    totalChargedAmount: number;
-}
-
-export interface ChargeOptions {
-    eventName: string;
-    count?: number;
-}
-
-export interface ChargeResult {
-    eventChargeLimitReached: boolean;
-    chargedCount: number;
-    chargeableWithinLimit: Record<string, number>;
-}
-
-export interface ActorPricingInfo {
-    pricingModel?: ActorRunPricingInfo['pricingModel'];
-    maxTotalChargeUsd: number;
-    isPayPerEvent: boolean;
-    perEventPrices: Record<string, number>;
 }

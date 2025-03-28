@@ -1,5 +1,6 @@
-import { tools, constants } from '@apify/scraper-tools';
 import { Request } from '@crawlee/core';
+
+import { constants, tools } from '@apify/scraper-tools';
 
 describe('tools.', () => {
     describe('ensureMetaData()', () => {

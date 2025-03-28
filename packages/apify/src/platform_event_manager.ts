@@ -1,9 +1,10 @@
-import { ACTOR_EVENT_NAMES, ACTOR_ENV_VARS } from '@apify/consts';
-import { betterClearInterval } from '@apify/utilities';
-import { EventType, EventManager } from '@crawlee/core';
+import { EventManager, EventType } from '@crawlee/core';
 import { WebSocket } from 'ws';
 
-import { Configuration } from './configuration';
+import { ACTOR_ENV_VARS, ACTOR_EVENT_NAMES } from '@apify/consts';
+import { betterClearInterval } from '@apify/utilities';
+
+import { Configuration } from './configuration.js';
 
 /**
  * Gets an instance of a Node.js'

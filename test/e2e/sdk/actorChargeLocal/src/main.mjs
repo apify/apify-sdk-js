@@ -1,4 +1,4 @@
-import { Actor, Dataset, log, ApifyClient } from 'apify';
+import { Actor, ApifyClient, Dataset, log } from 'apify';
 
 const client = new ApifyClient({
     token: process.env.APIFY_TOKEN,

@@ -3,18 +3,20 @@ import { once } from 'node:events';
 import { readdir, readFile } from 'node:fs/promises';
 import { basename, dirname, join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { Worker, isMainThread, workerData } from 'node:worker_threads';
+import { isMainThread, Worker, workerData } from 'node:worker_threads';
+
+import { ApifyClient } from 'apify-client';
 
 import { ACTOR_SOURCE_TYPES } from '@apify/consts';
+import { log } from '@apify/log';
 import { cryptoRandomObjectId } from '@apify/utilities';
-import { ApifyClient } from 'apify-client';
 
 const rootPath = dirname(fileURLToPath(import.meta.url));
 const basePath = join(rootPath, 'sdk');
 const actorBasePath = join(basePath, 'actorBase');
 
 async function run() {
-    console.log(`Running E2E SDK tests`);
+    log.info(`Running E2E SDK tests`);
 
     const paths = await readdir(basePath, { withFileTypes: true });
     const dirs = paths.filter((dirent) => dirent.isDirectory() && dirent.name !== basename(actorBasePath));
@@ -33,21 +35,21 @@ async function runWorker(dirName) {
 
     worker.on('exit', (exitCode) => {
         if (exitCode !== 0) {
-            console.error(`Test ${dirName} failed`);
+            log.error(`Test ${dirName} failed`);
 
             const out = worker.stdout.read();
             if (out) {
-                console.log('Captured stdout:');
+                log.info('Captured stdout:');
                 process.stdout.write(out);
             }
 
             const err = worker.stderr.read();
             if (err) {
-                console.log('Captured stderr:');
+                log.info('Captured stderr:');
                 process.stderr.write(err);
             }
         } else {
-            console.log(`${dirName} OK`);
+            log.info(`${dirName} OK`);
         }
     });
 

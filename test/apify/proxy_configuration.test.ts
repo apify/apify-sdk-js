@@ -1,7 +1,8 @@
-import { APIFY_ENV_VARS, LOCAL_APIFY_ENV_VARS } from '@apify/consts';
 import { Actor, ProxyConfiguration } from 'apify';
 import { UserClient } from 'apify-client';
-import { Request } from 'crawlee';
+import { Request, sleep } from 'crawlee';
+
+import { APIFY_ENV_VARS, LOCAL_APIFY_ENV_VARS } from '@apify/consts';
 
 const groups = ['GROUP1', 'GROUP2'];
 const hostname = LOCAL_APIFY_ENV_VARS[APIFY_ENV_VARS.PROXY_HOSTNAME];
@@ -18,6 +19,7 @@ const basicOptsProxyUrl = 'http://groups-GROUP1+GROUP2,session-538909250932,coun
 const proxyUrlNoSession = 'http://groups-GROUP1+GROUP2,country-CZ:test12345@proxy.apify.com:8000';
 
 vitest.mock('@crawlee/utils', async (importActual) => {
+    // eslint-disable-next-line @typescript-eslint/consistent-type-imports -- importing from an ESM package (`got-scraping`)
     const mod = await importActual<typeof import('@crawlee/utils')>();
 
     return {
@@ -210,7 +212,7 @@ describe('ProxyConfiguration', () => {
         const customUrls = ['http://proxy.com:1111', 'http://proxy.com:2222', 'http://proxy.com:3333',
             'http://proxy.com:4444', 'http://proxy.com:5555', 'http://proxy.com:6666'];
         const newUrlFunction = async () => {
-            await new Promise((r) => setTimeout(r, 5));
+            await sleep(5);
             return customUrls.pop();
         };
         const proxyConfiguration = new ProxyConfiguration({

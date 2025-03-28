@@ -1,5 +1,3 @@
-import { APIFY_PROXY_VALUE_REGEX, APIFY_ENV_VARS } from '@apify/consts';
-import { cryptoRandomObjectId } from '@apify/utilities';
 import type {
     ProxyConfigurationOptions as CoreProxyConfigurationOptions,
     ProxyInfo as CoreProxyInfo,
@@ -11,8 +9,11 @@ import { gotScraping } from '@crawlee/utils';
 import type { UserProxy } from 'apify-client';
 import ow from 'ow';
 
-import { Actor } from './actor';
-import { Configuration } from './configuration';
+import { APIFY_ENV_VARS, APIFY_PROXY_VALUE_REGEX } from '@apify/consts';
+import { cryptoRandomObjectId } from '@apify/utilities';
+
+import { Actor } from './actor.js';
+import { Configuration } from './configuration.js';
 
 // https://docs.apify.com/proxy/datacenter-proxy#username-parameters
 const MAX_SESSION_ID_LENGTH = 50;

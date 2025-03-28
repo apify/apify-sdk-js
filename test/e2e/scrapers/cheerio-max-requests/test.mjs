@@ -1,6 +1,6 @@
-import { getTestDir, getStats, getDatasetItems, run, expect, validateDataset, skipTest } from '../../tools.mjs';
+import { expect, getDatasetItems, getStats, getTestDir, run, skipTest, validateDataset } from '../../tools.mjs';
 
-skipTest('broken test');
+void skipTest('broken test');
 
 const testDir = getTestDir(import.meta.url);
 
@@ -19,6 +19,7 @@ await run(testDir, 'cheerio-scraper', {
         switch (context.request.userData.label) {
             case 'START': return handleStart(context);
             case 'DETAIL': return handleDetail(context);
+            default: throw new Error(`Unrecognized request label: ${context.request.userData.label}`);
         }
 
         async function handleStart({ enqueueRequest, $ }) {

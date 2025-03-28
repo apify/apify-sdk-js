@@ -1,20 +1,48 @@
 /* eslint-disable max-classes-per-file */
 
-import { Log } from '@apify/log';
-import type { CrawlerSetupOptions, constants, RequestMetadata } from '@apify/scraper-tools';
 import type {
+    Dictionary,
     KeyValueStore,
     RecordOptions,
     Request,
     RequestOptions,
     RequestQueue,
     RequestQueueOperationOptions,
-    Dictionary,
 } from '@crawlee/puppeteer';
 import type { ApifyEnv } from 'apify';
 
-import { Input } from './consts';
-import { GlobalStore } from './global_store';
+import type { Log } from '@apify/log';
+import type { constants, CrawlerSetupOptions, RequestMetadata } from '@apify/scraper-tools';
+
+import type { Input } from './consts';
+import type { GlobalStore } from './global_store';
+
+interface PoolOptions {
+    pollingIntervalMillis?: number;
+    timeoutMillis?: number;
+}
+
+interface InternalState {
+    browserHandles: Dictionary<string | Record<string, { value: unknown; type: 'METHOD' | 'VALUE' | 'GETTER' }>>;
+    requestQueue: RequestQueue | null;
+    keyValueStore: KeyValueStore | null;
+}
+
+interface ProvidedResponse {
+    status: number;
+    headers: Dictionary<string>;
+}
+
+interface BrowserCrawlerSetup extends CrawlerSetupOptions {
+    injectJQuery?: boolean;
+    META_KEY: typeof constants.META_KEY;
+}
+
+interface ContextOptions {
+    crawlerSetup: BrowserCrawlerSetup;
+    browserHandles: InternalState['browserHandles'];
+    pageFunctionArguments: Dictionary<unknown>;
+}
 
 /**
  * Command to be evaluated for Browser side code injection.
@@ -203,7 +231,7 @@ export function createBundle(apifyNamespace: string) {
             }
 
             async _waitForMillis(millis: number) {
-                return new Promise((res) => setTimeout(res, millis));
+                return new Promise((res) => { setTimeout(res, millis); });
             }
 
             async _waitForFunction(predicate: () => boolean, options: PoolOptions = {}) {
@@ -247,31 +275,4 @@ export function createBundle(apifyNamespace: string) {
             return new Context(options);
         };
     }(window, apifyNamespace));
-}
-
-interface PoolOptions {
-    pollingIntervalMillis?: number;
-    timeoutMillis?: number;
-}
-
-interface InternalState {
-    browserHandles: Dictionary<string | Record<string, { value: unknown; type: 'METHOD' | 'VALUE' | 'GETTER' }>>;
-    requestQueue: RequestQueue | null;
-    keyValueStore: KeyValueStore | null;
-}
-
-interface ContextOptions {
-    crawlerSetup: BrowserCrawlerSetup;
-    browserHandles: InternalState['browserHandles'];
-    pageFunctionArguments: Dictionary<unknown>;
-}
-
-interface ProvidedResponse {
-    status: number;
-    headers: Dictionary<string>;
-}
-
-interface BrowserCrawlerSetup extends CrawlerSetupOptions {
-    injectJQuery?: boolean;
-    META_KEY: typeof constants.META_KEY;
 }
