@@ -114,7 +114,7 @@ describe('events', () => {
 
     test('should send persist state events in regular interval', async () => {
         const eventsReceived = [];
-        const interval = config.get('persistStateIntervalMillis')
+        const interval = config.get('persistStateIntervalMillis');
 
         events.on(EventType.PERSIST_STATE, (data) => eventsReceived.push(data));
         await events.init();
