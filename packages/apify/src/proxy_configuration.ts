@@ -305,7 +305,7 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
             return this._handleTieredUrl(
                 sessionId ?? cryptoRandomObjectId(6),
                 options,
-            ).proxyUrl;
+            ).proxyUrl ?? undefined;
         }
 
         return this.composeDefaultUrl(sessionId);
