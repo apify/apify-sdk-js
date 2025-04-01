@@ -8,11 +8,13 @@ import { WebSocketServer } from 'ws';
 describe('events', () => {
     let wss: WebSocketServer = null;
     const config = Configuration.getGlobalConfig();
-    const events = new PlatformEventManager(config);
-    config.useEventManager(events);
+    let events: PlatformEventManager | null = null;
 
     beforeEach(() => {
         wss = new WebSocketServer({ port: 9099 });
+        events = new PlatformEventManager(config);
+        config.useEventManager(events);
+
         vitest.useFakeTimers();
         process.env[ACTOR_ENV_VARS.EVENTS_WEBSOCKET_URL] = 'ws://localhost:9099/someRunId';
         process.env[APIFY_ENV_VARS.TOKEN] = 'dummy';
@@ -112,11 +114,13 @@ describe('events', () => {
 
     test('should send persist state events in regular interval', async () => {
         const eventsReceived = [];
+        const interval = config.get('persistStateIntervalMillis');
+
         events.on(EventType.PERSIST_STATE, (data) => eventsReceived.push(data));
         await events.init();
-        vitest.advanceTimersByTime(60001);
-        vitest.advanceTimersByTime(60001);
-        vitest.advanceTimersByTime(60001);
+        await vitest.advanceTimersByTimeAsync(1.1 * interval);
+        await vitest.advanceTimersByTimeAsync(1.1 * interval);
+        await vitest.advanceTimersByTimeAsync(1.1 * interval);
         await events.close();
         expect(eventsReceived.length).toBe(5);
     });
