@@ -8,7 +8,7 @@ import { WebSocketServer } from 'ws';
 describe('events', () => {
     let wss: WebSocketServer = null;
     const config = Configuration.getGlobalConfig();
-    let events: PlatformEventManager = null;
+    let events: PlatformEventManager | null = null;
 
     beforeEach(() => {
         wss = new WebSocketServer({ port: 9099 });
