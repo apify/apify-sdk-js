@@ -6,8 +6,8 @@ import { setTimeout } from 'node:timers/promises';
 import { fileURLToPath } from 'node:url';
 
 import { purgeDefaultStorages } from '@crawlee/core';
-import { Configuration, KeyValueStore } from 'apify';
-import { URL_NO_COMMAS_REGEX, sleep } from 'crawlee';
+import { Configuration, KeyValueStore, log } from 'apify';
+import { sleep, URL_NO_COMMAS_REGEX } from 'crawlee';
 import fs from 'fs-extra';
 
 export const SKIPPED_TEST_CLOSE_CODE = 404;
@@ -151,10 +151,10 @@ export async function initialize(dirName) {
  */
 export async function expect(bool, message) {
     if (bool) {
-        console.log(`[assertion] passed: ${message}`);
+        log.info(`[assertion] passed: ${message}`);
         await setTimeout(10);
     } else {
-        console.log(`[assertion] failed: ${message}`);
+        log.error(`[assertion] failed: ${message}`);
         await setTimeout(10);
         process.exit(1);
     }
@@ -164,7 +164,7 @@ export async function expect(bool, message) {
  * @param {string} reason
  */
 export async function skipTest(reason) {
-    console.error(`[test skipped] ${reason}`);
+    log.warn(`[test skipped] ${reason}`);
     process.exit(SKIPPED_TEST_CLOSE_CODE);
 }
 
@@ -174,7 +174,7 @@ export async function skipTest(reason) {
  * @returns {boolean}
  */
 function checkDatasetItem(item, propName) {
-    if (!item.hasOwnProperty(propName)) {
+    if (!Object.hasOwn(item, propName)) {
         return false;
     }
 

@@ -1,16 +1,17 @@
 import { createPublicKey } from 'node:crypto';
 
-import { ACTOR_ENV_VARS, ACT_JOB_STATUSES, APIFY_ENV_VARS, KEY_VALUE_STORE_KEYS, WEBHOOK_EVENT_TYPES } from '@apify/consts';
-import { encryptInputSecrets } from '@apify/input_secrets';
-import log from '@apify/log';
 import { Configuration, EventType, StorageManager } from '@crawlee/core';
 import { sleep } from '@crawlee/utils';
 import type { ApifyEnv } from 'apify';
-import { Actor, ProxyConfiguration, KeyValueStore, Dataset } from 'apify';
+import { Actor, Dataset, KeyValueStore, ProxyConfiguration } from 'apify';
 import type { WebhookUpdateData } from 'apify-client';
 import { ActorClient, ApifyClient, RunClient, TaskClient } from 'apify-client';
 
-import { MemoryStorageEmulator } from '../MemoryStorageEmulator';
+import { ACT_JOB_STATUSES, ACTOR_ENV_VARS, APIFY_ENV_VARS, KEY_VALUE_STORE_KEYS, WEBHOOK_EVENT_TYPES } from '@apify/consts';
+import { encryptInputSecrets } from '@apify/input_secrets';
+import log from '@apify/log';
+
+import { MemoryStorageEmulator } from '../MemoryStorageEmulator.js';
 
 const getEmptyEnv = () => {
     return {
@@ -683,8 +684,7 @@ describe('Actor', () => {
         });
 
         test('works with with non-null values', () => {
-            const expectedEnv = {
-                ...getEmptyEnv(),
+            const expectedEnv = { ...getEmptyEnv(),
                 ...{
                     // internalPort: 12345,
                     actorId: 'test actId',
@@ -860,7 +860,7 @@ describe('Actor', () => {
             const persistenceStore = [];
 
             const persistResource = (delay: number) => async () : Promise<void> => {
-                await new Promise((res) => setTimeout(res, delay));
+                await sleep(delay);
                 persistenceStore.push('PERSISTED ITEM');
             };
 

@@ -1,6 +1,6 @@
-import { getTestDir, getStats, getDatasetItems, run, expect, validateDataset, skipTest } from '../../tools.mjs';
+import { expect, getDatasetItems, getStats, getTestDir, run, skipTest, validateDataset } from '../../tools.mjs';
 
-skipTest('httpstat.us is very unstable');
+void skipTest('httpstat.us is very unstable');
 
 const testDir = getTestDir(import.meta.url);
 
@@ -27,6 +27,7 @@ await run(testDir, 'web-scraper', {
         switch (label) {
             case 'START': return handleStart(context);
             case 'DETAIL': return handleDetail(context);
+            default: throw new Error(`Unrecognized request label: ${label}`);
         }
 
         async function handleStart({ log }) {

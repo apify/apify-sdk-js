@@ -1,6 +1,7 @@
+import { KeyValueStore, launchPuppeteer, sleep } from 'crawlee';
+
 import log from '@apify/log';
 import { browserTools } from '@apify/scraper-tools';
-import { launchPuppeteer, KeyValueStore } from 'crawlee';
 
 describe('browserTools', () => {
     let browser: Awaited<ReturnType<typeof launchPuppeteer>>;
@@ -93,7 +94,7 @@ describe('browserTools', () => {
                 console.error('error');
                 console.debug('debug');
 
-                await new Promise((r) => setTimeout(r, 10));
+                await new Promise((resolve) => { setTimeout(resolve, 10); });
             });
 
             expect(debug).toBeCalledTimes(1);
@@ -109,7 +110,7 @@ describe('browserTools', () => {
             await page.evaluate(async () => {
                 /* eslint-disable no-console */
                 console.error('error');
-                await new Promise((r) => setTimeout(r, 10));
+                await new Promise((resolve) => { setTimeout(resolve, 10); });
             });
 
             expect(error).toBeCalledTimes(1);

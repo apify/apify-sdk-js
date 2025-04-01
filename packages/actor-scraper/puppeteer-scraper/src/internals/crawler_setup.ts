@@ -2,28 +2,33 @@ import { readFile } from 'node:fs/promises';
 import { dirname } from 'node:path';
 import { fileURLToPath, URL } from 'node:url';
 
-import { browserTools, constants as scraperToolsConstants, CrawlerSetupOptions, createContext, RequestMetadata, tools } from '@apify/scraper-tools';
+import type { AutoscaledPool,
+    EnqueueLinksByClickingElementsOptions,
+    EnqueueLinksOptions,
+    ProxyConfiguration,
+    PuppeteerCrawlerOptions,
+    PuppeteerCrawlingContext,
+    Request } from '@crawlee/puppeteer';
 import {
-    AutoscaledPool,
     Dataset,
     KeyValueStore,
-    Request,
+    log,
+    PuppeteerCrawler,
     RequestList,
     RequestQueueV2,
-    EnqueueLinksByClickingElementsOptions,
-    PuppeteerCrawlingContext,
-    PuppeteerCrawler,
-    PuppeteerCrawlerOptions,
-    EnqueueLinksOptions,
-    log,
-    ProxyConfiguration,
 } from '@crawlee/puppeteer';
-import { Awaitable, Dictionary, sleep } from '@crawlee/utils';
-import { Actor, ApifyEnv } from 'apify';
+import type { Awaitable, Dictionary } from '@crawlee/utils';
+import { sleep } from '@crawlee/utils';
+import type { ApifyEnv } from 'apify';
+import { Actor } from 'apify';
 import { getInjectableScript } from 'idcac-playwright';
-import { HTTPResponse } from 'puppeteer';
+import type { HTTPResponse } from 'puppeteer';
 
-import { Input, ProxyRotation } from './consts.js';
+import type { CrawlerSetupOptions, RequestMetadata } from '@apify/scraper-tools';
+import { browserTools, constants as scraperToolsConstants, createContext, tools } from '@apify/scraper-tools';
+
+import type { Input } from './consts.js';
+import { ProxyRotation } from './consts.js';
 
 const SESSION_STORE_NAME = 'APIFY-PUPPETEER-SCRAPER-SESSION-STORE';
 

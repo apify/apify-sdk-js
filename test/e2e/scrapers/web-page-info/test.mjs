@@ -1,4 +1,4 @@
-import { getTestDir, getStats, getDatasetItems, run, expect, validateDataset } from '../../tools.mjs';
+import { expect, getDatasetItems, getStats, getTestDir, run, validateDataset } from '../../tools.mjs';
 
 const testDir = getTestDir(import.meta.url);
 
@@ -19,6 +19,7 @@ await run(testDir, 'web-scraper', {
     }],
     linkSelector: 'a',
     keepUrlFragments: false,
+    // eslint-disable-next-line consistent-return -- simplifies branching in pageFunction
     pageFunction: async function pageFunction(context) {
         const { request, log, skipLinks, jQuery: $ } = context;
 

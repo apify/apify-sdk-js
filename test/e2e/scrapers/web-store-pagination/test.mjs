@@ -1,4 +1,4 @@
-import { getTestDir, getStats, getDatasetItems, run, expect, validateDataset } from '../../tools.mjs';
+import { expect, getDatasetItems, getStats, getTestDir, run, validateDataset } from '../../tools.mjs';
 
 const testDir = getTestDir(import.meta.url);
 
@@ -22,6 +22,7 @@ await run(testDir, 'web-scraper', {
         switch (context.request.userData.label) {
             case 'START': return handleStart(context);
             case 'DETAIL': return handleDetail(context);
+            default: throw new Error(`Unrecognized label: ${context.request.userData.label}`);
         }
 
         async function handleStart({ log, request, enqueueRequest, waitFor, jQuery: $ }) {
