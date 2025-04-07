@@ -53,7 +53,9 @@ async function run() {
 
             if (match) {
                 const c = match[1] === 'passed' ? colors.green : colors.red;
-                log.info(`${colors.yellow(`[${dir.name}] `)}${match[2]}: ${c(match[1])}`);
+                log.info(
+                    `${colors.yellow(`[${dir.name}] `)}${match[2]}: ${c(match[1])}`,
+                );
             }
         });
         // eslint-disable-next-line no-loop-func -- we actually want to closure the reference to `failure`
@@ -66,7 +68,9 @@ async function run() {
             const took = (Date.now() - now) / 1000;
             const status = code === 0 ? 'success' : 'failure';
             const color = code === 0 ? 'green' : 'red';
-            log.info(`${colors.yellow(`[${dir.name}] `)}${colors[color](`Test finished with status: ${status} `)}${colors.grey(`[took ${took}s]`)}`);
+            log.info(
+                `${colors.yellow(`[${dir.name}] `)}${colors[color](`Test finished with status: ${status} `)}${colors.grey(`[took ${took}s]`)}`,
+            );
 
             await clearStorage(`${basePath}/${dir.name}`);
             const taskLogs = allLogs.get(dir.name);

@@ -7,7 +7,13 @@ import { Actor, Dataset, KeyValueStore, ProxyConfiguration } from 'apify';
 import type { WebhookUpdateData } from 'apify-client';
 import { ActorClient, ApifyClient, RunClient, TaskClient } from 'apify-client';
 
-import { ACT_JOB_STATUSES, ACTOR_ENV_VARS, APIFY_ENV_VARS, KEY_VALUE_STORE_KEYS, WEBHOOK_EVENT_TYPES } from '@apify/consts';
+import {
+    ACT_JOB_STATUSES,
+    ACTOR_ENV_VARS,
+    APIFY_ENV_VARS,
+    KEY_VALUE_STORE_KEYS,
+    WEBHOOK_EVENT_TYPES,
+} from '@apify/consts';
 import { encryptInputSecrets } from '@apify/input_secrets';
 import log from '@apify/log';
 
@@ -43,19 +49,28 @@ const setEnv = (env: ApifyEnv) => {
     if (env.actorRunId) process.env.ACTOR_RUN_ID = env.actorRunId;
     if (env.userId) process.env.APIFY_USER_ID = env.userId;
     if (env.token) process.env.APIFY_TOKEN = env.token;
-    if (env.startedAt) process.env.ACTOR_STARTED_AT = env.startedAt.toISOString();
-    if (env.timeoutAt) process.env.ACTOR_TIMEOUT_AT = env.timeoutAt.toISOString();
-    if (env.defaultKeyValueStoreId) process.env.ACTOR_DEFAULT_KEY_VALUE_STORE_ID = env.defaultKeyValueStoreId;
-    if (env.defaultDatasetId) process.env.ACTOR_DEFAULT_DATASET_ID = env.defaultDatasetId;
-    if (env.memoryMbytes) process.env.ACTOR_MEMORY_MBYTES = env.memoryMbytes.toString();
+    if (env.startedAt)
+        process.env.ACTOR_STARTED_AT = env.startedAt.toISOString();
+    if (env.timeoutAt)
+        process.env.ACTOR_TIMEOUT_AT = env.timeoutAt.toISOString();
+    if (env.defaultKeyValueStoreId)
+        process.env.ACTOR_DEFAULT_KEY_VALUE_STORE_ID =
+            env.defaultKeyValueStoreId;
+    if (env.defaultDatasetId)
+        process.env.ACTOR_DEFAULT_DATASET_ID = env.defaultDatasetId;
+    if (env.memoryMbytes)
+        process.env.ACTOR_MEMORY_MBYTES = env.memoryMbytes.toString();
 };
 
 const testingPublicKey = createPublicKey({
-    // eslint-disable-next-line max-len
-    key: Buffer.from('LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUlJQklqQU5CZ2txaGtpRzl3MEJBUUVGQUFPQ0FROEFNSUlCQ2dLQ0FRRUF0dis3NlNXbklhOFFKWC94RUQxRQpYdnBBQmE3ajBnQnVYenJNUU5adjhtTW1RU0t2VUF0TmpOL2xacUZpQ0haZUQxU2VDcGV1MnFHTm5XbGRxNkhUCnh5cXJpTVZEbFNKaFBNT09QSENISVNVdFI4Tk5lR1Y1MU0wYkxJcENabHcyTU9GUjdqdENWejVqZFRpZ1NvYTIKQWxrRUlRZWQ4UVlDKzk1aGJoOHk5bGcwQ0JxdEdWN1FvMFZQR2xKQ0hGaWNuaWxLVFFZay9MZzkwWVFnUElPbwozbUppeFl5bWFGNmlMZTVXNzg1M0VHWUVFVWdlWmNaZFNjaGVBMEdBMGpRSFVTdnYvMEZjay9adkZNZURJOTVsCmJVQ0JoQjFDbFg4OG4wZUhzUmdWZE5vK0NLMDI4T2IvZTZTK1JLK09VaHlFRVdPTi90alVMdGhJdTJkQWtGcmkKOFFJREFRQUIKLS0tLS1FTkQgUFVCTElDIEtFWS0tLS0tCg==', 'base64'),
+    key: Buffer.from(
+        'LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUlJQklqQU5CZ2txaGtpRzl3MEJBUUVGQUFPQ0FROEFNSUlCQ2dLQ0FRRUF0dis3NlNXbklhOFFKWC94RUQxRQpYdnBBQmE3ajBnQnVYenJNUU5adjhtTW1RU0t2VUF0TmpOL2xacUZpQ0haZUQxU2VDcGV1MnFHTm5XbGRxNkhUCnh5cXJpTVZEbFNKaFBNT09QSENISVNVdFI4Tk5lR1Y1MU0wYkxJcENabHcyTU9GUjdqdENWejVqZFRpZ1NvYTIKQWxrRUlRZWQ4UVlDKzk1aGJoOHk5bGcwQ0JxdEdWN1FvMFZQR2xKQ0hGaWNuaWxLVFFZay9MZzkwWVFnUElPbwozbUppeFl5bWFGNmlMZTVXNzg1M0VHWUVFVWdlWmNaZFNjaGVBMEdBMGpRSFVTdnYvMEZjay9adkZNZURJOTVsCmJVQ0JoQjFDbFg4OG4wZUhzUmdWZE5vK0NLMDI4T2IvZTZTK1JLK09VaHlFRVdPTi90alVMdGhJdTJkQWtGcmkKOFFJREFRQUIKLS0tLS1FTkQgUFVCTElDIEtFWS0tLS0tCg==',
+        'base64',
+    ),
 });
-// eslint-disable-next-line max-len
-const testingPrivateKeyFile = 'LS0tLS1CRUdJTiBSU0EgUFJJVkFURSBLRVktLS0tLQpQcm9jLVR5cGU6IDQsRU5DUllQVEVECkRFSy1JbmZvOiBERVMtRURFMy1DQkMsNTM1QURERjIzNUQ4QkFGOQoKMXFWUzl0S0FhdkVhVUVFMktESnpjM3plMk1lZkc1dmVEd2o1UVJ0ZkRaMXdWNS9VZmIvcU5sVThTSjlNaGhKaQp6RFdrWExueUUzSW0vcEtITVZkS0czYWZkcFRtcis2TmtidXptd0dVMk0vSWpzRjRJZlpad0lGbGJoY09jUnp4CmZmWVIvTlVyaHNrS1RpNGhGV0lBUDlLb3Z6VDhPSzNZY3h6eVZQWUxYNGVWbWt3UmZzeWkwUU5Xb0tGT3d0ZC8KNm9HYzFnd2piRjI5ZDNnUThZQjFGWmRLa1AyMTJGbkt1cTIrUWgvbE1zTUZrTHlTQTRLTGJ3ZG1RSXExbE1QUwpjbUNtZnppV3J1MlBtNEZoM0dmWlQyaE1JWHlIRFdEVzlDTkxKaERodExOZ2RRamFBUFpVT1E4V2hwSkE5MS9vCjJLZzZ3MDd5Z2RCcVd5dTZrc0pXcjNpZ1JpUEJ5QmVNWEpEZU5HY3NhaUZ3Q2c5eFlja1VORXR3NS90WlRsTjIKSEdZV0NpVU5Ed0F2WllMUHR1SHpIOFRFMGxsZm5HR0VuVC9QQlp1UHV4andlZlRleE1mdzFpbGJRU3lkcy9HMgpOOUlKKzkydms0N0ZXR2NOdGh1Q3lCbklva0NpZ0c1ZlBlV2IwQTdpdjk0UGtwRTRJZ3plc0hGQ0ZFQWoxWldLCnpQdFRBQlkwZlJrUzBNc3UwMHYxOXloTTUrdFUwYkVCZWo2eWpzWHRoYzlwS01hcUNIZWlQTC9TSHRkaWsxNVMKQmU4Sml4dVJxZitUeGlYWWVuNTg2aDlzTFpEYzA3cGpkUGp2NVNYRnBYQjhIMlVxQ0tZY2p4R3RvQWpTV0pjWApMNHc3RHNEby80bVg1N0htR09iamlCN1ZyOGhVWEJDdFh2V0dmQXlmcEFZNS9vOXowdm4zREcxaDc1NVVwdDluCkF2MFZrbm9qcmJVYjM1ZlJuU1lYTVltS01LSnpNRlMrdmFvRlpwV0ZjTG10cFRWSWNzc0JGUEYyZEo3V1c0WHMKK0d2Vkl2eFl3S2wyZzFPTE1TTXRZa09vekdlblBXTzdIdU0yMUVKVGIvbHNEZ25GaTkrYWRGZHBLY3R2cm0zdgpmbW1HeG5pRmhLU05GU0xtNms5YStHL2pjK3NVQVBhb2FZNEQ3NHVGajh0WGp0eThFUHdRRGxVUGRVZld3SE9PClF3bVgyMys1REh4V0VoQy91Tm8yNHNNY2ZkQzFGZUpBV281bUNuVU5vUVVmMStNRDVhMzNJdDhhMmlrNUkxUWoKeSs1WGpRaG0xd3RBMWhWTWE4aUxBR0toT09lcFRuK1VBZHpyS0hvNjVtYzNKbGgvSFJDUXJabnVxWkErK0F2WgpjeWU0dWZGWC8xdmRQSTdLb2Q0MEdDM2dlQnhweFFNYnp1OFNUcGpOcElJRkJvRVc5dFRhemUzeHZXWnV6dDc0CnFjZS8xWURuUHBLeW5lM0xGMk94VWoyYWVYUW5YQkpYcGhTZTBVTGJMcWJtUll4bjJKWkl1d09RNHV5dm94NjUKdG9TWGNac054dUs4QTErZXNXR3JSN3pVc0djdU9QQTFERE9Ja2JjcGtmRUxMNjk4RTJRckdqTU9JWnhrcWdxZQoySE5VNktWRmV2NzdZeEJDbm1VcVdXZEhYMjcyU2NPMUYzdWpUdFVnRVBNWGN0aEdBckYzTWxEaUw1Q0k0RkhqCnhHc3pVemxzalRQTmpiY2MzdUE2MjVZS3VVZEI2c1h1Rk5NUHk5UDgwTzBpRWJGTXl3MWxmN2VpdFhvaUUxWVoKc3NhMDVxTUx4M3pPUXZTLzFDdFpqaFp4cVJMRW5pQ3NWa2JVRlVYclpodEU4dG94bGpWSUtpQ25qbitORmtqdwo2bTZ1anpBSytZZHd2Nk5WMFB4S0gwUk5NYVhwb1lmQk1oUmZ3dGlaS3V3Y2hyRFB5UEhBQ2J3WXNZOXdtUE9rCnpwdDNxWi9JdDVYTmVqNDI0RzAzcGpMbk1sd1B1T1VzYmFQUWQ2VHU4TFhsckZReUVjTXJDNHdjUTA1SzFVN3kKM1NNN3RFaTlnbjV3RjY1YVI5eEFBR0grTUtMMk5WNnQrUmlTazJVaWs1clNmeDE4Mk9wYmpSQ2grdmQ4UXhJdwotLS0tLUVORCBSU0EgUFJJVkFURSBLRVktLS0tLQo=';
+
+const testingPrivateKeyFile =
+    'LS0tLS1CRUdJTiBSU0EgUFJJVkFURSBLRVktLS0tLQpQcm9jLVR5cGU6IDQsRU5DUllQVEVECkRFSy1JbmZvOiBERVMtRURFMy1DQkMsNTM1QURERjIzNUQ4QkFGOQoKMXFWUzl0S0FhdkVhVUVFMktESnpjM3plMk1lZkc1dmVEd2o1UVJ0ZkRaMXdWNS9VZmIvcU5sVThTSjlNaGhKaQp6RFdrWExueUUzSW0vcEtITVZkS0czYWZkcFRtcis2TmtidXptd0dVMk0vSWpzRjRJZlpad0lGbGJoY09jUnp4CmZmWVIvTlVyaHNrS1RpNGhGV0lBUDlLb3Z6VDhPSzNZY3h6eVZQWUxYNGVWbWt3UmZzeWkwUU5Xb0tGT3d0ZC8KNm9HYzFnd2piRjI5ZDNnUThZQjFGWmRLa1AyMTJGbkt1cTIrUWgvbE1zTUZrTHlTQTRLTGJ3ZG1RSXExbE1QUwpjbUNtZnppV3J1MlBtNEZoM0dmWlQyaE1JWHlIRFdEVzlDTkxKaERodExOZ2RRamFBUFpVT1E4V2hwSkE5MS9vCjJLZzZ3MDd5Z2RCcVd5dTZrc0pXcjNpZ1JpUEJ5QmVNWEpEZU5HY3NhaUZ3Q2c5eFlja1VORXR3NS90WlRsTjIKSEdZV0NpVU5Ed0F2WllMUHR1SHpIOFRFMGxsZm5HR0VuVC9QQlp1UHV4andlZlRleE1mdzFpbGJRU3lkcy9HMgpOOUlKKzkydms0N0ZXR2NOdGh1Q3lCbklva0NpZ0c1ZlBlV2IwQTdpdjk0UGtwRTRJZ3plc0hGQ0ZFQWoxWldLCnpQdFRBQlkwZlJrUzBNc3UwMHYxOXloTTUrdFUwYkVCZWo2eWpzWHRoYzlwS01hcUNIZWlQTC9TSHRkaWsxNVMKQmU4Sml4dVJxZitUeGlYWWVuNTg2aDlzTFpEYzA3cGpkUGp2NVNYRnBYQjhIMlVxQ0tZY2p4R3RvQWpTV0pjWApMNHc3RHNEby80bVg1N0htR09iamlCN1ZyOGhVWEJDdFh2V0dmQXlmcEFZNS9vOXowdm4zREcxaDc1NVVwdDluCkF2MFZrbm9qcmJVYjM1ZlJuU1lYTVltS01LSnpNRlMrdmFvRlpwV0ZjTG10cFRWSWNzc0JGUEYyZEo3V1c0WHMKK0d2Vkl2eFl3S2wyZzFPTE1TTXRZa09vekdlblBXTzdIdU0yMUVKVGIvbHNEZ25GaTkrYWRGZHBLY3R2cm0zdgpmbW1HeG5pRmhLU05GU0xtNms5YStHL2pjK3NVQVBhb2FZNEQ3NHVGajh0WGp0eThFUHdRRGxVUGRVZld3SE9PClF3bVgyMys1REh4V0VoQy91Tm8yNHNNY2ZkQzFGZUpBV281bUNuVU5vUVVmMStNRDVhMzNJdDhhMmlrNUkxUWoKeSs1WGpRaG0xd3RBMWhWTWE4aUxBR0toT09lcFRuK1VBZHpyS0hvNjVtYzNKbGgvSFJDUXJabnVxWkErK0F2WgpjeWU0dWZGWC8xdmRQSTdLb2Q0MEdDM2dlQnhweFFNYnp1OFNUcGpOcElJRkJvRVc5dFRhemUzeHZXWnV6dDc0CnFjZS8xWURuUHBLeW5lM0xGMk94VWoyYWVYUW5YQkpYcGhTZTBVTGJMcWJtUll4bjJKWkl1d09RNHV5dm94NjUKdG9TWGNac054dUs4QTErZXNXR3JSN3pVc0djdU9QQTFERE9Ja2JjcGtmRUxMNjk4RTJRckdqTU9JWnhrcWdxZQoySE5VNktWRmV2NzdZeEJDbm1VcVdXZEhYMjcyU2NPMUYzdWpUdFVnRVBNWGN0aEdBckYzTWxEaUw1Q0k0RkhqCnhHc3pVemxzalRQTmpiY2MzdUE2MjVZS3VVZEI2c1h1Rk5NUHk5UDgwTzBpRWJGTXl3MWxmN2VpdFhvaUUxWVoKc3NhMDVxTUx4M3pPUXZTLzFDdFpqaFp4cVJMRW5pQ3NWa2JVRlVYclpodEU4dG94bGpWSUtpQ25qbitORmtqdwo2bTZ1anpBSytZZHd2Nk5WMFB4S0gwUk5NYVhwb1lmQk1oUmZ3dGlaS3V3Y2hyRFB5UEhBQ2J3WXNZOXdtUE9rCnpwdDNxWi9JdDVYTmVqNDI0RzAzcGpMbk1sd1B1T1VzYmFQUWQ2VHU4TFhsckZReUVjTXJDNHdjUTA1SzFVN3kKM1NNN3RFaTlnbjV3RjY1YVI5eEFBR0grTUtMMk5WNnQrUmlTazJVaWs1clNmeDE4Mk9wYmpSQ2grdmQ4UXhJdwotLS0tLUVORCBSU0EgUFJJVkFURSBLRVktLS0tLQo=';
 const testingPrivateKeyPassphrase = 'pwd1234';
 
 describe('Actor', () => {
@@ -73,8 +88,12 @@ describe('Actor', () => {
         describe('getEnv()', () => {
             let prevEnv: ApifyEnv;
 
-            beforeAll(() => { prevEnv = new Actor().getEnv(); });
-            afterAll(() => { setEnv(prevEnv); });
+            beforeAll(() => {
+                prevEnv = new Actor().getEnv();
+            });
+            afterAll(() => {
+                setEnv(prevEnv);
+            });
 
             test('works with null values', () => {
                 const expectedEnv = getEmptyEnv();
@@ -112,15 +131,20 @@ describe('Actor', () => {
             });
 
             test('works with simple user function', async () => {
-                await expect(new Actor().main(() => {}, { exit: false })).resolves.not.toThrow();
+                await expect(
+                    new Actor().main(() => {}, { exit: false }),
+                ).resolves.not.toThrow();
             });
 
             test('works with promised user function', async () => {
                 let called = false;
-                await Actor.main(async () => {
-                    await sleep(20);
-                    called = true;
-                }, { exit: false });
+                await Actor.main(
+                    async () => {
+                        await sleep(20);
+                        called = true;
+                    },
+                    { exit: false },
+                );
                 expect(called).toBe(true);
             });
 
@@ -162,12 +186,18 @@ describe('Actor', () => {
             const readyRun = { ...run, status: ACT_JOB_STATUSES.READY };
 
             const output = { contentType, key: outputKey, value: outputValue };
-            const expected = { ...finishedRun, output: { contentType, body: outputValue } };
+            const expected = {
+                ...finishedRun,
+                output: { contentType, body: outputValue },
+            };
 
             test('works as expected', async () => {
                 const memory = 1024;
                 const timeout = 60;
-                const webhooks = [{ a: 'a' }, { b: 'b' }] as unknown as WebhookUpdateData[];
+                const webhooks = [
+                    { a: 'a' },
+                    { b: 'b' },
+                ] as unknown as WebhookUpdateData[];
 
                 const getRecordMock = vitest.fn();
                 getRecordMock.mockResolvedValueOnce(output);
@@ -175,8 +205,13 @@ describe('Actor', () => {
                 callMock.mockResolvedValueOnce(finishedRun);
                 const actorSpy = vitest.spyOn(ApifyClient.prototype, 'actor');
                 actorSpy.mockReturnValueOnce({ call: callMock } as any);
-                const keyValueStoreSpy = vitest.spyOn(ApifyClient.prototype, 'keyValueStore');
-                keyValueStoreSpy.mockReturnValueOnce({ getRecord: getRecordMock } as any);
+                const keyValueStoreSpy = vitest.spyOn(
+                    ApifyClient.prototype,
+                    'keyValueStore',
+                );
+                keyValueStoreSpy.mockReturnValueOnce({
+                    getRecord: getRecordMock,
+                } as any);
 
                 const callOutput = await new Actor().call(actId, input, {
                     contentType,
@@ -195,7 +230,10 @@ describe('Actor', () => {
                 const callMock = vitest.fn();
                 callMock.mockResolvedValueOnce(finishedRun);
                 const actorSpy = vitest.spyOn(ApifyClient.prototype, 'actor');
-                const keyValueStoreSpy = vitest.spyOn(ApifyClient.prototype, 'keyValueStore');
+                const keyValueStoreSpy = vitest.spyOn(
+                    ApifyClient.prototype,
+                    'keyValueStore',
+                );
                 actorSpy.mockReturnValueOnce({ call: callMock } as any);
 
                 const callOutput = await new Actor().call(actId);
@@ -216,10 +254,17 @@ describe('Actor', () => {
                 getRecordMock.mockResolvedValueOnce(output);
                 const actorSpy = vitest.spyOn(ApifyClient.prototype, 'actor');
                 actorSpy.mockReturnValueOnce({ call: callMock } as any);
-                const keyValueStoreSpy = vitest.spyOn(ApifyClient.prototype, 'keyValueStore');
-                keyValueStoreSpy.mockReturnValueOnce({ getRecord: getRecordMock } as any);
+                const keyValueStoreSpy = vitest.spyOn(
+                    ApifyClient.prototype,
+                    'keyValueStore',
+                );
+                keyValueStoreSpy.mockReturnValueOnce({
+                    getRecord: getRecordMock,
+                } as any);
 
-                const callOutput = await new Actor({ storageClientOptions: { token } }).call(actId, input, {
+                const callOutput = await new Actor({
+                    storageClientOptions: { token },
+                }).call(actId, input, {
                     contentType,
                     build,
                     memory,
@@ -238,8 +283,12 @@ describe('Actor', () => {
                     timeout,
                     webhooks,
                 });
-                expect(keyValueStoreSpy).toBeCalledWith(run.defaultKeyValueStoreId);
-                expect(getRecordMock).toBeCalledWith('OUTPUT', { buffer: true });
+                expect(keyValueStoreSpy).toBeCalledWith(
+                    run.defaultKeyValueStoreId,
+                );
+                expect(getRecordMock).toBeCalledWith('OUTPUT', {
+                    buffer: true,
+                });
             });
 
             test('works as expected with unfinished run', async () => {
@@ -249,9 +298,14 @@ describe('Actor', () => {
                 callMock.mockResolvedValueOnce(runningRun);
                 const actorSpy = vitest.spyOn(ApifyClient.prototype, 'actor');
                 actorSpy.mockReturnValueOnce({ call: callMock } as any);
-                const keyValueStoreSpy = vitest.spyOn(ApifyClient.prototype, 'keyValueStore');
+                const keyValueStoreSpy = vitest.spyOn(
+                    ApifyClient.prototype,
+                    'keyValueStore',
+                );
 
-                const callOutput = await new Actor().call(actId, undefined, { waitSecs });
+                const callOutput = await new Actor().call(actId, undefined, {
+                    waitSecs,
+                });
 
                 expect(callOutput).toEqual(runningRun);
                 expect(actorSpy).toBeCalledWith('some-act-id');
@@ -265,9 +319,14 @@ describe('Actor', () => {
                 callMock.mockResolvedValueOnce(readyRun);
                 const actorSpy = vitest.spyOn(ApifyClient.prototype, 'actor');
                 actorSpy.mockReturnValueOnce({ call: callMock } as any);
-                const keyValueStoreSpy = vitest.spyOn(ApifyClient.prototype, 'keyValueStore');
+                const keyValueStoreSpy = vitest.spyOn(
+                    ApifyClient.prototype,
+                    'keyValueStore',
+                );
 
-                const callOutput = await new Actor().call(actId, undefined, { waitSecs });
+                const callOutput = await new Actor().call(actId, undefined, {
+                    waitSecs,
+                });
 
                 expect(callOutput).toEqual(readyRun);
                 expect(actorSpy).toBeCalledWith('some-act-id');
@@ -299,7 +358,10 @@ describe('Actor', () => {
             const outputKey = 'OUTPUT';
             const outputValue = 'some-output';
             const output = { contentType, key: outputKey, value: outputValue };
-            const expected = { ...finishedRun, output: { contentType, body: outputValue } };
+            const expected = {
+                ...finishedRun,
+                output: { contentType, body: outputValue },
+            };
             const input = { foo: 'bar' };
             const memory = 256;
             const timeout = 60;
@@ -313,10 +375,20 @@ describe('Actor', () => {
                 callMock.mockResolvedValueOnce(finishedRun);
                 const taskSpy = vitest.spyOn(ApifyClient.prototype, 'task');
                 taskSpy.mockReturnValueOnce({ call: callMock } as any);
-                const keyValueStoreSpy = vitest.spyOn(ApifyClient.prototype, 'keyValueStore');
-                keyValueStoreSpy.mockReturnValueOnce({ getRecord: getRecordMock } as any);
+                const keyValueStoreSpy = vitest.spyOn(
+                    ApifyClient.prototype,
+                    'keyValueStore',
+                );
+                keyValueStoreSpy.mockReturnValueOnce({
+                    getRecord: getRecordMock,
+                } as any);
 
-                const callOutput = await new Actor().callTask(taskId, input, { memory, timeout, build, webhooks });
+                const callOutput = await new Actor().callTask(taskId, input, {
+                    memory,
+                    timeout,
+                    build,
+                    webhooks,
+                });
 
                 expect(callOutput).toEqual(expected);
                 expect(taskSpy).toBeCalledWith('some-task-id');
@@ -330,10 +402,17 @@ describe('Actor', () => {
                 getRecordMock.mockResolvedValueOnce(output);
                 const taskSpy = vitest.spyOn(ApifyClient.prototype, 'task');
                 taskSpy.mockReturnValueOnce({ call: callMock } as any);
-                const keyValueStoreSpy = vitest.spyOn(ApifyClient.prototype, 'keyValueStore');
-                keyValueStoreSpy.mockReturnValueOnce({ getRecord: getRecordMock } as any);
+                const keyValueStoreSpy = vitest.spyOn(
+                    ApifyClient.prototype,
+                    'keyValueStore',
+                );
+                keyValueStoreSpy.mockReturnValueOnce({
+                    getRecord: getRecordMock,
+                } as any);
 
-                const callOutput = await new Actor({ storageClientOptions: { token } }).callTask(taskId, input, {
+                const callOutput = await new Actor({
+                    storageClientOptions: { token },
+                }).callTask(taskId, input, {
                     build,
                     memory,
                     timeout,
@@ -350,18 +429,29 @@ describe('Actor', () => {
                     timeout,
                     webhooks,
                 });
-                expect(keyValueStoreSpy).toBeCalledWith(run.defaultKeyValueStoreId);
-                expect(getRecordMock).toBeCalledWith('OUTPUT', { buffer: true });
+                expect(keyValueStoreSpy).toBeCalledWith(
+                    run.defaultKeyValueStoreId,
+                );
+                expect(getRecordMock).toBeCalledWith('OUTPUT', {
+                    buffer: true,
+                });
             });
 
             test('works as expected with fetchOutput = false', async () => {
                 const callMock = vitest.fn();
                 callMock.mockResolvedValueOnce(finishedRun);
                 const taskSpy = vitest.spyOn(ApifyClient.prototype, 'task');
-                const keyValueStoreSpy = vitest.spyOn(ApifyClient.prototype, 'keyValueStore');
+                const keyValueStoreSpy = vitest.spyOn(
+                    ApifyClient.prototype,
+                    'keyValueStore',
+                );
                 taskSpy.mockReturnValueOnce({ call: callMock } as any);
 
-                const callOutput = await new Actor().callTask(taskId, undefined, {});
+                const callOutput = await new Actor().callTask(
+                    taskId,
+                    undefined,
+                    {},
+                );
 
                 expect(keyValueStoreSpy).not.toBeCalled();
                 expect(callOutput).toEqual(finishedRun);
@@ -375,9 +465,16 @@ describe('Actor', () => {
                 callMock.mockResolvedValueOnce(runningRun);
                 const taskSpy = vitest.spyOn(ApifyClient.prototype, 'task');
                 taskSpy.mockReturnValueOnce({ call: callMock } as any);
-                const keyValueStoreSpy = vitest.spyOn(ApifyClient.prototype, 'keyValueStore');
+                const keyValueStoreSpy = vitest.spyOn(
+                    ApifyClient.prototype,
+                    'keyValueStore',
+                );
 
-                const callOutput = await new Actor().callTask(taskId, undefined, { waitSecs });
+                const callOutput = await new Actor().callTask(
+                    taskId,
+                    undefined,
+                    { waitSecs },
+                );
 
                 expect(callOutput).toEqual(runningRun);
                 expect(keyValueStoreSpy).not.toBeCalled();
@@ -391,9 +488,16 @@ describe('Actor', () => {
                 callMock.mockResolvedValueOnce(readyRun);
                 const taskSpy = vitest.spyOn(ApifyClient.prototype, 'task');
                 taskSpy.mockReturnValueOnce({ call: callMock } as any);
-                const keyValueStoreSpy = vitest.spyOn(ApifyClient.prototype, 'keyValueStore');
+                const keyValueStoreSpy = vitest.spyOn(
+                    ApifyClient.prototype,
+                    'keyValueStore',
+                );
 
-                const callOutput = await new Actor().callTask(taskId, undefined, { waitSecs });
+                const callOutput = await new Actor().callTask(
+                    taskId,
+                    undefined,
+                    { waitSecs },
+                );
 
                 expect(callOutput).toEqual(readyRun);
                 expect(keyValueStoreSpy).not.toBeCalled();
@@ -436,7 +540,11 @@ describe('Actor', () => {
                 const runSpy = vitest.spyOn(ApifyClient.prototype, 'run');
                 runSpy.mockReturnValueOnce({ metamorph: metamorphMock } as any);
 
-                await new Actor().metamorph(targetActorId, input, { contentType, build, customAfterSleepMillis: 1 });
+                await new Actor().metamorph(targetActorId, input, {
+                    contentType,
+                    build,
+                    customAfterSleepMillis: 1,
+                });
 
                 expect(metamorphMock).toBeCalledWith(targetActorId, input, {
                     build,
@@ -450,15 +558,23 @@ describe('Actor', () => {
                 const runSpy = vitest.spyOn(ApifyClient.prototype, 'run');
                 runSpy.mockReturnValueOnce({ metamorph: metamorphMock } as any);
 
-                await new Actor().metamorph(targetActorId, undefined, { customAfterSleepMillis: 1 });
+                await new Actor().metamorph(targetActorId, undefined, {
+                    customAfterSleepMillis: 1,
+                });
 
-                expect(metamorphMock).toBeCalledWith(targetActorId, undefined, {});
+                expect(metamorphMock).toBeCalledWith(
+                    targetActorId,
+                    undefined,
+                    {},
+                );
             });
         });
 
         describe('addWebhook()', () => {
             const runId = 'my-run-id';
-            const expectedEventTypes = [WEBHOOK_EVENT_TYPES.ACTOR_RUN_SUCCEEDED];
+            const expectedEventTypes = [
+                WEBHOOK_EVENT_TYPES.ACTOR_RUN_SUCCEEDED,
+            ];
             const expectedRequestUrl = 'http://example.com/api';
             const expectedPayloadTemplate = '{"hello":{{world}}';
             const expectedIdempotencyKey = 'some-key';
@@ -479,7 +595,10 @@ describe('Actor', () => {
 
                 const createMock = vitest.fn();
                 createMock.mockResolvedValueOnce(webhook);
-                const webhooksSpy = vitest.spyOn(ApifyClient.prototype, 'webhooks');
+                const webhooksSpy = vitest.spyOn(
+                    ApifyClient.prototype,
+                    'webhooks',
+                );
                 webhooksSpy.mockReturnValueOnce({ create: createMock } as any);
 
                 await new Actor().addWebhook({
@@ -502,10 +621,15 @@ describe('Actor', () => {
                 runSpy.mockImplementationOnce(metamorphMock);
 
                 const sdk = new Actor();
-                await sdk.addWebhook({ eventTypes: expectedEventTypes, requestUrl: expectedRequestUrl });
+                await sdk.addWebhook({
+                    eventTypes: expectedEventTypes,
+                    requestUrl: expectedRequestUrl,
+                });
 
                 expect(metamorphMock).not.toBeCalled();
-                expect(warningMock).toBeCalledWith('Actor.addWebhook() is only supported when running on the Apify platform. The webhook will not be invoked.');
+                expect(warningMock).toBeCalledWith(
+                    'Actor.addWebhook() is only supported when running on the Apify platform. The webhook will not be invoked.',
+                );
                 warningMock.mockRestore();
             });
 
@@ -514,7 +638,10 @@ describe('Actor', () => {
 
                 let isThrow;
                 try {
-                    await new Actor().addWebhook({ eventTypes: expectedEventTypes, requestUrl: expectedRequestUrl });
+                    await new Actor().addWebhook({
+                        eventTypes: expectedEventTypes,
+                        requestUrl: expectedRequestUrl,
+                    });
                 } catch (err) {
                     isThrow = true;
                 }
@@ -526,21 +653,27 @@ describe('Actor', () => {
             test('Actor.createProxyConfiguration() allows useApifyProxy option', async () => {
                 const proxyConfiguration = {
                     useApifyProxy: true,
-                    apifyProxyGroups: [
-                        'RESIDENTIAL',
-                    ],
+                    apifyProxyGroups: ['RESIDENTIAL'],
                     apifyProxyCountry: 'US',
                 };
 
-                const initializeSpy = vitest.spyOn(ProxyConfiguration.prototype, 'initialize');
+                const initializeSpy = vitest.spyOn(
+                    ProxyConfiguration.prototype,
+                    'initialize',
+                );
                 initializeSpy.mockImplementationOnce(async () => true);
-                await expect(Actor.createProxyConfiguration(proxyConfiguration)).resolves.toBeInstanceOf(ProxyConfiguration);
+                await expect(
+                    Actor.createProxyConfiguration(proxyConfiguration),
+                ).resolves.toBeInstanceOf(ProxyConfiguration);
                 expect(initializeSpy).toBeCalledTimes(1);
             });
 
             test('createProxyConfiguration should create ProxyConfiguration', async () => {
                 const sdk = new Actor();
-                const initializeSpy = vitest.spyOn(ProxyConfiguration.prototype, 'initialize');
+                const initializeSpy = vitest.spyOn(
+                    ProxyConfiguration.prototype,
+                    'initialize',
+                );
                 initializeSpy.mockImplementationOnce(async () => true);
                 await sdk.createProxyConfiguration();
                 expect(initializeSpy).toBeCalledTimes(1);
@@ -550,11 +683,20 @@ describe('Actor', () => {
         describe('Storage API', () => {
             let sdk: Actor<{ foo: string }>;
 
-            beforeEach(async () => { sdk = new Actor({ storageClientOptions: { storageDir: await localStorageEmulator.init() } }); });
+            beforeEach(async () => {
+                sdk = new Actor({
+                    storageClientOptions: {
+                        storageDir: await localStorageEmulator.init(),
+                    },
+                });
+            });
             afterAll(async () => localStorageEmulator.destroy());
 
             test('getInput()', async () => {
-                const getValueSpy = vitest.spyOn(KeyValueStore.prototype, 'getValue');
+                const getValueSpy = vitest.spyOn(
+                    KeyValueStore.prototype,
+                    'getValue',
+                );
                 getValueSpy.mockImplementation(async () => 123);
 
                 // Uses default value.
@@ -574,7 +716,10 @@ describe('Actor', () => {
 
             test('setValue()', async () => {
                 const record = { foo: 'bar' };
-                const setValueSpy = vitest.spyOn(KeyValueStore.prototype, 'setValue');
+                const setValueSpy = vitest.spyOn(
+                    KeyValueStore.prototype,
+                    'setValue',
+                );
                 setValueSpy.mockImplementationOnce(async () => {});
 
                 await sdk.setValue('key-1', record);
@@ -583,7 +728,10 @@ describe('Actor', () => {
             });
 
             test('getValue()', async () => {
-                const getValueSpy = vitest.spyOn(KeyValueStore.prototype, 'getValue');
+                const getValueSpy = vitest.spyOn(
+                    KeyValueStore.prototype,
+                    'getValue',
+                );
                 getValueSpy.mockImplementationOnce(async () => 123);
 
                 const val = await sdk.getValue('key-1');
@@ -604,9 +752,14 @@ describe('Actor', () => {
             test('openRequestQueue should open storage', async () => {
                 const queueId = 'abc';
                 const options = { forceCloud: true };
-                const openStorageSpy = vitest.spyOn(StorageManager.prototype, 'openStorage');
+                const openStorageSpy = vitest.spyOn(
+                    StorageManager.prototype,
+                    'openStorage',
+                );
 
-                const mockRQ = { client: { get: () => ({ totalRequestCount: 10 }) } };
+                const mockRQ = {
+                    client: { get: () => ({ totalRequestCount: 10 }) },
+                };
 
                 openStorageSpy.mockImplementationOnce(async () => mockRQ);
                 const queue = await sdk.openRequestQueue(queueId, options);
@@ -620,11 +773,17 @@ describe('Actor', () => {
             test('openDataset should open storage', async () => {
                 const datasetName = 'abc';
                 const options = { forceCloud: true };
-                const mockOpenStorage = vitest.spyOn(StorageManager.prototype, 'openStorage');
+                const mockOpenStorage = vitest.spyOn(
+                    StorageManager.prototype,
+                    'openStorage',
+                );
                 mockOpenStorage.mockResolvedValueOnce(vitest.fn());
                 const ds = await sdk.openDataset(datasetName, options);
                 expect(mockOpenStorage).toBeCalledTimes(1);
-                expect(mockOpenStorage).toBeCalledWith(datasetName, sdk.apifyClient);
+                expect(mockOpenStorage).toBeCalledWith(
+                    datasetName,
+                    sdk.apifyClient,
+                );
             });
         });
     });
@@ -643,15 +802,34 @@ describe('Actor', () => {
         targetActorId: 'some-target-actor-id',
     };
 
-    const runKeys = ['run', 'output', 'finishedRun', 'failedRun', 'runningRun', 'readyRun', 'expected'] as const;
+    const runKeys = [
+        'run',
+        'output',
+        'finishedRun',
+        'failedRun',
+        'runningRun',
+        'readyRun',
+        'expected',
+    ] as const;
 
     // @ts-expect-error
-    const runConfigs : Record<typeof runKeys[number], any> = {
-        run: { id: globalOptions.runId, actId: globalOptions.actId, defaultKeyValueStoreId: globalOptions.defaultKeyValueStoreId },
-        output: { contentType: globalOptions.contentType, key: globalOptions.outputKey, value: globalOptions.outputValue },
+    const runConfigs: Record<(typeof runKeys)[number], any> = {
+        run: {
+            id: globalOptions.runId,
+            actId: globalOptions.actId,
+            defaultKeyValueStoreId: globalOptions.defaultKeyValueStoreId,
+        },
+        output: {
+            contentType: globalOptions.contentType,
+            key: globalOptions.outputKey,
+            value: globalOptions.outputValue,
+        },
         init() {
-        // @ts-expect-error
-            this.finishedRun = { ...this.run, status: ACT_JOB_STATUSES.SUCCEEDED };
+            // @ts-expect-error
+            this.finishedRun = {
+                ...this.run,
+                status: ACT_JOB_STATUSES.SUCCEEDED,
+            };
             // @ts-expect-error
             this.failedRun = { ...this.run, status: ACT_JOB_STATUSES.ABORTED };
             // @ts-expect-error
@@ -659,7 +837,13 @@ describe('Actor', () => {
             // @ts-expect-error
             this.readyRun = { ...this.run, status: ACT_JOB_STATUSES.READY };
             // @ts-expect-error
-            this.expected = { ...this.finishedRun, output: { contentType: globalOptions.contentType, body: globalOptions.outputValue } };
+            this.expected = {
+                ...this.finishedRun,
+                output: {
+                    contentType: globalOptions.contentType,
+                    body: globalOptions.outputValue,
+                },
+            };
             return this;
         },
     }.init();
@@ -684,7 +868,8 @@ describe('Actor', () => {
         });
 
         test('works with with non-null values', () => {
-            const expectedEnv = { ...getEmptyEnv(),
+            const expectedEnv = {
+                ...getEmptyEnv(),
                 ...{
                     // internalPort: 12345,
                     actorId: 'test actId',
@@ -696,7 +881,8 @@ describe('Actor', () => {
                     defaultKeyValueStoreId: 'some store',
                     defaultDatasetId: 'some dataset',
                     memoryMbytes: 1234,
-                } };
+                },
+            };
             setEnv(expectedEnv);
 
             const env = Actor.getEnv();
@@ -711,12 +897,17 @@ describe('Actor', () => {
         test('works as expected', async () => {
             const memory = 1024;
             const timeout = 60;
-            const webhooks = [{ a: 'a' }, { b: 'b' }] as unknown as WebhookUpdateData[];
+            const webhooks = [
+                { a: 'a' },
+                { b: 'b' },
+            ] as unknown as WebhookUpdateData[];
 
             const options = { contentType, build, memory, timeout, webhooks };
 
             const actorSpy = vitest.spyOn(ApifyClient.prototype, 'actor');
-            const callSpy = vitest.spyOn(ActorClient.prototype, 'call').mockReturnValue(runConfigs.finishedRun);
+            const callSpy = vitest
+                .spyOn(ActorClient.prototype, 'call')
+                .mockReturnValue(runConfigs.finishedRun);
             await Actor.call(actId, input, options);
 
             expect(actorSpy).toBeCalledWith(actId);
@@ -726,12 +917,24 @@ describe('Actor', () => {
         test('works with token', async () => {
             const memory = 1024;
             const timeout = 60;
-            const webhooks = [{ a: 'a' }, { b: 'b' }] as unknown as WebhookUpdateData[];
+            const webhooks = [
+                { a: 'a' },
+                { b: 'b' },
+            ] as unknown as WebhookUpdateData[];
 
             const newClientSpy = vitest.spyOn(Actor.prototype, 'newClient');
             const actorSpy = vitest.spyOn(ApifyClient.prototype, 'actor');
-            const callSpy = vitest.spyOn(ActorClient.prototype, 'call').mockReturnValue(runConfigs.finishedRun);
-            await Actor.call(actId, input, { contentType, build, token, memory, timeout, webhooks });
+            const callSpy = vitest
+                .spyOn(ActorClient.prototype, 'call')
+                .mockReturnValue(runConfigs.finishedRun);
+            await Actor.call(actId, input, {
+                contentType,
+                build,
+                token,
+                memory,
+                timeout,
+                webhooks,
+            });
 
             expect(newClientSpy).toBeCalledWith({ token });
             expect(actorSpy).toBeCalledWith(actId);
@@ -749,14 +952,19 @@ describe('Actor', () => {
     describe('Actor.callTask()', () => {
         const memory = 256; // m
         const timeout = 60; // se
-        const webhooks = [{ a: 'a' }, { b: 'b' }] as unknown as WebhookUpdateData[];
+        const webhooks = [
+            { a: 'a' },
+            { b: 'b' },
+        ] as unknown as WebhookUpdateData[];
 
         const { input, taskId, token, build } = globalOptions;
         const { finishedRun } = runConfigs;
 
         test('works as expected', async () => {
             const taskSpy = vitest.spyOn(ApifyClient.prototype, 'task');
-            const callSpy = vitest.spyOn(TaskClient.prototype, 'call').mockReturnValue(finishedRun);
+            const callSpy = vitest
+                .spyOn(TaskClient.prototype, 'call')
+                .mockReturnValue(finishedRun);
 
             const options = { memory, timeout, build, webhooks };
             const callOutput = await Actor.callTask(taskId, input, options);
@@ -775,8 +983,13 @@ describe('Actor', () => {
 
             const newClientSpy = vitest.spyOn(Actor.prototype, 'newClient');
             const taskSpy = vitest.spyOn(ApifyClient.prototype, 'task');
-            const callSpy = vitest.spyOn(TaskClient.prototype, 'call').mockReturnValue(finishedRun);
-            const callOutput = await Actor.callTask(taskId, input, { token, ...options });
+            const callSpy = vitest
+                .spyOn(TaskClient.prototype, 'call')
+                .mockReturnValue(finishedRun);
+            const callOutput = await Actor.callTask(taskId, input, {
+                token,
+                ...options,
+            });
 
             expect(newClientSpy).toBeCalledWith({ token });
             expect(taskSpy).toBeCalledWith(taskId);
@@ -788,7 +1001,8 @@ describe('Actor', () => {
 
     // TODO we should remove the duplication if possible
     describe('Actor.metamorph()', () => {
-        const { actId, runId, targetActorId, input, contentType, build } = globalOptions;
+        const { actId, runId, targetActorId, input, contentType, build } =
+            globalOptions;
 
         const { run } = runConfigs;
 
@@ -812,7 +1026,11 @@ describe('Actor', () => {
             const runSpy = vitest.spyOn(ApifyClient.prototype, 'run');
             runSpy.mockReturnValueOnce({ metamorph: metamorphMock } as any);
 
-            await Actor.metamorph(targetActorId, input, { contentType, build, customAfterSleepMillis: 1 });
+            await Actor.metamorph(targetActorId, input, {
+                contentType,
+                build,
+                customAfterSleepMillis: 1,
+            });
 
             expect(runSpy).toBeCalledTimes(1);
 
@@ -828,7 +1046,9 @@ describe('Actor', () => {
             const runSpy = vitest.spyOn(ApifyClient.prototype, 'run');
             runSpy.mockReturnValueOnce({ metamorph: metamorphMock } as any);
 
-            await Actor.metamorph(targetActorId, undefined, { customAfterSleepMillis: 1 });
+            await Actor.metamorph(targetActorId, undefined, {
+                customAfterSleepMillis: 1,
+            });
 
             expect(metamorphMock).toBeCalledWith(targetActorId, undefined, {});
         });
@@ -859,10 +1079,11 @@ describe('Actor', () => {
 
             const persistenceStore = [];
 
-            const persistResource = (delay: number) => async () : Promise<void> => {
-                await sleep(delay);
-                persistenceStore.push('PERSISTED ITEM');
-            };
+            const persistResource =
+                (delay: number) => async (): Promise<void> => {
+                    await sleep(delay);
+                    persistenceStore.push('PERSISTED ITEM');
+                };
 
             const migratingSpy = vitest.fn(persistResource(50));
             const persistStateSpy = vitest.fn(persistResource(50));
@@ -909,7 +1130,8 @@ describe('Actor', () => {
             process.env[ACTOR_ENV_VARS.RUN_ID] = runId;
             process.env[APIFY_ENV_VARS.IS_AT_HOME] = '1';
 
-            const clientMock = vitest.spyOn(Actor.apifyClient, 'webhooks')
+            const clientMock = vitest
+                .spyOn(Actor.apifyClient, 'webhooks')
                 .mockReturnValueOnce({ create: async () => webhook } as any);
 
             await Actor.addWebhook({
@@ -926,12 +1148,18 @@ describe('Actor', () => {
         });
 
         test('on local logs warning and does nothing', async () => {
-            const clientMock = vitest.spyOn(Actor.apifyClient, 'webhooks')
+            const clientMock = vitest
+                .spyOn(Actor.apifyClient, 'webhooks')
                 .mockImplementation((() => {}) as any);
 
-            const warningStub = vitest.spyOn(log, 'warning').mockImplementation(() => {});
+            const warningStub = vitest
+                .spyOn(log, 'warning')
+                .mockImplementation(() => {});
 
-            await Actor.addWebhook({ eventTypes: expectedEventTypes, requestUrl: expectedRequestUrl });
+            await Actor.addWebhook({
+                eventTypes: expectedEventTypes,
+                requestUrl: expectedRequestUrl,
+            });
 
             expect(warningStub).toBeCalledTimes(1);
             expect(clientMock).toBeCalledTimes(0);
@@ -940,9 +1168,12 @@ describe('Actor', () => {
         test('should fail without actor run ID', async () => {
             process.env[APIFY_ENV_VARS.IS_AT_HOME] = '1';
 
-            await expect(async () => Actor.addWebhook({ eventTypes: expectedEventTypes, requestUrl: expectedRequestUrl }))
-                .rejects
-                .toThrow();
+            await expect(async () =>
+                Actor.addWebhook({
+                    eventTypes: expectedEventTypes,
+                    requestUrl: expectedRequestUrl,
+                }),
+            ).rejects.toThrow();
 
             delete process.env[APIFY_ENV_VARS.IS_AT_HOME];
         });
@@ -953,16 +1184,22 @@ describe('Actor', () => {
 
         test('should work', async () => {
             await expect(TestingActor.getInput()).resolves.toBeNull();
-            await expect(TestingActor.getInputOrThrow()).rejects.toThrowError('Input does not exist');
+            await expect(TestingActor.getInputOrThrow()).rejects.toThrowError(
+                'Input does not exist',
+            );
 
             const mockGetValue = vitest.spyOn(TestingActor, 'getValue');
-            mockGetValue.mockImplementation(async (key) => expect(key).toEqual(KEY_VALUE_STORE_KEYS.INPUT));
+            mockGetValue.mockImplementation(async (key) =>
+                expect(key).toEqual(KEY_VALUE_STORE_KEYS.INPUT),
+            );
 
             await TestingActor.getInput();
 
             // Uses value from env var.
             process.env[ACTOR_ENV_VARS.INPUT_KEY] = 'some-value';
-            mockGetValue.mockImplementation(async (key) => expect(key).toBe('some-value'));
+            mockGetValue.mockImplementation(async (key) =>
+                expect(key).toBe('some-value'),
+            );
             await TestingActor.getInput();
 
             delete process.env[ACTOR_ENV_VARS.INPUT_KEY];
@@ -972,22 +1209,33 @@ describe('Actor', () => {
         test('should work with input secrets', async () => {
             const mockGetValue = vitest.spyOn(TestingActor, 'getValue');
             const originalInput = { secret: 'foo', nonSecret: 'bar' };
-            const likeInputSchema = { properties: { secret: { type: 'string', isSecret: true } }, nonSecret: { type: 'string' } };
-            const encryptedInput = encryptInputSecrets({ input: originalInput, inputSchema: likeInputSchema, publicKey: testingPublicKey });
+            const likeInputSchema = {
+                properties: { secret: { type: 'string', isSecret: true } },
+                nonSecret: { type: 'string' },
+            };
+            const encryptedInput = encryptInputSecrets({
+                input: originalInput,
+                inputSchema: likeInputSchema,
+                publicKey: testingPublicKey,
+            });
             // Checks if encrypts the right value
             expect(encryptedInput.secret.startsWith('ENCRYPTED_')).toBe(true);
             expect(encryptedInput.nonSecret).toBe(originalInput.nonSecret);
 
             mockGetValue.mockImplementation(async (key) => encryptedInput);
 
-            process.env[APIFY_ENV_VARS.INPUT_SECRETS_PRIVATE_KEY_FILE] = testingPrivateKeyFile;
-            process.env[APIFY_ENV_VARS.INPUT_SECRETS_PRIVATE_KEY_PASSPHRASE] = testingPrivateKeyPassphrase;
+            process.env[APIFY_ENV_VARS.INPUT_SECRETS_PRIVATE_KEY_FILE] =
+                testingPrivateKeyFile;
+            process.env[APIFY_ENV_VARS.INPUT_SECRETS_PRIVATE_KEY_PASSPHRASE] =
+                testingPrivateKeyPassphrase;
             const input = await TestingActor.getInput();
 
             expect(input).toStrictEqual(originalInput);
 
             delete process.env[APIFY_ENV_VARS.INPUT_SECRETS_PRIVATE_KEY_FILE];
-            delete process.env[APIFY_ENV_VARS.INPUT_SECRETS_PRIVATE_KEY_PASSPHRASE];
+            delete process.env[
+                APIFY_ENV_VARS.INPUT_SECRETS_PRIVATE_KEY_PASSPHRASE
+            ];
             mockGetValue.mockRestore();
         });
     });
@@ -1037,7 +1285,9 @@ describe('Actor', () => {
             await Actor.init();
             process.env.ACTOR_MAX_TOTAL_CHARGE_USD = '';
             expect(Actor.config.get('maxTotalChargeUsd')).toBe(0);
-            expect(Actor.getChargingManager().getMaxTotalChargeUsd()).toBe(Infinity);
+            expect(Actor.getChargingManager().getMaxTotalChargeUsd()).toBe(
+                Infinity,
+            );
 
             // the value in charging manager is cached, so we cant test that here
             process.env.ACTOR_MAX_TOTAL_CHARGE_USD = '123';

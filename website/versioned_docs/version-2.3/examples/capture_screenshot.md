@@ -10,6 +10,7 @@ This example captures a screenshot of a web page using `Puppeteer`. It would loo
 <!--DOCUSAURUS_CODE_TABS-->
 
 <!-- PageScreenshot -->
+
 \
 Using `page.screenshot()`:
 
@@ -34,6 +35,7 @@ Apify.main(async () => {
 ```
 
 <!-- ApifySnapshot -->
+
 \
 Using `Apify.utils.puppeteer.saveSnapshot()`:
 
@@ -49,7 +51,10 @@ Apify.main(async () => {
     // Navigate to the URL
     await page.goto(url);
     // Capture the screenshot
-    await Apify.utils.puppeteer.saveSnapshot(page, { key: 'my-key', saveHtml: false });
+    await Apify.utils.puppeteer.saveSnapshot(page, {
+        key: 'my-key',
+        saveHtml: false,
+    });
     // Close Puppeteer
     await browser.close();
 });
@@ -62,6 +67,7 @@ This example captures a screenshot of multiple web pages when using `PuppeteerCr
 <!--DOCUSAURUS_CODE_TABS-->
 
 <!-- PageScreenshot -->
+
 \
 Using `page.screenshot()`:
 
@@ -70,12 +76,11 @@ const Apify = require('apify');
 
 Apify.main(async () => {
     // Add URLs to a RequestList
-    const requestList = await Apify.openRequestList('start-urls',
-        [
-            { url: 'http://www.example.com/page-1' },
-            { url: 'http://www.example.com/page-2' },
-            { url: 'http://www.example.com/page-3' },
-        ]);
+    const requestList = await Apify.openRequestList('start-urls', [
+        { url: 'http://www.example.com/page-1' },
+        { url: 'http://www.example.com/page-2' },
+        { url: 'http://www.example.com/page-3' },
+    ]);
     // Function called for each URL
     const handlePageFunction = async ({ request, page }) => {
         // Capture the screenshot with Puppeteer
@@ -96,6 +101,7 @@ Apify.main(async () => {
 ```
 
 <!-- ApifySnapshot -->
+
 \
 Using `Apify.utils.puppeteer.saveSnapshot()`:
 
@@ -104,18 +110,20 @@ const Apify = require('apify');
 
 Apify.main(async () => {
     // Add URLs to a RequestList
-    const requestList = await Apify.openRequestList('start-urls',
-        [
-            { url: 'http://www.example.com/page-1' },
-            { url: 'http://www.example.com/page-2' },
-            { url: 'http://www.example.com/page-3' },
-        ]);
+    const requestList = await Apify.openRequestList('start-urls', [
+        { url: 'http://www.example.com/page-1' },
+        { url: 'http://www.example.com/page-2' },
+        { url: 'http://www.example.com/page-3' },
+    ]);
     // Function called for each URL
     const handlePageFunction = async ({ request, page }) => {
         // Convert the URL into a valid key
         const key = request.url.replace(/[:/]/g, '_');
         // Capture the screenshot
-        await Apify.utils.puppeteer.saveSnapshot(page, { key, saveHtml: false });
+        await Apify.utils.puppeteer.saveSnapshot(page, {
+            key,
+            saveHtml: false,
+        });
     };
     // Create a PuppeteerCrawler
     const crawler = new Apify.PuppeteerCrawler({
@@ -130,4 +138,4 @@ Apify.main(async () => {
 <!--END_DOCUSAURUS_CODE_TABS-->
 
 In both examples using `page.screenshot()`, a `key` variable is created based on the URL of the web page.
- This variable is used as the key when saving each screenshot into a key-value store.
+This variable is used as the key when saving each screenshot into a key-value store.

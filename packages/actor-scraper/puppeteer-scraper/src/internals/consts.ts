@@ -1,4 +1,11 @@
-import type { GlobInput, ProxyConfigurationOptions, PseudoUrlInput, RegExpInput, RequestOptions, Session } from '@crawlee/puppeteer';
+import type {
+    GlobInput,
+    ProxyConfigurationOptions,
+    PseudoUrlInput,
+    RegExpInput,
+    RequestOptions,
+    Session,
+} from '@crawlee/puppeteer';
 import type { Dictionary } from '@crawlee/utils';
 import type { PuppeteerLifeCycleEvent } from 'puppeteer';
 

@@ -122,7 +122,9 @@ const crawler = new PuppeteerCrawler({
     // At this point request with the same URL would exist in the list and the queue
     handlePageFunction: async ({ request, page }) => {
         // Add new request to the queue
-        await requestQueue.addRequest({ url: 'http://www.example.com/new-page' });
+        await requestQueue.addRequest({
+            url: 'http://www.example.com/new-page',
+        });
 
         // Add links found on page to the queue
         await Actor.utils.enqueueLinks({ page, requestQueue });

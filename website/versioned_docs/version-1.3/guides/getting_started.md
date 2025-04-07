@@ -291,7 +291,7 @@ document.querySelector('title').textContent; // plain JS
 $('title').text(); // Cheerio
 
 // Return an array of all 'href' links on the page.
-Array.from(document.querySelectorAll('[href]')).map(el => el.href); // plain JS
+Array.from(document.querySelectorAll('[href]')).map((el) => el.href); // plain JS
 $('[href]')
     .map((i, el) => $(el).attr('href'))
     .get(); // Cheerio
@@ -312,17 +312,17 @@ scraper, such as the [`PuppeteerCrawler`](../api/puppeteer-crawler), you'd need 
 
 **Advantages:**
 
--   Extremely fast
--   Easy to set up
--   Familiar for jQuery users
--   Super cheap to run
--   Each request can go through a different proxy
+- Extremely fast
+- Easy to set up
+- Familiar for jQuery users
+- Super cheap to run
+- Each request can go through a different proxy
 
 **Disadvantages:**
 
--   Does not work for all websites
--   May easily overload the target website with requests
--   Does not enable any manipulation of the website before scraping
+- Does not work for all websites
+- May easily overload the target website with requests
+- Does not enable any manipulation of the website before scraping
 
 ### Basic use of `CheerioCrawler`
 
@@ -388,7 +388,7 @@ const { URL } = require('url');
 // ...
 
 const ourDomain = 'https://apify.com';
-const absoluteUrls = links.map(link => new URL(link, ourDomain));
+const absoluteUrls = links.map((link) => new URL(link, ourDomain));
 ```
 
 #### Filtering links to same domain
@@ -410,9 +410,11 @@ const links = $('a[href]')
     .get();
 
 const ourDomain = 'apify.com';
-const absoluteUrls = links.map(link => new URL(link, ourDomain));
+const absoluteUrls = links.map((link) => new URL(link, ourDomain));
 
-const sameDomainLinks = absoluteUrls.filter(url => url.href.startsWith(ourDomain));
+const sameDomainLinks = absoluteUrls.filter((url) =>
+    url.href.startsWith(ourDomain),
+);
 
 // ...
 ```
@@ -433,9 +435,11 @@ const links = $('a[href]')
     .get();
 
 const ourDomain = 'https://apify.com';
-const absoluteUrls = links.map(link => new URL(link, ourDomain));
+const absoluteUrls = links.map((link) => new URL(link, ourDomain));
 
-const sameDomainLinks = absoluteUrls.filter(url => url.href.startsWith(ourDomain));
+const sameDomainLinks = absoluteUrls.filter((url) =>
+    url.href.startsWith(ourDomain),
+);
 
 // Add the requests in series. There's of course room for speed
 // improvement by parallelization. Try to implement it, if you wish.
@@ -491,9 +495,11 @@ Apify.main(async () => {
             .get();
 
         const ourDomain = 'https://apify.com';
-        const absoluteUrls = links.map(link => new URL(link, ourDomain));
+        const absoluteUrls = links.map((link) => new URL(link, ourDomain));
 
-        const sameDomainLinks = absoluteUrls.filter(url => url.href.startsWith(ourDomain));
+        const sameDomainLinks = absoluteUrls.filter((url) =>
+            url.href.startsWith(ourDomain),
+        );
 
         console.log(`Enqueueing ${sameDomainLinks.length} URLs.`);
         for (const url of sameDomainLinks) {
@@ -749,9 +755,11 @@ Apify.main(async () => {
             .get();
 
         const ourDomain = 'https://apify.com';
-        const absoluteUrls = links.map(link => new URL(link, ourDomain));
+        const absoluteUrls = links.map((link) => new URL(link, ourDomain));
 
-        const sameDomainLinks = absoluteUrls.filter(url => url.href.startsWith(ourDomain));
+        const sameDomainLinks = absoluteUrls.filter((url) =>
+            url.href.startsWith(ourDomain),
+        );
 
         console.log(`Enqueueing ${sameDomainLinks.length} URLs.`);
         for (const url of sameDomainLinks) {
@@ -942,8 +950,8 @@ of URLs you wish to crawl.
 
 You might now want to ask one of these questions:
 
--   Can I enqueue into `RequestList` too?
--   How do I make `RequestList` work together with `RequestQueue` since I need the queue to enqueue new `Requests`.
+- Can I enqueue into `RequestList` too?
+- How do I make `RequestList` work together with `RequestQueue` since I need the queue to enqueue new `Requests`.
 
 The answer to the first one is a definitive no. `RequestList` is immutable and once you create it, you cannot add or remove `Requests` from it. The
 answer to the second one is simple. `RequestList` and `RequestQueue` are made to work together out of the box in crawlers, so all you need to do is
@@ -1070,7 +1078,7 @@ const handlePageFunction = async ({ $, request }) => {
             requestQueue,
             selector: 'div.item > a',
             baseUrl: request.loadedUrl,
-            transformRequestFunction: req => {
+            transformRequestFunction: (req) => {
                 req.userData.detailPage = true;
                 return req;
             },
@@ -1138,7 +1146,7 @@ Apify.main(async () => {
                     requestQueue,
                     selector: 'div.item > a',
                     baseUrl: request.loadedUrl,
-                    transformRequestFunction: req => {
+                    transformRequestFunction: (req) => {
                         req.userData.detailPage = true;
                         return req;
                     },
@@ -1245,9 +1253,7 @@ return {
     title: $('header h1').text(),
     description: $('header span.actor-description').text(),
     modifiedDate: new Date(
-        Number(
-            $('ul.ActorHeader-stats time').attr('datetime'),
-        ),
+        Number($('ul.ActorHeader-stats time').attr('datetime')),
     ),
 };
 ```
@@ -1269,9 +1275,7 @@ return {
     title: $('header h1').text(),
     description: $('header span.actor-description').text(),
     modifiedDate: new Date(
-        Number(
-            $('ul.ActorHeader-stats time').attr('datetime'),
-        ),
+        Number($('ul.ActorHeader-stats time').attr('datetime')),
     ),
     runCount: Number(
         $('ul.ActorHeader-stats > li:nth-of-type(3)')
@@ -1304,9 +1308,7 @@ const results = {
     title: $('header h1').text(),
     description: $('header span.actor-description').text(),
     modifiedDate: new Date(
-        Number(
-            $('ul.ActorHeader-stats time').attr('datetime'),
-        ),
+        Number($('ul.ActorHeader-stats time').attr('datetime')),
     ),
     runCount: Number(
         $('ul.ActorHeader-stats > li:nth-of-type(3)')
@@ -1354,9 +1356,7 @@ Apify.main(async () => {
                     title: $('header h1').text(),
                     description: $('header span.actor-description').text(),
                     modifiedDate: new Date(
-                        Number(
-                            $('ul.ActorHeader-stats time').attr('datetime'),
-                        ),
+                        Number($('ul.ActorHeader-stats time').attr('datetime')),
                     ),
                     runCount: Number(
                         $('ul.ActorHeader-stats > li:nth-of-type(3)')
@@ -1375,7 +1375,7 @@ Apify.main(async () => {
                     requestQueue,
                     selector: 'div.item > a',
                     baseUrl: request.loadedUrl,
-                    transformRequestFunction: req => {
+                    transformRequestFunction: (req) => {
                         req.userData.detailPage = true;
                         return req;
                     },
@@ -1437,9 +1437,7 @@ Apify.main(async () => {
                     title: $('header h1').text(),
                     description: $('header span.actor-description').text(),
                     modifiedDate: new Date(
-                        Number(
-                            $('ul.ActorHeader-stats time').attr('datetime'),
-                        ),
+                        Number($('ul.ActorHeader-stats time').attr('datetime')),
                     ),
                     runCount: Number(
                         $('ul.ActorHeader-stats > li:nth-of-type(3)')
@@ -1458,7 +1456,7 @@ Apify.main(async () => {
                     requestQueue,
                     selector: 'div.item > a',
                     baseUrl: request.loadedUrl,
-                    transformRequestFunction: req => {
+                    transformRequestFunction: (req) => {
                         req.userData.detailPage = true;
                         return req;
                     },
@@ -1557,7 +1555,7 @@ automatically contain this `userData`.
 // ...
 const input = await Apify.getInput();
 
-const sources = input.map(category => ({
+const sources = input.map((category) => ({
     url: `https://apify.com/store?category=${category}`,
     userData: {
         label: 'CATEGORY',
@@ -1581,11 +1579,11 @@ importantly - easier to reason about and make changes to.
 
 In the following code we've made several changes.
 
--   Split the code into multiple files.
--   Added the `Apify.utils.log` and replaced `console.log` with it.
--   Added a `getSources()` function to encapsulate `INPUT` consumption.
--   Added a `createRouter()` function to make our routing cleaner, without nested `if` clauses.
--   Removed the `maxRequestsPerCrawl` limit.
+- Split the code into multiple files.
+- Added the `Apify.utils.log` and replaced `console.log` with it.
+- Added a `getSources()` function to encapsulate `INPUT` consumption.
+- Added a `createRouter()` function to make our routing cleaner, without nested `if` clauses.
+- Removed the `maxRequestsPerCrawl` limit.
 
 > To create a multi-file actor on the Apify Platform, select **Multiple source files** in the **Type** dropdown on the **Source** screen.
 
@@ -1601,7 +1599,10 @@ const {
 
 Apify.main(async () => {
     log.info('Starting actor.');
-    const requestList = await Apify.openRequestList('categories', await tools.getSources());
+    const requestList = await Apify.openRequestList(
+        'categories',
+        await tools.getSources(),
+    );
     const requestQueue = await Apify.openRequestQueue();
     const router = tools.createRouter({ requestQueue });
 
@@ -1609,7 +1610,7 @@ Apify.main(async () => {
     const crawler = new Apify.CheerioCrawler({
         requestList,
         requestQueue,
-        handlePageFunction: async context => {
+        handlePageFunction: async (context) => {
             const { request } = context;
             log.info(`Processing ${request.url}`);
             await router(request.userData.label, context);
@@ -1635,7 +1636,7 @@ const {
 exports.getSources = async () => {
     log.debug('Getting sources.');
     const input = await Apify.getInput();
-    return input.map(category => ({
+    return input.map((category) => ({
         url: `https://apify.com/store?category=${category}`,
         userData: {
             label: 'CATEGORY',
@@ -1643,8 +1644,8 @@ exports.getSources = async () => {
     }));
 };
 
-exports.createRouter = globalContext => {
-    return async function(routeName, requestContext) {
+exports.createRouter = (globalContext) => {
+    return async function (routeName, requestContext) {
         const route = routes[routeName];
         if (!route) throw new Error(`No route for name: ${routeName}`);
         log.debug(`Invoking route: ${routeName}`);
@@ -1668,7 +1669,7 @@ exports.CATEGORY = async ({ $, request }, { requestQueue }) => {
         requestQueue,
         selector: 'div.item > a',
         baseUrl: request.loadedUrl,
-        transformRequestFunction: req => {
+        transformRequestFunction: (req) => {
             req.userData.label = 'DETAIL';
             return req;
         },
@@ -1686,9 +1687,7 @@ exports.DETAIL = async ({ $, request }) => {
         title: $('header h1').text(),
         description: $('header span.actor-description').text(),
         modifiedDate: new Date(
-            Number(
-                $('ul.ActorHeader-stats time').attr('datetime'),
-            ),
+            Number($('ul.ActorHeader-stats time').attr('datetime')),
         ),
         runCount: Number(
             $('ul.ActorHeader-stats > li:nth-of-type(3)')

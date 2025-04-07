@@ -40,7 +40,7 @@ Contains `"ApifyCallError"`
 
 **Parameters**:
 
--   **`run`**: [`ActorRun`](../typedefs/actor-run)
--   **`[message]`**: `string` <code> = &quot;The actor invoked by Apify.call() did not succeed&quot;</code>
+- **`run`**: [`ActorRun`](../typedefs/actor-run)
+- **`[message]`**: `string` <code> = &quot;The actor invoked by Apify.call() did not succeed&quot;</code>
 
 ---

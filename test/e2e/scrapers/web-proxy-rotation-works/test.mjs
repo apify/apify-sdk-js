@@ -1,4 +1,11 @@
-import { expect, getDatasetItems, getStats, getTestDir, run, validateDataset } from '../../tools.mjs';
+import {
+    expect,
+    getDatasetItems,
+    getStats,
+    getTestDir,
+    run,
+    validateDataset,
+} from '../../tools.mjs';
 
 const testDir = getTestDir(import.meta.url);
 
@@ -7,14 +14,22 @@ process.exit = () => {};
 
 await run(testDir, 'web-scraper', {
     runMode: 'PRODUCTION',
-    startUrls: [{
-        url: 'https://api.apify.com/v2/browser-info',
-        method: 'GET',
-        userData: { enqueueRequests: true },
-    }],
+    startUrls: [
+        {
+            url: 'https://api.apify.com/v2/browser-info',
+            method: 'GET',
+            userData: { enqueueRequests: true },
+        },
+    ],
     keepUrlFragments: false,
     pageFunction: async function pageFunction(context) {
-        const { request, jQuery: $, enqueueRequest, setValue, getValue } = context;
+        const {
+            request,
+            jQuery: $,
+            enqueueRequest,
+            setValue,
+            getValue,
+        } = context;
         const { url, userData } = request;
 
         const pageContent = JSON.parse($('pre').first().text());
@@ -22,12 +37,20 @@ await run(testDir, 'web-scraper', {
 
         if (userData.enqueueRequests) {
             for (let i = 0; i < 4; i++) {
-                await enqueueRequest({ url: 'https://api.apify.com/v2/browser-info', method: 'GET', uniqueKey: `${i}` });
+                await enqueueRequest({
+                    url: 'https://api.apify.com/v2/browser-info',
+                    method: 'GET',
+                    uniqueKey: `${i}`,
+                });
             }
             userData.isReady = false;
         }
 
-        if (await getValue(clientIp)) throw new Error(`The ip address ${clientIp} was already used. Proxy rotation does not work properly.`);
+        if (await getValue(clientIp)) {
+            throw new Error(
+                `The ip address ${clientIp} was already used. Proxy rotation does not work properly.`,
+            );
+        }
         await setValue(clientIp, url);
 
         return { url, clientIp };
@@ -55,6 +78,9 @@ await expect(stats.requestsFinished === 5, 'All requests finished');
 
 const datasetItems = await getDatasetItems(testDir);
 await expect(datasetItems.length === 5, 'Number of dataset items');
-await expect(validateDataset(datasetItems, ['url', 'clientIp']), 'Dataset items validation');
+await expect(
+    validateDataset(datasetItems, ['url', 'clientIp']),
+    'Dataset items validation',
+);
 
 process.exit(0);

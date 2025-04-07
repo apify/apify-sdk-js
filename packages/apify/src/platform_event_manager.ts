@@ -66,7 +66,9 @@ export class PlatformEventManager extends EventManager {
 
         // Locally there is no web socket to connect, so just print a log message.
         if (!eventsWsUrl) {
-            this.log.debug(`Environment variable ${ACTOR_ENV_VARS.EVENTS_WEBSOCKET_URL} is not set, no events from Apify platform will be emitted.`);
+            this.log.debug(
+                `Environment variable ${ACTOR_ENV_VARS.EVENTS_WEBSOCKET_URL} is not set, no events from Apify platform will be emitted.`,
+            );
             return;
         }
 
@@ -79,15 +81,14 @@ export class PlatformEventManager extends EventManager {
             if (!message) return;
 
             try {
-                const {
-                    name,
-                    data,
-                } = JSON.parse(String(message));
+                const { name, data } = JSON.parse(String(message));
                 this.events.emit(name, data);
 
                 if (name === ACTOR_EVENT_NAMES.MIGRATING) {
                     betterClearInterval(this.intervals.persistState!); // Don't send any other persist state event.
-                    this.events.emit(EventType.PERSIST_STATE, { isMigrating: true });
+                    this.events.emit(EventType.PERSIST_STATE, {
+                        isMigrating: true,
+                    });
                 }
             } catch (err) {
                 this.log.exception(err as Error, 'Cannot parse Actor event');
@@ -95,7 +96,11 @@ export class PlatformEventManager extends EventManager {
         });
         this.eventsWs.on('error', (err) => {
             // Don't print this error as this happens in the case of very short Actor.main().
-            if (err.message === 'WebSocket was closed before the connection was established') return;
+            if (
+                err.message ===
+                'WebSocket was closed before the connection was established'
+            )
+                return;
 
             this.log.exception(err, 'web socket connection failed');
         });

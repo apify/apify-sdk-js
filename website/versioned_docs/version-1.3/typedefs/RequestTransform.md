@@ -11,7 +11,7 @@ Takes an Apify [`RequestOptions`](./request-options) object and changes it's att
 
 **Parameters**:
 
--   **`original`**: [`RequestOptions`](../typedefs/request-options) - Request options to be modified.
+- **`original`**: [`RequestOptions`](../typedefs/request-options) - Request options to be modified.
 
 **Returns**:
 

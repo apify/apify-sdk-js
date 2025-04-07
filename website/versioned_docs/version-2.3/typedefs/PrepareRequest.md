@@ -7,7 +7,7 @@ title: PrepareRequest
 
 **Parameters**:
 
--   **`inputs`**: [`PrepareRequestInputs`](../typedefs/prepare-request-inputs) - Arguments passed to this callback.
+- **`inputs`**: [`PrepareRequestInputs`](../typedefs/prepare-request-inputs) - Arguments passed to this callback.
 
 **Returns**:
 

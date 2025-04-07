@@ -9,6 +9,7 @@ If you need either a faster, or a simpler tool, check out [Cheerio Scraper](http
 If you are having any difficulty deciding which of the four main Apify "Scraper" Actors to use, check out the [Web Scraper vs Puppeteer Scraper](https://help.apify.com/en/articles/3195646-when-to-use-puppeteer-scraper), [Cheerio Scraper](https://blog.apify.com/how-to-super-efficiently-scrape-any-website-for-beginners/) and [Playwright Scraper](https://blog.apify.com/how-to-scrape-the-web-with-playwright-ece1ced75f73/) articles on the Apify blog.
 
 ## Cost of usage
+
 You can find the average usage cost for this Actor on the [pricing page](https://apify.com/pricing) under the `Which plan do I need?` section. Cheerio Scraper is equivalent to `Simple HTML pages` while Web Scraper, Puppeteer Scraper and Playwright Scraper are equivalent to `Full web pages`. These cost estimates are based on averages and might be lower or higher depending on how heavy the pages you scrape are.
 
 ## Usage
@@ -74,9 +75,9 @@ A glob pattern is simply a string with wildcard characters.
 For example, a glob pattern `http://www.example.com/pages/**/*` will match all the
 following URLs:
 
--   `http://www.example.com/pages/deeper-level/page`
--   `http://www.example.com/pages/my-awesome-page`
--   `http://www.example.com/pages/something`
+- `http://www.example.com/pages/deeper-level/page`
+- `http://www.example.com/pages/my-awesome-page`
+- `http://www.example.com/pages/something`
 
 Note that you don't need to use the **Glob Patterns** setting at all, because you can completely control which pages the scraper will access by calling `await context.enqueueRequest()` from the **[Page function](#page-function)**.
 
@@ -91,9 +92,9 @@ a JavaScript-style regular expression to match against the URL.
 For example, a pseudo-URL `http://www.example.com/pages/[(\w|-)*]` will match all the
 following URLs:
 
--   `http://www.example.com/pages/`
--   `http://www.example.com/pages/my-awesome-page`
--   `http://www.example.com/pages/something`
+- `http://www.example.com/pages/`
+- `http://www.example.com/pages/my-awesome-page`
+- `http://www.example.com/pages/something`
 
 If either "`[`" or "`]`" are part of the normal query string, the symbol must be encoded as `[\x5B]` or `[\x5D]`, respectively. For example, the following pseudo-URL:
 
@@ -166,8 +167,8 @@ The Actor's input as it was received from the UI. Each `pageFunction` invocation
 
 #### **`env`**
 
-| Type   | Arguments | Returns                                                                              |
-| ------ | --------- | ------------------------------------------------------------------------------------ |
+| Type   | Arguments | Returns                                                                                |
+| ------ | --------- | -------------------------------------------------------------------------------------- |
 | Object | -         | Return value of [`Actor.getEnv()`](https://sdk.apify.com/api/apify/class/Actor#getEnv) |
 
 A map of all the relevant environment variables that you may want to use.
@@ -191,7 +192,7 @@ This is a reference to the Puppeteer Page object, which enables you to use the f
 #### **`request`**
 
 | Type   | Arguments | Returns                                                            |
-| ------ | --------- |--------------------------------------------------------------------|
+| ------ | --------- | ------------------------------------------------------------------ |
 | Object | -         | Apify [Request](https://crawlee.dev/api/core/class/Request) object |
 
 An object with metadata about the currently crawled page, such as its URL, headers, and the number of retries.
@@ -225,16 +226,16 @@ The response object is produced by Puppeteer. Currently, we only pass the respon
 
 #### **`session`**
 
-| Type   | Arguments | Returns                                                       |
-| ------ | --------- |---------------------------------------------------------------|
-| Object | -         | [Session](https://crawlee.dev/api/core/class/Session) object  |
+| Type   | Arguments | Returns                                                      |
+| ------ | --------- | ------------------------------------------------------------ |
+| Object | -         | [Session](https://crawlee.dev/api/core/class/Session) object |
 
 Reference to the currently used session. See the [official documentation](https://crawlee.dev/api/core/class/Session) for more information.
 
 #### **`proxyInfo`**
 
 | Type   | Arguments | Returns                                                              |
-| ------ | --------- |----------------------------------------------------------------------|
+| ------ | --------- | -------------------------------------------------------------------- |
 | Object | -         | [ProxyInfo](https://crawlee.dev/api/core/interface/ProxyInfo) object |
 
 Object holding the url and other information about currently used Proxy. See the [official documentation](https://crawlee.dev/api/core/interface/ProxyInfo) for more information.
@@ -242,7 +243,7 @@ Object holding the url and other information about currently used Proxy. See the
 #### **`crawler`**
 
 | Type   | Arguments | Returns                                                                                     |
-| ------ | --------- |---------------------------------------------------------------------------------------------|
+| ------ | --------- | ------------------------------------------------------------------------------------------- |
 | Object | -         | [PuppeteerCrawler](https://crawlee.dev/api/puppeteer-crawler/class/PuppeteerCrawler) object |
 
 To access the current `AutoscaledPool` or `BrowserPool` instance, we can use the `crawler` object. This object includes the following properties:
@@ -271,24 +272,24 @@ Refer to the [official documentation](https://crawlee.dev/api/puppeteer-crawler/
 
 #### **`log`**
 
-| Type   | Arguments | Returns                                                              |
-| ------ | --------- | -------------------------------------------------------------------- |
+| Type   | Arguments | Returns                                                            |
+| ------ | --------- | ------------------------------------------------------------------ |
 | Object | -         | [Crawlee.utils.log](https://crawlee.dev/api/core/class/Log) object |
 
 This should be used instead of JavaScript's built in `console.log` when logging in the Node.js context, as it automatically color-tags your logs, as well as allows the toggling of the visibility of log messages using options such as [Debug log](#debug-log) in [Advanced configuration](#advanced-configuration).
 
 The most common `log` methods include:
 
--   `context.log.info()`
--   `context.log.debug()`
--   `context.log.warning()`
--   `context.log.error()`
--   `context.log.exception()`
+- `context.log.info()`
+- `context.log.debug()`
+- `context.log.warning()`
+- `context.log.error()`
+- `context.log.exception()`
 
 #### **`Actor`**
 
 | Type   | Arguments | Returns                                                           |
-| ------ | --------- |-------------------------------------------------------------------|
+| ------ | --------- | ----------------------------------------------------------------- |
 | Object | -         | [Actor class](https://sdk.apify.com/api/apify/class/Actor) object |
 
 A reference to the full power of the Actor class of Apify SDK. See [the docs](https://sdk.apify.com/api/apify/class/Actor) for more information.
@@ -394,7 +395,7 @@ await context.crawler.requestQueue.addRequest({ url: 'https://foo.bar/baz' })
 #### **`injectJQuery`**
 
 | Type     | Arguments | Returns          |
-| -------- |-----------|------------------|
+| -------- | --------- | ---------------- |
 | Function | ()        | _Promise\<void>_ |
 
 > This function is async! Don't forget the `await` keyword!
@@ -410,7 +411,7 @@ await context.injectJQuery();
 #### **`sendRequest`**
 
 | Type     | Arguments                                    | Returns          |
-| -------- |----------------------------------------------|------------------|
+| -------- | -------------------------------------------- | ---------------- |
 | Function | (overrideOptions?: Partial\<GotOptionsInit>) | _Promise\<void>_ |
 
 > This function is async! Don't forget the `await` keyword!
@@ -429,7 +430,7 @@ await context.sendRequest({ url: 'https://www.example.com' });
 #### **`parseWithCheerio`**
 
 | Type     | Arguments | Returns                 |
-| -------- |-----------|-------------------------|
+| -------- | --------- | ----------------------- |
 | Function | ()        | _Promise\<CheerioRoot>_ |
 
 Returns Cheerio handle for `page.content()`, allowing to work with the data same way as with CheerioCrawler.
@@ -450,7 +451,7 @@ and custom HTTP or SOCKS5 proxy servers.
 Proxy is required to run the scraper. The following table lists the available options of the proxy configuration setting:
 
 | Option                        | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
-|-------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Apify Proxy (automatic)       | The scraper will load all web pages using [Apify Proxy](https://apify.com/proxy) in the automatic mode. In this mode, the proxy uses all proxy groups that are available to the user, and for each new web page it automatically selects the proxy that hasn't been used in the longest time for the specific hostname, in order to reduce the chance of detection by the website. You can view the list of available proxy groups on the [Proxy](https://console.apify.com/proxy) page in Apify Console. |
 | Apify Proxy (selected groups) | The scraper will load all web pages using [Apify Proxy](https://apify.com/proxy) with specific groups of target proxy servers.                                                                                                                                                                                                                                                                                                                                                                            |
 | Custom proxies                | The scraper will use a custom list of proxy servers. The proxies must be specified in the `scheme://user:password@host:port` format, and multiple proxies should be separated by a space of a new line. The URL scheme can be either `http` or `socks5`. Username and password can be omitted if the proxy doesn't require authorization, but the port must always be present.                                                                                                                            |
@@ -527,9 +528,9 @@ Since the input UI is fixed, it does not support adding of other fields that may
 
 With the final three options in the **Advanced configuration**, you can set custom names for the following:
 
--   Dataset
--   Key-value store
--   Request queue
+- Dataset
+- Key-value store
+- Request queue
 
 Leave the storage unnamed if you only want the data within it to be persisted on the Apify platform for a number of days corresponding to your [plan](https://apify.com/pricing) (after which it will expire). Named storages are retained indefinitely. Additionally, using a named storage allows you to share it across multiple runs (e.g. instead of having 10 different unnamed datasets for 10 different runs, all the data from all 10 runs can be accumulated into a single named dataset). Learn more [here](https://docs.apify.com/storage#named-and-unnamed-storages).
 
@@ -581,10 +582,10 @@ For more information, see [Datasets](https://apify.com/docs/storage#dataset) in 
 
 That's it! You might also want to check out these other resources:
 
--   [Actors documentation](https://apify.com/docs/actor) - Documentation for the Apify Actors cloud computing platform.
--   [Apify SDK documentation](https://sdk.apify.com) - Learn more about the tools required to run your own Apify Actors.
--   [Crawlee documentation](https://crawlee.dev) - Learn how to build a new web scraping project from scratch using the world's most popular web crawling and scraping library for Node.js.
--   [Playwright Scraper](https://apify.com/apify/playwright-scraper) -
-    A similar web scraping Actor to Puppeteer Scraper, but using the [Playwright](https://github.com/microsoft/playwright) library instead.
--   [Web Scraper](https://apify.com/apify/web-scraper) - A similar web scraping Actor to Playwright Scraper, but is simpler to use and only runs in the context of the browser. Uses the [Puppeteer](https://github.com/puppeteer/puppeteer) library.
--   [Cheerio Scraper](https://apify.com/apify/cheerio-scraper) - Another web scraping Actor that downloads and processes pages in raw HTML for much higher performance.
+- [Actors documentation](https://apify.com/docs/actor) - Documentation for the Apify Actors cloud computing platform.
+- [Apify SDK documentation](https://sdk.apify.com) - Learn more about the tools required to run your own Apify Actors.
+- [Crawlee documentation](https://crawlee.dev) - Learn how to build a new web scraping project from scratch using the world's most popular web crawling and scraping library for Node.js.
+- [Playwright Scraper](https://apify.com/apify/playwright-scraper) -
+  A similar web scraping Actor to Puppeteer Scraper, but using the [Playwright](https://github.com/microsoft/playwright) library instead.
+- [Web Scraper](https://apify.com/apify/web-scraper) - A similar web scraping Actor to Playwright Scraper, but is simpler to use and only runs in the context of the browser. Uses the [Puppeteer](https://github.com/puppeteer/puppeteer) library.
+- [Cheerio Scraper](https://apify.com/apify/cheerio-scraper) - Another web scraping Actor that downloads and processes pages in raw HTML for much higher performance.

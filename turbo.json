@@ -1,20 +1,12 @@
 {
     "tasks": {
         "build": {
-            "dependsOn": [
-                "^build"
-            ],
-            "outputs": [
-                "dist/**"
-            ]
+            "dependsOn": ["^build"],
+            "outputs": ["dist/**"]
         },
         "copy": {
-            "dependsOn": [
-                "^copy"
-            ],
-            "outputs": [
-                "dist/**"
-            ]
+            "dependsOn": ["^copy"],
+            "outputs": ["dist/**"]
         },
         "clean": {
             "cache": false,

@@ -2,9 +2,7 @@ import type {
     ProxyConfigurationOptions as CoreProxyConfigurationOptions,
     ProxyInfo as CoreProxyInfo,
 } from '@crawlee/core';
-import {
-    ProxyConfiguration as CoreProxyConfiguration,
-} from '@crawlee/core';
+import { ProxyConfiguration as CoreProxyConfiguration } from '@crawlee/core';
 import { gotScraping } from '@crawlee/utils';
 import type { UserProxy } from 'apify-client';
 import ow from 'ow';
@@ -21,7 +19,8 @@ const CHECK_ACCESS_REQUEST_TIMEOUT_MILLIS = 4_000;
 const CHECK_ACCESS_MAX_ATTEMPTS = 2;
 const COUNTRY_CODE_REGEX = /^[A-Z]{2}$/;
 
-export interface ProxyConfigurationOptions extends CoreProxyConfigurationOptions {
+export interface ProxyConfigurationOptions
+    extends CoreProxyConfigurationOptions {
     /**
      * User's password for the proxy. By default, it is taken from the `APIFY_PROXY_PASSWORD`
      * environment variable, which is automatically set by the system when running the Actors.
@@ -63,7 +62,10 @@ export interface ProxyConfigurationOptions extends CoreProxyConfigurationOptions
      * Multiple different ProxyConfigurationOptions stratified into tiers. Crawlee crawlers will switch between those tiers
      * based on the blocked request statistics.
      */
-    tieredProxyConfig?: Omit<ProxyConfigurationOptions, keyof CoreProxyConfigurationOptions | 'tieredProxyConfig'>[];
+    tieredProxyConfig?: Omit<
+        ProxyConfigurationOptions,
+        keyof CoreProxyConfigurationOptions | 'tieredProxyConfig'
+    >[];
 }
 
 /**
@@ -169,18 +171,35 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
     /**
      * @internal
      */
-    constructor(options: ProxyConfigurationOptions = {}, readonly config = Configuration.getGlobalConfig()) {
+    constructor(
+        options: ProxyConfigurationOptions = {},
+        readonly config = Configuration.getGlobalConfig(),
+    ) {
         const { proxyUrls, newUrlFunction, ...rest } = options;
-        super({ proxyUrls, newUrlFunction, ['validateRequired' as string]: false });
-        ow(rest, ow.object.exactShape({
-            groups: ow.optional.array.ofType(ow.string.matches(APIFY_PROXY_VALUE_REGEX)),
-            apifyProxyGroups: ow.optional.array.ofType(ow.string.matches(APIFY_PROXY_VALUE_REGEX)),
-            countryCode: ow.optional.string.matches(COUNTRY_CODE_REGEX),
-            apifyProxyCountry: ow.optional.string.matches(COUNTRY_CODE_REGEX),
-            password: ow.optional.string,
-            tieredProxyUrls: ow.optional.array.ofType(ow.array.ofType(ow.string)),
-            tieredProxyConfig: ow.optional.array.ofType(ow.object),
-        }));
+        super({
+            proxyUrls,
+            newUrlFunction,
+            ['validateRequired' as string]: false,
+        });
+        ow(
+            rest,
+            ow.object.exactShape({
+                groups: ow.optional.array.ofType(
+                    ow.string.matches(APIFY_PROXY_VALUE_REGEX),
+                ),
+                apifyProxyGroups: ow.optional.array.ofType(
+                    ow.string.matches(APIFY_PROXY_VALUE_REGEX),
+                ),
+                countryCode: ow.optional.string.matches(COUNTRY_CODE_REGEX),
+                apifyProxyCountry:
+                    ow.optional.string.matches(COUNTRY_CODE_REGEX),
+                password: ow.optional.string,
+                tieredProxyUrls: ow.optional.array.ofType(
+                    ow.array.ofType(ow.string),
+                ),
+                tieredProxyConfig: ow.optional.array.ofType(ow.object),
+            }),
+        );
 
         const {
             groups = [],
@@ -195,7 +214,10 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
         this.tieredProxyUrls ??= tieredProxyUrls;
 
         if (tieredProxyConfig) {
-            this.tieredProxyUrls = this._generateTieredProxyUrls(tieredProxyConfig, options);
+            this.tieredProxyUrls = this._generateTieredProxyUrls(
+                tieredProxyConfig,
+                options,
+            );
         }
 
         const groupsToUse = groups.length ? groups : apifyProxyGroups;
@@ -204,10 +226,14 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
         const port = config.get('proxyPort');
 
         // Validation
-        if (((proxyUrls || newUrlFunction) && ((groupsToUse.length) || countryCodeToUse))) {
+        if (
+            (proxyUrls || newUrlFunction) &&
+            (groupsToUse.length || countryCodeToUse)
+        ) {
             this._throwCannotCombineCustomWithApify();
         }
-        if (proxyUrls && newUrlFunction) this._throwCannotCombineCustomMethods();
+        if (proxyUrls && newUrlFunction)
+            this._throwCannotCombineCustomMethods();
 
         this.groups = groupsToUse;
         this.countryCode = countryCodeToUse;
@@ -218,8 +244,8 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
 
         if (proxyUrls && proxyUrls.some((url) => url.includes('apify.com'))) {
             this.log.warning(
-                'Some Apify proxy features may work incorrectly. Please consider setting up Apify properties instead of `proxyUrls`.\n'
-                + 'See https://sdk.apify.com/docs/guides/proxy-management#apify-proxy-configuration',
+                'Some Apify proxy features may work incorrectly. Please consider setting up Apify properties instead of `proxyUrls`.\n' +
+                    'See https://sdk.apify.com/docs/guides/proxy-management#apify-proxy-configuration',
             );
         }
     }
@@ -258,14 +284,24 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
      *  The identifier must not be longer than 50 characters and include only the following: `0-9`, `a-z`, `A-Z`, `"."`, `"_"` and `"~"`.
      * @return Represents information about used proxy and its configuration.
      */
-    override async newProxyInfo(sessionId?: string | number, options?: Parameters<CoreProxyConfiguration['newProxyInfo']>[1]): Promise<ProxyInfo | undefined> {
+    override async newProxyInfo(
+        sessionId?: string | number,
+        options?: Parameters<CoreProxyConfiguration['newProxyInfo']>[1],
+    ): Promise<ProxyInfo | undefined> {
         if (typeof sessionId === 'number') sessionId = `${sessionId}`;
-        ow(sessionId, ow.optional.string.maxLength(MAX_SESSION_ID_LENGTH).matches(APIFY_PROXY_VALUE_REGEX));
+        ow(
+            sessionId,
+            ow.optional.string
+                .maxLength(MAX_SESSION_ID_LENGTH)
+                .matches(APIFY_PROXY_VALUE_REGEX),
+        );
 
         const proxyInfo = await super.newProxyInfo(sessionId, options);
         if (!proxyInfo) return proxyInfo;
 
-        const { groups, countryCode, password, port, hostname } = (this.usesApifyProxy ? this : new URL(proxyInfo.url)) as ProxyConfiguration;
+        const { groups, countryCode, password, port, hostname } = (
+            this.usesApifyProxy ? this : new URL(proxyInfo.url)
+        ) as ProxyConfiguration;
 
         return {
             ...proxyInfo,
@@ -273,7 +309,9 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
             groups,
             countryCode,
             // this.password is not encoded, but the password from the URL will be, we need to normalize
-            password: this.usesApifyProxy ? (password ?? '') : decodeURIComponent(password!),
+            password: this.usesApifyProxy
+                ? (password ?? '')
+                : decodeURIComponent(password!),
             hostname,
             port: port!,
         };
@@ -292,11 +330,23 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
      * @return A string with a proxy URL, including authentication credentials and port number.
      *  For example, `http://bob:password123@proxy.example.com:8000`
      */
-    override async newUrl(sessionId?: string | number, options?: Parameters<CoreProxyConfiguration['newUrl']>[1]): Promise<string | undefined> {
+    override async newUrl(
+        sessionId?: string | number,
+        options?: Parameters<CoreProxyConfiguration['newUrl']>[1],
+    ): Promise<string | undefined> {
         if (typeof sessionId === 'number') sessionId = `${sessionId}`;
-        ow(sessionId, ow.optional.string.maxLength(MAX_SESSION_ID_LENGTH).matches(APIFY_PROXY_VALUE_REGEX));
+        ow(
+            sessionId,
+            ow.optional.string
+                .maxLength(MAX_SESSION_ID_LENGTH)
+                .matches(APIFY_PROXY_VALUE_REGEX),
+        );
         if (this.newUrlFunction) {
-            return (await this._callNewUrlFunction(sessionId, { request: options?.request }) ?? undefined);
+            return (
+                (await this._callNewUrlFunction(sessionId, {
+                    request: options?.request,
+                })) ?? undefined
+            );
         }
         if (this.proxyUrls) {
             return this._handleCustomUrl(sessionId);
@@ -313,19 +363,18 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
     }
 
     protected _generateTieredProxyUrls(
-        tieredProxyConfig: NonNullable<ProxyConfigurationOptions['tieredProxyConfig']>,
+        tieredProxyConfig: NonNullable<
+            ProxyConfigurationOptions['tieredProxyConfig']
+        >,
         globalOptions: ProxyConfigurationOptions,
     ) {
-        return tieredProxyConfig
-            .map(
-                (config) => [
-                    new ProxyConfiguration({
-                        ...globalOptions,
-                        ...config,
-                        tieredProxyConfig: undefined,
-                    }).composeDefaultUrl(),
-                ],
-            );
+        return tieredProxyConfig.map((config) => [
+            new ProxyConfiguration({
+                ...globalOptions,
+                ...config,
+                tieredProxyConfig: undefined,
+            }).composeDefaultUrl(),
+        ]);
     }
 
     /**
@@ -379,7 +428,10 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
                 if (Actor.isAtHome()) {
                     throw error;
                 } else {
-                    this.log.warning(`Failed to fetch user data based on token, disabling proxy.`, { error });
+                    this.log.warning(
+                        `Failed to fetch user data based on token, disabling proxy.`,
+                        { error },
+                    );
                     return;
                 }
             }
@@ -388,8 +440,10 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
 
             if (this.password) {
                 if (this.password !== password) {
-                    this.log.warning('The Apify Proxy password you provided belongs to'
-                    + ' a different user than the Apify token you are using. Are you sure this is correct?');
+                    this.log.warning(
+                        'The Apify Proxy password you provided belongs to' +
+                            ' a different user than the Apify token you are using. Are you sure this is correct?',
+                    );
                 }
             } else {
                 this.password = password;
@@ -398,12 +452,16 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
 
         if (!this.password) {
             if (Actor.isAtHome()) {
-                throw new Error(`Apify Proxy password must be provided using options.password or the "${APIFY_ENV_VARS.PROXY_PASSWORD}" environment variable. `
-                    + `If you add the "${APIFY_ENV_VARS.TOKEN}" environment variable, the password will be automatically inferred.`);
+                throw new Error(
+                    `Apify Proxy password must be provided using options.password or the "${APIFY_ENV_VARS.PROXY_PASSWORD}" environment variable. ` +
+                        `If you add the "${APIFY_ENV_VARS.TOKEN}" environment variable, the password will be automatically inferred.`,
+                );
             } else {
-                this.log.warning(`No proxy password or token detected, running without proxy. To use Apify Proxy locally, `
-                    + `provide options.password or "${APIFY_ENV_VARS.PROXY_PASSWORD}" environment variable. `
-                    + `If you add the "${APIFY_ENV_VARS.TOKEN}" environment variable, the password will be automatically inferred.`);
+                this.log.warning(
+                    `No proxy password or token detected, running without proxy. To use Apify Proxy locally, ` +
+                        `provide options.password or "${APIFY_ENV_VARS.PROXY_PASSWORD}" environment variable. ` +
+                        `If you add the "${APIFY_ENV_VARS.TOKEN}" environment variable, the password will be automatically inferred.`,
+                );
             }
         }
     }
@@ -417,8 +475,10 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
         const status = await this._fetchStatus();
 
         if (!status) {
-            this.log.warning('Apify Proxy access check timed out. Watch out for errors with status code 407. '
-                + 'If you see some, it most likely means you don\'t have access to either all or some of the proxies you\'re trying to use.');
+            this.log.warning(
+                'Apify Proxy access check timed out. Watch out for errors with status code 407. ' +
+                    "If you see some, it most likely means you don't have access to either all or some of the proxies you're trying to use.",
+            );
             return true;
         }
 
@@ -443,8 +503,18 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
     /**
      * Apify Proxy can be down for a second or a minute, but this should not crash processes.
      */
-    protected async _fetchStatus(): Promise<{ connected: boolean; connectionError: string; isManInTheMiddle: boolean } | undefined> {
-        const proxyStatusUrl = this.config.get('proxyStatusUrl', 'http://proxy.apify.com');
+    protected async _fetchStatus(): Promise<
+        | {
+              connected: boolean;
+              connectionError: string;
+              isManInTheMiddle: boolean;
+          }
+        | undefined
+    > {
+        const proxyStatusUrl = this.config.get(
+            'proxyStatusUrl',
+            'http://proxy.apify.com',
+        );
         const requestOpts = {
             url: `${proxyStatusUrl}/?format=json`,
             proxyUrl: await this.newUrl(),
@@ -454,7 +524,11 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
 
         for (let attempt = 1; attempt <= CHECK_ACCESS_MAX_ATTEMPTS; attempt++) {
             try {
-                const response = await gotScraping<{ connected: boolean; connectionError: string; isManInTheMiddle: boolean }>(requestOpts);
+                const response = await gotScraping<{
+                    connected: boolean;
+                    connectionError: string;
+                    isManInTheMiddle: boolean;
+                }>(requestOpts);
                 return response.body;
             } catch {
                 // retry connection errors
@@ -469,8 +543,10 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
      * @internal
      */
     protected _throwCannotCombineCustomWithApify() {
-        throw new Error('Cannot combine custom proxies with Apify Proxy! '
-            + 'It is not allowed to set "options.proxyUrls" or "options.newUrlFunction" combined with '
-            + '"options.groups" or "options.apifyProxyGroups" and "options.countryCode" or "options.apifyProxyCountry".');
+        throw new Error(
+            'Cannot combine custom proxies with Apify Proxy! ' +
+                'It is not allowed to set "options.proxyUrls" or "options.newUrlFunction" combined with ' +
+                '"options.groups" or "options.apifyProxyGroups" and "options.countryCode" or "options.apifyProxyCountry".',
+        );
     }
 }

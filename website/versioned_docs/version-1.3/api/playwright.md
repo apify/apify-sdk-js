@@ -37,9 +37,9 @@ performance.
 
 **Parameters**:
 
--   **`page`**: `Page` - Puppeteer [`Page`](https://playwright.dev/docs/api/class-page) object.
--   **`request`**: [`Request`](../api/request)
--   **`[gotoOptions]`**: [`DirectNavigationOptions`](../typedefs/direct-navigation-options) - Custom options for `page.goto()`.
+- **`page`**: `Page` - Puppeteer [`Page`](https://playwright.dev/docs/api/class-page) object.
+- **`request`**: [`Request`](../api/request)
+- **`[gotoOptions]`**: [`DirectNavigationOptions`](../typedefs/direct-navigation-options) - Custom options for `page.goto()`.
 
 **Returns**:
 

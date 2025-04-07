@@ -18,9 +18,11 @@
             "description": "Glob patterns to match links in the page that you want to enqueue. Combine with Link selector to tell the scraper where to find links. Omitting the Glob patterns will cause the scraper to enqueue all links matched by the Link selector.",
             "editor": "globs",
             "default": [],
-            "prefill": [{
-                "glob": "https://crawlee.dev/*/*"
-            }]
+            "prefill": [
+                {
+                    "glob": "https://crawlee.dev/*/*"
+                }
+            ]
         },
         "pseudoUrls": {
             "title": "Pseudo-URLs",
@@ -36,9 +38,11 @@
             "description": "Glob patterns to match links in the page that you want to exclude from being enqueued.",
             "editor": "globs",
             "default": [],
-            "prefill": [{
-                "glob": "/**/*.{png,jpg,jpeg,pdf}"
-            }]
+            "prefill": [
+                {
+                    "glob": "/**/*.{png,jpg,jpeg,pdf}"
+                }
+            ]
         },
         "linkSelector": {
             "title": "Link selector",
@@ -81,11 +85,7 @@
             "description": "This property indicates the strategy of proxy rotation and can only be used in conjunction with Apify Proxy. The recommended setting automatically picks the best proxies from your available pool and rotates them evenly, discarding proxies that become blocked or unresponsive. If this strategy does not work for you for any reason, you may configure the scraper to either use a new proxy for each request, or to use one proxy as long as possible, until the proxy fails. IMPORTANT: This setting will only use your available Apify Proxy pool, so if you don't have enough proxies for a given task, no rotation setting will produce satisfactory results.",
             "default": "RECOMMENDED",
             "editor": "select",
-            "enum": [
-                "RECOMMENDED",
-                "PER_REQUEST",
-                "UNTIL_FAILURE"
-            ],
+            "enum": ["RECOMMENDED", "PER_REQUEST", "UNTIL_FAILURE"],
             "enumTitles": [
                 "Use recommended settings",
                 "Rotate proxy after each request",
@@ -210,12 +210,8 @@
             "title": "Navigation wait until",
             "type": "array",
             "description": "The scraper will wait until the selected events are triggered in the page before executing the page function. Available events are <code>domcontentloaded</code>, <code>load</code>, <code>networkidle2</code> and <code>networkidle0</code>. <a href=\"https://pptr.dev/#?product=Puppeteer&show=api-pagegotourl-options\" target=\"_blank\">See Puppeteer docs</a>.",
-            "default": [
-                "networkidle2"
-            ],
-            "prefill": [
-                "networkidle2"
-            ],
+            "default": ["networkidle2"],
+            "prefill": ["networkidle2"],
             "editor": "json"
         },
         "preNavigationHooks": {

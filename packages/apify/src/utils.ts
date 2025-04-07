@@ -42,9 +42,13 @@ export function checkCrawleeVersion() {
 
     const paths = [
         // when users install `crawlee` package, we need to check its core dependency
-        normalize(`${process.cwd()}/node_modules/crawlee/node_modules/@crawlee/core/package.json`),
+        normalize(
+            `${process.cwd()}/node_modules/crawlee/node_modules/@crawlee/core/package.json`,
+        ),
         // when users install `@crawlee/cheerio` or other crawler package, we need to check the dependency under basic crawler package
-        normalize(`${process.cwd()}/node_modules/@crawlee/basic/node_modules/@crawlee/core/package.json`),
+        normalize(
+            `${process.cwd()}/node_modules/@crawlee/basic/node_modules/@crawlee/core/package.json`,
+        ),
         // also check paths via `require.resolve` to support pnpm
         resolve('crawlee/package.json'),
         resolve('@crawlee/basic/package.json'),
@@ -66,7 +70,9 @@ export function checkCrawleeVersion() {
         if (version != null && version !== crawleeVersion) {
             const details = `User installed version (${version}) found in ${path}.\nSDK uses ${crawleeVersion} from ${require.resolve('@crawlee/core')}`;
 
-            throw new Error(`Detected incompatible Crawlee version used by the SDK. User installed ${version} but the SDK uses ${crawleeVersion}.\n\n${details}`);
+            throw new Error(
+                `Detected incompatible Crawlee version used by the SDK. User installed ${version} but the SDK uses ${crawleeVersion}.\n\n${details}`,
+            );
         }
     }
 }
@@ -78,7 +84,8 @@ export function checkCrawleeVersion() {
 export function printOutdatedSdkWarning() {
     if (process.env[APIFY_ENV_VARS.DISABLE_OUTDATED_WARNING]) return;
     const latestApifyVersion = process.env[APIFY_ENV_VARS.SDK_LATEST_VERSION];
-    if (!latestApifyVersion || !semver.lt(apifyVersion, latestApifyVersion)) return;
+    if (!latestApifyVersion || !semver.lt(apifyVersion, latestApifyVersion))
+        return;
 
     log.warning(`You are using an outdated version (${apifyVersion}) of Apify SDK. We recommend you to update to the latest version (${latestApifyVersion}).
          Read more about Apify SDK versioning at: https://help.apify.com/en/articles/3184510-updates-and-versioning-of-apify-sdk`);

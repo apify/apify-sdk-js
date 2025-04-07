@@ -1,4 +1,12 @@
-import type { Dictionary, GlobInput, ProxyConfigurationOptions, PseudoUrlInput, RegExpInput, RequestOptions, Session } from '@crawlee/puppeteer';
+import type {
+    Dictionary,
+    GlobInput,
+    ProxyConfigurationOptions,
+    PseudoUrlInput,
+    RegExpInput,
+    RequestOptions,
+    Session,
+} from '@crawlee/puppeteer';
 import type { PuppeteerLifeCycleEvent } from 'puppeteer';
 
 /**
@@ -33,7 +41,6 @@ declare global {
     var window: Window & typeof globalThis;
     // eslint-disable-next-line vars-on-top, no-var
     var document: Document;
-
 }
 
 /**

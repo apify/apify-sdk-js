@@ -7,8 +7,8 @@ title: Hook
 
 **Parameters**:
 
--   **`crawlingContext`**: [`BrowserCrawlingContext`](../typedefs/browser-crawling-context) | [`CrawlingContext`](../typedefs/crawling-context)
--   **`gotoOptions`**: `Object<string, *>`
+- **`crawlingContext`**: [`BrowserCrawlingContext`](../typedefs/browser-crawling-context) | [`CrawlingContext`](../typedefs/crawling-context)
+- **`gotoOptions`**: `Object<string, *>`
 
 **Returns**:
 

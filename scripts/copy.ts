@@ -45,4 +45,6 @@ copy('package.json', process.cwd(), target);
 rewrite(resolve(target, 'package.json'), (pkg) => {
     return pkg.replace(/dist\//g, '').replace(/src\/(.*)\.ts/g, '$1.js');
 });
-rewrite(resolve(target, 'utils.js'), (pkg) => pkg.replace('../package.json', './package.json'));
+rewrite(resolve(target, 'utils.js'), (pkg) =>
+    pkg.replace('../package.json', './package.json'),
+);

@@ -39,7 +39,9 @@ log.error('Error message', { errorDetails: 'This is bad!' }); // prints message
 try {
     throw new Error('Not good!');
 } catch (e) {
-    log.exception(e, 'Exception occurred', { errorDetails: 'This is really bad!' }); // prints message
+    log.exception(e, 'Exception occurred', {
+        errorDetails: 'This is really bad!',
+    }); // prints message
 }
 
 log.setOptions({ prefix: 'My actor' });
@@ -88,7 +90,7 @@ Default log level is INFO.
 
 **Parameters**:
 
--   **`level`**: `number`
+- **`level`**: `number`
 
 ---
 
@@ -110,7 +112,7 @@ Configures logger.
 
 **Parameters**:
 
--   **`options`**: [`LoggerOptions`](../typedefs/logger-options)
+- **`options`**: [`LoggerOptions`](../typedefs/logger-options)
 
 ---
 
@@ -122,7 +124,7 @@ Creates a new instance of logger that inherits settings from a parent logger.
 
 **Parameters**:
 
--   **`[options]`**: [`LoggerOptions`](../typedefs/logger-options) - Supports the same options as the `setOptions()` method.
+- **`[options]`**: [`LoggerOptions`](../typedefs/logger-options) - Supports the same options as the `setOptions()` method.
 
 ---
 
@@ -148,8 +150,8 @@ message.
 
 **Parameters**:
 
--   **`message`**: `string`
--   **`[data]`**: `object`
+- **`message`**: `string`
+- **`[data]`**: `object`
 
 ---
 
@@ -162,8 +164,8 @@ and appended to the message.
 
 **Parameters**:
 
--   **`message`**: `string`
--   **`[data]`**: `object`
+- **`message`**: `string`
+- **`[data]`**: `object`
 
 ---
 
@@ -175,8 +177,8 @@ Logs a `WARNING` level message. Data are stringified and appended to the message
 
 **Parameters**:
 
--   **`message`**: `string`
--   **`[data]`**: `object`
+- **`message`**: `string`
+- **`[data]`**: `object`
 
 ---
 
@@ -189,8 +191,8 @@ Logs an `ERROR` message. Use this method to log error messages that are not dire
 
 **Parameters**:
 
--   **`message`**: `string`
--   **`[data]`**: `object`
+- **`message`**: `string`
+- **`[data]`**: `object`
 
 ---
 
@@ -203,8 +205,8 @@ optional.
 
 **Parameters**:
 
--   **`exception`**: `Error`
--   **`[message]`**: `string`
--   **`[data]`**: `object`
+- **`exception`**: `Error`
+- **`[message]`**: `string`
+- **`[data]`**: `object`
 
 ---

@@ -62,7 +62,10 @@ New requests are only dispatched when there is enough free CPU and memory availa
 ```javascript
 // Prepare a list of URLs to crawl
 const requestList = new Apify.RequestList({
-    sources: [{ url: 'http://www.example.com/page-1' }, { url: 'http://www.example.com/page-2' }],
+    sources: [
+        { url: 'http://www.example.com/page-1' },
+        { url: 'http://www.example.com/page-2' },
+    ],
 });
 await requestList.initialize();
 
@@ -75,9 +78,7 @@ const crawler = new Apify.CheerioCrawler({
         // Do some data extraction from the page with Cheerio.
         $('.some-collection').each((index, el) => {
             data.push({
-                title: $(el)
-                    .find('.some-title')
-                    .text(),
+                title: $(el).find('.some-title').text(),
             });
         });
 
@@ -156,7 +157,7 @@ the fly, to pause the crawler by calling [`AutoscaledPool.pause()`](../api/autos
 
 **Parameters**:
 
--   **`options`**: [`CheerioCrawlerOptions`](../typedefs/cheerio-crawler-options) - All `CheerioCrawler` parameters are passed via an options object.
+- **`options`**: [`CheerioCrawlerOptions`](../typedefs/cheerio-crawler-options) - All `CheerioCrawler` parameters are passed via an options object.
 
 ---
 
@@ -176,6 +177,6 @@ the fly, to pause the crawler by calling [`AutoscaledPool.pause()`](../api/autos
 
 **Parameters**:
 
--   **`extension`**: `CrawlerExtension` - Crawler extension that overrides the crawler configuration.
+- **`extension`**: `CrawlerExtension` - Crawler extension that overrides the crawler configuration.
 
 ---

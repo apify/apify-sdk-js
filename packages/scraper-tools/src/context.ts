@@ -20,7 +20,8 @@ import { saveSnapshot } from './browser_tools.js';
 import { META_KEY } from './consts.js';
 import type { RequestMetadata } from './tools';
 
-export interface MapLike<K, V> extends Omit<Map<K, V>, 'values' | 'keys' | 'entries'| 'set'> {
+export interface MapLike<K, V>
+    extends Omit<Map<K, V>, 'values' | 'keys' | 'entries' | 'set'> {
     keys: () => K[];
     values: () => V[];
     entries: () => [K, V][];
@@ -59,7 +60,10 @@ const internalState = Symbol('request-internal-state');
  * using a Symbol to prevent the user from easily accessing
  * and manipulating them.
  */
-class Context<Options extends ContextOptions = ContextOptions, ExtraFields = Options['pageFunctionArguments']> {
+class Context<
+    Options extends ContextOptions = ContextOptions,
+    ExtraFields = Options['pageFunctionArguments'],
+> {
     private readonly [setup]: CrawlerSetupOptions;
     private readonly [internalState]: InternalState;
 
@@ -72,10 +76,7 @@ class Context<Options extends ContextOptions = ContextOptions, ExtraFields = Opt
     readonly globalStore: Map<string, unknown> | MapLike<string, unknown>;
 
     constructor(options: Options) {
-        const {
-            crawlerSetup,
-            pageFunctionArguments,
-        } = options;
+        const { crawlerSetup, pageFunctionArguments } = options;
 
         // Private
         this[setup] = crawlerSetup;
@@ -91,7 +92,10 @@ class Context<Options extends ContextOptions = ContextOptions, ExtraFields = Opt
         // Page function arguments are directly passed from CrawlerSetup
         // and differ between Puppeteer and Cheerio Scrapers.
         // We must use properties and descriptors not to trigger getters / setters.
-        Object.defineProperties(this, Object.getOwnPropertyDescriptors(pageFunctionArguments));
+        Object.defineProperties(
+            this,
+            Object.getOwnPropertyDescriptors(pageFunctionArguments),
+        );
 
         // Bind this to allow destructuring off context in pageFunction.
         this.saveSnapshot = this.saveSnapshot.bind(this);
@@ -100,11 +104,17 @@ class Context<Options extends ContextOptions = ContextOptions, ExtraFields = Opt
     }
 
     async getValue<T>(...args: Parameters<KeyValueStore['getValue']>) {
-        return this[setup].keyValueStore.getValue<T>(...args as [string, T]);
+        return this[setup].keyValueStore.getValue<T>(...(args as [string, T]));
     }
 
     async setValue<T>(...args: Parameters<KeyValueStore['setValue']>) {
-        return this[setup].keyValueStore.setValue<T>(...args as [key: string, value: T | null, options?: RecordOptions]);
+        return this[setup].keyValueStore.setValue<T>(
+            ...(args as [
+                key: string,
+                value: T | null,
+                options?: RecordOptions,
+            ]),
+        );
     }
 
     async saveSnapshot() {
@@ -125,19 +135,24 @@ class Context<Options extends ContextOptions = ContextOptions, ExtraFields = Opt
     async enqueueRequest(
         requestOpts: RequestOptions = {} as RequestOptions,
         options: RequestQueueOperationOptions = {},
-    ) : ReturnType<RequestQueueV2['addRequest']> {
+    ): ReturnType<RequestQueueV2['addRequest']> {
         const defaultRequestOpts = {
             useExtendedUniqueKey: true,
             keepUrlFragment: this.input.keepUrlFragments,
         };
 
-        const newRequest = { ...defaultRequestOpts, ...requestOpts } as RequestOptions;
+        const newRequest = {
+            ...defaultRequestOpts,
+            ...requestOpts,
+        } as RequestOptions;
         const castedRequest = this.request as Request;
 
         const defaultUserData = {
             [META_KEY]: {
                 parentRequestId: castedRequest.id || castedRequest.uniqueKey,
-                depth: (castedRequest.userData?.[META_KEY] as RequestMetadata).depth ?? 0 + 1,
+                depth:
+                    (castedRequest.userData?.[META_KEY] as RequestMetadata)
+                        .depth ?? 0 + 1,
             },
         };
 
@@ -151,7 +166,8 @@ class Context<Options extends ContextOptions = ContextOptions, ExtraFields = Opt
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type -- intentional for better type inference
 interface Context<
     Options extends ContextOptions = ContextOptions,
-    ExtraFields extends ContextOptions['pageFunctionArguments'] = Options['pageFunctionArguments'],
+    ExtraFields extends
+        ContextOptions['pageFunctionArguments'] = Options['pageFunctionArguments'],
 > extends ExtraFields {}
 
 /**
@@ -160,7 +176,8 @@ interface Context<
  */
 export function createContext<
     Options extends ContextOptions = ContextOptions,
-    ExtraFields extends ContextOptions['pageFunctionArguments'] = Options['pageFunctionArguments'],
+    ExtraFields extends
+        ContextOptions['pageFunctionArguments'] = Options['pageFunctionArguments'],
 >(contextOptions: Options) {
     const context = new Context<Options, ExtraFields>(contextOptions);
     return {

@@ -13,9 +13,7 @@ const ApiLink = ({ to, children }) => {
     }
 
     if (siteConfig.presets[0][1].docs.disableVersioning) {
-        return (
-            <Link to={`/reference/${to}`}>{children}</Link>
-        );
+        return <Link to={`/reference/${to}`}>{children}</Link>;
     }
 
     let versionSlug = `${version}/`;
@@ -26,9 +24,7 @@ const ApiLink = ({ to, children }) => {
         versionSlug = '';
     }
 
-    return (
-        <Link to={`/reference/${versionSlug}${to}`}>{children}</Link>
-    );
+    return <Link to={`/reference/${versionSlug}${to}`}>{children}</Link>;
 };
 
 export default ApiLink;

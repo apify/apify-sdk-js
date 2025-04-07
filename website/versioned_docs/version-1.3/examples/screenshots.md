@@ -14,7 +14,12 @@ In local configuration, the input is stored in the default key-value store's dir
 `./apify_storage/key_value_stores/default/INPUT.json`. You need to create the file and set it with the following content:
 
 ```json
-{ "sources": [{ "url": "https://www.google.com" }, { "url": "https://www.duckduckgo.com" }] }
+{
+    "sources": [
+        { "url": "https://www.google.com" },
+        { "url": "https://www.duckduckgo.com" }
+    ]
+}
 ```
 
 On the Apify cloud, the input can be either set manually in the UI app or passed as the POST payload to the
@@ -52,7 +57,9 @@ Apify.main(async () => {
             // Save the screenshot. Choosing the right content type will automatically
             // assign the local file the right extension, in this case .png.
             // The screenshots will be stored in ./apify_storage/key_value_stores/default/
-            await Apify.setValue(key, screenshotBuffer, { contentType: 'image/png' });
+            await Apify.setValue(key, screenshotBuffer, {
+                contentType: 'image/png',
+            });
             console.log(`Screenshot of ${request.url} saved.`);
         },
     });

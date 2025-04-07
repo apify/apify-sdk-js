@@ -20,14 +20,18 @@ const randomBytes = promisify(callbackRandomBytes);
  * Transforms a page function string into a Function object.
  * @param funcString
  */
-export function evalFunctionOrThrow(funcString: string): (...args: unknown[]) => unknown {
+export function evalFunctionOrThrow(
+    funcString: string,
+): (...args: unknown[]) => unknown {
     let func;
 
     try {
         func = runInThisContext(`(${funcString})`);
     } catch (err) {
         const e = err as Error;
-        throw new Error(`Compilation of pageFunction failed.\n${e.message}\n${e.stack!.substr(e.stack!.indexOf('\n'))}`);
+        throw new Error(
+            `Compilation of pageFunction failed.\n${e.message}\n${e.stack!.substr(e.stack!.indexOf('\n'))}`,
+        );
     }
 
     if (typeof func !== 'function') {
@@ -42,14 +46,19 @@ export function evalFunctionOrThrow(funcString: string): (...args: unknown[]) =>
  * @param hooksString
  * @param paramName
  */
-export function evalFunctionArrayOrThrow(hooksString: string, paramName: string): ((...args: unknown[]) => any)[] {
+export function evalFunctionArrayOrThrow(
+    hooksString: string,
+    paramName: string,
+): ((...args: unknown[]) => any)[] {
     let arr;
 
     try {
         arr = runInThisContext(`(${hooksString})`);
     } catch (err) {
         const e = err as Error;
-        throw new Error(`Compilation of ${paramName} failed.\n${e.message}\n${e.stack!.substr(e.stack!.indexOf('\n'))}`);
+        throw new Error(
+            `Compilation of ${paramName} failed.\n${e.message}\n${e.stack!.substr(e.stack!.indexOf('\n'))}`,
+        );
     }
 
     if (!Array.isArray(arr)) {
@@ -57,7 +66,9 @@ export function evalFunctionArrayOrThrow(hooksString: string, paramName: string)
     }
 
     if (arr.some((func) => typeof func !== 'function')) {
-        throw new Error(`Input parameter "${paramName}" is not an array of functions!`);
+        throw new Error(
+            `Input parameter "${paramName}" is not an array of functions!`,
+        );
     }
 
     return arr;
@@ -69,7 +80,11 @@ export function evalFunctionArrayOrThrow(hooksString: string, paramName: string)
 export function checkInputOrThrow(input: unknown, schema: Dictionary) {
     const ajv = new Ajv({ allErrors: true, useDefaults: true, strict: false });
     const valid = ajv.validate(schema, input);
-    if (!valid) throw new Error(`Invalid input:\n${JSON.stringify(ajv.errors, null, 2)}`);
+    if (!valid) {
+        throw new Error(
+            `Invalid input:\n${JSON.stringify(ajv.errors, null, 2)}`,
+        );
+    }
 }
 
 export interface RequestMetadata {
@@ -95,7 +110,9 @@ export function ensureMetaData(request: Request) {
     }
 
     if (typeof metadata !== 'object') {
-        throw new Error(`Request ${request.id} contains invalid metadata value.`);
+        throw new Error(
+            `Request ${request.id} contains invalid metadata value.`,
+        );
     }
 }
 
@@ -123,7 +140,9 @@ export function createDatasetPayload(
     // Validate the result.
     const type = typeof result;
     if (type !== 'object') {
-        throw new Error(`Page function must return Object | Object[], but it returned ${type}.`);
+        throw new Error(
+            `Page function must return Object | Object[], but it returned ${type}.`,
+        );
     }
 
     // Metadata need to be appended to each item
@@ -155,7 +174,9 @@ export async function createRandomHash() {
  * would check for.
  */
 export function isPlainObject(item: unknown): item is Record<string, unknown> {
-    return (item && typeof item === 'object' && !Array.isArray(item)) as boolean;
+    return (item &&
+        typeof item === 'object' &&
+        !Array.isArray(item)) as boolean;
 }
 
 /**
@@ -189,7 +210,11 @@ export function createError(obj: ErrorLike = {}) {
     return error;
 }
 
-export function logPerformance(request: Request, title: string, hrtime: [number, number]) {
+export function logPerformance(
+    request: Request,
+    title: string,
+    hrtime: [number, number],
+) {
     if (log.getLevel() !== log.LEVELS.PERF) return;
 
     const runtime = process.hrtime(hrtime);
@@ -205,10 +230,16 @@ export function logPerformance(request: Request, title: string, hrtime: [number,
  * format and finds if any of them are missing from
  * the session cookies for a given URL.
  */
-export function getMissingCookiesFromSession(session: Session, cookies: Cookie[], url: string) {
+export function getMissingCookiesFromSession(
+    session: Session,
+    cookies: Cookie[],
+    url: string,
+) {
     const sessionCookies = session.getCookies(url);
     return cookies.filter((c) => {
-        const sessionHasCookie = sessionCookies.some((sc) => sc.name === c.name);
+        const sessionHasCookie = sessionCookies.some(
+            (sc) => sc.name === c.name,
+        );
         return !sessionHasCookie;
     });
 }

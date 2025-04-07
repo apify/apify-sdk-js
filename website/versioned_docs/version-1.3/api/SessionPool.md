@@ -112,8 +112,8 @@ sessions once the max pool size is reached. This also allows you to add session 
 
 **Parameters**:
 
--   **`[options]`**: [`Session`](Session.md) | [`SessionOptions`](../typedefs/session-options) - The configuration options for the session being
-    added to the session pool.
+- **`[options]`**: [`Session`](Session.md) | [`SessionOptions`](../typedefs/session-options) - The configuration options for the session being
+  added to the session pool.
 
 ---
 
@@ -126,7 +126,7 @@ the picked session is usable it is returned, otherwise it creates and returns a 
 
 **Parameters**:
 
--   **`[sessionId]`**: `String` - If provided, it returns the usable session with this id, `undefined` otherwise.
+- **`[sessionId]`**: `String` - If provided, it returns the usable session with this id, `undefined` otherwise.
 
 **Returns**:
 

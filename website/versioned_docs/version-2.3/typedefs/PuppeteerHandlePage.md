@@ -7,7 +7,7 @@ title: PuppeteerHandlePage
 
 **Parameters**:
 
--   **`context`**: [`CrawlingContext`](../typedefs/crawling-context) | [`BrowserCrawlingContext`](../typedefs/browser-crawling-context) | `Object`
+- **`context`**: [`CrawlingContext`](../typedefs/crawling-context) | [`BrowserCrawlingContext`](../typedefs/browser-crawling-context) | `Object`
 
 **Returns**:
 

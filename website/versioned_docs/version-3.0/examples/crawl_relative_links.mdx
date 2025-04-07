@@ -19,12 +19,20 @@ automatically find links and add them to the crawler's <ApiLink to="apify/class/
 
 We provide 3 different strategies for crawling relative links:
 
-- <CrawleeApiLink to="core/enum/EnqueueStrategy#All"><inlineCode>All</inlineCode></CrawleeApiLink>, which will enqueue all links found, regardless of
-the domain they point to.
-- <CrawleeApiLink to="core/enum/EnqueueStrategy#SameHostname"><inlineCode>SameHostname</inlineCode></CrawleeApiLink>, which will enqueue all links
-found for the same hostname (regardless of any subdomains present).
-- <CrawleeApiLink to="core/enum/EnqueueStrategy#SameSubdomain"><inlineCode>SameSubdomain</inlineCode></CrawleeApiLink>, which will enqueue all links
-found that have the same subdomain and hostname. This is the default strategy.
+- <CrawleeApiLink to="core/enum/EnqueueStrategy#All">
+      <inlineCode>All</inlineCode>
+  </CrawleeApiLink>
+  , which will enqueue all links found, regardless of the domain they point to.
+- <CrawleeApiLink to="core/enum/EnqueueStrategy#SameHostname">
+      <inlineCode>SameHostname</inlineCode>
+  </CrawleeApiLink>
+  , which will enqueue all links found for the same hostname (regardless of any
+  subdomains present).
+- <CrawleeApiLink to="core/enum/EnqueueStrategy#SameSubdomain">
+      <inlineCode>SameSubdomain</inlineCode>
+  </CrawleeApiLink>
+  , which will enqueue all links found that have the same subdomain and
+  hostname. This is the default strategy.
 
 :::note
 
@@ -45,9 +53,7 @@ Any urls found will be matched by this strategy, even if they go off of the site
 
 :::
 
-<CodeBlock className="language-js">
-	{AllLinksSource}
-</CodeBlock>
+<CodeBlock className="language-js">{AllLinksSource}</CodeBlock>
 
 </TabItem>
 
@@ -63,9 +69,7 @@ or `./relative/example` will all be matched by this strategy.
 
 :::
 
-<CodeBlock className="language-js">
-	{SameHostnameSource}
-</CodeBlock>
+<CodeBlock className="language-js">{SameHostnameSource}</CodeBlock>
 
 </TabItem>
 
@@ -87,9 +91,7 @@ will all be matched by this strategy, while `https://other-subdomain.example.com
 
 :::
 
-<CodeBlock className="language-js">
-	{SameSubdomainSource}
-</CodeBlock>
+<CodeBlock className="language-js">{SameSubdomainSource}</CodeBlock>
 
 </TabItem>
 

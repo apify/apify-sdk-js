@@ -27,7 +27,7 @@ It considers the full snapshot history available in the [`Snapshotter`](../api/s
 
 **Parameters**:
 
--   **`[options]`**: [`SystemStatusOptions`](../typedefs/system-status-options) - All `SystemStatus` configuration options.
+- **`[options]`**: [`SystemStatusOptions`](../typedefs/system-status-options) - All `SystemStatus` configuration options.
 
 ---
 

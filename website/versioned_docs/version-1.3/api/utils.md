@@ -58,25 +58,28 @@ await Apify.utils.enqueueLinks({
     page,
     requestQueue,
     selector: 'a.product-detail',
-    pseudoUrls: ['https://www.example.com/handbags/[.*]', 'https://www.example.com/purses/[.*]'],
+    pseudoUrls: [
+        'https://www.example.com/handbags/[.*]',
+        'https://www.example.com/purses/[.*]',
+    ],
 });
 ```
 
 **Parameters**:
 
--   **`options`**: `object` - All `enqueueLinks()` parameters are passed via an options object with the following keys:
+- **`options`**: `object` - All `enqueueLinks()` parameters are passed via an options object with the following keys:
 
-    -   **`[page]`**: `PuppeteerPage` | `PlaywrightPage` - Puppeteer [`Page`](https://pptr.dev/#?product=Puppeteer&show=api-class-page) object. Either
-        `page` or `$` option must be provided.
-    -   **`[limit]`**: `Number` - Limit the count of actually enqueued URLs to this number. Useful for testing across the entire crawling scope.
-    -   **`[$]`**: `cheerio.Root` | `cheerio.Selector` - [`Cheerio`](https://github.com/cheeriojs/cheerio) function with loaded HTML. Either `page` or
-        `$` option must be provided.
-    -   **`requestQueue`**: [`RequestQueue`](../api/request-queue) - A request queue to which the URLs will be enqueued.
-    -   **`[selector]`**: `string` <code> = &quot;&#x27;a&#x27;&quot;</code> - A CSS selector matching links to be enqueued.
-    -   **`[baseUrl]`**: `string` - A base URL that will be used to resolve relative URLs when using Cheerio. Ignored when using Puppeteer, since the
-        relative URL resolution is done inside the browser automatically.
-    -   **`[pseudoUrls]`**: `Array<Object<string, *&gt;>` | `Array.&lt;string>` - An array of [`PseudoUrl`](../api/pseudo-url)s matching the URLs to
-        be enqueued, or an array of strings or RegExps or plain Objects from which the [`PseudoUrl`](../api/pseudo-url)s can be constructed.
+    - **`[page]`**: `PuppeteerPage` | `PlaywrightPage` - Puppeteer [`Page`](https://pptr.dev/#?product=Puppeteer&show=api-class-page) object. Either
+      `page` or `$` option must be provided.
+    - **`[limit]`**: `Number` - Limit the count of actually enqueued URLs to this number. Useful for testing across the entire crawling scope.
+    - **`[$]`**: `cheerio.Root` | `cheerio.Selector` - [`Cheerio`](https://github.com/cheeriojs/cheerio) function with loaded HTML. Either `page` or
+      `$` option must be provided.
+    - **`requestQueue`**: [`RequestQueue`](../api/request-queue) - A request queue to which the URLs will be enqueued.
+    - **`[selector]`**: `string` <code> = &quot;&#x27;a&#x27;&quot;</code> - A CSS selector matching links to be enqueued.
+    - **`[baseUrl]`**: `string` - A base URL that will be used to resolve relative URLs when using Cheerio. Ignored when using Puppeteer, since the
+      relative URL resolution is done inside the browser automatically.
+    - **`[pseudoUrls]`**: `Array<Object<string, *&gt;>` | `Array.&lt;string>` - An array of [`PseudoUrl`](../api/pseudo-url)s matching the URLs to
+      be enqueued, or an array of strings or RegExps or plain Objects from which the [`PseudoUrl`](../api/pseudo-url)s can be constructed.
 
     The plain objects must include at least the `purl` property, which holds the pseudo-URL string or RegExp. All remaining keys will be used as the
     `requestTemplate` argument of the [`PseudoUrl`](../api/pseudo-url) constructor, which lets you specify special properties for the enqueued
@@ -84,10 +87,10 @@ await Apify.utils.enqueueLinks({
 
     If `pseudoUrls` is an empty array, `null` or `undefined`, then the function enqueues all links found on the page.
 
-    -   **`[transformRequestFunction]`**: [`RequestTransform`](../typedefs/request-transform) - Just before a new [`Request`](../api/request) is
-        constructed and enqueued to the [`RequestQueue`](../api/request-queue), this function can be used to remove it or modify its contents such as
-        `userData`, `payload` or, most importantly `uniqueKey`. This is useful when you need to enqueue multiple `Requests` to the queue that share
-        the same URL, but differ in methods or payloads, or to dynamically update or create `userData`.
+    - **`[transformRequestFunction]`**: [`RequestTransform`](../typedefs/request-transform) - Just before a new [`Request`](../api/request) is
+      constructed and enqueued to the [`RequestQueue`](../api/request-queue), this function can be used to remove it or modify its contents such as
+      `userData`, `payload` or, most importantly `uniqueKey`. This is useful when you need to enqueue multiple `Requests` to the queue that share
+      the same URL, but differ in methods or payloads, or to dynamically update or create `userData`.
 
     For example: by adding `keepUrlFragment: true` to the `request` object, URL fragments will not be removed when `uniqueKey` is computed.
 
@@ -95,7 +98,7 @@ await Apify.utils.enqueueLinks({
 
     ```javascript
     {
-        transformRequestFunction: request => {
+        transformRequestFunction: (request) => {
             request.userData.foo = 'bar';
             request.keepUrlFragment = true;
             return request;
@@ -149,7 +152,7 @@ const contentType = response.headers['content-type'];
 
 **Parameters**:
 
--   **`options`**: [`RequestAsBrowserOptions`](../typedefs/request-as-browser-options) - All `requestAsBrowser` configuration options.
+- **`options`**: [`RequestAsBrowserOptions`](../typedefs/request-as-browser-options) - All `requestAsBrowser` configuration options.
 
 **Returns**:
 
@@ -167,7 +170,7 @@ Returns a `Promise` that resolves to true if the code is running in a Docker con
 
 **Parameters**:
 
--   **`forceReset`**: `boolean`
+- **`forceReset`**: `boolean`
 
 **Returns**:
 
@@ -195,7 +198,7 @@ await Apify.utils.sleep(1500);
 
 **Parameters**:
 
--   **`millis`**: `number` - Period of time to sleep, in milliseconds. If not a positive number, the returned promise resolves immediately.
+- **`millis`**: `number` - Period of time to sleep, in milliseconds. If not a positive number, the returned promise resolves immediately.
 
 **Returns**:
 
@@ -212,11 +215,11 @@ encoding may be provided.
 
 **Parameters**:
 
--   **`options`**: `object`
-    -   **`url`**: `string` - URL to the file
-    -   **`[encoding]`**: `string` <code> = &quot;&#x27;utf8&#x27;&quot;</code> - The encoding of the file.
-    -   **`[urlRegExp]`**: `RegExp` <code> = URL_NO_COMMAS_REGEX</code> - Custom regular expression to identify the URLs in the file to extract. The
-        regular expression should be case-insensitive and have global flag set (i.e. `/something/gi`).
+- **`options`**: `object`
+    - **`url`**: `string` - URL to the file
+    - **`[encoding]`**: `string` <code> = &quot;&#x27;utf8&#x27;&quot;</code> - The encoding of the file.
+    - **`[urlRegExp]`**: `RegExp` <code> = URL_NO_COMMAS_REGEX</code> - Custom regular expression to identify the URLs in the file to extract. The
+      regular expression should be case-insensitive and have global flag set (i.e. `/something/gi`).
 
 **Returns**:
 
@@ -232,9 +235,9 @@ Collects all URLs in an arbitrary string to an array, optionally using a custom 
 
 **Parameters**:
 
--   **`options`**: `object`
-    -   **`string`**: `string`
-    -   **`[urlRegExp]`**: `RegExp` <code> = Apify.utils.URL_NO_COMMAS_REGEX</code>
+- **`options`**: `object`
+    - **`string`**: `string`
+    - **`[urlRegExp]`**: `RegExp` <code> = Apify.utils.URL_NO_COMMAS_REGEX</code>
 
 **Returns**:
 
@@ -272,7 +275,7 @@ const text = htmlToText(cheerio.load(html, { decodeEntities: true }));
 
 **Parameters**:
 
--   **`html`**: `string` | `cheerio.Root` - HTML text or parsed HTML represented using a [cheerio](https://www.npmjs.com/package/cheerio) function.
+- **`html`**: `string` | `cheerio.Root` - HTML text or parsed HTML represented using a [cheerio](https://www.npmjs.com/package/cheerio) function.
 
 **Returns**:
 

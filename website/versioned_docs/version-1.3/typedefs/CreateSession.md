@@ -10,7 +10,7 @@ Factory user-function which creates customized [`Session`](../api/session) insta
 
 **Parameters**:
 
--   **`sessionPool`**: [`SessionPool`](../api/session-pool) - Pool requesting the new session.
+- **`sessionPool`**: [`SessionPool`](../api/session-pool) - Pool requesting the new session.
 
 **Returns**:
 

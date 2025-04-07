@@ -14,10 +14,10 @@ code changes are needed.
 
 **Related links**
 
--   [Apify platform storage documentation](https://docs.apify.com/storage)
--   [View storage in Apify app](https://console.apify.com/storage)
--   [Key-value stores API reference](https://apify.com/docs/api/v2#/reference/key-value-stores)
--   [Datasets API reference](https://docs.apify.com/api/v2#/reference/datasets)
+- [Apify platform storage documentation](https://docs.apify.com/storage)
+- [View storage in Apify app](https://console.apify.com/storage)
+- [Key-value stores API reference](https://apify.com/docs/api/v2#/reference/key-value-stores)
+- [Datasets API reference](https://docs.apify.com/api/v2#/reference/datasets)
 
 ## Key-value store
 

@@ -35,7 +35,7 @@ There are two ways to initialize your Actor: by using the `Actor.main()` functio
 import { Actor } from 'apify';
 import { PlaywrightCrawler } from 'crawlee';
 
-await Actor.init()
+await Actor.init();
 
 const crawler = new PlaywrightCrawler({
     async requestHandler({ request, page, enqueueLinks }) {

@@ -2,7 +2,7 @@ import React from 'react';
 import {
     useVersions,
     useActiveDocContext,
-    useDocsVersionCandidates
+    useDocsVersionCandidates,
 } from '@docusaurus/plugin-content-docs/client';
 import { useDocsPreferredVersion } from '@docusaurus/theme-common';
 import { translate } from '@docusaurus/Translate';
@@ -10,7 +10,8 @@ import { useLocation } from '@docusaurus/router';
 import DefaultNavbarItem from '@theme/NavbarItem/DefaultNavbarItem';
 import DropdownNavbarItem from '@theme/NavbarItem/DropdownNavbarItem';
 
-const getVersionMainDoc = (version) => version.docs.find((doc) => doc.id === version.mainDocId);
+const getVersionMainDoc = (version) =>
+    version.docs.find((doc) => doc.id === version.mainDocId);
 
 function getApiLinks(props, pathname) {
     if (!pathname.startsWith('/sdk/js/reference')) {
@@ -33,11 +34,7 @@ export default function DocsVersionDropdownNavbarItem({
     dropdownItemsAfter,
     ...props
 }) {
-    const {
-        search,
-        hash,
-        pathname
-    } = useLocation();
+    const { search, hash, pathname } = useLocation();
     const apiLinks = getApiLinks(props, pathname);
 
     const activeDocContext = useActiveDocContext(docsPluginId);
@@ -46,8 +43,9 @@ export default function DocsVersionDropdownNavbarItem({
     const versionLinks = versions.map((version, idx) => {
         // We try to link to the same doc, in another version
         // When not possible, fallback to the "main doc" of the version
-        const versionDoc = activeDocContext.alternateDocVersions[version.name]
-            ?? getVersionMainDoc(version);
+        const versionDoc =
+            activeDocContext.alternateDocVersions[version.name] ??
+            getVersionMainDoc(version);
         return {
             label: version.label,
             // preserve ?search#hash suffix on version switches
@@ -63,19 +61,24 @@ export default function DocsVersionDropdownNavbarItem({
     ];
     const dropdownVersion = useDocsVersionCandidates(docsPluginId)[0];
     // Mobile dropdown is handled a bit differently
-    const dropdownLabel = mobile && items.length > 1
-        ? translate({
-            id: 'theme.navbar.mobileVersionsDropdown.label',
-            message: 'Versions',
-            description: 'The label for the navbar versions dropdown on mobile view',
-        })
-        : dropdownVersion.label;
-    let dropdownTo = mobile && items.length > 1
-        ? undefined
-        : getVersionMainDoc(dropdownVersion).path;
+    const dropdownLabel =
+        mobile && items.length > 1
+            ? translate({
+                  id: 'theme.navbar.mobileVersionsDropdown.label',
+                  message: 'Versions',
+                  description:
+                      'The label for the navbar versions dropdown on mobile view',
+              })
+            : dropdownVersion.label;
+    let dropdownTo =
+        mobile && items.length > 1
+            ? undefined
+            : getVersionMainDoc(dropdownVersion).path;
 
     if (dropdownTo && pathname.startsWith('/sdk/js/reference')) {
-        dropdownTo = versionLinks.find((v) => v.label === dropdownVersion.label)?.to;
+        dropdownTo = versionLinks.find(
+            (v) => v.label === dropdownVersion.label,
+        )?.to;
     }
 
     // We don't want to render a version dropdown with 0 or 1 item. If we build

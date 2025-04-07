@@ -1,4 +1,11 @@
-import type { GlobInput, ProxyConfigurationOptions, PseudoUrlInput, RegExpInput, RequestOptions, Session } from '@crawlee/core';
+import type {
+    GlobInput,
+    ProxyConfigurationOptions,
+    PseudoUrlInput,
+    RegExpInput,
+    RequestOptions,
+    Session,
+} from '@crawlee/core';
 import type { Dictionary } from '@crawlee/utils';
 
 export const enum ProxyRotation {

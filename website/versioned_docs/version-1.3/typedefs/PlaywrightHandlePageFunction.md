@@ -8,8 +8,8 @@ id: playwright-handle-page-function
 
 **Parameters**:
 
--   **`context`**: [`PlaywrightHandlePageFunctionParam`](../typedefs/playwright-handle-page-function-param) |
-    [`BrowserCrawlingContext`](../typedefs/browser-crawling-context) | [`CrawlingContext`](../typedefs/crawling-context)
+- **`context`**: [`PlaywrightHandlePageFunctionParam`](../typedefs/playwright-handle-page-function-param) |
+  [`BrowserCrawlingContext`](../typedefs/browser-crawling-context) | [`CrawlingContext`](../typedefs/crawling-context)
 
 **Returns**:
 

@@ -36,10 +36,10 @@ Note that while the default `Accept` HTTP header will allow any content type to 
 The web pages with various content types are parsed differently and thus the `context` parameter of the [**Page function**](#page-function) will have different values:
 
 | **Content types**                                       | [`context.body`](#body-stringbuffer) | [`context.window`](#-object) | [`context.json`](#json-object) |
-|---------------------------------------------------------|--------------------------------------|---------------------------|--------------------------------|
-| `text/html`, `application/xhtml+xml`, `application/xml` | `String`                             | `Object`                | `null`                         |
-| `application/json`                                      | `String`                             | `null`                    | `Object`                       |
-| Other                                                   | `Buffer`                             | `null`                    | `null`                         |
+| ------------------------------------------------------- | ------------------------------------ | ---------------------------- | ------------------------------ |
+| `text/html`, `application/xhtml+xml`, `application/xml` | `String`                             | `Object`                     | `null`                         |
+| `application/json`                                      | `String`                             | `null`                       | `Object`                       |
+| Other                                                   | `Buffer`                             | `null`                       | `null`                         |
 
 The `Content-Type` HTTP header of the web page is parsed using the
 <a href="https://www.npmjs.com/package/content-type" target="_blank">content-type</a> NPM package and the result is stored in the [`context.contentType`](#contenttype-object) object.
@@ -87,9 +87,9 @@ A glob pattern is simply a string with wildcard characters.
 For example, a glob pattern `http://www.example.com/pages/**/*` will match all the
 following URLs:
 
--   `http://www.example.com/pages/deeper-level/page`
--   `http://www.example.com/pages/my-awesome-page`
--   `http://www.example.com/pages/something`
+- `http://www.example.com/pages/deeper-level/page`
+- `http://www.example.com/pages/my-awesome-page`
+- `http://www.example.com/pages/something`
 
 Note that you don't need to use the **Glob Patterns** setting at all, because you can completely control which pages the scraper will access by calling `await context.enqueueRequest()` from the **[Page function](#page-function)**.
 
@@ -101,9 +101,9 @@ A pseudo-URL is simply a URL with special directives enclosed in `[]` brackets. 
 
 For example, a pseudo-URL `http://www.example.com/pages/[(\w|-)*]` will match all the following URLs:
 
--   `http://www.example.com/pages/`
--   `http://www.example.com/pages/my-awesome-page`
--   `http://www.example.com/pages/something`
+- `http://www.example.com/pages/`
+- `http://www.example.com/pages/my-awesome-page`
+- `http://www.example.com/pages/something`
 
 If either "`[`" or "`]`" are part of the normal query string, the symbol must be encoded as `[\x5B]` or `[\x5D]`, respectively. For example, the following pseudo-URL:
 
@@ -145,7 +145,7 @@ async function pageFunction(context) {
     // It will be stored to the resulting dataset.
     return {
         url,
-        pageTitle
+        pageTitle,
     };
 }
 ```
@@ -164,35 +164,35 @@ A reference to the [JSDOM](https://github.com/jsdom/jsdom)'s object representing
 
 This object is the starting point for traversing the DOM document and extracting data from it. Just like with regular client-side Javascript, you can use the `window.document` object to access the DOM elements and their properties.
 
-  For more information, see the [JSDOM](https://github.com/jsdom/jsdom) documentation.
+For more information, see the [JSDOM](https://github.com/jsdom/jsdom) documentation.
 
-  Example:
+Example:
 
-  ```html
-  <ul id="movies">
+```html
+<ul id="movies">
     <li class="fun-movie">Fun Movie</li>
     <li class="sad-movie">Sad Movie</li>
     <li class="horror-movie">Horror Movie</li>
-  </ul>
-  ```
+</ul>
+```
 
-  ```javascript
-  window.document.querySelector('#movies .fun-movie').innerText;
-  //=> Fun Movie
-  window.document.querySelector('ul .sad-movie').className;
-  //=> sad-movie
-  window.document.querySelector('li[class=horror-movie]').innerHTML;
-  //=> Horror Movie
-  ```
+```javascript
+window.document.querySelector('#movies .fun-movie').innerText;
+//=> Fun Movie
+window.document.querySelector('ul .sad-movie').className;
+//=> sad-movie
+window.document.querySelector('li[class=horror-movie]').innerHTML;
+//=> Horror Movie
+```
 
 - ##### **`Actor: Object`**
 
 A reference to the [Actor](https://sdk.apify.com/api/apify/class/Actor) object from [Apify SDK](https://sdk.apify.com/).
-  This is equivalent to:
+This is equivalent to:
 
-  ```javascript
-  import { Actor } from 'apify';
-  ```
+```javascript
+import { Actor } from 'apify';
+```
 
 - ##### **`Apify: Object`**
 
@@ -204,31 +204,31 @@ A reference to the `JSDOMCrawler` object, see [Crawlee docs](https://crawlee.dev
 
 - ##### **`body: String|Buffer`**
 
- The body from the target web page. If the web page is in HTML or XML format, the `body` will be a string that contains the HTML or XML content. In other cases, the `body` with be a [Buffer](https://nodejs.org/api/buffer.html). If you need to process the `body` as a string, you can use the information from `contentType` property to convert
-  the binary data into a string.
+The body from the target web page. If the web page is in HTML or XML format, the `body` will be a string that contains the HTML or XML content. In other cases, the `body` with be a [Buffer](https://nodejs.org/api/buffer.html). If you need to process the `body` as a string, you can use the information from `contentType` property to convert
+the binary data into a string.
 
-  Example:
+Example:
 
-  ```javascript
-  const stringBody = context.body.toString(context.contentType.encoding)
-  ```
+```javascript
+const stringBody = context.body.toString(context.contentType.encoding);
+```
 
 - ##### **`contentType: Object`**
 
 The `Content-Type` HTTP header parsed into an object with 2 properties, `type` and `encoding`.
 
-  Example:
+Example:
 
-  ```javascript
-  // Content-Type: application/json; charset=utf-8
-  const mimeType = contentType.type; // "application/json"
-  const encoding = contentType.encoding; // "utf-8"
-  ```
+```javascript
+// Content-Type: application/json; charset=utf-8
+const mimeType = contentType.type; // "application/json"
+const encoding = contentType.encoding; // "utf-8"
+```
 
 - ##### **`customData: Object`**
 
- Contains the object provided in the **Custom data** (`customData`) input field.
-  This is useful for passing dynamic parameters to your JSDOM Scraper using API.
+Contains the object provided in the **Custom data** (`customData`) input field.
+This is useful for passing dynamic parameters to your JSDOM Scraper using API.
 
 - ##### **`enqueueRequest(request, [options]): AsyncFunction`**
 
@@ -236,24 +236,27 @@ Adds a new URL to the request queue, if it wasn't already there.
 
 The `request` parameter is an object containing details of the request, with properties such as `url`, `userData`, `headers` etc. For the full list of the supported properties, see the [`Request`](https://crawlee.dev/api/core/class/Request) object's constructor in Crawlee's documentation.
 
-  The optional `options` parameter is an object with additional options. Currently, it only supports the `forefront` boolean flag. If `true`, the request is added to the beginning of the queue. By default, requests are added to the end.
+The optional `options` parameter is an object with additional options. Currently, it only supports the `forefront` boolean flag. If `true`, the request is added to the beginning of the queue. By default, requests are added to the end.
 
-  Example:
+Example:
 
-  ```javascript
-  await context.enqueueRequest({ url: 'https://www.example.com' });
-  await context.enqueueRequest({ url: 'https://www.example.com/first' }, { forefront: true });
-  ```
+```javascript
+await context.enqueueRequest({ url: 'https://www.example.com' });
+await context.enqueueRequest(
+    { url: 'https://www.example.com/first' },
+    { forefront: true },
+);
+```
 
 - ##### **`env: Object`**
 
 A map of all relevant values set by the Apify platform to the Actor run via the `APIFY_` environment variable. For example, here you can find information such as Actor run ID, timeouts, Actor run memory, etc. For the full list of available values, see the [`Actor.getEnv()`](https://sdk.apify.com/api/apify/class/Actor#getEnv) function in the Apify SDK documentation.
 
-  Example:
+Example:
 
-  ```javascript
-  console.log(`Actor run ID: ${context.env.actorRunId}`);
-  ```
+```javascript
+console.log(`Actor run ID: ${context.env.actorRunId}`);
+```
 
 - ##### **`getValue(key): AsyncFunction`**
 
@@ -263,30 +266,27 @@ To set the value, use the dual function `context.setValue(key, value)`.
 
 Example:
 
-  ```javascript
-  const value = await context.getValue('my-key');
-  console.dir(value);
-  ```
+```javascript
+const value = await context.getValue('my-key');
+console.dir(value);
+```
 
 - ##### **`globalStore: Object`**
 
-Represents an in-memory store that can be used to share data across page function invocations, e.g. state variables, API responses, or other data. The `globalStore` object has an interface similar to JavaScript's [`Map`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map) object, with a few important differences:
-    - All `globalStore` functions are `async`; use `await` when calling them.
-    - Keys must be strings and values must be JSON stringify-able.
-    - The `forEach()` function is not supported.
+Represents an in-memory store that can be used to share data across page function invocations, e.g. state variables, API responses, or other data. The `globalStore` object has an interface similar to JavaScript's [`Map`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map) object, with a few important differences: - All `globalStore` functions are `async`; use `await` when calling them. - Keys must be strings and values must be JSON stringify-able. - The `forEach()` function is not supported.
 
 Note that stored data is not persisted. If the Actor run is restarted or migrated to another worker server, the content of `globalStore` is reset. Therefore, never depend on a specific value to be present in the store.
 
-  Example:
+Example:
 
-  ```javascript
-  let movies = await context.globalStore.get('cached-movies');
-  if (!movies) {
+```javascript
+let movies = await context.globalStore.get('cached-movies');
+if (!movies) {
     movies = await fetch('http://example.com/movies.json');
     await context.globalStore.set('cached-movies', movies);
-  }
-  console.dir(movies);
-  ```
+}
+console.dir(movies);
+```
 
 - ##### **`input: Object`**
 
@@ -299,22 +299,22 @@ The parsed object from a JSON string if the response contains the content type `
 - ##### **`log: Object`**
 
 An object containing logging functions, with the same interface as provided by the
-  [`crawlee.utils.log`](https://crawlee.dev/api/core/class/Log) object in Crawlee. The log messages are written directly to the Actor run log, which is useful for monitoring and debugging. Note that `log.debug()` only logs messages if the **Debug log** input setting is set.
+[`crawlee.utils.log`](https://crawlee.dev/api/core/class/Log) object in Crawlee. The log messages are written directly to the Actor run log, which is useful for monitoring and debugging. Note that `log.debug()` only logs messages if the **Debug log** input setting is set.
 
-  Example:
+Example:
 
-  ```javascript
-  const log = context.log;
-  log.debug('Debug message', { hello: 'world!' });
-  log.info('Information message', { all: 'good' });
-  log.warning('Warning message');
-  log.error('Error message', { details: 'This is bad!' });
-  try {
+```javascript
+const log = context.log;
+log.debug('Debug message', { hello: 'world!' });
+log.info('Information message', { all: 'good' });
+log.warning('Warning message');
+log.error('Error message', { details: 'This is bad!' });
+try {
     throw new Error('Not good!');
-  } catch (e) {
+} catch (e) {
     log.exception(e, 'Exception occurred', { details: 'This is really bad!' });
-  }
-  ```
+}
+```
 
 - ##### **`saveSnapshot(): AsyncFunction`**
 
@@ -326,13 +326,13 @@ Note that each snapshot overwrites the previous one and the `saveSnapshot()` cal
 
 Sets a value to the default key-value store associated with the Actor run. The key-value store is useful for persisting named data records, such as state objects, files, etc. The function is very similar to the [`Actor.setValue()`](https://sdk.apify.com/api/apify/class/Actor#setValue) function in Apify SDK.
 
-  To get the value, use the dual function `context.getValue(key)`.
+To get the value, use the dual function `context.getValue(key)`.
 
-  Example:
+Example:
 
-  ```javascript
-  await context.setValue('my-key', { hello: 'world' });
-  ```
+```javascript
+await context.setValue('my-key', { hello: 'world' });
+```
 
 - ##### **`skipLinks(): AsyncFunction`**
 
@@ -346,20 +346,20 @@ An object containing information about the currently loaded web page, such as th
 
 An object containing information about the HTTP response from the web server. Currently, it only contains the `status` and `headers` properties. For example:
 
-  ```javascript
-  {
-    // HTTP status code
-    status: 200,
+```javascript
+{
+  // HTTP status code
+  status: 200,
 
-    // HTTP headers
-    headers: {
-      'content-type': 'text/html; charset=utf-8',
-      'date': 'Wed, 06 Nov 2019 16:01:53 GMT',
-      'cache-control': 'no-cache',
-      'content-encoding': 'gzip',
-    }
+  // HTTP headers
+  headers: {
+    'content-type': 'text/html; charset=utf-8',
+    'date': 'Wed, 06 Nov 2019 16:01:53 GMT',
+    'cache-control': 'no-cache',
+    'content-encoding': 'gzip',
   }
-  ```
+}
+```
 
 <!-- TODO: We're missing more detailed description for prepareRequestFunction, what is it good for?
 Give some example, also better prefill -->
@@ -427,6 +427,7 @@ The proxy configuration can be set programmatically when calling the Actor using
 ### Pre-navigation hooks
 
 <!-- todo request as browser is out -->
+
 This is an array of functions that will be executed **BEFORE** the main `pageFunction` is run. A similar `context` object is passed into each of these functions as is passed into the `pageFunction`; however, a second `gotOptions` object is also passed in.
 
 The available options can be seen here:
@@ -459,7 +460,7 @@ For example, if your page function returned the following object:
 
 ```js
 {
-  message: 'Hello world!'
+    message: 'Hello world!';
 }
 ```
 
@@ -467,17 +468,17 @@ The full object stored in the dataset will look as follows (in JSON format, incl
 
 ```json
 {
-  "message": "Hello world!",
-  "#error": false,
-  "#debug": {
-    "requestId": "fvwscO2UJLdr10B",
-    "url": "https://www.example.com/",
-    "loadedUrl": "https://www.example.com/",
-    "method": "GET",
-    "retryCount": 0,
-    "errorMessages": null,
-    "statusCode": 200
-  }
+    "message": "Hello world!",
+    "#error": false,
+    "#debug": {
+        "requestId": "fvwscO2UJLdr10B",
+        "url": "https://www.example.com/",
+        "loadedUrl": "https://www.example.com/",
+        "method": "GET",
+        "retryCount": 0,
+        "errorMessages": null,
+        "statusCode": 200
+    }
 }
 ```
 
@@ -489,7 +490,7 @@ https://api.apify.com/v2/datasets/[DATASET_ID]/items?format=json
 
 where `[DATASET_ID]` is the ID of the Actor's run dataset, in which you can find the Run object returned when starting the Actor. Alternatively, you'll find the download links for the results in Apify Console.
 
-To skip the `#error` and `#debug` metadata fields from the results and not include empty result records, simply add the `clean=true` query parameter to the API URL, or select the  **Clean items** option when downloading the dataset in Apify Console.
+To skip the `#error` and `#debug` metadata fields from the results and not include empty result records, simply add the `clean=true` query parameter to the API URL, or select the **Clean items** option when downloading the dataset in Apify Console.
 
 To get the results in other formats, set the `format` query parameter to `xml`, `xlsx`, `csv`, `html`, etc. For more information, see [Datasets](https://docs.apify.com/storage#dataset) in documentation or the [Get dataset items](https://docs.apify.com/api/v2#/reference/datasets/item-collection) endpoint in Apify API reference.
 

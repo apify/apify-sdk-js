@@ -89,8 +89,8 @@ const buffer = await store.getValue('screenshot1.png');
 
 **Parameters**:
 
--   **`key`**: `string` - Unique key of the record. It can be at most 256 characters long and only consist of the following characters: `a`-`z`,
-    `A`-`Z`, `0`-`9` and `!-_.'()`
+- **`key`**: `string` - Unique key of the record. It can be at most 256 characters long and only consist of the following characters: `a`-`z`,
+  `A`-`Z`, `0`-`9` and `!-_.'()`
 
 **Returns**:
 
@@ -133,15 +133,15 @@ stored!
 
 **Parameters**:
 
--   **`key`**: `string` - Unique key of the record. It can be at most 256 characters long and only consist of the following characters: `a`-`z`,
-    `A`-`Z`, `0`-`9` and `!-_.'()`
--   **`value`**: [`KeyValueStoreValueTypes`](../typedefs/key-value-store-value-types) - Record data, which can be one of the following values:
-    -   If `null`, the record in the key-value store is deleted.
-    -   If no `options.contentType` is specified, `value` can be any JavaScript object and it will be stringified to JSON.
-    -   If `options.contentType` is set, `value` is taken as is and it must be a `String` or [`Buffer`](https://nodejs.org/api/buffer.html). For any
-        other value an error will be thrown.
--   **`[options]`**: `object`
-    -   **`[contentType]`**: `string` - Specifies a custom MIME content type of the record.
+- **`key`**: `string` - Unique key of the record. It can be at most 256 characters long and only consist of the following characters: `a`-`z`,
+  `A`-`Z`, `0`-`9` and `!-_.'()`
+- **`value`**: [`KeyValueStoreValueTypes`](../typedefs/key-value-store-value-types) - Record data, which can be one of the following values:
+    - If `null`, the record in the key-value store is deleted.
+    - If no `options.contentType` is specified, `value` can be any JavaScript object and it will be stringified to JSON.
+    - If `options.contentType` is set, `value` is taken as is and it must be a `String` or [`Buffer`](https://nodejs.org/api/buffer.html). For any
+      other value an error will be thrown.
+- **`[options]`**: `object`
+    - **`[contentType]`**: `string` - Specifies a custom MIME content type of the record.
 
 **Returns**:
 
@@ -169,7 +169,7 @@ Returns a URL for the given key that may be used to publicly access the value in
 
 **Parameters**:
 
--   **`key`**: `string`
+- **`key`**: `string`
 
 **Returns**:
 
@@ -199,9 +199,9 @@ await keyValueStore.forEachKey(async (key, index, info) => {
 
 **Parameters**:
 
--   **`iteratee`**: [`KeyConsumer`](../typedefs/key-consumer) - A function that is called for every key in the key-value store.
--   **`[options]`**: `object` - All `forEachKey()` parameters are passed via an options object with the following keys:
-    -   **`[exclusiveStartKey]`**: `string` - All keys up to this one (including) are skipped from the result.
+- **`iteratee`**: [`KeyConsumer`](../typedefs/key-consumer) - A function that is called for every key in the key-value store.
+- **`[options]`**: `object` - All `forEachKey()` parameters are passed via an options object with the following keys:
+    - **`[exclusiveStartKey]`**: `string` - All keys up to this one (including) are skipped from the result.
 
 **Returns**:
 

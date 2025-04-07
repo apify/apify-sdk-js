@@ -33,7 +33,10 @@ Apify.main(async () => {
     console.log('Fetching a random word.');
     const page = await browser.newPage();
     await page.goto('https://randomword.com/');
-    const randomWord = await page.$eval('#shared_section', el => el.outerHTML);
+    const randomWord = await page.$eval(
+        '#shared_section',
+        (el) => el.outerHTML,
+    );
 
     // Send random word to your email. For that, you can use an actor we already
     // have available on the platform under the name: apify/send-mail.

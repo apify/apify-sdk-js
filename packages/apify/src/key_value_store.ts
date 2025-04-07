@@ -25,7 +25,10 @@ export class KeyValueStore extends CoreKeyValueStore {
     /**
      * @inheritDoc
      */
-    static override async open(storeIdOrName?: string | null, options: StorageManagerOptions = {}): Promise<KeyValueStore> {
+    static override async open(
+        storeIdOrName?: string | null,
+        options: StorageManagerOptions = {},
+    ): Promise<KeyValueStore> {
         return super.open(storeIdOrName, options) as unknown as KeyValueStore;
     }
 }

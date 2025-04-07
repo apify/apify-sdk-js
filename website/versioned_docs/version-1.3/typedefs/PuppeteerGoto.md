@@ -8,7 +8,7 @@ id: puppeteer-goto
 
 **Parameters**:
 
--   **`inputs`**: [`PuppeteerGotoInputs`](../typedefs/puppeteer-goto-inputs) - Arguments passed to this callback.
+- **`inputs`**: [`PuppeteerGotoInputs`](../typedefs/puppeteer-goto-inputs) - Arguments passed to this callback.
 
 **Returns**:
 

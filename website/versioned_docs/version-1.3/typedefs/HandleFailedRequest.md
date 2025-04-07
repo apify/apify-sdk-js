@@ -8,7 +8,7 @@ id: handle-failed-request
 
 **Parameters**:
 
--   **`inputs`**: [`HandleFailedRequestInput`](../typedefs/handle-failed-request-input) - Arguments passed to this callback.
+- **`inputs`**: [`HandleFailedRequestInput`](../typedefs/handle-failed-request-input) - Arguments passed to this callback.
 
 **Returns**:
 

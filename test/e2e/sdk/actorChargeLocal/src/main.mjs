@@ -5,7 +5,9 @@ const client = new ApifyClient({
 });
 
 const run = await client.run(process.env.ACTOR_RUN_ID).get();
-const { value: { maxTotalChargeUsd } } = await client.keyValueStore(run.defaultKeyValueStoreId).getRecord('INPUT');
+const {
+    value: { maxTotalChargeUsd },
+} = await client.keyValueStore(run.defaultKeyValueStoreId).getRecord('INPUT');
 
 delete process.env.APIFY_IS_AT_HOME;
 delete process.env.ACTOR_MAX_TOTAL_CHARGE_USD;

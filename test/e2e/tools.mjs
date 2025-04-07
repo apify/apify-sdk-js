@@ -32,7 +32,10 @@ export function getStorage(dirName) {
  */
 export async function getStats(dirName, retries = 3) {
     const dir = getStorage(dirName);
-    const path = join(dir, 'key_value_stores/default/SDK_CRAWLER_STATISTICS_0.json');
+    const path = join(
+        dir,
+        'key_value_stores/default/SDK_CRAWLER_STATISTICS_0.json',
+    );
 
     if (!existsSync(path)) {
         if (!retries) {
@@ -70,14 +73,11 @@ export async function run(url, scraper, input) {
     // i.e. dataset items are there, etc. Honestly, no idea why -
     // hanging test is always random. So adding Promise.race()
     // to make sure all tests will run and finish.
-    await Promise.race([
-        waitForFinish(url),
-        setTimeout(120e3),
-    ]);
+    await Promise.race([waitForFinish(url), setTimeout(120e3)]);
 }
 
 export async function waitForFinish(dir) {
-    while (!await isFinished(dir)) {
+    while (!(await isFinished(dir))) {
         await setTimeout(1e3);
     }
 }
@@ -99,7 +99,9 @@ export async function getApifyToken() {
     const authPath = join(homedir(), '.apify', 'auth.json');
 
     if (!existsSync(authPath)) {
-        throw new Error('You need to be logged in with your Apify account to run E2E tests. Call "apify login" to fix that.');
+        throw new Error(
+            'You need to be logged in with your Apify account to run E2E tests. Call "apify login" to fix that.',
+        );
     }
 
     const { token } = await fs.readJSON(authPath);
@@ -186,7 +188,9 @@ function checkDatasetItem(item, propName) {
         case 'runCount':
             return Number.isInteger(item.runCount);
         default:
-            return ['string', 'number', 'boolean'].includes(typeof item[propName]);
+            return ['string', 'number', 'boolean'].includes(
+                typeof item[propName],
+            );
     }
 }
 

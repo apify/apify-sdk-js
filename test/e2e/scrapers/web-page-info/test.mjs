@@ -1,4 +1,11 @@
-import { expect, getDatasetItems, getStats, getTestDir, run, validateDataset } from '../../tools.mjs';
+import {
+    expect,
+    getDatasetItems,
+    getStats,
+    getTestDir,
+    run,
+    validateDataset,
+} from '../../tools.mjs';
 
 const testDir = getTestDir(import.meta.url);
 
@@ -7,16 +14,20 @@ process.exit = () => {};
 
 await run(testDir, 'web-scraper', {
     runMode: 'PRODUCTION',
-    startUrls: [{
-        url: 'https://warehouse-theme-metal.myshopify.com/collections/all-tvs',
-        method: 'GET',
-        userData: { label: 'START' },
-    }],
-    pseudoUrls: [{
-        purl: 'https://warehouse-theme-metal.myshopify.com/products/sony-xbr-65x950g-65-class-64-5-diag-bravia-4k-hdr-ultra-hd-tv',
-        method: 'GET',
-        userData: { label: 'DETAIL' },
-    }],
+    startUrls: [
+        {
+            url: 'https://warehouse-theme-metal.myshopify.com/collections/all-tvs',
+            method: 'GET',
+            userData: { label: 'START' },
+        },
+    ],
+    pseudoUrls: [
+        {
+            purl: 'https://warehouse-theme-metal.myshopify.com/products/sony-xbr-65x950g-65-class-64-5-diag-bravia-4k-hdr-ultra-hd-tv',
+            method: 'GET',
+            userData: { label: 'DETAIL' },
+        },
+    ],
     linkSelector: 'a',
     keepUrlFragments: false,
     // eslint-disable-next-line consistent-return -- simplifies branching in pageFunction
@@ -46,10 +57,11 @@ await run(testDir, 'web-scraper', {
 
             const price = Number(rawPrice.replaceAll(',', ''));
 
-            const inStock = $('span.product-form__inventory')
-                .first()
-                .filter((_, el) => $(el).text().includes('In stock'))
-                .length !== 0;
+            const inStock =
+                $('span.product-form__inventory')
+                    .first()
+                    .filter((_, el) => $(el).text().includes('In stock'))
+                    .length !== 0;
 
             return {
                 url,
@@ -84,17 +96,14 @@ await expect(stats.requestsFinished === 2, 'All requests finished');
 const datasetItems = await getDatasetItems(testDir);
 await expect(datasetItems.length === 1, 'Number of dataset items');
 await expect(
-    validateDataset(
-        datasetItems,
-        [
-            'url',
-            'manufacturer',
-            'title',
-            'sku',
-            'currentPrice',
-            'availableInStock',
-        ],
-    ),
+    validateDataset(datasetItems, [
+        'url',
+        'manufacturer',
+        'title',
+        'sku',
+        'currentPrice',
+        'availableInStock',
+    ]),
     'Dataset items validation',
 );
 

@@ -50,8 +50,8 @@ The function receives the following object as an argument:
 
 Type of `body` depends on the `Content-Type` header of the web page:
 
--   String for `text/html`, `application/xhtml+xml`, `application/xml` MIME content types
--   Buffer for others MIME content types
+- String for `text/html`, `application/xhtml+xml`, `application/xml` MIME content types
+- Buffer for others MIME content types
 
 Parsed `Content-Type` header using [content-type package](https://www.npmjs.com/package/content-type) is stored in `contentType`.
 
@@ -130,7 +130,8 @@ const cheerioCrawlerOptions = {
     // ...
     postResponseFunction: ({ request, response }) => {
         if (request.userData.parseAsJSON) {
-            response.headers['content-type'] = 'application/json; charset=utf-8';
+            response.headers['content-type'] =
+                'application/json; charset=utf-8';
         }
     },
 };

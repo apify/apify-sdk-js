@@ -1,4 +1,12 @@
-import type { Dictionary, GlobInput, ProxyConfigurationOptions, PseudoUrlInput, RegExpInput, RequestOptions, Session } from '@crawlee/jsdom';
+import type {
+    Dictionary,
+    GlobInput,
+    ProxyConfigurationOptions,
+    PseudoUrlInput,
+    RegExpInput,
+    RequestOptions,
+    Session,
+} from '@crawlee/jsdom';
 
 export const enum ProxyRotation {
     Recommended = 'RECOMMENDED',

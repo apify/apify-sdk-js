@@ -8,11 +8,11 @@ let chargedItems = (await defaultDataset.getInfo())!.itemCount;
 
 // highlight-start
 if (Actor.getChargingManager().getPricingInfo().isPayPerEvent) {
-// highlight-end
-    await Actor.pushData({ 'hello': 'world' }, 'dataset-item');
+    // highlight-end
+    await Actor.pushData({ hello: 'world' }, 'dataset-item');
 } else {
     if (chargedItems < Number(process.env['ACTOR_MAX_PAID_DATASET_ITEMS'])) {
-        await Actor.pushData({ 'hello': 'world' });
+        await Actor.pushData({ hello: 'world' });
         chargedItems += 1;
     }
 }

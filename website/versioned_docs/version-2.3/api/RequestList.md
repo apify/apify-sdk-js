@@ -40,8 +40,15 @@ and load them after restart, which will prevent any issues that a live list of U
 // State and sources are automatically persisted. This is a preferred usage.
 const requestList = await Apify.openRequestList('my-request-list', [
     'http://www.example.com/page-1',
-    { url: 'http://www.example.com/page-2', method: 'POST', userData: { foo: 'bar' } },
-    { requestsFromUrl: 'http://www.example.com/my-url-list.txt', userData: { isFromUrl: true } },
+    {
+        url: 'http://www.example.com/page-2',
+        method: 'POST',
+        userData: { foo: 'bar' },
+    },
+    {
+        requestsFromUrl: 'http://www.example.com/my-url-list.txt',
+        userData: { isFromUrl: true },
+    },
 ]);
 ```
 
@@ -76,7 +83,7 @@ await requestList.initialize();
 
 **Parameters**:
 
--   **`options`**: [`RequestListOptions`](../typedefs/request-list-options) - All `RequestList` configuration options
+- **`options`**: [`RequestListOptions`](../typedefs/request-list-options) - All `RequestList` configuration options
 
 ---
 
@@ -173,7 +180,7 @@ Marks request as handled after successful processing.
 
 **Parameters**:
 
--   **`request`**: [`Request`](../api/request)
+- **`request`**: [`Request`](../api/request)
 
 **Returns**:
 
@@ -189,7 +196,7 @@ Reclaims request to the list if its processing failed. The request will become a
 
 **Parameters**:
 
--   **`request`**: [`Request`](../api/request)
+- **`request`**: [`Request`](../api/request)
 
 **Returns**:
 

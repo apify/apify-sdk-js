@@ -2,13 +2,15 @@ import { readFile } from 'node:fs/promises';
 import { dirname } from 'node:path';
 import { fileURLToPath, URL } from 'node:url';
 
-import type { AutoscaledPool,
+import type {
+    AutoscaledPool,
     EnqueueLinksByClickingElementsOptions,
     EnqueueLinksOptions,
     ProxyConfiguration,
     PuppeteerCrawlerOptions,
     PuppeteerCrawlingContext,
-    Request } from '@crawlee/puppeteer';
+    Request,
+} from '@crawlee/puppeteer';
 import {
     Dataset,
     KeyValueStore,
@@ -24,16 +26,31 @@ import { Actor } from 'apify';
 import { getInjectableScript } from 'idcac-playwright';
 import type { HTTPResponse } from 'puppeteer';
 
-import type { CrawlerSetupOptions, RequestMetadata } from '@apify/scraper-tools';
-import { browserTools, constants as scraperToolsConstants, createContext, tools } from '@apify/scraper-tools';
+import type {
+    CrawlerSetupOptions,
+    RequestMetadata,
+} from '@apify/scraper-tools';
+import {
+    browserTools,
+    constants as scraperToolsConstants,
+    createContext,
+    tools,
+} from '@apify/scraper-tools';
 
 import type { Input } from './consts.js';
 import { ProxyRotation } from './consts.js';
 
 const SESSION_STORE_NAME = 'APIFY-PUPPETEER-SCRAPER-SESSION-STORE';
 
-const { META_KEY, DEFAULT_VIEWPORT, DEVTOOLS_TIMEOUT_SECS, SESSION_MAX_USAGE_COUNTS } = scraperToolsConstants;
-const SCHEMA = JSON.parse(await readFile(new URL('../../INPUT_SCHEMA.json', import.meta.url), 'utf8'));
+const {
+    META_KEY,
+    DEFAULT_VIEWPORT,
+    DEVTOOLS_TIMEOUT_SECS,
+    SESSION_MAX_USAGE_COUNTS,
+} = scraperToolsConstants;
+const SCHEMA = JSON.parse(
+    await readFile(new URL('../../INPUT_SCHEMA.json', import.meta.url), 'utf8'),
+);
 
 /**
  * Holds all the information necessary for constructing a crawler
@@ -75,7 +92,10 @@ export class CrawlerSetup implements CrawlerSetupOptions {
         this.rawInput = JSON.stringify(input);
 
         // Attempt to load page function from disk if not present on input.
-        tools.maybeLoadPageFunctionFromDisk(input, dirname(fileURLToPath(import.meta.url)));
+        tools.maybeLoadPageFunctionFromDisk(
+            input,
+            dirname(fileURLToPath(import.meta.url)),
+        );
 
         // Validate INPUT if not running on Apify Cloud Platform.
         if (!Actor.isAtHome()) tools.checkInputOrThrow(input, SCHEMA);
@@ -85,34 +105,61 @@ export class CrawlerSetup implements CrawlerSetupOptions {
 
         // Validations
         this.input.pseudoUrls.forEach((purl) => {
-            if (!tools.isPlainObject(purl)) throw new Error('The pseudoUrls Array must only contain Objects.');
-            if (purl.userData && !tools.isPlainObject(purl.userData)) throw new Error('The userData property of a pseudoUrl must be an Object.');
+            if (!tools.isPlainObject(purl)) {
+                throw new Error(
+                    'The pseudoUrls Array must only contain Objects.',
+                );
+            }
+            if (purl.userData && !tools.isPlainObject(purl.userData)) {
+                throw new Error(
+                    'The userData property of a pseudoUrl must be an Object.',
+                );
+            }
         });
 
         this.input.initialCookies.forEach((cookie) => {
-            if (!tools.isPlainObject(cookie)) throw new Error('The initialCookies Array must only contain Objects.');
+            if (!tools.isPlainObject(cookie)) {
+                throw new Error(
+                    'The initialCookies Array must only contain Objects.',
+                );
+            }
         });
 
         this.input.waitUntil.forEach((event) => {
-            if (!/^(domcontentloaded|load|networkidle2|networkidle0)$/.test(event)) {
-                throw new Error('Navigation wait until events must be valid. See tooltip.');
+            if (
+                !/^(domcontentloaded|load|networkidle2|networkidle0)$/.test(
+                    event,
+                )
+            ) {
+                throw new Error(
+                    'Navigation wait until events must be valid. See tooltip.',
+                );
             }
         });
 
         // solving proxy rotation settings
-        this.maxSessionUsageCount = SESSION_MAX_USAGE_COUNTS[this.input.proxyRotation];
+        this.maxSessionUsageCount =
+            SESSION_MAX_USAGE_COUNTS[this.input.proxyRotation];
 
         // Functions need to be evaluated.
-        this.evaledPageFunction = tools.evalFunctionOrThrow(this.input.pageFunction);
+        this.evaledPageFunction = tools.evalFunctionOrThrow(
+            this.input.pageFunction,
+        );
 
         if (this.input.preNavigationHooks) {
-            this.evaledPreNavigationHooks = tools.evalFunctionArrayOrThrow(this.input.preNavigationHooks, 'preNavigationHooks');
+            this.evaledPreNavigationHooks = tools.evalFunctionArrayOrThrow(
+                this.input.preNavigationHooks,
+                'preNavigationHooks',
+            );
         } else {
             this.evaledPreNavigationHooks = [];
         }
 
         if (this.input.postNavigationHooks) {
-            this.evaledPostNavigationHooks = tools.evalFunctionArrayOrThrow(this.input.postNavigationHooks, 'postNavigationHooks');
+            this.evaledPostNavigationHooks = tools.evalFunctionArrayOrThrow(
+                this.input.postNavigationHooks,
+                'postNavigationHooks',
+            );
         } else {
             this.evaledPostNavigationHooks = [];
         }
@@ -120,7 +167,18 @@ export class CrawlerSetup implements CrawlerSetupOptions {
         // Excluded resources
         this.blockedUrlPatterns = [];
         if (!this.input.downloadMedia) {
-            this.blockedUrlPatterns = ['.jpg', '.jpeg', '.png', '.svg', '.gif', '.webp', '.webm', '.ico', '.woff', '.eot'];
+            this.blockedUrlPatterns = [
+                '.jpg',
+                '.jpeg',
+                '.png',
+                '.svg',
+                '.gif',
+                '.webp',
+                '.webm',
+                '.ico',
+                '.woff',
+                '.eot',
+            ];
         }
 
         if (!this.input.downloadCss) {
@@ -152,7 +210,10 @@ export class CrawlerSetup implements CrawlerSetupOptions {
             return req;
         });
 
-        this.requestList = await RequestList.open('PUPPETEER_SCRAPER', startUrls);
+        this.requestList = await RequestList.open(
+            'PUPPETEER_SCRAPER',
+            startUrls,
+        );
 
         // RequestQueue
         this.requestQueue = await RequestQueueV2.open(this.requestQueueName);
@@ -179,14 +240,18 @@ export class CrawlerSetup implements CrawlerSetupOptions {
             requestHandler: this._requestHandler.bind(this),
             requestList: this.requestList,
             requestQueue: this.requestQueue,
-            requestHandlerTimeoutSecs: this.devtools ? DEVTOOLS_TIMEOUT_SECS : this.input.pageFunctionTimeoutSecs,
+            requestHandlerTimeoutSecs: this.devtools
+                ? DEVTOOLS_TIMEOUT_SECS
+                : this.input.pageFunctionTimeoutSecs,
             preNavigationHooks: [],
             postNavigationHooks: [],
             failedRequestHandler: this._failedRequestHandler.bind(this),
             maxConcurrency: this.input.maxConcurrency,
             maxRequestRetries: this.input.maxRequestRetries,
             maxRequestsPerCrawl: this.input.maxPagesPerCrawl,
-            proxyConfiguration: await Actor.createProxyConfiguration(this.input.proxyConfiguration) as any as ProxyConfiguration,
+            proxyConfiguration: (await Actor.createProxyConfiguration(
+                this.input.proxyConfiguration,
+            )) as any as ProxyConfiguration,
             launchContext: {
                 useChrome: this.input.useChrome,
                 launchOptions: {
@@ -200,7 +265,9 @@ export class CrawlerSetup implements CrawlerSetupOptions {
             useSessionPool: true,
             persistCookiesPerSession: true,
             sessionPoolOptions: {
-                persistStateKeyValueStoreId: this.input.sessionPoolName ? SESSION_STORE_NAME : undefined,
+                persistStateKeyValueStoreId: this.input.sessionPoolName
+                    ? SESSION_STORE_NAME
+                    : undefined,
                 persistStateKey: this.input.sessionPoolName,
                 sessionOptions: {
                     maxUsageCount: this.maxSessionUsageCount,
@@ -223,42 +290,62 @@ export class CrawlerSetup implements CrawlerSetupOptions {
     }
 
     private _createNavigationHooks(options: PuppeteerCrawlerOptions) {
-        options.preNavigationHooks!.push(async ({ request, page, session, blockRequests }, gotoOptions) => {
-            // Attach a console listener to get all logs from Browser context.
-            if (this.input.browserLog) browserTools.dumpConsole(page);
+        options.preNavigationHooks!.push(
+            async ({ request, page, session, blockRequests }, gotoOptions) => {
+                // Attach a console listener to get all logs from Browser context.
+                if (this.input.browserLog) browserTools.dumpConsole(page);
 
-            // Prevent download of stylesheets and media, unless selected otherwise
-            if (this.blockedUrlPatterns.length) {
-                await blockRequests({ urlPatterns: this.blockedUrlPatterns });
-            }
-
-            // Add initial cookies, if any.
-            if (this.input.initialCookies && this.input.initialCookies.length) {
-                const cookiesToSet = session
-                    ? tools.getMissingCookiesFromSession(session, this.input.initialCookies, request.url)
-                    : this.input.initialCookies;
-
-                if (cookiesToSet?.length) {
-                    // setting initial cookies that are not already in the session and page
-                    session?.setCookies(cookiesToSet, request.url);
-                    await page.setCookie(...cookiesToSet);
+                // Prevent download of stylesheets and media, unless selected otherwise
+                if (this.blockedUrlPatterns.length) {
+                    await blockRequests({
+                        urlPatterns: this.blockedUrlPatterns,
+                    });
                 }
-            }
 
-            // Disable content security policy.
-            if (this.input.ignoreCorsAndCsp) await page.setBypassCSP(true);
+                // Add initial cookies, if any.
+                if (
+                    this.input.initialCookies &&
+                    this.input.initialCookies.length
+                ) {
+                    const cookiesToSet = session
+                        ? tools.getMissingCookiesFromSession(
+                              session,
+                              this.input.initialCookies,
+                              request.url,
+                          )
+                        : this.input.initialCookies;
 
-            if (gotoOptions) {
-                gotoOptions.timeout = (this.devtools ? DEVTOOLS_TIMEOUT_SECS : this.input.pageLoadTimeoutSecs) * 1000;
-                gotoOptions.waitUntil = this.input.waitUntil;
-            }
-        });
+                    if (cookiesToSet?.length) {
+                        // setting initial cookies that are not already in the session and page
+                        session?.setCookies(cookiesToSet, request.url);
+                        await page.setCookie(...cookiesToSet);
+                    }
+                }
 
-        options.preNavigationHooks!.push(...this._runHookWithEnhancedContext(this.evaledPreNavigationHooks));
-        options.postNavigationHooks!.push(...this._runHookWithEnhancedContext(this.evaledPostNavigationHooks));
+                // Disable content security policy.
+                if (this.input.ignoreCorsAndCsp) await page.setBypassCSP(true);
+
+                if (gotoOptions) {
+                    gotoOptions.timeout =
+                        (this.devtools
+                            ? DEVTOOLS_TIMEOUT_SECS
+                            : this.input.pageLoadTimeoutSecs) * 1000;
+                    gotoOptions.waitUntil = this.input.waitUntil;
+                }
+            },
+        );
+
+        options.preNavigationHooks!.push(
+            ...this._runHookWithEnhancedContext(this.evaledPreNavigationHooks),
+        );
+        options.postNavigationHooks!.push(
+            ...this._runHookWithEnhancedContext(this.evaledPostNavigationHooks),
+        );
     }
 
-    private _runHookWithEnhancedContext(hooks: ((...args: unknown[]) => Awaitable<void>)[]) {
+    private _runHookWithEnhancedContext(
+        hooks: ((...args: unknown[]) => Awaitable<void>)[],
+    ) {
         return hooks.map((hook) => (ctx: Dictionary, ...args: unknown[]) => {
             const { customData } = this.input;
             return hook({ ...ctx, Apify: Actor, Actor, customData }, ...args);
@@ -266,9 +353,12 @@ export class CrawlerSetup implements CrawlerSetupOptions {
     }
 
     private async _failedRequestHandler({ request }: PuppeteerCrawlingContext) {
-        const lastError = request.errorMessages[request.errorMessages.length - 1];
+        const lastError =
+            request.errorMessages[request.errorMessages.length - 1];
         const errorMessage = lastError ? lastError.split('\n')[0] : 'no error';
-        log.error(`Request ${request.url} failed and will not be retried anymore. Marking as failed.\nLast Error Message: ${errorMessage}`);
+        log.error(
+            `Request ${request.url} failed and will not be retried anymore. Marking as failed.\nLast Error Message: ${errorMessage}`,
+        );
         return this._handleResult(request, undefined, undefined, true);
     }
 
@@ -293,13 +383,18 @@ export class CrawlerSetup implements CrawlerSetupOptions {
         tools.ensureMetaData(request);
 
         // Abort the crawler if the maximum number of results was reached.
-        const aborted = await this._handleMaxResultsPerCrawl(crawler.autoscaledPool);
+        const aborted = await this._handleMaxResultsPerCrawl(
+            crawler.autoscaledPool,
+        );
         if (aborted) return;
 
         const pageFunctionArguments: Dictionary = {};
 
         // We must use properties and descriptors not to trigger getters / setters.
-        Object.defineProperties(pageFunctionArguments, Object.getOwnPropertyDescriptors(crawlingContext));
+        Object.defineProperties(
+            pageFunctionArguments,
+            Object.getOwnPropertyDescriptors(crawlingContext),
+        );
 
         pageFunctionArguments.response = {
             status: response && response.status(),
@@ -327,7 +422,9 @@ export class CrawlerSetup implements CrawlerSetupOptions {
         }
 
         if (this.input.maxScrollHeightPixels > 0) {
-            await crawlingContext.infiniteScroll({ maxScrollHeight: this.input.maxScrollHeightPixels });
+            await crawlingContext.infiniteScroll({
+                maxScrollHeight: this.input.maxScrollHeightPixels,
+            });
         }
 
         /**
@@ -344,23 +441,42 @@ export class CrawlerSetup implements CrawlerSetupOptions {
         if (!state.skipLinks) await this._handleLinks(crawlingContext);
 
         // Save the `pageFunction`s result to the default dataset.
-        await this._handleResult(request, response, pageFunctionResult as Dictionary);
+        await this._handleResult(
+            request,
+            response,
+            pageFunctionResult as Dictionary,
+        );
     }
 
     private async _handleMaxResultsPerCrawl(autoscaledPool?: AutoscaledPool) {
-        if (!this.input.maxResultsPerCrawl || this.pagesOutputted < this.input.maxResultsPerCrawl) return false;
+        if (
+            !this.input.maxResultsPerCrawl ||
+            this.pagesOutputted < this.input.maxResultsPerCrawl
+        )
+            return false;
         if (!autoscaledPool) return false;
-        log.info(`User set limit of ${this.input.maxResultsPerCrawl} results was reached. Finishing the crawl.`);
+        log.info(
+            `User set limit of ${this.input.maxResultsPerCrawl} results was reached. Finishing the crawl.`,
+        );
         await autoscaledPool.abort();
         return true;
     }
 
-    private async _handleLinks({ request, enqueueLinks, enqueueLinksByClickingElements }: PuppeteerCrawlingContext) {
+    private async _handleLinks({
+        request,
+        enqueueLinks,
+        enqueueLinksByClickingElements,
+    }: PuppeteerCrawlingContext) {
         if (!this.requestQueue) return;
-        const currentDepth = (request.userData![META_KEY] as RequestMetadata).depth;
-        const hasReachedMaxDepth = this.input.maxCrawlingDepth && currentDepth >= this.input.maxCrawlingDepth;
+        const currentDepth = (request.userData![META_KEY] as RequestMetadata)
+            .depth;
+        const hasReachedMaxDepth =
+            this.input.maxCrawlingDepth &&
+            currentDepth >= this.input.maxCrawlingDepth;
         if (hasReachedMaxDepth) {
-            log.debug(`Request ${request.url} reached the maximum crawling depth of ${currentDepth}.`);
+            log.debug(
+                `Request ${request.url} reached the maximum crawling depth of ${currentDepth}.`,
+            );
             return;
         }
 
@@ -382,7 +498,10 @@ export class CrawlerSetup implements CrawlerSetupOptions {
         };
 
         if (this.input.linkSelector) {
-            await enqueueLinks({ ...enqueueOptions, selector: this.input.linkSelector });
+            await enqueueLinks({
+                ...enqueueOptions,
+                selector: this.input.linkSelector,
+            });
         }
 
         if (this.input.clickableElementsSelector) {
@@ -393,8 +512,18 @@ export class CrawlerSetup implements CrawlerSetupOptions {
         }
     }
 
-    private async _handleResult(request: Request, response?: HTTPResponse, pageFunctionResult?: Dictionary, isError?: boolean) {
-        const payload = tools.createDatasetPayload(request, response, pageFunctionResult, isError);
+    private async _handleResult(
+        request: Request,
+        response?: HTTPResponse,
+        pageFunctionResult?: Dictionary,
+        isError?: boolean,
+    ) {
+        const payload = tools.createDatasetPayload(
+            request,
+            response,
+            pageFunctionResult,
+            isError,
+        );
         await this.dataset.pushData(payload);
         this.pagesOutputted++;
     }

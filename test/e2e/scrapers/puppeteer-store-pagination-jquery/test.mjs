@@ -1,4 +1,11 @@
-import { expect, getDatasetItems, getStats, getTestDir, run, validateDataset } from '../../tools.mjs';
+import {
+    expect,
+    getDatasetItems,
+    getStats,
+    getTestDir,
+    run,
+    validateDataset,
+} from '../../tools.mjs';
 
 const testDir = getTestDir(import.meta.url);
 
@@ -6,18 +13,27 @@ const { exit } = process;
 process.exit = () => {};
 
 await run(testDir, 'puppeteer-scraper', {
-    startUrls: [{
-        url: 'https://warehouse-theme-metal.myshopify.com/collections/all-tvs',
-        method: 'GET',
-        userData: { label: 'START' },
-    }],
+    startUrls: [
+        {
+            url: 'https://warehouse-theme-metal.myshopify.com/collections/all-tvs',
+            method: 'GET',
+            userData: { label: 'START' },
+        },
+    ],
     pageFunction: async function pageFunction(context) {
-        const { request: { userData: { label } } } = context;
+        const {
+            request: {
+                userData: { label },
+            },
+        } = context;
 
         switch (label) {
-            case 'START': return handleStart(context);
-            case 'DETAIL': return handleDetail(context);
-            default: throw new Error(`Unrecognized request label: ${label}`);
+            case 'START':
+                return handleStart(context);
+            case 'DETAIL':
+                return handleDetail(context);
+            default:
+                throw new Error(`Unrecognized request label: ${label}`);
         }
 
         async function handleStart({ log, page, enqueueLinks }) {
@@ -35,11 +51,19 @@ await run(testDir, 'puppeteer-scraper', {
                 });
                 log.info(`Enqueued actors for page ${pageNo}`);
                 log.info('Loading the next page');
-                await page.evaluate((el) => document.querySelector(el)?.click(), nextButtonSelector);
+                await page.evaluate(
+                    (el) => document.querySelector(el)?.click(),
+                    nextButtonSelector,
+                );
             }
         }
 
-        async function handleDetail({ request: { url }, log, page, injectJQuery }) {
+        async function handleDetail({
+            request: { url },
+            log,
+            page,
+            injectJQuery,
+        }) {
             log.info(`Scraping ${url}`);
             await injectJQuery();
 
@@ -56,10 +80,11 @@ await run(testDir, 'puppeteer-scraper', {
 
                 const price = Number(rawPrice.replaceAll(',', ''));
 
-                const inStock = $('span.product-form__inventory')
-                    .first()
-                    .filter((_, el) => $(el).text().includes('In stock'))
-                    .length !== 0;
+                const inStock =
+                    $('span.product-form__inventory')
+                        .first()
+                        .filter((_, el) => $(el).text().includes('In stock'))
+                        .length !== 0;
 
                 return {
                     title: $('.product-meta h1').text(),
@@ -99,19 +124,19 @@ const stats = await getStats(testDir);
 await expect(stats.requestsFinished > 30, 'All requests finished');
 
 const datasetItems = await getDatasetItems(testDir);
-await expect(datasetItems.length > 25 && datasetItems.length < 40, 'Number of dataset items');
 await expect(
-    validateDataset(
-        datasetItems,
-        [
-            'url',
-            'manufacturer',
-            'title',
-            'sku',
-            'currentPrice',
-            'availableInStock',
-        ],
-    ),
+    datasetItems.length > 25 && datasetItems.length < 40,
+    'Number of dataset items',
+);
+await expect(
+    validateDataset(datasetItems, [
+        'url',
+        'manufacturer',
+        'title',
+        'sku',
+        'currentPrice',
+        'availableInStock',
+    ]),
     'Dataset items validation',
 );
 

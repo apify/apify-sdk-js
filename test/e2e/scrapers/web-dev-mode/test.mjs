@@ -1,4 +1,12 @@
-import { expect, getDatasetItems, getStats, getTestDir, run, skipTest, validateDataset } from '../../tools.mjs';
+import {
+    expect,
+    getDatasetItems,
+    getStats,
+    getTestDir,
+    run,
+    skipTest,
+    validateDataset,
+} from '../../tools.mjs';
 
 void skipTest('httpstat.us is very unstable');
 
@@ -9,25 +17,36 @@ process.exit = () => {};
 
 await run(testDir, 'web-scraper', {
     runMode: 'DEVELOPMENT',
-    startUrls: [{
-        url: 'http://httpstat.us/',
-        method: 'GET',
-        userData: { label: 'START' },
-    }],
-    pseudoUrls: [{
-        purl: 'http://httpstat.us/[200|401|403|429|500]',
-        method: 'GET',
-        userData: { label: 'DETAIL' },
-    }],
+    startUrls: [
+        {
+            url: 'http://httpstat.us/',
+            method: 'GET',
+            userData: { label: 'START' },
+        },
+    ],
+    pseudoUrls: [
+        {
+            purl: 'http://httpstat.us/[200|401|403|429|500]',
+            method: 'GET',
+            userData: { label: 'DETAIL' },
+        },
+    ],
     linkSelector: 'a[href]',
     keepUrlFragments: false,
     pageFunction: async function pageFunction(context) {
-        const { request: { userData: { label } } } = context;
+        const {
+            request: {
+                userData: { label },
+            },
+        } = context;
 
         switch (label) {
-            case 'START': return handleStart(context);
-            case 'DETAIL': return handleDetail(context);
-            default: throw new Error(`Unrecognized request label: ${label}`);
+            case 'START':
+                return handleStart(context);
+            case 'DETAIL':
+                return handleDetail(context);
+            default:
+                throw new Error(`Unrecognized request label: ${label}`);
         }
 
         async function handleStart({ log }) {
@@ -65,6 +84,9 @@ await expect(stats.requestsFinished > 5, 'All requests finished');
 
 const datasetItems = await getDatasetItems(testDir);
 await expect(datasetItems.length >= 5, 'Minimum number of dataset items');
-await expect(validateDataset(datasetItems, ['url', 'text']), 'Dataset items validation');
+await expect(
+    validateDataset(datasetItems, ['url', 'text']),
+    'Dataset items validation',
+);
 
 process.exit(0);

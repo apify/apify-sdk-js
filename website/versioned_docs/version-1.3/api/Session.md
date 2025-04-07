@@ -20,7 +20,7 @@ Session configuration.
 
 **Parameters**:
 
--   **`options`**: [`SessionOptions`](../typedefs/session-options)
+- **`options`**: [`SessionOptions`](../typedefs/session-options)
 
 ---
 
@@ -128,8 +128,8 @@ by retiring the session when such code is received. Optionally the default statu
 
 **Parameters**:
 
--   **`statusCode`**: `number` - HTTP status code
--   **`[blockedStatusCodes]`**: `Array<number>` - Custom HTTP status codes that means blocking on particular website.
+- **`statusCode`**: `number` - HTTP status code
+- **`[blockedStatusCodes]`**: `Array<number>` - Custom HTTP status codes that means blocking on particular website.
 
 **Returns**:
 
@@ -148,7 +148,7 @@ It then parses and saves the cookies from the `set-cookie` header, if available.
 
 **Parameters**:
 
--   **`response`**: `PuppeteerResponse` | `IncomingMessage`
+- **`response`**: `PuppeteerResponse` | `IncomingMessage`
 
 ---
 
@@ -169,8 +169,8 @@ manually:
 
 **Parameters**:
 
--   **`cookies`**: `Array<PuppeteerCookie>`
--   **`url`**: `string`
+- **`cookies`**: `Array<PuppeteerCookie>`
+- **`url`**: `string`
 
 ---
 
@@ -182,7 +182,7 @@ Returns cookies in a format compatible with puppeteer and ready to be used with 
 
 **Parameters**:
 
--   **`url`**: `string` - website url. Only cookies stored for this url will be returned
+- **`url`**: `string` - website url. Only cookies stored for this url will be returned
 
 **Returns**:
 
@@ -198,7 +198,7 @@ Returns cookies saved with the session in the typical key1=value1; key2=value2 f
 
 **Parameters**:
 
--   **`url`**: `string`
+- **`url`**: `string`
 
 **Returns**:
 

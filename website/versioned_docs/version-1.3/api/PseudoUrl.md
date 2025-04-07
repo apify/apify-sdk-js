@@ -17,9 +17,9 @@ pseudo-URL string, the matching is always case-insensitive. If you need case-sen
 
 For example, a PURL `http://www.example.com/pages/[(\w|-)*]` will match all of the following URLs:
 
--   `http://www.example.com/pages/`
--   `http://www.example.com/pages/my-awesome-page`
--   `http://www.example.com/pages/something`
+- `http://www.example.com/pages/`
+- `http://www.example.com/pages/my-awesome-page`
+- `http://www.example.com/pages/something`
 
 Be careful to correctly escape special characters in the pseudo-URL string. If either `[` or `]` is part of the normal query string, it must be
 encoded as `[\x5B]` or `[\x5D]`, respectively. For example, the following PURL:
@@ -48,7 +48,8 @@ const purl = new Apify.PseudoUrl('http://www.example.com/pages/[(\\w|-)+]', {
 // Using a regular expression
 const purl2 = new Apify.PseudoUrl(/http:\/\/www\.example\.com\/pages\/(\w|-)+/);
 
-if (purl.matches('http://www.example.com/pages/my-awesome-page')) console.log('Match!');
+if (purl.matches('http://www.example.com/pages/my-awesome-page'))
+    console.log('Match!');
 ```
 
 ---
@@ -59,10 +60,10 @@ if (purl.matches('http://www.example.com/pages/my-awesome-page')) console.log('M
 
 **Parameters**:
 
--   **`purl`**: `string` | `RegExp` - A pseudo-URL string or a regular expression object. Using a `RegExp` instance enables more granular control,
-    such as making the matching case sensitive.
--   **`requestTemplate`**: [`RequestOptions`](../typedefs/request-options) - Options for the new [`Request`](../api/request) instances created for
-    matching URLs by the [`utils.enqueueLinks()`](../api/utils#enqueuelinks) function.
+- **`purl`**: `string` | `RegExp` - A pseudo-URL string or a regular expression object. Using a `RegExp` instance enables more granular control,
+  such as making the matching case sensitive.
+- **`requestTemplate`**: [`RequestOptions`](../typedefs/request-options) - Options for the new [`Request`](../api/request) instances created for
+  matching URLs by the [`utils.enqueueLinks()`](../api/utils#enqueuelinks) function.
 
 ---
 
@@ -74,7 +75,7 @@ Determines whether a URL matches this pseudo-URL pattern.
 
 **Parameters**:
 
--   **`url`**: `string` - URL to be matched.
+- **`url`**: `string` - URL to be matched.
 
 **Returns**:
 
@@ -92,7 +93,7 @@ having preference over the template. This enables dynamic overriding of the temp
 
 **Parameters**:
 
--   **`urlOrProps`**: `string` | `Object<string, *>`
+- **`urlOrProps`**: `string` | `Object<string, *>`
 
 **Returns**:
 

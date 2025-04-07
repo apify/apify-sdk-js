@@ -8,10 +8,10 @@ Thanks to tools like [Playwright](https://github.com/microsoft/playwright), [Pup
 [Cheerio](https://www.npmjs.com/package/cheerio), it is easy to write Node.js code to extract data from web pages. But
 eventually things will get complicated. For example, when you try to:
 
--   Perform a deep crawl of an entire website using a persistent queue of URLs.
--   Run your scraping code on a list of 100k URLs in a CSV file, without losing any data when your code crashes.
--   Rotate proxies to hide your browser origin and keep user-like sessions.
--   Disable browser fingerprinting protections used by websites.
+- Perform a deep crawl of an entire website using a persistent queue of URLs.
+- Run your scraping code on a list of 100k URLs in a CSV file, without losing any data when your code crashes.
+- Rotate proxies to hide your browser origin and keep user-like sessions.
+- Disable browser fingerprinting protections used by websites.
 
 Python has [Scrapy](https://scrapy.org/) for these tasks, but there was no such library for **JavaScript, the language of
 the web**. The use of JavaScript is natural, since the same language is used to write the scripts as well as the data extraction code running in a

@@ -13,6 +13,7 @@ a tutorial which will walk you through all the steps and provide a number of exa
 https://www.youtube.com/watch?v=5kcaHAuGxmY
 
 ## Cost of usage
+
 You can find the average usage cost for this Actor on the [pricing page](https://apify.com/pricing) under the `Which plan do I need?` section. Cheerio Scraper is equivalent to `Simple HTML pages` while Web Scraper, Puppeteer Scraper and Playwright Scraper are equivalent to `Full web pages`. These cost estimates are based on averages and might be lower or higher depending on how heavy the pages you scrape are.
 
 ## Usage
@@ -157,9 +158,9 @@ A glob pattern is simply a string with wildcard characters.
 For example, a glob pattern `http://www.example.com/pages/**/*` will match all the
 following URLs:
 
--   `http://www.example.com/pages/deeper-level/page`
--   `http://www.example.com/pages/my-awesome-page`
--   `http://www.example.com/pages/something`
+- `http://www.example.com/pages/deeper-level/page`
+- `http://www.example.com/pages/my-awesome-page`
+- `http://www.example.com/pages/something`
 
 Note that you don't need to use the **Glob Patterns** setting at all, because you can completely control which pages the scraper will access by calling `await context.enqueueRequest()` from the **[Page function](#page-function)**.
 
@@ -175,9 +176,9 @@ a JavaScript-style regular expression to match against the URL.
 For example, a pseudo-URL `http://www.example.com/pages/[(\w|-)*]` will match all the
 following URLs:
 
--   `http://www.example.com/pages/`
--   `http://www.example.com/pages/my-awesome-page`
--   `http://www.example.com/pages/something`
+- `http://www.example.com/pages/`
+- `http://www.example.com/pages/my-awesome-page`
+- `http://www.example.com/pages/something`
 
 If either `[` or `]` is part of the normal query string,
 it must be encoded as `[\x5B]` or `[\x5D]`, respectively. For example,
@@ -252,12 +253,12 @@ see <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/S
 
 **Properties of the `context` object:**
 
--   ##### **`customData: Object`**
+- ##### **`customData: Object`**
 
     Contains the object provided in the **Custom data** (`customData`) input setting.
     This is useful for passing dynamic parameters to your Web Scraper using API.
 
--   ##### **`enqueueRequest(request, [options]): AsyncFunction`**
+- ##### **`enqueueRequest(request, [options]): AsyncFunction`**
 
     Adds a new URL to the request queue, if it wasn't already there.
     The `request` parameter is an object containing details of the request,
@@ -273,10 +274,13 @@ see <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/S
 
     ```javascript
     await context.enqueueRequest({ url: 'https://www.example.com' });
-    await context.enqueueRequest({ url: 'https://www.example.com/first' }, { forefront: true });
+    await context.enqueueRequest(
+        { url: 'https://www.example.com/first' },
+        { forefront: true },
+    );
     ```
 
--   ##### **`env: Object`**
+- ##### **`env: Object`**
 
     A map of all relevant values set by the Apify platform to the Actor run
     via the `APIFY_` environment variables.
@@ -291,7 +295,7 @@ see <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/S
     console.log(`Actor run ID: ${context.env.actorRunId}`);
     ```
 
--   ##### **`getValue(key): AsyncFunction`**
+- ##### **`getValue(key): AsyncFunction`**
 
     Gets a value from the default key-value store associated with the Actor run.
     The key-value store is useful for persisting named data records, such as state objects, files, etc.
@@ -307,7 +311,7 @@ see <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/S
     console.dir(value);
     ```
 
--   ##### **`globalStore: Object`**
+- ##### **`globalStore: Object`**
 
     Represents an in-memory store that can be used to share data across page function invocations,
     e.g. state variables, API responses or other data.
@@ -315,9 +319,9 @@ see <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/S
     <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map" target="_blank"><code>Map</code></a> object,
     with a few important differences:
 
-    -   All functions of `globalStore` are `async`; use `await` when calling them.
-    -   Keys must be strings and values need to be JSON stringify-able.
-    -   `forEach()` function is not supported.
+    - All functions of `globalStore` are `async`; use `await` when calling them.
+    - Keys must be strings and values need to be JSON stringify-able.
+    - `forEach()` function is not supported.
 
     Note that the stored data is not persisted. If the Actor run is restarted or migrated to another worker server,
     the content of `globalStore` is reset. Therefore, never depend on a specific value to be present
@@ -334,13 +338,13 @@ see <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/S
     console.dir(movies);
     ```
 
--   ##### **`input: Object`**
+- ##### **`input: Object`**
 
     An object containing the Actor run input, i.e. the Web Scraper's configuration.
     Each page function invocation gets a fresh
     copy of the `input` object, so changing its properties has no effect.
 
--   ##### **`jQuery: Function`**
+- ##### **`jQuery: Function`**
 
     A reference to the <a href="https://api.jquery.com/" target="_blank"><code>jQuery</code></a> library,
     which is extremely useful for DOM traversing, manipulation, querying and data extraction.
@@ -358,7 +362,7 @@ see <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/S
     const pageTitle = $('title').first().text();
     ```
 
--   ##### **`log: Object`**
+- ##### **`log: Object`**
 
     An object containing logging functions,
     with the same interface as provided by the
@@ -379,17 +383,19 @@ see <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/S
     try {
         throw new Error('Not good!');
     } catch (e) {
-        log.exception(e, 'Exception occurred', { details: 'This is really bad!' });
+        log.exception(e, 'Exception occurred', {
+            details: 'This is really bad!',
+        });
     }
     ```
 
--   ##### **`request: Object`**
+- ##### **`request: Object`**
 
     An object containing information about the currently loaded web page,
     such as the URL, number of retries, a unique key, etc.
     Its properties are equivalent to the <a href="https://crawlee.dev/api/core/class/Request" target="_blank"><code>Request</code></a> object in Crawlee.
 
--   ##### **`response: Object`**
+- ##### **`response: Object`**
 
     An object containing information about the HTTP response from the web server.
     Currently, it only contains the `status` and `headers` properties.
@@ -410,7 +416,7 @@ see <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/S
     }
     ```
 
--   ##### **`saveSnapshot(): AsyncFunction`**
+- ##### **`saveSnapshot(): AsyncFunction`**
 
     Saves a screenshot and full HTML of the current page to the key-value store
     associated with the Actor run,
@@ -421,7 +427,7 @@ see <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/S
     calls are throttled to at most one call in two seconds,
     in order to avoid excess consumption of resources and slowdown of the Actor.
 
--   ##### **`setValue(key, data, options): AsyncFunction`**
+- ##### **`setValue(key, data, options): AsyncFunction`**
 
     Sets a value to the default key-value store associated with the Actor run.
     The key-value store is useful for persisting named data records, such as state objects, files, etc.
@@ -436,7 +442,7 @@ see <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/S
     await context.setValue('my-key', { hello: 'world' });
     ```
 
--   ##### **`skipLinks(): AsyncFunction`**
+- ##### **`skipLinks(): AsyncFunction`**
 
     Calling this function ensures that page links from the current page
     will not be added to the request queue, even if they match the [**Link selector**](#link-selector)
@@ -444,7 +450,7 @@ see <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/S
     This is useful to programmatically stop recursive crawling,
     e.g. if you know there are no more interesting links on the current page to follow.
 
--   ##### **`waitFor(task, options): AsyncFunction`**
+- ##### **`waitFor(task, options): AsyncFunction`**
 
     A helper function that waits either a specific amount of time (in milliseconds),
     for an element specified using a CSS selector to appear in the DOM
@@ -472,7 +478,9 @@ see <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/S
     // Wait for 1 second
     await context.waitFor(1000);
     // Wait for predicate
-    await context.waitFor(() => !!document.querySelector('.foo'), { timeoutMillis: 5000 });
+    await context.waitFor(() => !!document.querySelector('.foo'), {
+        timeoutMillis: 5000,
+    });
     ```
 
 ## Proxy configuration
@@ -625,9 +633,9 @@ Since the input UI is fixed, it does not support adding of other fields that may
 
 With the final three options in the **Advanced configuration**, you can set custom names for the following:
 
--   Dataset
--   Key-value store
--   Request queue
+- Dataset
+- Key-value store
+- Request queue
 
 Leave the storage unnamed if you only want the data within it to be persisted on the Apify platform for a number of days corresponding to your [plan](https://apify.com/pricing) (after which it will expire). Named storages are retained indefinitely. Additionally, using a named storage allows you to share it across multiple runs (e.g. instead of having 10 different unnamed datasets for 10 different runs, all the data from all 10 runs can be accumulated into a single named dataset). Learn more [here](https://docs.apify.com/storage#named-and-unnamed-storages).
 
@@ -694,53 +702,62 @@ endpoint in Apify API reference.
 Congratulations! You've learned how Web Scraper works.
 You might also want to see these other resources:
 
--   [Web scraping tutorial](https://docs.apify.com/tutorials/apify-scrapers) -
-    An introduction to web scraping with Apify.
--   [Scraping with Web Scraper](https://docs.apify.com/tutorials/apify-scrapers/web-scraper) -
-    A step-by-step tutorial on how to use Web Scraper, with a detailed explanation and examples.
--   **Cheerio Scraper** ([apify/cheerio-scraper](https://apify.com/apify/cheerio-scraper)) -
-    Another web scraping Actor that downloads and processes pages in raw HTML for much higher performance.
--   **Playwright Scraper** ([apify/playwright-scraper](https://apify.com/apify/playwright-scraper)) -
-    A similar web scraping Actor to Web Scraper, which provides lower-level control of the underlying
-    [Playwright](https://github.com/microsoft/playwright) library and the ability to use server-side libraries.
--   **Puppeteer Scraper** ([apify/puppeteer-scraper](https://apify.com/apify/puppeteer-scraper)) -
-    An Actor similar to Web Scraper, which provides lower-level control of the underlying
-    [Puppeteer](https://github.com/puppeteer/puppeteer) library and the ability to use server-side libraries.
--   [Actors documentation](https://apify.com/docs/actor) -
-    Documentation for the Apify Actors cloud computing platform.
--   [Apify SDK documentation](https://sdk.apify.com) - Learn more about the tools required to run your own Apify Actors.
--   [Crawlee documentation](https://crawlee.dev) - Learn how to build a new web scraping project from scratch using
-    the world's most popular web crawling and scraping library for Node.js.
+- [Web scraping tutorial](https://docs.apify.com/tutorials/apify-scrapers) -
+  An introduction to web scraping with Apify.
+- [Scraping with Web Scraper](https://docs.apify.com/tutorials/apify-scrapers/web-scraper) -
+  A step-by-step tutorial on how to use Web Scraper, with a detailed explanation and examples.
+- **Cheerio Scraper** ([apify/cheerio-scraper](https://apify.com/apify/cheerio-scraper)) -
+  Another web scraping Actor that downloads and processes pages in raw HTML for much higher performance.
+- **Playwright Scraper** ([apify/playwright-scraper](https://apify.com/apify/playwright-scraper)) -
+  A similar web scraping Actor to Web Scraper, which provides lower-level control of the underlying
+  [Playwright](https://github.com/microsoft/playwright) library and the ability to use server-side libraries.
+- **Puppeteer Scraper** ([apify/puppeteer-scraper](https://apify.com/apify/puppeteer-scraper)) -
+  An Actor similar to Web Scraper, which provides lower-level control of the underlying
+  [Puppeteer](https://github.com/puppeteer/puppeteer) library and the ability to use server-side libraries.
+- [Actors documentation](https://apify.com/docs/actor) -
+  Documentation for the Apify Actors cloud computing platform.
+- [Apify SDK documentation](https://sdk.apify.com) - Learn more about the tools required to run your own Apify Actors.
+- [Crawlee documentation](https://crawlee.dev) - Learn how to build a new web scraping project from scratch using
+  the world's most popular web crawling and scraping library for Node.js.
 
 ### FAQ
 
 #### What are the costs associated with using Web Scraper?
+
 The average usage cost for Web Scraper can be found on the pricing page under the [Detailed pricing breakdown](https://apify.com/pricing) section. The cost estimates are based on averages and may vary depending on the complexity of the pages you scrape.
 
 #### What is Web Scraper and what can it do?
+
 Web Scraper is a versatile tool for extracting structured data from web pages using JavaScript code. It loads web pages in a browser, renders dynamic content, and allows you to extract data that can be stored in various formats such as JSON, XML, or CSV.
 
 #### How can I use Web Scraper?
+
 You can use Web Scraper either manually through a user interface or programmatically [using the API](https://apify.com/apify/web-scraper/api). To get started, you need to specify the web pages to load and provide a JavaScript code called the Page function to extract data from the pages.
 
 #### Are there any limitations to using Web Scraper?
+
 Web Scraper is designed to be user-friendly and generic, which may affect its performance and flexibility compared to more specialized solutions. It uses a resource-intensive Chromium browser and supports client-side JavaScript code only.
 
 #### Can I control the crawling behavior of Web Scraper?
+
 Yes, you can control the crawling behavior of Web Scraper. You can specify start URLs, define link selectors, glob patterns, and pseudo-URLs to guide the scraper in following specific page links. This allows recursive crawling of websites or targeted extraction of data.
 
 #### How can I extract data from web pages using Web Scraper?
+
 To extract data from web pages, you need to provide a JavaScript code called the Page function. This function is executed in the context of each loaded web page. You can use client-side libraries like jQuery to manipulate the DOM and extract the desired data.
 
 #### Is it possible to use proxies with Web Scraper?
+
 Yes, you can configure proxies for Web Scraper. You have the option to use [Apify Proxy](https://apify.com/proxy), custom HTTP proxies, or SOCKS5 proxies. Proxies can help prevent detection by target websites and provide additional anonymity.
 
 #### How can I handle authentication and login for websites with Web Scraper?
+
 Web Scraper supports logging into websites by transferring cookies. You can set initial cookies in the “Initial cookies” field, which allows the scraper to use your session credentials. Cookies have a limited lifetime, so you may need to update them periodically.
 
 #### How can I customize the behavior of Web Scraper?
+
 Web Scraper provides advanced configuration options such as pre-navigation and post-navigation hooks and more. These options allow you to fine-tune the scraper’s behavior and perform additional actions during the [web scraping](https://apify.com/web-scraping) process.
 
 #### How can I access and export the data scraped by Web Scraper?
-The data scraped by Web Scraper is stored in a dataset. You can access and export this data in various formats such as JSON, XML, CSV, or as an Excel spreadsheet. The results can be downloaded using the Apify API or through the Apify Console. Check out the Apify [API reference docs](https://docs.apify.com/api/v2) for full details.
 
+The data scraped by Web Scraper is stored in a dataset. You can access and export this data in various formats such as JSON, XML, CSV, or as an Excel spreadsheet. The results can be downloaded using the Apify API or through the Apify Console. Check out the Apify [API reference docs](https://docs.apify.com/api/v2) for full details.

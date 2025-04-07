@@ -7,7 +7,7 @@ title: PostResponse
 
 **Parameters**:
 
--   **`inputs`**: [`PostResponseInputs`](../typedefs/post-response-inputs) - Arguments passed to this callback.
+- **`inputs`**: [`PostResponseInputs`](../typedefs/post-response-inputs) - Arguments passed to this callback.
 
 **Returns**:
 

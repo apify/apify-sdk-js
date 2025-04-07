@@ -9,10 +9,10 @@ await Actor.charge({ eventName: 'init' });
 
 // Prepare some mock results
 const result = [
-    { word: 'Lorem' }, 
-    { word: 'Ipsum' }, 
-    { word: 'Dolor' }, 
-    { word: 'Sit' }, 
+    { word: 'Lorem' },
+    { word: 'Ipsum' },
+    { word: 'Dolor' },
+    { word: 'Sit' },
     { word: 'Amet' },
 ];
 
@@ -26,7 +26,7 @@ await Actor.pushData(result, 'result-item');
 await Actor.charge({
     eventName: 'result-item',
     count: result.length,
-})
+});
 // highlight-end
 
 await Actor.exit();

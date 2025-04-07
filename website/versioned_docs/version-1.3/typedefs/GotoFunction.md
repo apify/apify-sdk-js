@@ -8,8 +8,8 @@ id: goto-function
 
 **Parameters**:
 
--   **`context`**: [`BrowserCrawlingContext`](../typedefs/browser-crawling-context) | [`CrawlingContext`](../typedefs/crawling-context)
--   **`gotoOptions`**: `Object<string, *>`
+- **`context`**: [`BrowserCrawlingContext`](../typedefs/browser-crawling-context) | [`CrawlingContext`](../typedefs/crawling-context)
+- **`gotoOptions`**: `Object<string, *>`
 
 **Returns**:
 
