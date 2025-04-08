@@ -33,7 +33,7 @@ By combining the env vars in various ways, you can greatly influence the behavio
 
 | Env Vars                                    | API | Storages       |
 | ------------------------------------------- | --- | -------------- |
-|  none OR `APIFY_LOCAL_STORAGE_DIR`          | no  | local          |
+| none OR `APIFY_LOCAL_STORAGE_DIR`           | no  | local          |
 | `APIFY_TOKEN`                               | yes | Apify platform |
 | `APIFY_TOKEN` AND `APIFY_LOCAL_STORAGE_DIR` | yes | local+platform |
 
@@ -43,7 +43,9 @@ you can use the `{ forceCloud: true }` option in their respective functions.
 
 ```js
 const localDataset = await Actor.openDataset('my-local-data');
-const remoteDataset = await Actor.openDataset('my-remote-data', { forceCloud: true });
+const remoteDataset = await Actor.openDataset('my-remote-data', {
+    forceCloud: true,
+});
 ```
 
 ## Convenience env vars
@@ -55,10 +57,14 @@ your code, such as temporarily switching log level to DEBUG.
 
 If set to `1`, web browsers launched by Apify SDK will run in the headless mode. You can still override
 this setting in the code, e.g. by passing the `headless: true` option to the
-<ApiLink to="apify/class/Actor#launchPuppeteer">`Actor.launchPuppeteer()`</ApiLink> function. But having this setting
-in an environment variable allows you to develop the crawler locally in headful mode to simplify the debugging,
-and only run the crawler in headless mode once you deploy it to the Apify platform. By default, the browsers
-are launched in headful mode, i.e. with windows.
+
+<ApiLink to="apify/class/Actor#launchPuppeteer">
+    `Actor.launchPuppeteer()`
+</ApiLink>
+function. But having this setting in an environment variable allows you to
+develop the crawler locally in headful mode to simplify the debugging, and only
+run the crawler in headless mode once you deploy it to the Apify platform. By
+default, the browsers are launched in headful mode, i.e. with windows.
 
 ### `APIFY_LOG_LEVEL`
 

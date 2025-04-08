@@ -6,13 +6,13 @@ env:
 on:
     # Push to master will deploy a dev version
     push:
-        branches: [ master, renovate/** ]
+        branches: [master, renovate/**]
     # PR to master branch will skip deployment
     pull_request:
-        branches: [ master ]
+        branches: [master]
     # A release via GitHub releases will deploy the latest version
     release:
-        types: [ published ]
+        types: [published]
 
 jobs:
     # NPM install is done in a separate job and cached to speed up the following jobs.
@@ -26,169 +26,169 @@ jobs:
             matrix:
                 # tests on windows are extremely unstable
                 # os: [ ubuntu-22.04, windows-2019 ]
-                os: [ ubuntu-22.04 ]
-                node-version: [ 16, 18, 20 ]
+                os: [ubuntu-22.04]
+                node-version: [16, 18, 20]
 
         steps:
-            -   name: Cancel Workflow Action
-                uses: styfle/cancel-workflow-action@0.12.1
-                with:
-                    access_token: ${{ github.token }}
+            - name: Cancel Workflow Action
+              uses: styfle/cancel-workflow-action@0.12.1
+              with:
+                  access_token: ${{ github.token }}
 
-            -   name: Checkout repository
-                uses: actions/checkout@v4
+            - name: Checkout repository
+              uses: actions/checkout@v4
 
-            -   name: Use Node.js ${{ matrix.node-version }}
-                uses: actions/setup-node@v4
-                with:
-                    node-version: ${{ matrix.node-version }}
-                    cache: 'npm'
-                    cache-dependency-path: 'package-lock.json'
+            - name: Use Node.js ${{ matrix.node-version }}
+              uses: actions/setup-node@v4
+              with:
+                  node-version: ${{ matrix.node-version }}
+                  cache: 'npm'
+                  cache-dependency-path: 'package-lock.json'
 
-            -   uses: microsoft/playwright-github-action@v1
+            - uses: microsoft/playwright-github-action@v1
 
-            -   name: Turbo cache
-                id: turbo-cache
-                uses: actions/cache@v4
-                with:
-                    path: .turbo
-                    key: turbo-${{ github.job }}-${{ github.ref_name }}-${{ github.sha }}
-                    restore-keys: |
-                        turbo-${{ github.job }}-${{ github.ref_name }}-
+            - name: Turbo cache
+              id: turbo-cache
+              uses: actions/cache@v4
+              with:
+                  path: .turbo
+                  key: turbo-${{ github.job }}-${{ github.ref_name }}-${{ github.sha }}
+                  restore-keys: |
+                      turbo-${{ github.job }}-${{ github.ref_name }}-
 
-            -   name: Install Dependencies
-                run: npm ci --force
+            - name: Install Dependencies
+              run: npm ci --force
 
-            -   name: Build
-                run: npm run ci:build
+            - name: Build
+              run: npm run ci:build
 
-            -   name: Tests
-                run: npm test
+            - name: Tests
+              run: npm test
 
     docs:
         name: Docs build
         if: ${{ !contains(github.event.head_commit.message, '[skip ci]') }}
         runs-on: ubuntu-22.04
         steps:
-            -   name: Checkout Source code
-                uses: actions/checkout@v4
+            - name: Checkout Source code
+              uses: actions/checkout@v4
 
-            -   name: Use Node.js 18
-                uses: actions/setup-node@v4
-                with:
-                    node-version: 18
-                    cache: 'npm'
-                    cache-dependency-path: 'package-lock.json'
+            - name: Use Node.js 18
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 18
+                  cache: 'npm'
+                  cache-dependency-path: 'package-lock.json'
 
-            -   name: Turbo cache
-                id: turbo-cache
-                uses: actions/cache@v4
-                with:
-                    path: .turbo
-                    key: turbo-${{ github.job }}-${{ github.ref_name }}-${{ github.sha }}
-                    restore-keys: |
-                        turbo-${{ github.job }}-${{ github.ref_name }}-
+            - name: Turbo cache
+              id: turbo-cache
+              uses: actions/cache@v4
+              with:
+                  path: .turbo
+                  key: turbo-${{ github.job }}-${{ github.ref_name }}-${{ github.sha }}
+                  restore-keys: |
+                      turbo-${{ github.job }}-${{ github.ref_name }}-
 
-            -   name: Install Dependencies
-                run: npm ci --force
+            - name: Install Dependencies
+              run: npm ci --force
 
-            -   name: Build docs
-                if: github.ref != 'refs/heads/master'
-                run: |
-                    cd website
-                    npm ci
-                    npm run build
+            - name: Build docs
+              if: github.ref != 'refs/heads/master'
+              run: |
+                  cd website
+                  npm ci
+                  npm run build
 
     lint:
         name: Lint
         runs-on: ubuntu-22.04
 
         steps:
-            -   name: Checkout repository
-                uses: actions/checkout@v4
+            - name: Checkout repository
+              uses: actions/checkout@v4
 
-            -   name: Use Node.js 18
-                uses: actions/setup-node@v4
-                with:
-                    node-version: 18
-                    cache: 'npm'
-                    cache-dependency-path: 'package-lock.json'
+            - name: Use Node.js 18
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 18
+                  cache: 'npm'
+                  cache-dependency-path: 'package-lock.json'
 
-            -   name: Turbo cache
-                id: turbo-cache
-                uses: actions/cache@v4
-                with:
-                    path: .turbo
-                    key: turbo-${{ github.job }}-${{ github.ref_name }}-${{ github.sha }}
-                    restore-keys: |
-                        turbo-${{ github.job }}-${{ github.ref_name }}-
+            - name: Turbo cache
+              id: turbo-cache
+              uses: actions/cache@v4
+              with:
+                  path: .turbo
+                  key: turbo-${{ github.job }}-${{ github.ref_name }}-${{ github.sha }}
+                  restore-keys: |
+                      turbo-${{ github.job }}-${{ github.ref_name }}-
 
-            -   name: Install Dependencies
-                run: npm ci --force
+            - name: Install Dependencies
+              run: npm ci --force
 
-            -   name: ESLint
-                run: npm run lint
-            
-            -   name: Prettier
-                run: npm run format:check
+            - name: ESLint
+              run: npm run lint
+
+            - name: Prettier
+              run: npm run format:check
 
     publish:
         name: Publish
         if: (github.ref == 'refs/heads/master' || github.event_name == 'release') && !contains(github.event.head_commit.message, '[skip ci]') && !contains(github.event.head_commit.message, 'docs:')
         runs-on: ubuntu-22.04
-        needs: [ lint, build_and_test ]
+        needs: [lint, build_and_test]
         steps:
-            -   name: Checkout Source code
-                uses: actions/checkout@v4
-                with:
-                    fetch-depth: 0 # we need to pull everything to have correct dev version suffix
-                    ref: master
+            - name: Checkout Source code
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0 # we need to pull everything to have correct dev version suffix
+                  ref: master
 
-            -   name: Use Node.js 18
-                uses: actions/setup-node@v4
-                with:
-                    node-version: 18
-                    cache: 'npm'
-                    cache-dependency-path: 'package-lock.json'
+            - name: Use Node.js 18
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 18
+                  cache: 'npm'
+                  cache-dependency-path: 'package-lock.json'
 
-            -   name: Turbo cache
-                id: turbo-cache
-                uses: actions/cache@v4
-                with:
-                    path: .turbo
-                    key: turbo-${{ github.job }}-${{ github.ref_name }}-${{ github.sha }}
-                    restore-keys: |
-                        turbo-${{ github.job }}-${{ github.ref_name }}-
+            - name: Turbo cache
+              id: turbo-cache
+              uses: actions/cache@v4
+              with:
+                  path: .turbo
+                  key: turbo-${{ github.job }}-${{ github.ref_name }}-${{ github.sha }}
+                  restore-keys: |
+                      turbo-${{ github.job }}-${{ github.ref_name }}-
 
-            -   name: Install Dependencies
-                run: npm ci --force
+            - name: Install Dependencies
+              run: npm ci --force
 
-            -   name: Check for changes
-                id: changed_packages
-                run: |
-                    echo "::set-output name=changed_packages::$(node ./node_modules/.bin/lerna changed -p | wc -l | xargs)"
+            - name: Check for changes
+              id: changed_packages
+              run: |
+                  echo "::set-output name=changed_packages::$(node ./node_modules/.bin/lerna changed -p | wc -l | xargs)"
 
-            -   name: Check for changes 2
-                if: steps.changed_packages.outputs.changed_packages == '0'
-                run: |
-                    echo "no changes detected by lerna"
+            - name: Check for changes 2
+              if: steps.changed_packages.outputs.changed_packages == '0'
+              run: |
+                  echo "no changes detected by lerna"
 
-            -   name: Build
-                if: steps.changed_packages.outputs.changed_packages != '0'
-                run: npm run build
+            - name: Build
+              if: steps.changed_packages.outputs.changed_packages != '0'
+              run: npm run build
 
-            -   name: Set Release Tag
-                run: echo "RELEASE_TAG=$(if [ ${{ github.event_name }} = release ]; then echo latest; else echo next; fi)" >> $GITHUB_ENV
+            - name: Set Release Tag
+              run: echo "RELEASE_TAG=$(if [ ${{ github.event_name }} = release ]; then echo latest; else echo next; fi)" >> $GITHUB_ENV
 
-            -   name: Release dev version for testing
-                if: env.RELEASE_TAG == 'next' && steps.changed_packages.outputs.changed_packages != '0'
-                run: |
-                    git config --global user.name 'Apify Release Bot'
-                    git config --global user.email 'noreply@apify.com'
-                    echo "access=public" >> .npmrc
-                    echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" >> .npmrc
-                    npm run publish:next -- --yes --no-verify-access
-                env:
-                    NPM_TOKEN: ${{ secrets.APIFY_SERVICE_ACCOUNT_NPM_TOKEN }}
-                    GIT_USER: "noreply@apify.com:${{ secrets.APIFY_SERVICE_ACCOUNT_GITHUB_TOKEN }}"
-                    GH_TOKEN: ${{ secrets.APIFY_SERVICE_ACCOUNT_GITHUB_TOKEN }}
+            - name: Release dev version for testing
+              if: env.RELEASE_TAG == 'next' && steps.changed_packages.outputs.changed_packages != '0'
+              run: |
+                  git config --global user.name 'Apify Release Bot'
+                  git config --global user.email 'noreply@apify.com'
+                  echo "access=public" >> .npmrc
+                  echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" >> .npmrc
+                  npm run publish:next -- --yes --no-verify-access
+              env:
+                  NPM_TOKEN: ${{ secrets.APIFY_SERVICE_ACCOUNT_NPM_TOKEN }}
+                  GIT_USER: 'noreply@apify.com:${{ secrets.APIFY_SERVICE_ACCOUNT_GITHUB_TOKEN }}'
+                  GH_TOKEN: ${{ secrets.APIFY_SERVICE_ACCOUNT_GITHUB_TOKEN }}

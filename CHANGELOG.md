@@ -5,14 +5,9 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
 # [3.4.0](https://github.com/apify/apify-sdk-js/compare/apify@3.3.2...apify@3.4.0) (2025-04-01)
 
-
 ### Features
 
-* sign record's public url ([#358](https://github.com/apify/apify-sdk-js/issues/358)) ([6274cc0](https://github.com/apify/apify-sdk-js/commit/6274cc018ab3b02787c234eacbb025d4d973a95d))
-
-
-
-
+- sign record's public url ([#358](https://github.com/apify/apify-sdk-js/issues/358)) ([6274cc0](https://github.com/apify/apify-sdk-js/commit/6274cc018ab3b02787c234eacbb025d4d973a95d))
 
 ## [3.3.2](https://github.com/apify/apify-sdk-js/compare/apify@3.3.1...apify@3.3.2) (2025-02-20)
 
