@@ -353,10 +353,12 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
         }
 
         if (this.tieredProxyUrls) {
-            return this._handleTieredUrl(
-                sessionId ?? cryptoRandomObjectId(6),
-                options,
-            ).proxyUrl ?? undefined;
+            return (
+                this._handleTieredUrl(
+                    sessionId ?? cryptoRandomObjectId(6),
+                    options,
+                ).proxyUrl ?? undefined
+            );
         }
 
         return this.composeDefaultUrl(sessionId);
