@@ -50,8 +50,8 @@
         "release:next": "npm run build && npm run publish:next",
         "lint": "eslint \"packages/**/src/**/*\" test",
         "lint:fix": "eslint \"packages/**/src/**/*\" test --fix",
-        "format": "prettier --write \"packages/**/src/**/*\" test",
-        "format:check": "prettier --check \"packages/**/src/**/*\" test"
+        "format": "prettier --write .",
+        "format:check": "prettier --check ."
     },
     "devDependencies": {
         "@apify/consts": "^2.29.0",

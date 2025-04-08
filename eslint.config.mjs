@@ -25,7 +25,18 @@ export default [
             'quote-props': ['error', 'consistent'],
             'keyword-spacing': ['error', { before: true }],
             '@typescript-eslint/array-type': 'error',
-            '@typescript-eslint/no-floating-promises': 'error',
+            '@typescript-eslint/no-floating-promises': [
+                'error',
+                {
+                    allowForKnownSafeCalls: [
+                        {
+                            from: 'package',
+                            name: ['test'],
+                            package: 'node:test',
+                        },
+                    ],
+                },
+            ],
             '@typescript-eslint/ban-ts-comment': 0,
             '@typescript-eslint/no-unused-vars': 'off',
             '@typescript-eslint/no-empty-interface': 'off',

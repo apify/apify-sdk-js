@@ -33,7 +33,7 @@ const runActor = async (input, options) => {
     return await client.run(runId).get();
 };
 
-void test('basic functionality', async () => {
+test('basic functionality', async () => {
     const run = await runActor({}, { maxTotalChargeUsd: 10 });
 
     assert.strictEqual(run.status, 'SUCCEEDED');
@@ -51,14 +51,14 @@ void test('basic functionality', async () => {
     );
 });
 
-void test('charge limit', async () => {
+test('charge limit', async () => {
     const run = await runActor({}, { maxTotalChargeUsd: 0.2 });
 
     assert.strictEqual(run.status, 'SUCCEEDED');
     assert.deepEqual(run.chargedEventCounts, { foobar: 2 });
 });
 
-void test('default charge limit 0', async () => {
+test('default charge limit 0', async () => {
     const run = await runActor({}, {});
 
     assert.strictEqual(run.status, 'SUCCEEDED');
