@@ -86,6 +86,7 @@ export function createBundle(apifyNamespace: string) {
                     if (type === 'METHOD') {
                         // @ts-expect-error
                         this[key] = (...args: unknown[]) =>
+                            // @ts-expect-error
                             global[value](...args);
                     } else if (type === 'GETTER') {
                         Object.defineProperty(this, key, {
