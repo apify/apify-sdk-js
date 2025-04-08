@@ -1,6 +1,7 @@
-import { createHmacSignature } from '@apify/utilities';
 import type { StorageManagerOptions } from '@crawlee/core';
 import { KeyValueStore as CoreKeyValueStore } from '@crawlee/core';
+
+import { createHmacSignature } from '@apify/utilities';
 
 import type { Configuration } from './configuration';
 
