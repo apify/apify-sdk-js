@@ -1,5 +1,5 @@
 import { Actor } from 'apify';
-import { PuppeteerCrawler, downloadListOfUrls } from 'crawlee';
+import { downloadListOfUrls, PuppeteerCrawler } from 'crawlee';
 
 await Actor.init();
 

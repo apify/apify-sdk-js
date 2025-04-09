@@ -4,15 +4,5 @@
         "jsx": "preserve",
         "allowJs": true
     },
-    "include": ["/**/*.js", "/**/*.ts", "src/**/*.jsx", "src/**/*.tsx"],
-    "exclude": [
-        "node_modules",
-        "dist",
-        "build",
-        "coverage",
-        "test",
-        "**/*.test.ts",
-        "**/*.test.js",
-        "eslint.config.mjs"
-    ]
+    "include": ["/**/*.js", "/**/*.ts", "src/**/*.jsx", "src/**/*.tsx"]
 }

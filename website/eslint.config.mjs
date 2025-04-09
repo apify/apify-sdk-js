@@ -8,4 +8,7 @@ export default [
             'no-console': 'off',
         },
     },
+    {
+        ignores: ['.docusaurus/docusaurus.config.mjs'],
+    },
 ];
