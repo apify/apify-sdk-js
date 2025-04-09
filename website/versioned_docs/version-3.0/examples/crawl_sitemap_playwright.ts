@@ -1,4 +1,4 @@
-import { Actor } from 'apify/src';
+import { Actor } from 'apify';
 import { downloadListOfUrls, PlaywrightCrawler } from 'crawlee';
 
 await Actor.init();
