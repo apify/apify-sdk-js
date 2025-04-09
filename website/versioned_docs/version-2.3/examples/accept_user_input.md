@@ -22,5 +22,5 @@ To provide the actor with input, create a `INPUT.json` file inside the "default"
 
 Anything in this file will be available to the actor when it runs.
 
-To learn about other ways to provide an actor with input, refer to 
+To learn about other ways to provide an actor with input, refer to
 the [Apify Platform Documentation](https://apify.com/docs/actor#run).

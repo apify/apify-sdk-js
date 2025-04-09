@@ -33,12 +33,10 @@ const proxyUrl = proxyConfiguration.newUrl();
 ```
 
 <!-- Your own proxies -->
+
 ```javascript
 const proxyConfiguration = await Actor.createProxyConfiguration({
-    proxyUrls: [
-        'http://proxy-1.com',
-        'http://proxy-2.com',
-    ]
+    proxyUrls: ['http://proxy-1.com', 'http://proxy-2.com'],
 });
 const proxyUrl = proxyConfiguration.newUrl();
 ```
@@ -58,7 +56,9 @@ All your proxy needs are managed by the <ApiLink to="apify/class/ProxyConfigurat
 <!-- CheerioCrawler -->
 
 ```javascript
-const proxyConfiguration = await Actor.createProxyConfiguration({ /* your proxy opts */ });
+const proxyConfiguration = await Actor.createProxyConfiguration({
+    /* your proxy opts */
+});
 const crawler = new CheerioCrawler({
     proxyConfiguration,
     // ...
@@ -66,8 +66,11 @@ const crawler = new CheerioCrawler({
 ```
 
 <!-- PuppeteerCrawler -->
+
 ```javascript
-const proxyConfiguration = await Actor.createProxyConfiguration({ /* your proxy opts */ });
+const proxyConfiguration = await Actor.createProxyConfiguration({
+    /* your proxy opts */
+});
 const crawler = new PuppeteerCrawler({
     proxyConfiguration,
     // ...
@@ -80,7 +83,16 @@ Your crawlers will now use the selected proxies for all connections.
 
 ### IP Rotation and session management
 
-<ApiLink to="apify/class/ProxyConfiguration#newUrl">`proxyConfiguration.newUrl()`</ApiLink> allows you to pass a `sessionId` parameter. It will then be used to create a `sessionId`-`proxyUrl` pair, and subsequent `newUrl()` calls with the same `sessionId` will always return the same `proxyUrl`. This is extremely useful in scraping, because you want to create the impression of a real user. See the [session management guide](../guides/session-management) and <CrawleeApiLink to="core/class/SessionPool">`SessionPool`</CrawleeApiLink> class for more information on how keeping a real session helps you avoid blocking.
+<ApiLink to="apify/class/ProxyConfiguration#newUrl">
+    `proxyConfiguration.newUrl()`
+</ApiLink>
+allows you to pass a `sessionId` parameter. It will then be used to create a
+`sessionId`-`proxyUrl` pair, and subsequent `newUrl()` calls with the same
+`sessionId` will always return the same `proxyUrl`. This is extremely useful in
+scraping, because you want to create the impression of a real user. See the
+[session management guide](../guides/session-management) and
+<CrawleeApiLink to="core/class/SessionPool">`SessionPool`</CrawleeApiLink> class
+for more information on how keeping a real session helps you avoid blocking.
 
 When no `sessionId` is provided, your proxy URLs are rotated round-robin, whereas Apify Proxy manages their rotation using black magic to get the best performance.
 
@@ -89,15 +101,22 @@ When no `sessionId` is provided, your proxy URLs are rotated round-robin, wherea
 <!-- Standalone -->
 
 ```javascript
-const proxyConfiguration = await Actor.createProxyConfiguration({ /* opts */ });
-const sessionPool = await SessionPool.open({ /* opts */ });
+const proxyConfiguration = await Actor.createProxyConfiguration({
+    /* opts */
+});
+const sessionPool = await SessionPool.open({
+    /* opts */
+});
 const session = await sessionPool.getSession();
 const proxyUrl = proxyConfiguration.newUrl(session.id);
 ```
 
 <!-- Crawlers -->
+
 ```javascript
-const proxyConfiguration = await Actor.createProxyConfiguration({ /* opts */ });
+const proxyConfiguration = await Actor.createProxyConfiguration({
+    /* opts */
+});
 const crawler = new PuppeteerCrawler({
     useSessionPool: true,
     persistCookiesPerSession: true,
@@ -140,5 +159,5 @@ in the [proxy dashboard](https://console.apify.com/proxy).
 
 `CheerioCrawler` and `PuppeteerCrawler` grant access to information about the currently used proxy
 in their `handlePageFunction` using a <ApiLink to="apify/interface/ProxyInfo">`proxyInfo`</ApiLink> object.
-With the  object, you can easily access the proxy URL. If you're using Apify Proxy, the other
+With the object, you can easily access the proxy URL. If you're using Apify Proxy, the other
 configuration parameters will also be available in the `proxyInfo` object.

@@ -1,9 +1,12 @@
-import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { once } from 'node:events';
 import { readdir } from 'node:fs/promises';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { isMainThread, Worker, workerData } from 'node:worker_threads';
-import { colors, clearStorage, SKIPPED_TEST_CLOSE_CODE } from './tools.mjs';
+
+import { log } from '@apify/log';
+
+import { clearStorage, colors, SKIPPED_TEST_CLOSE_CODE } from './tools.mjs';
 
 const basePath = join(dirname(fileURLToPath(import.meta.url)), 'scrapers');
 
@@ -12,7 +15,7 @@ const basePath = join(dirname(fileURLToPath(import.meta.url)), 'scrapers');
 let failure = false;
 
 async function run() {
-    console.log(`Running E2E scraper tests`);
+    log.info(`Running E2E scraper tests`);
 
     const paths = await readdir(basePath, { withFileTypes: true });
     const dirs = paths.filter((dirent) => dirent.isDirectory());
@@ -50,19 +53,24 @@ async function run() {
 
             if (match) {
                 const c = match[1] === 'passed' ? colors.green : colors.red;
-                console.log(`${colors.yellow(`[${dir.name}] `)}${match[2]}: ${c(match[1])}`);
+                log.info(
+                    `${colors.yellow(`[${dir.name}] `)}${match[2]}: ${c(match[1])}`,
+                );
             }
         });
+        // eslint-disable-next-line no-loop-func -- we actually want to closure the reference to `failure`
         worker.on('exit', async (code) => {
             if (code === SKIPPED_TEST_CLOSE_CODE) {
-                console.log(`Test ${colors.yellow(`[${dir.name}]`)} was skipped`);
+                log.info(`Test ${colors.yellow(`[${dir.name}]`)} was skipped`);
                 return;
             }
 
             const took = (Date.now() - now) / 1000;
             const status = code === 0 ? 'success' : 'failure';
             const color = code === 0 ? 'green' : 'red';
-            console.log(`${colors.yellow(`[${dir.name}] `)}${colors[color](`Test finished with status: ${status} `)}${colors.grey(`[took ${took}s]`)}`);
+            log.info(
+                `${colors.yellow(`[${dir.name}] `)}${colors[color](`Test finished with status: ${status} `)}${colors.grey(`[took ${took}s]`)}`,
+            );
 
             await clearStorage(`${basePath}/${dir.name}`);
             const taskLogs = allLogs.get(dir.name);
@@ -70,7 +78,7 @@ async function run() {
             if (code !== 0 && taskLogs?.length > 0) {
                 // Each log line already end with '\n',
                 // So we join them with an empty string.
-                console.log(taskLogs.join(''));
+                log.info(taskLogs.join(''));
             }
 
             if (status === 'failure') failure = true;

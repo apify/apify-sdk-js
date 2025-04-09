@@ -45,7 +45,7 @@ await puppeteerPool.destroy();
 
 **Parameters**:
 
--   **`[options]`**: [`PuppeteerPoolOptions`](../typedefs/puppeteer-pool-options) - All `PuppeteerPool` parameters are passed via an options object.
+- **`[options]`**: [`PuppeteerPoolOptions`](../typedefs/puppeteer-pool-options) - All `PuppeteerPool` parameters are passed via an options object.
 
 ---
 
@@ -86,7 +86,7 @@ open pages will be closed.
 
 **Parameters**:
 
--   **`browser`**: `Browser`
+- **`browser`**: `Browser`
 
 **Returns**:
 
@@ -105,7 +105,7 @@ closing the page or flagging it for reuse.
 
 **Parameters**:
 
--   **`page`**: `Page`
+- **`page`**: `Page`
 
 **Returns**:
 
@@ -121,7 +121,7 @@ Tells the connected LiveViewServer to serve a snapshot when available.
 
 **Parameters**:
 
--   **`page`**: `Page`
+- **`page`**: `Page`
 
 **Returns**:
 

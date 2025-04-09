@@ -7,7 +7,7 @@ title: BrowserHandlePageFunction
 
 **Parameters**:
 
--   **`context`**: [`BrowserCrawlingContext`](../typedefs/browser-crawling-context) | [`CrawlingContext`](../typedefs/crawling-context)
+- **`context`**: [`BrowserCrawlingContext`](../typedefs/browser-crawling-context) | [`CrawlingContext`](../typedefs/crawling-context)
 
 **Returns**:
 

@@ -57,7 +57,7 @@ await pool.run();
 
 **Parameters**:
 
--   **`options`**: [`AutoscaledPoolOptions`](../typedefs/autoscaled-pool-options) - All `AutoscaledPool` configuration options.
+- **`options`**: [`AutoscaledPoolOptions`](../typedefs/autoscaled-pool-options) - All `AutoscaledPool` configuration options.
 
 ---
 
@@ -90,7 +90,7 @@ not sure, just keep the default value and the concurrency will scale up automati
 
 **Parameters**:
 
--   **`value`**: `number`
+- **`value`**: `number`
 
 ---
 
@@ -114,7 +114,7 @@ Sets the maximum number of tasks running in parallel.
 
 **Parameters**:
 
--   **`value`**: `number`
+- **`value`**: `number`
 
 ---
 
@@ -138,7 +138,7 @@ Sets the desired concurrency for the pool, i.e. the number of tasks that should 
 
 **Parameters**:
 
--   **`value`**: `number`
+- **`value`**: `number`
 
 ---
 
@@ -198,7 +198,7 @@ which resolves it).
 
 **Parameters**:
 
--   **`[timeoutSecs]`**: `number`
+- **`[timeoutSecs]`**: `number`
 
 **Returns**:
 

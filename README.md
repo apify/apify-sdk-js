@@ -11,7 +11,7 @@ This monorepo holds all the components and tools that we've created for it!
 > Would you like to work with us on Crawlee, Apify SDK or similar projects? [We are hiring!](https://apify.com/jobs#senior-node.js-engineer)
 
 | package                               | version                                                                                       |
-|---------------------------------------|-----------------------------------------------------------------------------------------------|
+| ------------------------------------- | --------------------------------------------------------------------------------------------- |
 | [`apify`](./packages/apify/README.md) | [![NPM version](https://img.shields.io/npm/v/apify.svg)](https://www.npmjs.com/package/apify) |
 
 ## Apify SDK

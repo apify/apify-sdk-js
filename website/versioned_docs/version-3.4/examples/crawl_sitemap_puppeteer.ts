@@ -1,5 +1,5 @@
 import { Actor } from 'apify';
-import { PuppeteerCrawler, downloadListOfUrls } from 'crawlee';
+import { downloadListOfUrls, PuppeteerCrawler } from 'crawlee';
 
 await Actor.init();
 
@@ -11,7 +11,9 @@ const crawler = new PuppeteerCrawler({
     maxRequestsPerCrawl: 10, // Limitation for only 10 requests (do not use if you want to crawl a sitemap)
 });
 
-const listOfUrls = await downloadListOfUrls({ url: 'https://apify.com/sitemap.xml' });
+const listOfUrls = await downloadListOfUrls({
+    url: 'https://apify.com/sitemap.xml',
+});
 
 // Run the crawler
 await crawler.run(listOfUrls);

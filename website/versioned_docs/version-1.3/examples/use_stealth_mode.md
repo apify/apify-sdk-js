@@ -26,7 +26,9 @@ const launchContext = {
 const Apify = require('apify');
 
 Apify.main(async () => {
-    const requestList = await Apify.openRequestList('start-urls', ['https://news.ycombinator.com/']);
+    const requestList = await Apify.openRequestList('start-urls', [
+        'https://news.ycombinator.com/',
+    ]);
 
     const crawler = new Apify.PuppeteerCrawler({
         requestList,
@@ -42,10 +44,10 @@ Apify.main(async () => {
             // },
         },
         handlePageFunction: async ({ page }) => {
-            const data = await page.$$eval('.athing', $posts => {
+            const data = await page.$$eval('.athing', ($posts) => {
                 const scrapedData = [];
                 // Get the title of each post on Hacker News
-                $posts.forEach($post => {
+                $posts.forEach(($post) => {
                     const title = $post.querySelector('.title a').innerText;
                     scrapedData.push({
                         title: `The title is: ${title}`,

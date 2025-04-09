@@ -32,7 +32,7 @@ set interval.
 
 **Parameters**:
 
--   **`[options]`**: [`SnapshotterOptions`](../typedefs/snapshotter-options) - All `Snapshotter` configuration options.
+- **`[options]`**: [`SnapshotterOptions`](../typedefs/snapshotter-options) - All `Snapshotter` configuration options.
 
 ---
 
@@ -75,7 +75,7 @@ snapshot history.
 
 **Parameters**:
 
--   **`[sampleDurationMillis]`**: `number`
+- **`[sampleDurationMillis]`**: `number`
 
 **Returns**:
 
@@ -92,7 +92,7 @@ full snapshot history.
 
 **Parameters**:
 
--   **`[sampleDurationMillis]`**: `number`
+- **`[sampleDurationMillis]`**: `number`
 
 **Returns**:
 
@@ -109,7 +109,7 @@ snapshot history.
 
 **Parameters**:
 
--   **`[sampleDurationMillis]`**: `number`
+- **`[sampleDurationMillis]`**: `number`
 
 **Returns**:
 
@@ -126,7 +126,7 @@ snapshot history.
 
 **Parameters**:
 
--   **`sampleDurationMillis`**: `number`
+- **`sampleDurationMillis`**: `number`
 
 **Returns**:
 

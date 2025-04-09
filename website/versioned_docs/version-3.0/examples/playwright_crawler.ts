@@ -50,7 +50,8 @@ const crawler = new PlaywrightCrawler({
             selector: '.morelink',
         });
 
-        if (infos.processedRequests.length === 0) console.log(`${request.url} is the last page!`);
+        if (infos.processedRequests.length === 0)
+            console.log(`${request.url} is the last page!`);
     },
 
     // This function is called if the page processing failed more than maxRequestRetries+1 times.

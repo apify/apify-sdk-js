@@ -4,7 +4,9 @@ await Actor.init();
 
 const { data } = await Actor.getInput();
 
-await Actor.setValue('public-record-key', JSON.stringify(data), { contentType: `application/json` });
+await Actor.setValue('public-record-key', JSON.stringify(data), {
+    contentType: `application/json`,
+});
 
 const defaultKeyValueStore = await Actor.openKeyValueStore();
 const publicUrl = defaultKeyValueStore.getPublicUrl('public-record-key');

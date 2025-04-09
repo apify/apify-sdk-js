@@ -8,9 +8,9 @@ id: playwright-hook
 
 **Parameters**:
 
--   **`crawlingContext`**: `Object` | [`BrowserCrawlingContext`](../typedefs/browser-crawling-context) |
-    [`CrawlingContext`](../typedefs/crawling-context)
--   **`gotoOptions`**: [`PlaywrightGotoOptions`](../typedefs/playwright-goto-options)
+- **`crawlingContext`**: `Object` | [`BrowserCrawlingContext`](../typedefs/browser-crawling-context) |
+  [`CrawlingContext`](../typedefs/crawling-context)
+- **`gotoOptions`**: [`PlaywrightGotoOptions`](../typedefs/playwright-goto-options)
 
 **Returns**:
 

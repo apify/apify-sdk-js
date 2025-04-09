@@ -1,9 +1,10 @@
-import { ACTOR_ENV_VARS, APIFY_ENV_VARS } from '@apify/consts';
 import { EventType } from '@crawlee/core';
 import type { Dictionary } from '@crawlee/utils';
 import { sleep } from '@crawlee/utils';
 import { Actor, Configuration, PlatformEventManager } from 'apify';
 import { WebSocketServer } from 'ws';
+
+import { ACTOR_ENV_VARS, APIFY_ENV_VARS } from '@apify/consts';
 
 describe('events', () => {
     let wss: WebSocketServer = null;
@@ -16,14 +17,17 @@ describe('events', () => {
         config.useEventManager(events);
 
         vitest.useFakeTimers();
-        process.env[ACTOR_ENV_VARS.EVENTS_WEBSOCKET_URL] = 'ws://localhost:9099/someRunId';
+        process.env[ACTOR_ENV_VARS.EVENTS_WEBSOCKET_URL] =
+            'ws://localhost:9099/someRunId';
         process.env[APIFY_ENV_VARS.TOKEN] = 'dummy';
     });
     afterEach(async () => {
         vitest.useRealTimers();
         delete process.env[ACTOR_ENV_VARS.EVENTS_WEBSOCKET_URL];
         delete process.env[APIFY_ENV_VARS.TOKEN];
-        await new Promise((resolve) => wss.close(resolve));
+        await new Promise((resolve) => {
+            wss.close(resolve);
+        });
     });
 
     test('should work in main()', async () => {
@@ -39,8 +43,14 @@ describe('events', () => {
 
                 const send = (obj: Dictionary) => ws.send(JSON.stringify(obj));
 
-                setTimeout(() => send({ name: 'aborting', data: [1, 2, 3] }), 50);
-                setTimeout(() => send({ name: 'aborting', data: { foo: 'bar' } }), 100);
+                setTimeout(
+                    () => send({ name: 'aborting', data: [1, 2, 3] }),
+                    50,
+                );
+                setTimeout(
+                    () => send({ name: 'aborting', data: { foo: 'bar' } }),
+                    100,
+                );
                 setTimeout(() => send({ name: 'migrating', data: [1] }), 50);
                 setTimeout(() => send({ name: 'migrating', data: [2] }), 50);
             });
@@ -87,8 +97,14 @@ describe('events', () => {
 
                 const send = (obj: Dictionary) => ws.send(JSON.stringify(obj));
 
-                setTimeout(() => send({ name: 'aborting', data: [1, 2, 3] }), 50);
-                setTimeout(() => send({ name: 'aborting', data: { foo: 'bar' } }), 100);
+                setTimeout(
+                    () => send({ name: 'aborting', data: [1, 2, 3] }),
+                    50,
+                );
+                setTimeout(
+                    () => send({ name: 'aborting', data: { foo: 'bar' } }),
+                    100,
+                );
                 setTimeout(() => send({ name: 'migrating', data: [1] }), 50);
                 setTimeout(() => send({ name: 'migrating', data: [2] }), 50);
             });

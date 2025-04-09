@@ -140,7 +140,7 @@ Indicates the time when the request has been processed. Is `null` if the request
 
 **Parameters**:
 
--   **`options`**: [`RequestOptions`](../typedefs/request-options) - `Request` parameters including the URL, HTTP method and headers, and others.
+- **`options`**: [`RequestOptions`](../typedefs/request-options) - `Request` parameters including the URL, HTTP method and headers, and others.
 
 ---
 
@@ -170,8 +170,8 @@ debugging rather difficult.
 
 **Parameters**:
 
--   **`errorOrMessage`**: `Error` | `string` - Error object or error message to be stored in the request.
--   **`[options]`**: `object`
-    -   **`[omitStack]`**: `boolean` <code> = false</code> - Only push the error message without stack trace when true.
+- **`errorOrMessage`**: `Error` | `string` - Error object or error message to be stored in the request.
+- **`[options]`**: `object`
+    - **`[omitStack]`**: `boolean` <code> = false</code> - Only push the error message without stack trace when true.
 
 ---

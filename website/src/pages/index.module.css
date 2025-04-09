@@ -38,8 +38,27 @@
 }
 
 .heroBanner h1:nth-child(1) {
-    background: linear-gradient(270deg, rgb(235, 40, 75) 0%, rgb(234, 40, 76) 8.07%, rgb(233, 40, 78) 15.54%, rgb(231, 40, 83) 22.5%, rgb(228, 39, 89) 29.04%, rgb(225, 39, 96) 35.26%, rgb(220, 39, 106) 41.25%, rgb(216, 38, 116) 47.1%, rgb(210, 38, 128) 52.9%, rgb(204, 37, 141) 58.75%, rgb(197, 36, 155) 64.74%, rgb(190, 35, 171) 70.96%, rgb(182, 35, 187) 77.5%, rgb(174, 34, 205) 84.46%, rgb(166, 33, 223) 91.93%, rgb(157, 32, 242) 100%),
-    linear-gradient(0deg, #41465D, #41465D);
+    background:
+        linear-gradient(
+            270deg,
+            rgb(235, 40, 75) 0%,
+            rgb(234, 40, 76) 8.07%,
+            rgb(233, 40, 78) 15.54%,
+            rgb(231, 40, 83) 22.5%,
+            rgb(228, 39, 89) 29.04%,
+            rgb(225, 39, 96) 35.26%,
+            rgb(220, 39, 106) 41.25%,
+            rgb(216, 38, 116) 47.1%,
+            rgb(210, 38, 128) 52.9%,
+            rgb(204, 37, 141) 58.75%,
+            rgb(197, 36, 155) 64.74%,
+            rgb(190, 35, 171) 70.96%,
+            rgb(182, 35, 187) 77.5%,
+            rgb(174, 34, 205) 84.46%,
+            rgb(166, 33, 223) 91.93%,
+            rgb(157, 32, 242) 100%
+        ),
+        linear-gradient(0deg, #41465d, #41465d);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -56,7 +75,7 @@
 .heroBanner h1 span::selection {
     color: rgb(36, 39, 54) !important;
     -webkit-text-fill-color: rgb(36, 39, 54);
-    background: #B4D7FE !important;
+    background: #b4d7fe !important;
     -webkit-background-clip: unset;
     background-clip: unset;
 }
@@ -75,7 +94,10 @@ html .heroBanner h2 {
     color: #41465d;
     margin-top: 8px;
     margin-bottom: 24px;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+    font-family:
+        -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+        'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+        sans-serif;
 }
 
 html[data-theme='dark'] .heroBanner h2 {
@@ -203,7 +225,8 @@ html[data-theme='dark'] .getStarted {
     padding-top: 20px;
 }
 
-.try, .features {
+.try,
+.features {
     color: #41465d;
 }
 

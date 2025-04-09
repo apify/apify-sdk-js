@@ -1,6 +1,6 @@
 ---
-
 ---
+
 ## Support
 
 If you find any bug or issue with the Apify SDK, please [submit an issue on GitHub](https://github.com/apify/apify-js/issues).

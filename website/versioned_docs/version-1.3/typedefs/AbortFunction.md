@@ -8,7 +8,7 @@ id: abort-function
 
 **Parameters**:
 
--   **`response`**: `IncomingMessage`
+- **`response`**: `IncomingMessage`
 
 **Returns**:
 

@@ -56,10 +56,10 @@ console.log(Configuration.getGlobalConfig().get('token')); // returns the token 
 
 ## Not Supported environment variables
 
--   `MEMORY_MBYTES`
--   `HEADLESS`
--   `XVFB`
--   `CHROME_EXECUTABLE_PATH`
+- `MEMORY_MBYTES`
+- `HEADLESS`
+- `XVFB`
+- `CHROME_EXECUTABLE_PATH`
 
 ---
 
@@ -71,7 +71,7 @@ Creates new `Configuration` instance with provided options. Env vars will have p
 
 **Parameters**:
 
--   **`options`**: `Record<string, (number|string|boolean)>`
+- **`options`**: `Record<string, (number|string|boolean)>`
 
 ---
 
@@ -94,8 +94,8 @@ otherwise uses the default value as described in the above section.
 
 **Parameters**:
 
--   **`key`**: `string`
--   **`[defaultValue]`**: `string` | `number` | `boolean`
+- **`key`**: `string`
+- **`[defaultValue]`**: `string` | `number` | `boolean`
 
 **Returns**:
 
@@ -112,8 +112,8 @@ can omit the `value` argument or pass `undefined` there.
 
 **Parameters**:
 
--   **`key`**: `string`
--   **`[value]`**: `string` | `number` | `boolean`
+- **`key`**: `string`
+- **`[value]`**: `string` | `number` | `boolean`
 
 ---
 
@@ -131,10 +131,10 @@ the options.
 **Internal**:  
 **Parameters**:
 
--   **`[options]`**: `object`
-    -   **`[token]`**: `string`
-    -   **`[maxRetries]`**: `string`
-    -   **`[minDelayBetweenRetriesMillis]`**: `string`
+- **`[options]`**: `object`
+    - **`[token]`**: `string`
+    - **`[maxRetries]`**: `string`
+    - **`[minDelayBetweenRetriesMillis]`**: `string`
 
 **Returns**:
 
@@ -156,9 +156,9 @@ directory.
 **Internal**:  
 **Parameters**:
 
--   **`[options]`**: `object`
-    -   **`[storageDir]`**: `string`
-    -   **`[enableWalMode]`**: `boolean` <code> = true</code>
+- **`[options]`**: `object`
+    - **`[storageDir]`**: `string`
+    - **`[enableWalMode]`**: `boolean` <code> = true</code>
 
 **Returns**:
 
@@ -175,10 +175,10 @@ Creates an instance of ApifyClient using options as defined in the environment v
 **Internal**:  
 **Parameters**:
 
--   **`[options]`**: `object`
-    -   **`[token]`**: `string`
-    -   **`[maxRetries]`**: `string`
-    -   **`[minDelayBetweenRetriesMillis]`**: `string`
+- **`[options]`**: `object`
+    - **`[token]`**: `string`
+    - **`[maxRetries]`**: `string`
+    - **`[minDelayBetweenRetriesMillis]`**: `string`
 
 **Returns**:
 
@@ -195,9 +195,9 @@ Creates an instance of ApifyStorageLocal using options as defined in the environ
 **Internal**:  
 **Parameters**:
 
--   **`[options]`**: `object`
-    -   **`[storageDir]`**: `string`
-    -   **`[enableWalMode]`**: `boolean` <code> = true</code>
+- **`[options]`**: `object`
+    - **`[storageDir]`**: `string`
+    - **`[enableWalMode]`**: `boolean` <code> = true</code>
 
 **Returns**:
 

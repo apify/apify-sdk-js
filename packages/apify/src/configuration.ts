@@ -1,12 +1,13 @@
+import type { ConfigurationOptions as CoreConfigurationOptions } from '@crawlee/core';
+import { Configuration as CoreConfiguration } from '@crawlee/core';
+
+import type { META_ORIGINS } from '@apify/consts';
 import {
     ACTOR_ENV_VARS,
     APIFY_ENV_VARS,
     LOCAL_ACTOR_ENV_VARS,
     LOCAL_APIFY_ENV_VARS,
-    META_ORIGINS,
 } from '@apify/consts';
-import { Configuration as CoreConfiguration } from '@crawlee/core';
-import type { ConfigurationOptions as CoreConfigurationOptions } from '@crawlee/core';
 
 export interface ConfigurationOptions extends CoreConfigurationOptions {
     metamorphAfterSleepMillis?: number;
@@ -27,7 +28,7 @@ export interface ConfigurationOptions extends CoreConfigurationOptions {
     proxyStatusUrl?: string;
     /**
      * @deprecated use `containerPort` instead
-    */
+     */
     standbyPort?: number;
     standbyUrl?: string;
     isAtHome?: boolean;
@@ -35,7 +36,7 @@ export interface ConfigurationOptions extends CoreConfigurationOptions {
     inputSecretsPrivateKeyPassphrase?: string;
     inputSecretsPrivateKeyFile?: string;
     maxTotalChargeUsd?: number;
-    metaOrigin?: typeof META_ORIGINS[keyof typeof META_ORIGINS];
+    metaOrigin?: (typeof META_ORIGINS)[keyof typeof META_ORIGINS];
     testPayPerEvent?: boolean;
     useChargingLogDataset?: boolean;
 }
@@ -113,6 +114,7 @@ export interface ConfigurationOptions extends CoreConfigurationOptions {
  */
 export class Configuration extends CoreConfiguration {
     /** @inheritDoc */
+    // eslint-disable-next-line no-use-before-define -- Self-reference
     static override globalConfig?: Configuration;
 
     // maps environment variables to config keys (e.g. `APIFY_MEMORY_MBYTES` to `memoryMbytes`)
@@ -154,7 +156,8 @@ export class Configuration extends CoreConfiguration {
         APIFY_PROXY_STATUS_URL: 'proxyStatusUrl',
         APIFY_PROXY_PORT: 'proxyPort',
         APIFY_INPUT_SECRETS_PRIVATE_KEY_FILE: 'inputSecretsPrivateKeyFile',
-        APIFY_INPUT_SECRETS_PRIVATE_KEY_PASSPHRASE: 'inputSecretsPrivateKeyPassphrase',
+        APIFY_INPUT_SECRETS_PRIVATE_KEY_PASSPHRASE:
+            'inputSecretsPrivateKeyPassphrase',
         APIFY_META_ORIGIN: 'metaOrigin',
 
         // Actor env vars
@@ -176,15 +179,29 @@ export class Configuration extends CoreConfiguration {
         ACTOR_USE_CHARGING_LOG_DATASET: 'useChargingLogDataset',
     };
 
-    protected static override INTEGER_VARS = [...super.INTEGER_VARS, 'proxyPort', 'containerPort', 'metamorphAfterSleepMillis', 'maxTotalChargeUsd'];
+    protected static override INTEGER_VARS = [
+        ...super.INTEGER_VARS,
+        'proxyPort',
+        'containerPort',
+        'metamorphAfterSleepMillis',
+        'maxTotalChargeUsd',
+    ];
 
-    protected static override BOOLEAN_VARS = [...super.BOOLEAN_VARS, 'isAtHome', 'testPayPerEvent', 'useChargingLogDataset'];
+    protected static override BOOLEAN_VARS = [
+        ...super.BOOLEAN_VARS,
+        'isAtHome',
+        'testPayPerEvent',
+        'useChargingLogDataset',
+    ];
 
     protected static override DEFAULTS = {
         ...super.DEFAULTS,
-        defaultKeyValueStoreId: LOCAL_ACTOR_ENV_VARS[ACTOR_ENV_VARS.DEFAULT_KEY_VALUE_STORE_ID],
-        defaultDatasetId: LOCAL_ACTOR_ENV_VARS[ACTOR_ENV_VARS.DEFAULT_DATASET_ID],
-        defaultRequestQueueId: LOCAL_ACTOR_ENV_VARS[ACTOR_ENV_VARS.DEFAULT_REQUEST_QUEUE_ID],
+        defaultKeyValueStoreId:
+            LOCAL_ACTOR_ENV_VARS[ACTOR_ENV_VARS.DEFAULT_KEY_VALUE_STORE_ID],
+        defaultDatasetId:
+            LOCAL_ACTOR_ENV_VARS[ACTOR_ENV_VARS.DEFAULT_DATASET_ID],
+        defaultRequestQueueId:
+            LOCAL_ACTOR_ENV_VARS[ACTOR_ENV_VARS.DEFAULT_REQUEST_QUEUE_ID],
         inputKey: 'INPUT',
         apiBaseUrl: 'https://api.apify.com',
         apiPublicBaseUrl: 'https://api.apify.com',
@@ -203,7 +220,10 @@ export class Configuration extends CoreConfiguration {
     /**
      * @inheritDoc
      */
-    override get<T extends keyof ConfigurationOptions, U extends ConfigurationOptions[T]>(key: T, defaultValue?: U): U {
+    override get<
+        T extends keyof ConfigurationOptions,
+        U extends ConfigurationOptions[T],
+    >(key: T, defaultValue?: U): U {
         return super.get(key as keyof CoreConfigurationOptions, defaultValue);
     }
 

@@ -14,6 +14,7 @@ third-party providers, or you can rely on [Apify Proxy](https://apify.com/proxy)
 for your scraping needs.
 
 ## Quick start
+
 If you already subscribed to Apify Proxy or have proxy URLs of your own, you can start using
 them immediately in only a few lines of code.
 
@@ -29,12 +30,10 @@ const proxyUrl = proxyConfiguration.newUrl();
 ```
 
 <!-- Your own proxies -->
+
 ```javascript
 const proxyConfiguration = await Apify.createProxyConfiguration({
-    proxyUrls: [
-        'http://proxy-1.com',
-        'http://proxy-2.com',
-    ]
+    proxyUrls: ['http://proxy-1.com', 'http://proxy-2.com'],
 });
 const proxyUrl = proxyConfiguration.newUrl();
 ```
@@ -42,12 +41,14 @@ const proxyUrl = proxyConfiguration.newUrl();
 <!--END_DOCUSAURUS_CODE_TABS-->
 
 ## Proxy Configuration
+
 All your proxy needs are managed by the [`ProxyConfiguration`](../api/proxy-configuration) class.
 You create an instance using the [`Apify.createProxyConfiguration()`](../api/apify#createproxyconfiguration)
 function. See the [`ProxyConfigurationOptions`](../typedefs/proxy-configuration-options) for all
 the possible constructor options.
 
 ### Crawler integration
+
 `ProxyConfiguration` integrates seamlessly into [`CheerioCrawler`](../api/cheerio-crawler)
 and [`PuppeteerCrawler`](../api/puppeteer-crawler).
 
@@ -56,7 +57,9 @@ and [`PuppeteerCrawler`](../api/puppeteer-crawler).
 <!-- CheerioCrawler -->
 
 ```javascript
-const proxyConfiguration = await Apify.createProxyConfiguration({ /* your proxy opts */ });
+const proxyConfiguration = await Apify.createProxyConfiguration({
+    /* your proxy opts */
+});
 const crawler = new Apify.CheerioCrawler({
     proxyConfiguration,
     // ...
@@ -64,8 +67,11 @@ const crawler = new Apify.CheerioCrawler({
 ```
 
 <!-- PuppeteerCrawler -->
+
 ```javascript
-const proxyConfiguration = await Apify.createProxyConfiguration({ /* your proxy opts */ });
+const proxyConfiguration = await Apify.createProxyConfiguration({
+    /* your proxy opts */
+});
 const crawler = new Apify.PuppeteerCrawler({
     proxyConfiguration,
     // ...
@@ -77,6 +83,7 @@ const crawler = new Apify.PuppeteerCrawler({
 Your crawlers will now use the selected proxies for all connections.
 
 ### IP Rotation and session management
+
 [`proxyConfiguration.newUrl()`](../api/proxy-configuration#newurl) allows you to pass
 a `sessionId` parameter. It will then be used to create a `sessionId`-`proxyUrl` pair,
 and subsequent `newUrl()` calls with the same `sessionId` will always return the same
@@ -93,15 +100,22 @@ Apify Proxy manages their rotation using black magic to get the best performance
 <!-- Standalone -->
 
 ```javascript
-const proxyConfiguration = await Apify.createProxyConfiguration({ /* opts */ });
-const sessionPool = await Apify.openSessionPool({ /* opts */ });
+const proxyConfiguration = await Apify.createProxyConfiguration({
+    /* opts */
+});
+const sessionPool = await Apify.openSessionPool({
+    /* opts */
+});
 const session = await sessionPool.getSession();
 const proxyUrl = proxyConfiguration.newUrl(session.id);
 ```
 
 <!-- Crawlers -->
+
 ```javascript
-const proxyConfiguration = await Apify.createProxyConfiguration({ /* opts */ });
+const proxyConfiguration = await Apify.createProxyConfiguration({
+    /* opts */
+});
 const crawler = new Apify.PuppeteerCrawler({
     useSessionPool: true,
     persistCookiesPerSession: true,
@@ -113,6 +127,7 @@ const crawler = new Apify.PuppeteerCrawler({
 <!--END_DOCUSAURUS_CODE_TABS-->
 
 ## Apify Proxy vs. Your own proxies
+
 The `ProxyConfiguration` class covers both Apify Proxy and custom proxy URLs so that
 you can easily switch between proxy providers, however, some features of the class
 are available only to Apify Proxy users, mainly because Apify Proxy is what
@@ -127,6 +142,7 @@ enable use of your custom proxy URLs, whereas all the other options are there to
 Visit the [Apify Proxy docs](https://docs.apify.com/proxy) for more info on how these parameters work.
 
 ## Apify Proxy Configuration
+
 With Apify Proxy, you can select specific proxy groups to use, or countries to connect from.
 This allows you to get better proxy performance after some initial research.
 
@@ -143,7 +159,8 @@ to a proxy group before you are able to use it. You can find your available prox
 in the [proxy dashboard](https://console.apify.com/proxy).
 
 ## Inspecting current proxy in Crawlers
+
 `CheerioCrawler` and `PuppeteerCrawler` grant access to information about the currently used proxy
 in their `handlePageFunction` using a [`proxyInfo`](../typedefs/proxy-info) object.
-With the  object, you can easily access the proxy URL. If you're using Apify Proxy, the other
+With the object, you can easily access the proxy URL. If you're using Apify Proxy, the other
 configuration parameters will also be available in the `proxyInfo` object.

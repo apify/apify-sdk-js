@@ -5,17 +5,27 @@
  */
 export class GlobalStore<V> extends Map<string, V> {
     override get(key: string) {
-        if (typeof key !== 'string') throw new Error('GlobalStore#get parameter "key" must be a string.');
+        if (typeof key !== 'string') {
+            throw new Error(
+                'GlobalStore#get parameter "key" must be a string.',
+            );
+        }
         return super.get(key);
     }
 
     override set(key: string, value: V) {
-        if (typeof key !== 'string') throw new Error('GlobalStore#set parameter "key" must be a string.');
+        if (typeof key !== 'string') {
+            throw new Error(
+                'GlobalStore#set parameter "key" must be a string.',
+            );
+        }
         return super.set(key, value);
     }
 
     override forEach(): never {
-        throw new Error('GlobalStore#forEach function is not available due to underlying technology limitations.');
+        throw new Error(
+            'GlobalStore#forEach function is not available due to underlying technology limitations.',
+        );
     }
 
     override values() {

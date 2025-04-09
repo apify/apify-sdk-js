@@ -1,4 +1,11 @@
-import { getTestDir, getStats, getDatasetItems, run, expect, validateDataset } from '../../tools.mjs';
+import {
+    expect,
+    getDatasetItems,
+    getStats,
+    getTestDir,
+    run,
+    validateDataset,
+} from '../../tools.mjs';
 
 const testDir = getTestDir(import.meta.url);
 
@@ -7,30 +14,49 @@ process.exit = () => {};
 
 await run(testDir, 'web-scraper', {
     runMode: 'PRODUCTION',
-    startUrls: [{
-        url: 'https://warehouse-theme-metal.myshopify.com/collections/all-tvs',
-        method: 'GET',
-        userData: { label: 'START' },
-    }],
-    pseudoUrls: [{
-        purl: 'https://warehouse-theme-metal.myshopify.com/collections/all-tvs?page=[2|3]',
-        method: 'GET',
-        userData: { label: 'START' },
-    }],
+    startUrls: [
+        {
+            url: 'https://warehouse-theme-metal.myshopify.com/collections/all-tvs',
+            method: 'GET',
+            userData: { label: 'START' },
+        },
+    ],
+    pseudoUrls: [
+        {
+            purl: 'https://warehouse-theme-metal.myshopify.com/collections/all-tvs?page=[2|3]',
+            method: 'GET',
+            userData: { label: 'START' },
+        },
+    ],
     linkSelector: 'a',
     pageFunction: async function pageFunction(context) {
         switch (context.request.userData.label) {
-            case 'START': return handleStart(context);
-            case 'DETAIL': return handleDetail(context);
+            case 'START':
+                return handleStart(context);
+            case 'DETAIL':
+                return handleDetail(context);
+            default:
+                throw new Error(
+                    `Unrecognized label: ${context.request.userData.label}`,
+                );
         }
 
-        async function handleStart({ log, request, enqueueRequest, waitFor, jQuery: $ }) {
+        async function handleStart({
+            log,
+            request,
+            enqueueRequest,
+            waitFor,
+            jQuery: $,
+        }) {
             log.info(`${request.url} opened!`);
 
             await waitFor('a.product-item__image-wrapper');
             const urls = $('a.product-item__image-wrapper')
                 .toArray()
-                .map((link) => `https://warehouse-theme-metal.myshopify.com/${$(link).attr('href')}`);
+                .map(
+                    (link) =>
+                        `https://warehouse-theme-metal.myshopify.com/${$(link).attr('href')}`,
+                );
 
             log.info(`${request.url} | Enqueueing ${urls.length} actor pages`);
 
@@ -58,10 +84,11 @@ await run(testDir, 'web-scraper', {
 
             const price = Number(rawPrice.replaceAll(',', ''));
 
-            const inStock = $('span.product-form__inventory')
-                .first()
-                .filter((_, el) => $(el).text().includes('In stock'))
-                .length !== 0;
+            const inStock =
+                $('span.product-form__inventory')
+                    .first()
+                    .filter((_, el) => $(el).text().includes('In stock'))
+                    .length !== 0;
 
             return {
                 url,
@@ -102,19 +129,19 @@ const stats = await getStats(testDir);
 await expect(stats.requestsFinished > 30, 'All requests finished');
 
 const datasetItems = await getDatasetItems(testDir);
-await expect(datasetItems.length > 25 && datasetItems.length < 35, 'Number of dataset items');
 await expect(
-    validateDataset(
-        datasetItems,
-        [
-            'url',
-            'manufacturer',
-            'title',
-            'sku',
-            'currentPrice',
-            'availableInStock',
-        ],
-    ),
+    datasetItems.length > 25 && datasetItems.length < 35,
+    'Number of dataset items',
+);
+await expect(
+    validateDataset(datasetItems, [
+        'url',
+        'manufacturer',
+        'title',
+        'sku',
+        'currentPrice',
+        'availableInStock',
+    ]),
     'Dataset items validation',
 );
 

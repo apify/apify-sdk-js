@@ -1,10 +1,19 @@
-const { readdirSync, readFileSync, writeFileSync, realpathSync, statSync } = require('fs');
+const {
+    readdirSync,
+    readFileSync,
+    writeFileSync,
+    realpathSync,
+    statSync,
+} = require('fs');
 const path = require('path');
 
 const debug = (namespace, ...args) => {
     const debugTypefixes = process.env.DEBUG_TYPEFIXES;
 
-    if (debugTypefixes && (debugTypefixes === '*' || debugTypefixes.includes(namespace))) {
+    if (
+        debugTypefixes &&
+        (debugTypefixes === '*' || debugTypefixes.includes(namespace))
+    ) {
         console.log(...args);
     }
 };
@@ -20,7 +29,9 @@ const paths = {
 console.log('Processing', paths.main);
 
 const fixSessionPool = async () => {
-    const input = readFileSync(paths.session_pool, { encoding: 'utf8' }).split('\n');
+    const input = readFileSync(paths.session_pool, { encoding: 'utf8' }).split(
+        '\n',
+    );
 
     const matchLines = [
         /addListener\(event/,
@@ -47,12 +58,16 @@ const fixSessionPool = async () => {
 
     if (changed) {
         console.log('Writing file', paths.session_pool);
-        writeFileSync(paths.session_pool, output.join('\n'), { encoding: 'utf8' });
+        writeFileSync(paths.session_pool, output.join('\n'), {
+            encoding: 'utf8',
+        });
     }
 };
 
 const fixUtilsLog = async () => {
-    const input = readFileSync(paths.utils_log, { encoding: 'utf8' }).split('\n');
+    const input = readFileSync(paths.utils_log, { encoding: 'utf8' }).split(
+        '\n',
+    );
     const output = [];
     let changed = false;
 
@@ -111,8 +126,19 @@ const traverseDirs = async (dir, filter, handleFile) => {
     return types;
 };
 
-const EXCLUDED_CLASSES = ['Session', 'RequestList', 'Apify', 'Configuration', 'Configuration', 'BasicCrawler', 'LoggerOptions'];
-const EXCLUDED_FROM_EXPORT = [new RegExp(`^(${EXCLUDED_CLASSES.join('|')})$`), /Local$/];
+const EXCLUDED_CLASSES = [
+    'Session',
+    'RequestList',
+    'Apify',
+    'Configuration',
+    'Configuration',
+    'BasicCrawler',
+    'LoggerOptions',
+];
+const EXCLUDED_FROM_EXPORT = [
+    new RegExp(`^(${EXCLUDED_CLASSES.join('|')})$`),
+    /Local$/,
+];
 
 /**
  * Blindly extracts exported typenames from a `*.d.ts` file.
@@ -124,7 +150,9 @@ const readTypes = (filepath) => {
     const inputByLine = input.split('\n');
     const types = [];
     for (const line of inputByLine) {
-        const matches = line.match(/^export (?:type|class|interface) ([^<\s]+)/); // get exported types without generic Export<T>
+        const matches = line.match(
+            /^export (?:type|class|interface) ([^<\s]+)/,
+        ); // get exported types without generic Export<T>
         debug('readTypes', !!matches, line);
         if (matches && !EXCLUDED_FROM_EXPORT.some((s) => s.test(matches[1]))) {
             types.push(matches[1]);
@@ -146,7 +174,11 @@ const typeHierarchyToExports = (types, prefix = null, output = {}) => {
         if (entry instanceof Array && entry.length > 0) {
             output[`${prefix}${key}`] = entry;
         } else if (entry instanceof Object) {
-            typeHierarchyToExports(entry, `${prefix !== null ? prefix : ''}${key}/`, output);
+            typeHierarchyToExports(
+                entry,
+                `${prefix !== null ? prefix : ''}${key}/`,
+                output,
+            );
         }
     }
     return output;
@@ -180,8 +212,7 @@ const processIndexEsm = async () => {
         },
         readTypes,
     );
-    const input = readFileSync(paths.main, { encoding: 'utf8' })
-        .split('\n');
+    const input = readFileSync(paths.main, { encoding: 'utf8' }).split('\n');
     console.log('Fixing type exports', paths.main);
     const fixedTypes = fixTypes(input, types);
     console.log('Writing', paths.main);
@@ -189,38 +220,56 @@ const processIndexEsm = async () => {
 };
 
 const fixTypesReferences = async () => {
-    await traverseDirs(typesPath, (filename) => filename.endsWith('.d.ts'), (filepath) => {
-        const input = readFileSync(filepath, { encoding: 'utf8' }).split('\n');
-        const output = [];
-        let changed = false;
-        let match;
-        for (const line of input) {
-            /* eslint-disable no-cond-assign */
-            if (match = line.match(/^([^"]+)"node\/([^$]+)/)) {
-                debug('fixTypesReferences', 'fixing "node/" from file', filepath);
-                output.push(`${match[1]} "${match[2]}`);
-                changed = true;
-            } else if (match = line.match(/^([^"]+)"puppeteer"/)) {
-                debug('fixTypesReferences', 'fixing "puppeteer" from file', filepath);
-                output.push('// @ts-ignore optional peer dependency');
-                output.push(line);
-                changed = true;
-            } else if (match = line.match(/^([^"]+)"playwright[/"]/)) {
-                debug('fixTypesReferences', 'fixing "playwright" from file', filepath);
-                output.push('// @ts-ignore optional peer dependency');
-                output.push(line);
-                changed = true;
-            } else {
-                output.push(line);
+    await traverseDirs(
+        typesPath,
+        (filename) => filename.endsWith('.d.ts'),
+        (filepath) => {
+            const input = readFileSync(filepath, { encoding: 'utf8' }).split(
+                '\n',
+            );
+            const output = [];
+            let changed = false;
+            let match;
+            for (const line of input) {
+                /* eslint-disable no-cond-assign */
+                if ((match = line.match(/^([^"]+)"node\/([^$]+)/))) {
+                    debug(
+                        'fixTypesReferences',
+                        'fixing "node/" from file',
+                        filepath,
+                    );
+                    output.push(`${match[1]} "${match[2]}`);
+                    changed = true;
+                } else if ((match = line.match(/^([^"]+)"puppeteer"/))) {
+                    debug(
+                        'fixTypesReferences',
+                        'fixing "puppeteer" from file',
+                        filepath,
+                    );
+                    output.push('// @ts-ignore optional peer dependency');
+                    output.push(line);
+                    changed = true;
+                } else if ((match = line.match(/^([^"]+)"playwright[/"]/))) {
+                    debug(
+                        'fixTypesReferences',
+                        'fixing "playwright" from file',
+                        filepath,
+                    );
+                    output.push('// @ts-ignore optional peer dependency');
+                    output.push(line);
+                    changed = true;
+                } else {
+                    output.push(line);
+                }
+                /* eslint-enable no-cond-assign */
             }
-            /* eslint-enable no-cond-assign */
-        }
 
-        if (changed === true) {
-            console.log('Writing', filepath);
-            writeFileSync(filepath, output.join('\n'));
-        }
-    });
+            if (changed === true) {
+                console.log('Writing', filepath);
+                writeFileSync(filepath, output.join('\n'));
+            }
+        },
+    );
 };
 
 (async () => {

@@ -17,8 +17,7 @@ the `URL` and a hypothetical number of `h1` - `h3` header elements under the `he
 This data structure is stored in the default dataset under
 `{PROJECT_FOLDER}/apify_storage/datasets/default/`.
 If you want to simulate the functionality, you can use the [`dataset.PushData()`](/docs/2.3/api/dataset#pushdata) method
- to save the example `JSON array` to your dataset.
-
+to save the example `JSON array` to your dataset.
 
 ```json
 [
@@ -36,11 +35,12 @@ If you want to simulate the functionality, you can use the [`dataset.PushData()`
     }
 ]
 ```
+
 ### Map
 
 The dataset `map` method is very similar to standard Array mapping methods.
- It produces a new array of values by mapping each value in the existing array through
- a transformation function and an options parameter.
+It produces a new array of values by mapping each value in the existing array through
+a transformation function and an options parameter.
 
 The `map` method used to check if are there more than 5 header elements on each page:
 
@@ -52,7 +52,9 @@ Apify.main(async () => {
     const dataSet = await Apify.openDataset();
 
     // calling map function and filtering through mapped items
-    const moreThan5headers = (await dataSet.map((item) => item.headingCount)).filter((count) => count > 5);
+    const moreThan5headers = (
+        await dataSet.map((item) => item.headingCount)
+    ).filter((count) => count > 5);
 
     // saving result of map to default Key-value store
     await Apify.setValue('pages_with_more_than_5_headers', moreThan5headers);
@@ -65,7 +67,7 @@ of headers is greater than 5.
 The `map` method's result value saved to the [`key-value store`](/docs/2.3/api/key-value-store) should be:
 
 ```javascript
-[ 11, 8 ]
+[11, 8];
 ```
 
 ### Reduce
@@ -77,7 +79,6 @@ After performing the necessary calculation, the `memo` is sent to the next itera
 while the item just processed is reduced (removed).
 
 Using the `reduce` method to get the total number of headers scraped (all items in the dataset):
-
 
 ```javascript
 const Apify = require('apify');
@@ -102,7 +103,6 @@ the count of all headers for all scraped pages (all dataset items).
 
 The `reduce` method's result value saved to the [key-value store](/docs/2.3/api/key-value-store) should be:
 
-
 ```javascript
-23
+23;
 ```

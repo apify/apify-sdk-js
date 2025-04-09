@@ -14,18 +14,20 @@ export default defineConfig({
         coverage: {
             provider: 'v8',
             reporter: ['text', 'lcov', 'cobertura'],
-            exclude: [
-                '**/node_modules/**',
-                '**/dist/**',
-                '**/test/**',
-            ],
+            exclude: ['**/node_modules/**', '**/dist/**', '**/test/**'],
         },
         restoreMocks: true,
         testTimeout: 60_000,
         hookTimeout: 60_000,
         alias: [
-            { find: 'apify', replacement: resolve(__dirname, './packages/apify/src') },
-            { find: '@apify/scraper-tools', replacement: resolve(__dirname, './packages/scraper-tools/src') },
+            {
+                find: 'apify',
+                replacement: resolve(__dirname, './packages/apify/src'),
+            },
+            {
+                find: '@apify/scraper-tools',
+                replacement: resolve(__dirname, './packages/scraper-tools/src'),
+            },
         ],
     },
 });

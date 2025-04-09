@@ -36,7 +36,10 @@ New requests are only dispatched when there is enough free CPU and memory availa
 ```javascript
 // Prepare a list of URLs to crawl
 const requestList = new Apify.RequestList({
-    sources: [{ url: 'http://www.example.com/page-1' }, { url: 'http://www.example.com/page-2' }],
+    sources: [
+        { url: 'http://www.example.com/page-1' },
+        { url: 'http://www.example.com/page-2' },
+    ],
 });
 await requestList.initialize();
 
@@ -111,7 +114,7 @@ fly, to pause the crawler by calling [`AutoscaledPool.pause()`](../api/autoscale
 
 **Parameters**:
 
--   **`options`**: [`BasicCrawlerOptions`](../typedefs/basic-crawler-options) - All `BasicCrawler` parameters are passed via an options object.
+- **`options`**: [`BasicCrawlerOptions`](../typedefs/basic-crawler-options) - All `BasicCrawler` parameters are passed via an options object.
 
 ---
 

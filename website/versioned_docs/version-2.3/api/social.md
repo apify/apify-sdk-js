@@ -13,7 +13,9 @@ A namespace that contains various utilities to help you extract social handles f
 ```javascript
 const Apify = require('apify');
 
-const emails = Apify.utils.social.emailsFromText('alice@example.com bob@example.com');
+const emails = Apify.utils.social.emailsFromText(
+    'alice@example.com bob@example.com',
+);
 ```
 
 ---
@@ -341,7 +343,7 @@ The function extracts email addresses from a plain text. Note that the function 
 
 **Parameters**:
 
--   **`text`**: `string` - Text to search in.
+- **`text`**: `string` - Text to search in.
 
 **Returns**:
 
@@ -358,7 +360,7 @@ that the function preserves the order of emails and keep duplicates.
 
 **Parameters**:
 
--   **`urls`**: `Array<string>` - Array of URLs.
+- **`urls`**: `Array<string>` - Array of URLs.
 
 **Returns**:
 
@@ -375,7 +377,7 @@ variety of formats and conventions. If you encounter some problems, please [file
 
 **Parameters**:
 
--   **`text`**: `string` - Text to search the phone numbers in.
+- **`text`**: `string` - Text to search the phone numbers in.
 
 **Returns**:
 
@@ -392,7 +394,7 @@ Finds phone number links in an array of URLs and extracts the phone numbers from
 
 **Parameters**:
 
--   **`urls`**: `Array<string>` - Array of URLs.
+- **`urls`**: `Array<string>` - Array of URLs.
 
 **Returns**:
 
@@ -428,9 +430,9 @@ console.dir(result);
 
 **Parameters**:
 
--   **`html`**: `string` - HTML text
--   **`[data]`**: `*` | `null` <code> = </code> - Optional object which will receive the `text` and `$` properties that contain text content of the
-    HTML and `cheerio` object, respectively. This is an optimization so that the caller doesn't need to parse the HTML document again, if needed.
+- **`html`**: `string` - HTML text
+- **`[data]`**: `*` | `null` <code> = </code> - Optional object which will receive the `text` and `$` properties that contain text content of the
+  HTML and `cheerio` object, respectively. This is an optimization so that the caller doesn't need to parse the HTML document again, if needed.
 
 **Returns**:
 

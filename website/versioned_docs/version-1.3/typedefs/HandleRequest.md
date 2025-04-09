@@ -8,7 +8,7 @@ id: handle-request
 
 **Parameters**:
 
--   **`inputs`**: [`HandleRequestInputs`](../typedefs/handle-request-inputs) - Arguments passed to this callback.
+- **`inputs`**: [`HandleRequestInputs`](../typedefs/handle-request-inputs) - Arguments passed to this callback.
 
 **Returns**:
 

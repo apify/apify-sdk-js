@@ -7,7 +7,7 @@ title: ProxyConfigurationFunction
 
 **Parameters**:
 
--   **`sessionId`**: `string` | `number`
+- **`sessionId`**: `string` | `number`
 
 **Returns**:
 

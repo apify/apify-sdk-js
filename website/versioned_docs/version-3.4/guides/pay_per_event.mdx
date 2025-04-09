@@ -17,9 +17,7 @@ To use the pay-per-event pricing model, you first need to [set it up](https://do
 
 After monetization is set in the Apify console, you can add <ApiLink to="class/Actor#charge">`Actor.charge`</ApiLink> calls to your code and start monetizing!
 
-<CodeBlock language="typescript">
-{ActorChargeSource}
-</CodeBlock>
+<CodeBlock language="typescript">{ActorChargeSource}</CodeBlock>
 
 Then you just push your code to Apify and that's it! The SDK will even keep track of the max total charge setting for you, so you will not provide more value than what the user chose to pay for.
 
@@ -29,9 +27,7 @@ If you need finer control over charging, you can access call <ApiLink to="class/
 
 When you plan to start using the pay-per-event pricing model for an Actor that is already monetized with a different pricing model, your source code will need support both pricing models during the transition period enforced by the Apify platform. Arguably the most frequent case is the transition from the pay-per-result model which utilizes the `ACTOR_MAX_PAID_DATASET_ITEMS` environment variable to prevent returning unpaid dataset items. The following is an example how to handle such scenarios. The key part is the <ApiLink to="class/ChargingManager#getPricingInfo">`ChargingManager.getPricingInfo`</ApiLink> method which returns information about the current pricing model.
 
-<CodeBlock language="typescript">
-{ConditionalActorChargeSource}
-</CodeBlock>
+<CodeBlock language="typescript">{ConditionalActorChargeSource}</CodeBlock>
 
 ## Local development
 

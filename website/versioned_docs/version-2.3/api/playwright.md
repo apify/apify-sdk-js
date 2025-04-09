@@ -36,9 +36,9 @@ performance.
 
 **Parameters**:
 
--   **`page`**: `Page` - Playwright [`Page`](https://playwright.dev/docs/api/class-page) object.
--   **`request`**: [`Request`](../api/request)
--   **`[gotoOptions]`**: [`DirectNavigationOptions`](../typedefs/direct-navigation-options) - Custom options for `page.goto()`.
+- **`page`**: `Page` - Playwright [`Page`](https://playwright.dev/docs/api/class-page) object.
+- **`request`**: [`Request`](../api/request)
+- **`[gotoOptions]`**: [`DirectNavigationOptions`](../typedefs/direct-navigation-options) - Custom options for `page.goto()`.
 
 **Returns**:
 
@@ -57,12 +57,12 @@ File contents are cached for up to 10 files to limit file system access.
 
 **Parameters**:
 
--   **`page`**: `Page` - Playwright [`Page`](https://playwright.dev/docs/api/class-page) object.
--   **`filePath`**: `string` - File path
--   **`[options]`**: `object`
-    -   **`[surviveNavigations]`**: `boolean` - Enables the injected script to survive page navigations and reloads without need to be re-injected
-        manually. This does not mean, however, that internal state will be preserved. Just that it will be automatically re-injected on each
-        navigation before any other scripts get the chance to execute.
+- **`page`**: `Page` - Playwright [`Page`](https://playwright.dev/docs/api/class-page) object.
+- **`filePath`**: `string` - File path
+- **`[options]`**: `object`
+    - **`[surviveNavigations]`**: `boolean` - Enables the injected script to survive page navigations and reloads without need to be re-injected
+      manually. This does not mean, however, that internal state will be preserved. Just that it will be automatically re-injected on each
+      navigation before any other scripts get the chance to execute.
 
 **Returns**:
 
@@ -96,7 +96,7 @@ way.
 
 **Parameters**:
 
--   **`page`**: `Page` - Playwright [`Page`](https://playwright.dev/docs/api/class-page) object.
+- **`page`**: `Page` - Playwright [`Page`](https://playwright.dev/docs/api/class-page) object.
 
 **Returns**:
 

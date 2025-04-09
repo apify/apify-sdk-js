@@ -103,7 +103,14 @@ When you use only what you need, you'll be rewarded with reasonable build and st
 
 This is the smallest image we have based on Alpine Linux. It does not include any browsers, and it's therefore best used with <CrawleeApiLink to="cheerio-crawler/class/CheerioCrawler">`CheerioCrawler`</CrawleeApiLink>. It benefits from lightning fast builds and container startups.
 
-<CrawleeApiLink to="puppeteer-crawler/class/PuppeteerCrawler">`PuppeteerCrawler`</CrawleeApiLink>, <CrawleeApiLink to="playwright-crawler/class/PlaywrightCrawler">`PlaywrightCrawler`</CrawleeApiLink> and other browser based features will **NOT** work with this image.
+<CrawleeApiLink to="puppeteer-crawler/class/PuppeteerCrawler">
+    `PuppeteerCrawler`
+</CrawleeApiLink>
+,
+<CrawleeApiLink to="playwright-crawler/class/PlaywrightCrawler">
+    `PlaywrightCrawler`
+</CrawleeApiLink>
+and other browser based features will **NOT** work with this image.
 
 ```dockerfile
 FROM apify/actor-node:16
@@ -163,27 +170,21 @@ To use the above images, it's necessary to have a [`Dockerfile`](https://docs.do
 
 <Tabs>
     <TabItem value="node+js" label="Node+JavaScript">
-        <CodeBlock language="dockerfile">
-            {jsNodeDocker}
-        </CodeBlock>
+        <CodeBlock language="dockerfile">{jsNodeDocker}</CodeBlock>
     </TabItem>
     <TabItem value="node+ts" label="Node+TypeScript">
-        <CodeBlock language="dockerfile">
-            {tsNodeDocker}
-        </CodeBlock>
+        <CodeBlock language="dockerfile">{tsNodeDocker}</CodeBlock>
     </TabItem>
     <TabItem value="browser+js" label="Browser+JavaScript">
-        This example is for Playwright. If you want to use Puppeteer, simply replace <b>playwright</b>
+        This example is for Playwright. If you want to use Puppeteer, simply
+        replace <b>playwright</b>
         with <b>puppeteer</b> in the <code>FROM</code> declaration.
-        <CodeBlock language="dockerfile">
-            {jsBrowserDocker}
-        </CodeBlock>
+        <CodeBlock language="dockerfile">{jsBrowserDocker}</CodeBlock>
     </TabItem>
     <TabItem value="browser+ts" label="Browser+TypeScript">
-        This example is for Playwright. If you want to use Puppeteer, simply replace <b>playwright</b>
+        This example is for Playwright. If you want to use Puppeteer, simply
+        replace <b>playwright</b>
         with <b>puppeteer</b> in both <code>FROM</code> declarations.
-        <CodeBlock language="dockerfile">
-            {tsBrowserDocker}
-        </CodeBlock>
+        <CodeBlock language="dockerfile">{tsBrowserDocker}</CodeBlock>
     </TabItem>
 </Tabs>

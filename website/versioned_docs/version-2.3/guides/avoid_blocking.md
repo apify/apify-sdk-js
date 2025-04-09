@@ -9,19 +9,19 @@ Browser fingerprint is a collection of browser attributes and significant featur
 
 Changing browser fingerprints can be a tedious job. Luckily, Apify SDK provides this feature out of the box with zero configuration necessary. Let's take a look at how it is done.
 
- Changing browser fingerprints is available in `PuppeteerCrawler` and `PlaywrightCrawler`. You have to pass the `useFingerprints` option to the `browserPoolOptions`.
+Changing browser fingerprints is available in `PuppeteerCrawler` and `PlaywrightCrawler`. You have to pass the `useFingerprints` option to the `browserPoolOptions`.
 
- ```javascript
+```javascript
 const crawler = new Apify.PlaywrightCrawler({
     browserPoolOptions: {
         useFingerprints: true,
     },
-})
+});
+```
 
- ```
 Now, it is all set. The fingerprints are going to be generated for the default browser and the operating system. The Crawler can have the generation alghoritm customized to reflect particular browser version and many more. Let's take a look at the example bellow:
 
- ```javascript
+```javascript
 const crawler = new Apify.PlaywrightCrawler({
     browserPoolOptions: {
         useFingerprints: true,
@@ -32,16 +32,12 @@ const crawler = new Apify.PlaywrightCrawler({
                     { name: 'chrome', minVersion: 87 },
                     'safari',
                 ],
-                devices: [
-                    'desktop',
-                ],
-                operatingSystems: [
-                    'windows',
-                ],
+                devices: ['desktop'],
+                operatingSystems: ['windows'],
             },
         },
     },
-})
+});
+```
 
- ```
- Fingerprint generator has more options available check out the [Fingerprint generator docs](https://github.com/apify/fingerprint-generator#HeaderGeneratorOptions).
+Fingerprint generator has more options available check out the [Fingerprint generator docs](https://github.com/apify/fingerprint-generator#HeaderGeneratorOptions).

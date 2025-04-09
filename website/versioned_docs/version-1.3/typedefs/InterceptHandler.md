@@ -8,6 +8,6 @@ id: intercept-handler
 
 **Parameters**:
 
--   **`request`**: [`PuppeteerRequest`](../api/request)
+- **`request`**: [`PuppeteerRequest`](../api/request)
 
 ---

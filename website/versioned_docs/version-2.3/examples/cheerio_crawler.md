@@ -3,11 +3,10 @@ id: cheerio-crawler
 title: Cheerio crawler
 ---
 
- This example demonstrates how to use [`CheerioCrawler`](/docs/2.3/api/cheerio-crawler)
- to crawl a list of URLs from an external file, load each URL using a plain HTTP request,
- parse the HTML using the [Cheerio library](https://www.npmjs.com/package/cheerio)
- and extract some data from it: the page title and all `h1` tags.
-
+This example demonstrates how to use [`CheerioCrawler`](/docs/2.3/api/cheerio-crawler)
+to crawl a list of URLs from an external file, load each URL using a plain HTTP request,
+parse the HTML using the [Cheerio library](https://www.npmjs.com/package/cheerio)
+and extract some data from it: the page title and all `h1` tags.
 
 ```javascript
 const Apify = require('apify');
@@ -22,12 +21,11 @@ log.setLevel(log.LEVELS.DEBUG);
 Apify.main(async () => {
     // Create an instance of the RequestList class that contains a list of URLs to crawl.
     // Add URLs to a RequestList
-    const requestList = await Apify.openRequestList('start-urls',
-        [
-            { url: 'http://www.example.com/page-1' },
-            { url: 'http://www.example.com/page-2' },
-            { url: 'http://www.example.com/page-3' },
-        ]);
+    const requestList = await Apify.openRequestList('start-urls', [
+        { url: 'http://www.example.com/page-1' },
+        { url: 'http://www.example.com/page-2' },
+        { url: 'http://www.example.com/page-3' },
+    ]);
     // Create an instance of the CheerioCrawler class - a crawler
     // that automatically loads the URLs and parses their HTML using the cheerio library.
     const crawler = new Apify.CheerioCrawler({

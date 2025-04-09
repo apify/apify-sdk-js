@@ -8,9 +8,9 @@ id: puppeteer-hook
 
 **Parameters**:
 
--   **`crawlingContext`**: `Object` | [`BrowserCrawlingContext`](../typedefs/browser-crawling-context) |
-    [`CrawlingContext`](../typedefs/crawling-context)
--   **`gotoOptions`**: `any`
+- **`crawlingContext`**: `Object` | [`BrowserCrawlingContext`](../typedefs/browser-crawling-context) |
+  [`CrawlingContext`](../typedefs/crawling-context)
+- **`gotoOptions`**: `any`
 
 **Returns**:
 

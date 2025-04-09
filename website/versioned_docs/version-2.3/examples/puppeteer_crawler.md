@@ -3,13 +3,13 @@ id: puppeteer-crawler
 title: Puppeteer crawler
 ---
 
- This example demonstrates how to use [`PuppeteerCrawler`](/docs/2.3/api/puppeteer-crawler)
- in combination with [`RequestQueue`](/docs/2.3/api/request-queue) to recursively scrape the
- [Hacker News website](https://news.ycombinator.com) using headless Chrome / Puppeteer.
- The crawler starts with a single URL, finds links to next pages,
- enqueues them and continues until no more desired links are available.
- The results are stored to the default dataset. In local configuration, the results are stored as
- JSON files in `./apify_storage/datasets/default`
+This example demonstrates how to use [`PuppeteerCrawler`](/docs/2.3/api/puppeteer-crawler)
+in combination with [`RequestQueue`](/docs/2.3/api/request-queue) to recursively scrape the
+[Hacker News website](https://news.ycombinator.com) using headless Chrome / Puppeteer.
+The crawler starts with a single URL, finds links to next pages,
+enqueues them and continues until no more desired links are available.
+The results are stored to the default dataset. In local configuration, the results are stored as
+JSON files in `./apify_storage/datasets/default`
 
 > To run this example on the Apify Platform, select the `apify/actor-node-puppeteer-chrome` image for your Dockerfile.
 
@@ -73,7 +73,8 @@ Apify.main(async () => {
                 selector: '.morelink',
             });
 
-            if (infos.length === 0) console.log(`${request.url} is the last page!`);
+            if (infos.length === 0)
+                console.log(`${request.url} is the last page!`);
         },
 
         // This function is called if the page processing failed more than maxRequestRetries+1 times.

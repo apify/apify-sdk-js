@@ -8,6 +8,7 @@ This example crawls the specified list of URLs.
 <!--DOCUSAURUS_CODE_TABS-->
 
 <!-- CheerioCrawler -->
+
 \
 Using `CheerioCrawler`:
 
@@ -16,12 +17,11 @@ const Apify = require('apify');
 
 Apify.main(async () => {
     // Create a RequestList
-    const requestList = await Apify.openRequestList('start-urls',
-        [
-            { url: 'http://www.example.com/page-1' },
-            { url: 'http://www.example.com/page-2' },
-            { url: 'http://www.example.com/page-3' },
-        ]);
+    const requestList = await Apify.openRequestList('start-urls', [
+        { url: 'http://www.example.com/page-1' },
+        { url: 'http://www.example.com/page-2' },
+        { url: 'http://www.example.com/page-3' },
+    ]);
     // Function called for each URL
     const handlePageFunction = async ({ request, $ }) => {
         const title = $('title').text();
@@ -38,6 +38,7 @@ Apify.main(async () => {
 ```
 
 <!-- PuppeteerCrawler -->
+
 \
 Using `PuppeteerCrawler`:
 
@@ -48,12 +49,11 @@ const Apify = require('apify');
 
 Apify.main(async () => {
     // Create a RequestList
-    const requestList = await Apify.openRequestList('start-urls',
-        [
-            { url: 'http://www.example.com/page-1' },
-            { url: 'http://www.example.com/page-2' },
-            { url: 'http://www.example.com/page-3' },
-        ]);
+    const requestList = await Apify.openRequestList('start-urls', [
+        { url: 'http://www.example.com/page-1' },
+        { url: 'http://www.example.com/page-2' },
+        { url: 'http://www.example.com/page-3' },
+    ]);
     // Function called for each URL
     const handlePageFunction = async ({ request, page }) => {
         const title = await page.title();
@@ -70,6 +70,7 @@ Apify.main(async () => {
 ```
 
 <!-- PlaywrightCrawler -->
+
 \
 Using `PlaywrightCrawler`:
 
@@ -78,12 +79,11 @@ const Apify = require('apify');
 
 Apify.main(async () => {
     // Create a RequestList
-    const requestList = await Apify.openRequestList('start-urls',
-        [
-            { url: 'http://www.example.com/page-1' },
-            { url: 'http://www.example.com/page-2' },
-            { url: 'http://www.example.com/page-3' },
-        ]);
+    const requestList = await Apify.openRequestList('start-urls', [
+        { url: 'http://www.example.com/page-1' },
+        { url: 'http://www.example.com/page-2' },
+        { url: 'http://www.example.com/page-3' },
+    ]);
     // Function called for each URL
     const handlePageFunction = async ({ request, page }) => {
         const title = await page.title();
@@ -102,4 +102,3 @@ Apify.main(async () => {
 > To run this example on the Apify Platform, select the `apify/actor-node-playwright-chrome` image for your Dockerfile.
 
 <!--END_DOCUSAURUS_CODE_TABS-->
-

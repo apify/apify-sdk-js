@@ -6,8 +6,8 @@ import { setTimeout } from 'node:timers/promises';
 import { fileURLToPath } from 'node:url';
 
 import { purgeDefaultStorages } from '@crawlee/core';
-import { Configuration, KeyValueStore } from 'apify';
-import { URL_NO_COMMAS_REGEX, sleep } from 'crawlee';
+import { Configuration, KeyValueStore, log } from 'apify';
+import { sleep, URL_NO_COMMAS_REGEX } from 'crawlee';
 import fs from 'fs-extra';
 
 export const SKIPPED_TEST_CLOSE_CODE = 404;
@@ -32,7 +32,10 @@ export function getStorage(dirName) {
  */
 export async function getStats(dirName, retries = 3) {
     const dir = getStorage(dirName);
-    const path = join(dir, 'key_value_stores/default/SDK_CRAWLER_STATISTICS_0.json');
+    const path = join(
+        dir,
+        'key_value_stores/default/SDK_CRAWLER_STATISTICS_0.json',
+    );
 
     if (!existsSync(path)) {
         if (!retries) {
@@ -70,14 +73,11 @@ export async function run(url, scraper, input) {
     // i.e. dataset items are there, etc. Honestly, no idea why -
     // hanging test is always random. So adding Promise.race()
     // to make sure all tests will run and finish.
-    await Promise.race([
-        waitForFinish(url),
-        setTimeout(120e3),
-    ]);
+    await Promise.race([waitForFinish(url), setTimeout(120e3)]);
 }
 
 export async function waitForFinish(dir) {
-    while (!await isFinished(dir)) {
+    while (!(await isFinished(dir))) {
         await setTimeout(1e3);
     }
 }
@@ -99,7 +99,9 @@ export async function getApifyToken() {
     const authPath = join(homedir(), '.apify', 'auth.json');
 
     if (!existsSync(authPath)) {
-        throw new Error('You need to be logged in with your Apify account to run E2E tests. Call "apify login" to fix that.');
+        throw new Error(
+            'You need to be logged in with your Apify account to run E2E tests. Call "apify login" to fix that.',
+        );
     }
 
     const { token } = await fs.readJSON(authPath);
@@ -151,10 +153,10 @@ export async function initialize(dirName) {
  */
 export async function expect(bool, message) {
     if (bool) {
-        console.log(`[assertion] passed: ${message}`);
+        log.info(`[assertion] passed: ${message}`);
         await setTimeout(10);
     } else {
-        console.log(`[assertion] failed: ${message}`);
+        log.error(`[assertion] failed: ${message}`);
         await setTimeout(10);
         process.exit(1);
     }
@@ -164,7 +166,7 @@ export async function expect(bool, message) {
  * @param {string} reason
  */
 export async function skipTest(reason) {
-    console.error(`[test skipped] ${reason}`);
+    log.warn(`[test skipped] ${reason}`);
     process.exit(SKIPPED_TEST_CLOSE_CODE);
 }
 
@@ -174,7 +176,7 @@ export async function skipTest(reason) {
  * @returns {boolean}
  */
 function checkDatasetItem(item, propName) {
-    if (!item.hasOwnProperty(propName)) {
+    if (!Object.hasOwn(item, propName)) {
         return false;
     }
 
@@ -186,7 +188,9 @@ function checkDatasetItem(item, propName) {
         case 'runCount':
             return Number.isInteger(item.runCount);
         default:
-            return ['string', 'number', 'boolean'].includes(typeof item[propName]);
+            return ['string', 'number', 'boolean'].includes(
+                typeof item[propName],
+            );
     }
 }
 

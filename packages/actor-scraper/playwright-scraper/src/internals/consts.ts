@@ -1,5 +1,18 @@
-import { Session, ProxyConfigurationOptions, GlobInput, RegExpInput, PseudoUrlInput, RequestOptions } from '@crawlee/core';
-import { Dictionary } from '@crawlee/utils';
+import type {
+    GlobInput,
+    ProxyConfigurationOptions,
+    PseudoUrlInput,
+    RegExpInput,
+    RequestOptions,
+    Session,
+} from '@crawlee/core';
+import type { Dictionary } from '@crawlee/utils';
+
+export const enum ProxyRotation {
+    Recommended = 'RECOMMENDED',
+    PerRequest = 'PER_REQUEST',
+    UntilFailure = 'UNTIL_FAILURE',
+}
 
 /**
  * Replicates the INPUT_SCHEMA with TypeScript types for quick reference
@@ -43,10 +56,4 @@ export interface Input {
     keyValueStoreName?: string;
     requestQueueName?: string;
     headless: boolean;
-}
-
-export const enum ProxyRotation {
-    Recommended = 'RECOMMENDED',
-    PerRequest = 'PER_REQUEST',
-    UntilFailure = 'UNTIL_FAILURE',
 }

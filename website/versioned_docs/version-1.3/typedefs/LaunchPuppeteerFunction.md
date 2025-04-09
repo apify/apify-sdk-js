@@ -8,7 +8,7 @@ id: launch-puppeteer-function
 
 **Parameters**:
 
--   **`options`**: [`LaunchPuppeteerOptions`](../typedefs/launch-puppeteer-options)
+- **`options`**: [`LaunchPuppeteerOptions`](../typedefs/launch-puppeteer-options)
 
 **Returns**:
 

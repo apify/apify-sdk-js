@@ -54,10 +54,7 @@
                 {
                     "type": "category",
                     "label": "Result Stores",
-                    "items": [
-                        "api/dataset",
-                        "api/key-value-store"
-                    ]
+                    "items": ["api/dataset", "api/key-value-store"]
                 },
                 {
                     "type": "category",
@@ -152,23 +149,17 @@
                 {
                     "type": "category",
                     "label": "Functions - KeyValueStore",
-                    "items": [
-                        "typedefs/key-consumer"
-                    ]
+                    "items": ["typedefs/key-consumer"]
                 },
                 {
                     "type": "category",
                     "label": "Functions - Sessions",
-                    "items": [
-                        "typedefs/create-session"
-                    ]
+                    "items": ["typedefs/create-session"]
                 },
                 {
                     "type": "category",
                     "label": "Functions - Utilities",
-                    "items": [
-                        "typedefs/request-transform"
-                    ]
+                    "items": ["typedefs/request-transform"]
                 },
                 {
                     "type": "category",

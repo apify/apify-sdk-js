@@ -39,10 +39,16 @@ test('basic functionality', async () => {
     assert.strictEqual(run.status, 'SUCCEEDED');
     assert.deepEqual(run.chargedEventCounts, { foobar: 4 });
 
-    const store = await KeyValueStore.open(run.defaultKeyValueStoreId, { storageClient: client });
+    const store = await KeyValueStore.open(run.defaultKeyValueStoreId, {
+        storageClient: client,
+    });
 
     const chargingDatasetId = await store.getValue('CHARGING_LOG_DATASET_ID');
-    assert.equal(chargingDatasetId, null, 'Charging dataset ID must not be present');
+    assert.equal(
+        chargingDatasetId,
+        null,
+        'Charging dataset ID must not be present',
+    );
 });
 
 test('charge limit', async () => {

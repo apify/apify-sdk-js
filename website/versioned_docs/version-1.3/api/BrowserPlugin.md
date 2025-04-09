@@ -14,7 +14,7 @@ id: browser-plugin
 
 **Parameters**:
 
--   **`launcher`**: `*`
--   **`context`**: `Object<string, *>`
+- **`launcher`**: `*`
+- **`context`**: `Object<string, *>`
 
 ---

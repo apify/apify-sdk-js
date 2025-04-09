@@ -8,7 +8,7 @@ id: launch-puppeteer
 
 **Parameters**:
 
--   **`inputs`**: [`LaunchPuppeteerOptions`](../typedefs/launch-puppeteer-options) - Arguments passed to this callback.
+- **`inputs`**: [`LaunchPuppeteerOptions`](../typedefs/launch-puppeteer-options) - Arguments passed to this callback.
 
 **Returns**:
 

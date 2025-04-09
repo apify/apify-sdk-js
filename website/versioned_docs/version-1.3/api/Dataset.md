@@ -67,8 +67,8 @@ the data from this item onwards to prevent duplicates.
 
 **Parameters**:
 
--   **`data`**: `object` | `Array<object>` - Object or array of objects containing data to be stored in the default dataset. The objects must be
-    serializable to JSON and the JSON representation of each object must be smaller than 9MB.
+- **`data`**: `object` | `Array<object>` - Object or array of objects containing data to be stored in the default dataset. The objects must be
+  serializable to JSON and the JSON representation of each object must be smaller than 9MB.
 
 **Returns**:
 
@@ -87,21 +87,21 @@ call [`datasetClient.downloadItems()`](https://github.com/apify/apify-client-js#
 
 **Parameters**:
 
--   **`[options]`**: `Object` - All `getData()` parameters are passed via an options object with the following keys:
-    -   **`[offset]`**: `number` <code> = 0</code> - Number of array elements that should be skipped at the start.
-    -   **`[limit]`**: `number` <code> = 250000</code> - Maximum number of array elements to return.
-    -   **`[desc]`**: `boolean` <code> = false</code> - If `true` then the objects are sorted by `createdAt` in descending order. Otherwise they are
-        sorted in ascending order.
-    -   **`[fields]`**: `Array<string>` - An array of field names that will be included in the result. If omitted, all fields are included in the
-        results.
-    -   **`[unwind]`**: `string` - Specifies a name of the field in the result objects that will be used to unwind the resulting objects. By default,
-        the results are returned as they are.
-    -   **`[clean]`**: `boolean` <code> = false</code> - If `true` then the function returns only non-empty items and skips hidden fields (i.e. fields
-        starting with `#` character). Note that the `clean` parameter is a shortcut for `skipHidden: true` and `skipEmpty: true` options.
-    -   **`[skipHidden]`**: `boolean` <code> = false</code> - If `true` then the function doesn't return hidden fields (fields starting with "#"
-        character).
-    -   **`[skipEmpty]`**: `boolean` <code> = false</code> - If `true` then the function doesn't return empty items. Note that in this case the
-        returned number of items might be lower than limit parameter and pagination must be done using the `limit` value.
+- **`[options]`**: `Object` - All `getData()` parameters are passed via an options object with the following keys:
+    - **`[offset]`**: `number` <code> = 0</code> - Number of array elements that should be skipped at the start.
+    - **`[limit]`**: `number` <code> = 250000</code> - Maximum number of array elements to return.
+    - **`[desc]`**: `boolean` <code> = false</code> - If `true` then the objects are sorted by `createdAt` in descending order. Otherwise they are
+      sorted in ascending order.
+    - **`[fields]`**: `Array<string>` - An array of field names that will be included in the result. If omitted, all fields are included in the
+      results.
+    - **`[unwind]`**: `string` - Specifies a name of the field in the result objects that will be used to unwind the resulting objects. By default,
+      the results are returned as they are.
+    - **`[clean]`**: `boolean` <code> = false</code> - If `true` then the function returns only non-empty items and skips hidden fields (i.e. fields
+      starting with `#` character). Note that the `clean` parameter is a shortcut for `skipHidden: true` and `skipEmpty: true` options.
+    - **`[skipHidden]`**: `boolean` <code> = false</code> - If `true` then the function doesn't return hidden fields (fields starting with "#"
+      character).
+    - **`[skipEmpty]`**: `boolean` <code> = false</code> - If `true` then the function doesn't return empty items. Note that in this case the
+      returned number of items might be lower than limit parameter and pagination must be done using the `limit` value.
 
 **Returns**:
 
@@ -161,12 +161,12 @@ await dataset.forEach(async (item, index) => {
 
 **Parameters**:
 
--   **`iteratee`**: [`DatasetConsumer`](../typedefs/dataset-consumer) - A function that is called for every item in the dataset.
--   **`[options]`**: `Object` - All `forEach()` parameters are passed via an options object with the following keys:
-    -   **`[desc]`**: `boolean` <code> = false</code> - If `true` then the objects are sorted by `createdAt` in descending order.
-    -   **`[fields]`**: `Array<string>` - If provided then returned objects will only contain specified keys.
-    -   **`[unwind]`**: `string` - If provided then objects will be unwound based on provided field.
--   **`[index]`**: `number` <code> = 0</code> - Specifies the initial index number passed to the `iteratee` function.
+- **`iteratee`**: [`DatasetConsumer`](../typedefs/dataset-consumer) - A function that is called for every item in the dataset.
+- **`[options]`**: `Object` - All `forEach()` parameters are passed via an options object with the following keys:
+    - **`[desc]`**: `boolean` <code> = false</code> - If `true` then the objects are sorted by `createdAt` in descending order.
+    - **`[fields]`**: `Array<string>` - If provided then returned objects will only contain specified keys.
+    - **`[unwind]`**: `string` - If provided then objects will be unwound based on provided field.
+- **`[index]`**: `number` <code> = 0</code> - Specifies the initial index number passed to the `iteratee` function.
 
 **Returns**:
 
@@ -185,11 +185,11 @@ If `iteratee` returns a `Promise` then it's awaited before a next call.
 
 **Parameters**:
 
--   **`iteratee`**: [`DatasetMapper`](../typedefs/dataset-mapper)
--   **`[options]`**: `Object` - All `map()` parameters are passed via an options object with the following keys:
-    -   **`[desc]`**: `boolean` <code> = false</code> - If `true` then the objects are sorted by createdAt in descending order.
-    -   **`[fields]`**: `Array<string>` - If provided then returned objects will only contain specified keys
-    -   **`[unwind]`**: `string` - If provided then objects will be unwound based on provided field.
+- **`iteratee`**: [`DatasetMapper`](../typedefs/dataset-mapper)
+- **`[options]`**: `Object` - All `map()` parameters are passed via an options object with the following keys:
+    - **`[desc]`**: `boolean` <code> = false</code> - If `true` then the objects are sorted by createdAt in descending order.
+    - **`[fields]`**: `Array<string>` - If provided then returned objects will only contain specified keys
+    - **`[unwind]`**: `string` - If provided then objects will be unwound based on provided field.
 
 **Returns**:
 
@@ -213,12 +213,12 @@ If `iteratee()` returns a `Promise` then it's awaited before a next call.
 
 **Parameters**:
 
--   **`iteratee`**: [`DatasetReducer`](../typedefs/dataset-reducer)
--   **`memo`**: `object` - Initial state of the reduction.
--   **`[options]`**: `Object` - All `reduce()` parameters are passed via an options object with the following keys:
-    -   **`[desc]`**: `boolean` <code> = false</code> - If `true` then the objects are sorted by createdAt in descending order.
-    -   **`[fields]`**: `Array<string>` - If provided then returned objects will only contain specified keys
-    -   **`[unwind]`**: `string` - If provided then objects will be unwound based on provided field.
+- **`iteratee`**: [`DatasetReducer`](../typedefs/dataset-reducer)
+- **`memo`**: `object` - Initial state of the reduction.
+- **`[options]`**: `Object` - All `reduce()` parameters are passed via an options object with the following keys:
+    - **`[desc]`**: `boolean` <code> = false</code> - If `true` then the objects are sorted by createdAt in descending order.
+    - **`[fields]`**: `Array<string>` - If provided then returned objects will only contain specified keys
+    - **`[unwind]`**: `string` - If provided then objects will be unwound based on provided field.
 
 **Returns**:
 

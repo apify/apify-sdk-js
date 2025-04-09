@@ -7,7 +7,7 @@ title: CompiledScriptFunction
 
 **Parameters**:
 
--   **`params`**: [`CompiledScriptParams`](../typedefs/compiled-script-params)
+- **`params`**: [`CompiledScriptParams`](../typedefs/compiled-script-params)
 
 **Returns**:
 

@@ -7,6 +7,6 @@ title: InterceptHandler
 
 **Parameters**:
 
--   **`request`**: [`PuppeteerRequest`](../api/request)
+- **`request`**: [`PuppeteerRequest`](../api/request)
 
 ---

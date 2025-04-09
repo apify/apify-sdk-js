@@ -1,4 +1,11 @@
-import { getTestDir, getStats, getDatasetItems, run, expect, validateDataset } from '../../tools.mjs';
+import {
+    expect,
+    getDatasetItems,
+    getStats,
+    getTestDir,
+    run,
+    validateDataset,
+} from '../../tools.mjs';
 
 const testDir = getTestDir(import.meta.url);
 
@@ -6,24 +13,36 @@ const { exit } = process;
 process.exit = () => {};
 
 await run(testDir, 'cheerio-scraper', {
-    startUrls: [{
-        url: 'https://badssl.com/',
-        method: 'GET',
-        userData: { label: 'START' },
-    }],
-    pseudoUrls: [{
-        purl: 'https://[.+].badssl.com/',
-        method: 'GET',
-        userData: { label: 'DETAIL' },
-    }],
+    startUrls: [
+        {
+            url: 'https://badssl.com/',
+            method: 'GET',
+            userData: { label: 'START' },
+        },
+    ],
+    pseudoUrls: [
+        {
+            purl: 'https://[.+].badssl.com/',
+            method: 'GET',
+            userData: { label: 'DETAIL' },
+        },
+    ],
     linkSelector: '.group a.bad',
     keepUrlFragments: false,
     pageFunction: async function pageFunction(context) {
-        const { request: { userData: { label } } } = context;
+        const {
+            request: {
+                userData: { label },
+            },
+        } = context;
 
         switch (label) {
-            case 'START': return handleStart(context);
-            case 'DETAIL': return handleDetail(context);
+            case 'START':
+                return handleStart(context);
+            case 'DETAIL':
+                return handleDetail(context);
+            default:
+                throw new Error(`Unrecognized request label: ${label}`);
         }
 
         async function handleStart({ log }) {
@@ -50,6 +69,9 @@ await expect(stats.requestsFinished > 20, 'All requests finished');
 
 const datasetItems = await getDatasetItems(testDir);
 await expect(datasetItems.length > 20, 'Minimum number of dataset items');
-await expect(validateDataset(datasetItems, ['url', 'title']), 'Dataset items validation');
+await expect(
+    validateDataset(datasetItems, ['url', 'title']),
+    'Dataset items validation',
+);
 
 process.exit(0);

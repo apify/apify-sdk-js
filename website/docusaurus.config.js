@@ -4,12 +4,8 @@ const versions = require('./versions.json');
 
 const { absoluteUrl } = config;
 
-const packages = [
-    'apify',
-];
-const packagesOrder = [
-    'apify',
-];
+const packages = ['apify'];
+const packagesOrder = ['apify'];
 
 /** @type {Partial<import('@docusaurus/types').DocusaurusConfig>} */
 module.exports = {
@@ -21,9 +17,9 @@ module.exports = {
     projectName: 'apify-sdk-js',
     favicon: 'img/favicon.svg',
     onBrokenLinks:
-    /** @type {import('@docusaurus/types').ReportingSeverity} */ ('throw'),
+        /** @type {import('@docusaurus/types').ReportingSeverity} */ ('throw'),
     onBrokenMarkdownLinks:
-    /** @type {import('@docusaurus/types').ReportingSeverity} */ ('throw'),
+        /** @type {import('@docusaurus/types').ReportingSeverity} */ ('throw'),
     themes: [
         [
             '@apify/docs-theme',
@@ -63,9 +59,9 @@ module.exports = {
                             position: 'left',
                         },
                         {
-                            'type': 'docsVersionDropdown',
-                            'position': 'left',
-                            'className': 'navbar__item', // fixes margin around dropdown - hackish, should be fixed in theme
+                            type: 'docsVersionDropdown',
+                            position: 'left',
+                            className: 'navbar__item', // fixes margin around dropdown - hackish, should be fixed in theme
                             'data-api-links': JSON.stringify([
                                 'reference/next',
                                 ...versions.map((version, i) => {
@@ -80,8 +76,8 @@ module.exports = {
                                     return `reference/${version}`;
                                 }),
                             ]),
-                            'dropdownItemsBefore': [],
-                            'dropdownItemsAfter': [],
+                            dropdownItemsBefore: [],
+                            dropdownItemsAfter: [],
                         },
                     ],
                 },
@@ -101,7 +97,8 @@ module.exports = {
                     path: '../docs',
                     sidebarPath: './sidebars.js',
                     rehypePlugins: [externalLinkProcessor],
-                    editUrl: 'https://github.com/apify/apify-sdk-js/edit/master/website/',
+                    editUrl:
+                        'https://github.com/apify/apify-sdk-js/edit/master/website/',
                 },
             }),
         ],
@@ -114,9 +111,14 @@ module.exports = {
                 changelogs: true,
                 readmes: true,
                 sortPackages: (a, b) => {
-                    return packagesOrder.indexOf(a.packageName) - packagesOrder.indexOf(b.packageName);
+                    return (
+                        packagesOrder.indexOf(a.packageName) -
+                        packagesOrder.indexOf(b.packageName)
+                    );
                 },
-                packages: packages.map((name) => ({ path: `packages/${name}` })),
+                packages: packages.map((name) => ({
+                    path: `packages/${name}`,
+                })),
                 typedocOptions: {
                     excludeExternals: false,
                 },

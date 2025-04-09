@@ -17,9 +17,8 @@ up a scheduler to run your actor early in the morning.
 
 To see what other actors are available, visit the [Apify Store](https://apify.com/store).
 
- > To run this example on the Apify Platform, select the `Node.js 12 + Chrome on Debian (apify/actor-node-chrome)`
- > base image on the **Source** tab when configuring the actor.
-
+> To run this example on the Apify Platform, select the `Node.js 12 + Chrome on Debian (apify/actor-node-chrome)`
+> base image on the **Source** tab when configuring the actor.
 
 ```javascript
 const { Actor } = require('apify');
@@ -37,7 +36,10 @@ Actor.main(async () => {
     console.log('Fetching a random word.');
     const page = await browser.newPage();
     await page.goto('https://randomword.com/');
-    const randomWord = await page.$eval('#shared_section', (el) => el.outerHTML);
+    const randomWord = await page.$eval(
+        '#shared_section',
+        (el) => el.outerHTML,
+    );
 
     // Send random word to your email. For that, you can use an actor we already
     // have available on the platform under the name: apify/send-mail.

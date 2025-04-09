@@ -1,5 +1,6 @@
 import { launchPuppeteer } from '@crawlee/puppeteer';
-import { Browser, Page } from 'puppeteer';
+import type { Browser, Page } from 'puppeteer';
+
 import { createBundle } from '../src/internals/bundle.browser';
 
 const NAMESPACE = 'Apify';
@@ -42,10 +43,19 @@ describe('Bundle', () => {
 
         beforeEach(async () => {
             await page.goto('about:chrome');
-            await page.waitForFunction((namespace: string) => !!window[namespace], {}, NAMESPACE);
-            await page.evaluate((namespace: string, contextOptions) => {
-                window.contextInstance = window[namespace].createContext(contextOptions);
-            }, NAMESPACE, CONTEXT_OPTIONS);
+            await page.waitForFunction(
+                (namespace: string) => !!window[namespace],
+                {},
+                NAMESPACE,
+            );
+            await page.evaluate(
+                (namespace: string, contextOptions) => {
+                    window.contextInstance =
+                        window[namespace].createContext(contextOptions);
+                },
+                NAMESPACE,
+                CONTEXT_OPTIONS,
+            );
         });
 
         describe('waitFor', () => {

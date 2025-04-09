@@ -1,6 +1,7 @@
-import { createHmacSignature } from '@apify/utilities';
 import type { StorageManagerOptions } from '@crawlee/core';
 import { KeyValueStore as CoreKeyValueStore } from '@crawlee/core';
+
+import { createHmacSignature } from '@apify/utilities';
 
 import type { Configuration } from './configuration';
 
@@ -21,10 +22,18 @@ export class KeyValueStore extends CoreKeyValueStore {
             return getPublicUrl.call(this, key);
         }
 
-        const publicUrl = new URL(`${config.get('apiPublicBaseUrl')}/v2/key-value-stores/${this.id}/records/${key}`);
+        const publicUrl = new URL(
+            `${config.get('apiPublicBaseUrl')}/v2/key-value-stores/${this.id}/records/${key}`,
+        );
 
         if (this.storageObject?.urlSigningSecretKey) {
-            publicUrl.searchParams.append('signature', createHmacSignature(this.storageObject.urlSigningSecretKey as string, key));
+            publicUrl.searchParams.append(
+                'signature',
+                createHmacSignature(
+                    this.storageObject.urlSigningSecretKey as string,
+                    key,
+                ),
+            );
         }
 
         return publicUrl.toString();
@@ -33,7 +42,10 @@ export class KeyValueStore extends CoreKeyValueStore {
     /**
      * @inheritDoc
      */
-    static override async open(storeIdOrName?: string | null, options: StorageManagerOptions = {}): Promise<KeyValueStore> {
+    static override async open(
+        storeIdOrName?: string | null,
+        options: StorageManagerOptions = {},
+    ): Promise<KeyValueStore> {
         return super.open(storeIdOrName, options) as unknown as KeyValueStore;
     }
 }

@@ -67,18 +67,18 @@ effect.
 
 **Parameters**:
 
--   **`options`**: `object`
-    -   **`eventTypes`**: [`EventTypes`](../typedefs/event-types) - Array of event types, which you can set for actor run, see the
-        [actor run events](https://docs.apify.com/webhooks/events#actor-run) in the Apify doc.
-    -   **`requestUrl`**: `string` - URL which will be requested using HTTP POST request, when actor run will reach the set event type.
-    -   **`[payloadTemplate]`**: `string` - Payload template is a JSON-like string that describes the structure of the webhook POST request payload.
-        It uses JSON syntax, extended with a double curly braces syntax for injecting variables `{{variable}}`. Those variables are resolved at the
-        time of the webhook's dispatch, and a list of available variables with their descriptions is available in the
-        [Apify webhook documentation](https://docs.apify.com/webhooks). If `payloadTemplate` is omitted, the default payload template is used
-        ([view docs](https://docs.apify.com/webhooks/actions#payload-template)).
-    -   **`[idempotencyKey]`**: `string` - Idempotency key enables you to ensure that a webhook will not be added multiple times in case of an actor
-        restart or other situation that would cause the `addWebhook()` function to be called again. We suggest using the actor run ID as the
-        idempotency key. You can get the run ID by calling [`Apify.getEnv()`](../api/apify#getenv) function.
+- **`options`**: `object`
+    - **`eventTypes`**: [`EventTypes`](../typedefs/event-types) - Array of event types, which you can set for actor run, see the
+      [actor run events](https://docs.apify.com/webhooks/events#actor-run) in the Apify doc.
+    - **`requestUrl`**: `string` - URL which will be requested using HTTP POST request, when actor run will reach the set event type.
+    - **`[payloadTemplate]`**: `string` - Payload template is a JSON-like string that describes the structure of the webhook POST request payload.
+      It uses JSON syntax, extended with a double curly braces syntax for injecting variables `{{variable}}`. Those variables are resolved at the
+      time of the webhook's dispatch, and a list of available variables with their descriptions is available in the
+      [Apify webhook documentation](https://docs.apify.com/webhooks). If `payloadTemplate` is omitted, the default payload template is used
+      ([view docs](https://docs.apify.com/webhooks/actions#payload-template)).
+    - **`[idempotencyKey]`**: `string` - Idempotency key enables you to ensure that a webhook will not be added multiple times in case of an actor
+      restart or other situation that would cause the `addWebhook()` function to be called again. We suggest using the actor run ID as the
+      idempotency key. You can get the run ID by calling [`Apify.getEnv()`](../api/apify#getenv) function.
 
 **Returns**:
 
@@ -116,33 +116,33 @@ API endpoints to obtain the output.
 
 **Throws**:
 
--   [`ApifyCallError`](../api/apify-call-error) If the run did not succeed, e.g. if it failed or timed out.
+- [`ApifyCallError`](../api/apify-call-error) If the run did not succeed, e.g. if it failed or timed out.
 
 **Parameters**:
 
--   **`actId`**: `string` - Allowed formats are `username/actor-name`, `userId/actor-name` or actor ID.
--   **`[input]`**: `Object<string, *>` - Input for the actor. If it is an object, it will be stringified to JSON and its content type set to
-    `application/json; charset=utf-8`. Otherwise the `options.contentType` parameter must be provided.
--   **`[options]`**: `object` - Object with the settings below:
-    -   **`[contentType]`**: `string` - Content type for the `input`. If not specified, `input` is expected to be an object that will be stringified
-        to JSON and content type set to `application/json; charset=utf-8`. If `options.contentType` is specified, then `input` must be a `String` or
-        `Buffer`.
-    -   **`[token]`**: `string` - User API token that is used to run the actor. By default, it is taken from the `APIFY_TOKEN` environment variable.
-    -   **`[memoryMbytes]`**: `number` - Memory in megabytes which will be allocated for the new actor run. If not provided, the run uses memory of
-        the default actor run configuration.
-    -   **`[timeoutSecs]`**: `number` - Timeout for the actor run in seconds. Zero value means there is no timeout. If not provided, the run uses
-        timeout of the default actor run configuration.
-    -   **`[build]`**: `string` - Tag or number of the actor build to run (e.g. `beta` or `1.2.345`). If not provided, the run uses build tag or
-        number from the default actor run configuration (typically `latest`).
-    -   **`[waitSecs]`**: `number` - Maximum time to wait for the actor run to finish, in seconds. If the limit is reached, the returned promise is
-        resolved to a run object that will have status `READY` or `RUNNING` and it will not contain the actor run output. If `waitSecs` is null or
-        undefined, the function waits for the actor to finish (default behavior).
-    -   **`[fetchOutput]`**: `boolean` <code> = true</code> - If `false` then the function does not fetch output of the actor.
-    -   **`[disableBodyParser]`**: `boolean` <code> = false</code> - If `true` then the function will not attempt to parse the actor's output and will
-        return it in a raw `Buffer`.
-    -   **`[webhooks]`**: [`Array<AdhocWebhook>`](../typedefs/adhoc-webhook) - Specifies optional webhooks associated with the actor run, which can be
-        used to receive a notification e.g. when the actor finished or failed, see
-        [ad hook webhooks documentation](https://docs.apify.com/webhooks/ad-hoc-webhooks) for detailed description.
+- **`actId`**: `string` - Allowed formats are `username/actor-name`, `userId/actor-name` or actor ID.
+- **`[input]`**: `Object<string, *>` - Input for the actor. If it is an object, it will be stringified to JSON and its content type set to
+  `application/json; charset=utf-8`. Otherwise the `options.contentType` parameter must be provided.
+- **`[options]`**: `object` - Object with the settings below:
+    - **`[contentType]`**: `string` - Content type for the `input`. If not specified, `input` is expected to be an object that will be stringified
+      to JSON and content type set to `application/json; charset=utf-8`. If `options.contentType` is specified, then `input` must be a `String` or
+      `Buffer`.
+    - **`[token]`**: `string` - User API token that is used to run the actor. By default, it is taken from the `APIFY_TOKEN` environment variable.
+    - **`[memoryMbytes]`**: `number` - Memory in megabytes which will be allocated for the new actor run. If not provided, the run uses memory of
+      the default actor run configuration.
+    - **`[timeoutSecs]`**: `number` - Timeout for the actor run in seconds. Zero value means there is no timeout. If not provided, the run uses
+      timeout of the default actor run configuration.
+    - **`[build]`**: `string` - Tag or number of the actor build to run (e.g. `beta` or `1.2.345`). If not provided, the run uses build tag or
+      number from the default actor run configuration (typically `latest`).
+    - **`[waitSecs]`**: `number` - Maximum time to wait for the actor run to finish, in seconds. If the limit is reached, the returned promise is
+      resolved to a run object that will have status `READY` or `RUNNING` and it will not contain the actor run output. If `waitSecs` is null or
+      undefined, the function waits for the actor to finish (default behavior).
+    - **`[fetchOutput]`**: `boolean` <code> = true</code> - If `false` then the function does not fetch output of the actor.
+    - **`[disableBodyParser]`**: `boolean` <code> = false</code> - If `true` then the function will not attempt to parse the actor's output and will
+      return it in a raw `Buffer`.
+    - **`[webhooks]`**: [`Array<AdhocWebhook>`](../typedefs/adhoc-webhook) - Specifies optional webhooks associated with the actor run, which can be
+      used to receive a notification e.g. when the actor finished or failed, see
+      [ad hook webhooks documentation](https://docs.apify.com/webhooks/ad-hoc-webhooks) for detailed description.
 
 **Returns**:
 
@@ -180,27 +180,27 @@ other API endpoints to obtain the output.
 
 **Throws**:
 
--   [`ApifyCallError`](../api/apify-call-error) If the run did not succeed, e.g. if it failed or timed out.
+- [`ApifyCallError`](../api/apify-call-error) If the run did not succeed, e.g. if it failed or timed out.
 
 **Parameters**:
 
--   **`taskId`**: `string` - Allowed formats are `username/task-name`, `userId/task-name` or task ID.
--   **`[input]`**: `Object<string, *>` - Input overrides for the actor task. If it is an object, it will be stringified to JSON and its content type
-    set to `application/json; charset=utf-8`. Provided input will be merged with actor task input.
--   **`[options]`**: `object` - Object with the settings below:
-    -   **`[token]`**: `string` - User API token that is used to run the actor. By default, it is taken from the `APIFY_TOKEN` environment variable.
-    -   **`[memoryMbytes]`**: `number` - Memory in megabytes which will be allocated for the new actor task run. If not provided, the run uses memory
-        of the default actor run configuration.
-    -   **`[timeoutSecs]`**: `number` - Timeout for the actor task run in seconds. Zero value means there is no timeout. If not provided, the run uses
-        timeout of the default actor run configuration.
-    -   **`[build]`**: `string` - Tag or number of the actor build to run (e.g. `beta` or `1.2.345`). If not provided, the run uses build tag or
-        number from the default actor run configuration (typically `latest`).
-    -   **`[waitSecs]`**: `number` - Maximum time to wait for the actor task run to finish, in seconds. If the limit is reached, the returned promise
-        is resolved to a run object that will have status `READY` or `RUNNING` and it will not contain the actor run output. If `waitSecs` is null or
-        undefined, the function waits for the actor task to finish (default behavior).
-    -   **`[webhooks]`**: [`Array<AdhocWebhook>`](../typedefs/adhoc-webhook) - Specifies optional webhooks associated with the actor run, which can be
-        used to receive a notification e.g. when the actor finished or failed, see
-        [ad hook webhooks documentation](https://docs.apify.com/webhooks/ad-hoc-webhooks) for detailed description.
+- **`taskId`**: `string` - Allowed formats are `username/task-name`, `userId/task-name` or task ID.
+- **`[input]`**: `Object<string, *>` - Input overrides for the actor task. If it is an object, it will be stringified to JSON and its content type
+  set to `application/json; charset=utf-8`. Provided input will be merged with actor task input.
+- **`[options]`**: `object` - Object with the settings below:
+    - **`[token]`**: `string` - User API token that is used to run the actor. By default, it is taken from the `APIFY_TOKEN` environment variable.
+    - **`[memoryMbytes]`**: `number` - Memory in megabytes which will be allocated for the new actor task run. If not provided, the run uses memory
+      of the default actor run configuration.
+    - **`[timeoutSecs]`**: `number` - Timeout for the actor task run in seconds. Zero value means there is no timeout. If not provided, the run uses
+      timeout of the default actor run configuration.
+    - **`[build]`**: `string` - Tag or number of the actor build to run (e.g. `beta` or `1.2.345`). If not provided, the run uses build tag or
+      number from the default actor run configuration (typically `latest`).
+    - **`[waitSecs]`**: `number` - Maximum time to wait for the actor task run to finish, in seconds. If the limit is reached, the returned promise
+      is resolved to a run object that will have status `READY` or `RUNNING` and it will not contain the actor run output. If `waitSecs` is null or
+      undefined, the function waits for the actor task to finish (default behavior).
+    - **`[webhooks]`**: [`Array<AdhocWebhook>`](../typedefs/adhoc-webhook) - Specifies optional webhooks associated with the actor run, which can be
+      used to receive a notification e.g. when the actor finished or failed, see
+      [ad hook webhooks documentation](https://docs.apify.com/webhooks/ad-hoc-webhooks) for detailed description.
 
 **Returns**:
 
@@ -248,7 +248,7 @@ For compatibility with existing Actor Input UI (Input Schema), this function ret
 
 **Parameters**:
 
--   **`[proxyConfigurationOptions]`**: [`ProxyConfigurationOptions`](../typedefs/proxy-configuration-options)
+- **`[proxyConfigurationOptions]`**: [`ProxyConfigurationOptions`](../typedefs/proxy-configuration-options)
 
 **Returns**:
 
@@ -266,26 +266,26 @@ SDK or the Apify platform. The event emitter is initialized by calling the [`Api
 **Example usage:**
 
 ```javascript
-Apify.events.on('cpuInfo', data => {
+Apify.events.on('cpuInfo', (data) => {
     if (data.isCpuOverloaded) console.log('Oh no, the CPU is overloaded!');
 });
 ```
 
 The following events are emitted:
 
--   `cpuInfo`: `{ "isCpuOverloaded": Boolean }` The event is emitted approximately every second and it indicates whether the actor is using the
-    maximum of available CPU resources. If that's the case, the actor should not add more workload. For example, this event is used by the
-    [`AutoscaledPool`](../api/autoscaled-pool) class.
--   `migrating`: `void` Emitted when the actor running on the Apify platform is going to be migrated to another worker server soon. You can use it to
-    persist the state of the actor and gracefully stop your in-progress tasks, so that they are not interrupted by the migration. For example, this is
-    used by the [`RequestList`](../api/request-list) class.
--   `aborting`: `void` When a user aborts an actor run on the Apify platform, they can choose to abort gracefully to allow the actor some time before
-    getting killed. This graceful abort emits the `aborting` event which the SDK uses to gracefully stop running crawls and you can use it to do your
-    own cleanup as well.
--   `persistState`: `{ "isMigrating": Boolean }` Emitted in regular intervals (by default 60 seconds) to notify all components of Apify SDK that it is
-    time to persist their state, in order to avoid repeating all work when the actor restarts. This event is automatically emitted together with the
-    `migrating` event, in which case the `isMigrating` flag is set to `true`. Otherwise the flag is `false`. Note that the `persistState` event is
-    provided merely for user convenience, you can achieve the same effect using `setInterval()` and listening for the `migrating` event.
+- `cpuInfo`: `{ "isCpuOverloaded": Boolean }` The event is emitted approximately every second and it indicates whether the actor is using the
+  maximum of available CPU resources. If that's the case, the actor should not add more workload. For example, this event is used by the
+  [`AutoscaledPool`](../api/autoscaled-pool) class.
+- `migrating`: `void` Emitted when the actor running on the Apify platform is going to be migrated to another worker server soon. You can use it to
+  persist the state of the actor and gracefully stop your in-progress tasks, so that they are not interrupted by the migration. For example, this is
+  used by the [`RequestList`](../api/request-list) class.
+- `aborting`: `void` When a user aborts an actor run on the Apify platform, they can choose to abort gracefully to allow the actor some time before
+  getting killed. This graceful abort emits the `aborting` event which the SDK uses to gracefully stop running crawls and you can use it to do your
+  own cleanup as well.
+- `persistState`: `{ "isMigrating": Boolean }` Emitted in regular intervals (by default 60 seconds) to notify all components of Apify SDK that it is
+  time to persist their state, in order to avoid repeating all work when the actor restarts. This event is automatically emitted together with the
+  `migrating` event, in which case the `isMigrating` flag is set to `true`. Otherwise the flag is `false`. Note that the `persistState` event is
+  provided merely for user convenience, you can achieve the same effect using `setInterval()` and listening for the `migrating` event.
 
 ---
 
@@ -379,7 +379,7 @@ For more information, see [`Apify.openKeyValueStore()`](../api/apify#openkeyvalu
 
 **Parameters**:
 
--   **`key`**: `string` - Unique record key.
+- **`key`**: `string` - Unique record key.
 
 **Returns**:
 
@@ -410,14 +410,14 @@ details.
 
 The `launchPlaywright()` function alters the following Playwright options:
 
--   Passes the setting from the `APIFY_HEADLESS` environment variable to the `headless` option, unless it was already defined by the caller or
-    `APIFY_XVFB` environment variable is set to `1`. Note that Apify Actor cloud platform automatically sets `APIFY_HEADLESS=1` to all running actors.
--   Takes the `proxyUrl` option, validates it and adds it to `launchOptions` in a proper format. The proxy URL must define a port number and have one
-    of the following schemes: `http://`, `https://`, `socks4://` or `socks5://`. If the proxy is HTTP (i.e. has the `http://` scheme) and contains
-    username or password, the `launchPlaywright` functions sets up an anonymous proxy HTTP to make the proxy work with headless Chrome. For more
-    information, read the
-    <a href="https://blog.apify.com/how-to-make-headless-chrome-and-puppeteer-use-a-proxy-server-with-authentication-249a21a79212"
-    target="_blank">blog post about proxy-chain library</a>.
+- Passes the setting from the `APIFY_HEADLESS` environment variable to the `headless` option, unless it was already defined by the caller or
+  `APIFY_XVFB` environment variable is set to `1`. Note that Apify Actor cloud platform automatically sets `APIFY_HEADLESS=1` to all running actors.
+- Takes the `proxyUrl` option, validates it and adds it to `launchOptions` in a proper format. The proxy URL must define a port number and have one
+  of the following schemes: `http://`, `https://`, `socks4://` or `socks5://`. If the proxy is HTTP (i.e. has the `http://` scheme) and contains
+  username or password, the `launchPlaywright` functions sets up an anonymous proxy HTTP to make the proxy work with headless Chrome. For more
+  information, read the
+  <a href="https://blog.apify.com/how-to-make-headless-chrome-and-puppeteer-use-a-proxy-server-with-authentication-249a21a79212"
+  target="_blank">blog post about proxy-chain library</a>.
 
 To use this function, you need to have the [Playwright](https://www.npmjs.com/package/playwright) NPM package installed in your project. When running
 on the Apify Platform, you can achieve that simply by using the `apify/actor-node-playwright-*` base Docker image for your actor - see
@@ -425,9 +425,9 @@ on the Apify Platform, you can achieve that simply by using the `apify/actor-nod
 
 **Parameters**:
 
--   **`[launchContext]`**: [`PlaywrightLaunchContext`](../typedefs/playwright-launch-context) - Optional settings passed to `browserType.launch()`. In
-    addition to [Playwright's options](https://playwright.dev/docs/api/class-browsertype?_highlight=launch#browsertypelaunchoptions) the object may
-    contain our own [`PlaywrightLaunchContext`](../typedefs/playwright-launch-context) that enable additional features.
+- **`[launchContext]`**: [`PlaywrightLaunchContext`](../typedefs/playwright-launch-context) - Optional settings passed to `browserType.launch()`. In
+  addition to [Playwright's options](https://playwright.dev/docs/api/class-browsertype?_highlight=launch#browsertypelaunchoptions) the object may
+  contain our own [`PlaywrightLaunchContext`](../typedefs/playwright-launch-context) that enable additional features.
 
 **Returns**:
 
@@ -445,14 +445,14 @@ documentation</a> for more details.
 
 The `launchPuppeteer()` function alters the following Puppeteer options:
 
--   Passes the setting from the `APIFY_HEADLESS` environment variable to the `headless` option, unless it was already defined by the caller or
-    `APIFY_XVFB` environment variable is set to `1`. Note that Apify Actor cloud platform automatically sets `APIFY_HEADLESS=1` to all running actors.
--   Takes the `proxyUrl` option, validates it and adds it to `args` as `--proxy-server=XXX`. The proxy URL must define a port number and have one of
-    the following schemes: `http://`, `https://`, `socks4://` or `socks5://`. If the proxy is HTTP (i.e. has the `http://` scheme) and contains
-    username or password, the `launchPuppeteer` functions sets up an anonymous proxy HTTP to make the proxy work with headless Chrome. For more
-    information, read the
-    <a href="https://blog.apify.com/how-to-make-headless-chrome-and-puppeteer-use-a-proxy-server-with-authentication-249a21a79212"
-    target="_blank">blog post about proxy-chain library</a>.
+- Passes the setting from the `APIFY_HEADLESS` environment variable to the `headless` option, unless it was already defined by the caller or
+  `APIFY_XVFB` environment variable is set to `1`. Note that Apify Actor cloud platform automatically sets `APIFY_HEADLESS=1` to all running actors.
+- Takes the `proxyUrl` option, validates it and adds it to `args` as `--proxy-server=XXX`. The proxy URL must define a port number and have one of
+  the following schemes: `http://`, `https://`, `socks4://` or `socks5://`. If the proxy is HTTP (i.e. has the `http://` scheme) and contains
+  username or password, the `launchPuppeteer` functions sets up an anonymous proxy HTTP to make the proxy work with headless Chrome. For more
+  information, read the
+  <a href="https://blog.apify.com/how-to-make-headless-chrome-and-puppeteer-use-a-proxy-server-with-authentication-249a21a79212"
+  target="_blank">blog post about proxy-chain library</a>.
 
 To use this function, you need to have the [puppeteer](https://www.npmjs.com/package/puppeteer) NPM package installed in your project. When running on
 the Apify cloud, you can achieve that simply by using the `apify/actor-node-chrome` base Docker image for your actor - see
@@ -463,9 +463,9 @@ For an example of usage, see the [Synchronous run Example](../examples/synchrono
 
 **Parameters**:
 
--   **`[launchContext]`**: [`PuppeteerLaunchContext`](../typedefs/puppeteer-launch-context) - All `PuppeteerLauncher` parameters are passed via an
-    launchContext object. If you want to pass custom `puppeteer.launch(options)` options you can use the `PuppeteerLaunchContext.launchOptions`
-    property.
+- **`[launchContext]`**: [`PuppeteerLaunchContext`](../typedefs/puppeteer-launch-context) - All `PuppeteerLauncher` parameters are passed via an
+  launchContext object. If you want to pass custom `puppeteer.launch(options)` options you can use the `PuppeteerLaunchContext.launchOptions`
+  property.
 
 **Returns**:
 
@@ -486,16 +486,16 @@ an [Express](https://expressjs.com/) server, on [Google Cloud functions](https:/
 
 The `Apify.main()` function performs the following actions:
 
--   When running on the Apify platform (i.e. <code>APIFY_IS_AT_HOME</code> environment variable is set), it sets up a connection to listen for
-    platform events. For example, to get a notification about an imminent migration to another server. See [`Apify.events`](../api/apify#events) for
-    details.
--   It checks that either <code>APIFY_TOKEN</code> or <code>APIFY_LOCAL_STORAGE_DIR</code> environment variable is defined. If not, the functions sets
-    <code>APIFY_LOCAL_STORAGE_DIR</code> to <code>./apify_storage</code> inside the current working directory. This is to simplify running code
-    examples.
--   It invokes the user function passed as the <code>userFunc</code> parameter.
--   If the user function returned a promise, waits for it to resolve.
--   If the user function throws an exception or some other error is encountered, prints error details to console so that they are stored to the log.
--   Exits the Node.js process, with zero exit code on success and non-zero on errors.
+- When running on the Apify platform (i.e. <code>APIFY_IS_AT_HOME</code> environment variable is set), it sets up a connection to listen for
+  platform events. For example, to get a notification about an imminent migration to another server. See [`Apify.events`](../api/apify#events) for
+  details.
+- It checks that either <code>APIFY_TOKEN</code> or <code>APIFY_LOCAL_STORAGE_DIR</code> environment variable is defined. If not, the functions sets
+  <code>APIFY_LOCAL_STORAGE_DIR</code> to <code>./apify_storage</code> inside the current working directory. This is to simplify running code
+  examples.
+- It invokes the user function passed as the <code>userFunc</code> parameter.
+- If the user function returned a promise, waits for it to resolve.
+- If the user function throws an exception or some other error is encountered, prints error details to console so that they are stored to the log.
+- Exits the Node.js process, with zero exit code on success and non-zero on errors.
 
 The user function can be synchronous:
 
@@ -513,7 +513,7 @@ const { requestAsBrowser } = require('some-request-library');
 
 Apify.main(() => {
     // My asynchronous function that returns a promise
-    return request('http://www.example.com').then(html => {
+    return request('http://www.example.com').then((html) => {
         console.log(html);
     });
 });
@@ -533,8 +533,8 @@ Apify.main(async () => {
 
 **Parameters**:
 
--   **`userFunc`**: [`UserFunc`](../typedefs/user-func) - User function to be executed. If it returns a promise, the promise will be awaited. The user
-    function is called with no arguments.
+- **`userFunc`**: [`UserFunc`](../typedefs/user-func) - User function to be executed. If it returns a promise, the promise will be awaited. The user
+  function is called with no arguments.
 
 ---
 
@@ -547,15 +547,15 @@ default storages are preserved and the new input is stored under the `INPUT-META
 
 **Parameters**:
 
--   **`targetActorId`**: `string` - Either `username/actor-name` or actor ID of an actor to which we want to metamorph.
--   **`[input]`**: `Object<string, *>` - Input for the actor. If it is an object, it will be stringified to JSON and its content type set to
-    `application/json; charset=utf-8`. Otherwise the `options.contentType` parameter must be provided.
--   **`[options]`**: `object` - Object with the settings below:
-    -   **`[contentType]`**: `string` - Content type for the `input`. If not specified, `input` is expected to be an object that will be stringified
-        to JSON and content type set to `application/json; charset=utf-8`. If `options.contentType` is specified, then `input` must be a `String` or
-        `Buffer`.
-    -   **`[build]`**: `string` - Tag or number of the target actor build to metamorph into (e.g. `beta` or `1.2.345`). If not provided, the run uses
-        build tag or number from the default actor run configuration (typically `latest`).
+- **`targetActorId`**: `string` - Either `username/actor-name` or actor ID of an actor to which we want to metamorph.
+- **`[input]`**: `Object<string, *>` - Input for the actor. If it is an object, it will be stringified to JSON and its content type set to
+  `application/json; charset=utf-8`. Otherwise the `options.contentType` parameter must be provided.
+- **`[options]`**: `object` - Object with the settings below:
+    - **`[contentType]`**: `string` - Content type for the `input`. If not specified, `input` is expected to be an object that will be stringified
+      to JSON and content type set to `application/json; charset=utf-8`. If `options.contentType` is specified, then `input` must be a `String` or
+      `Buffer`.
+    - **`[build]`**: `string` - Tag or number of the target actor build to metamorph into (e.g. `beta` or `1.2.345`). If not provided, the run uses
+      build tag or number from the default actor run configuration (typically `latest`).
 
 **Returns**:
 
@@ -574,10 +574,10 @@ the client as a different Apify user than the SDK internals are using.
 
 **Parameters**:
 
--   **`[options]`**: `object`
-    -   **`[token]`**: `string`
-    -   **`[maxRetries]`**: `string`
-    -   **`[minDelayBetweenRetriesMillis]`**: `string`
+- **`[options]`**: `object`
+    - **`[token]`**: `string`
+    - **`[maxRetries]`**: `string`
+    - **`[minDelayBetweenRetriesMillis]`**: `string`
 
 **Returns**:
 
@@ -598,12 +598,12 @@ For more details and code examples, see the [`Dataset`](../api/dataset) class.
 
 **Parameters**:
 
--   **`[datasetIdOrName]`**: `string` - ID or name of the dataset to be opened. If `null` or `undefined`, the function returns the default dataset
-    associated with the actor run.
--   **`[options]`**: `Object`
-    -   **`[forceCloud]`**: `boolean` <code> = false</code> - If set to `true` then the function uses cloud storage usage even if the
-        `APIFY_LOCAL_STORAGE_DIR` environment variable is set. This way it is possible to combine local and cloud storage.
-    -   **`[config]`**: [`Configuration`](../api/configuration) - SDK configuration instance, defaults to the static register
+- **`[datasetIdOrName]`**: `string` - ID or name of the dataset to be opened. If `null` or `undefined`, the function returns the default dataset
+  associated with the actor run.
+- **`[options]`**: `Object`
+    - **`[forceCloud]`**: `boolean` <code> = false</code> - If set to `true` then the function uses cloud storage usage even if the
+      `APIFY_LOCAL_STORAGE_DIR` environment variable is set. This way it is possible to combine local and cloud storage.
+    - **`[config]`**: [`Configuration`](../api/configuration) - SDK configuration instance, defaults to the static register
 
 **Returns**:
 
@@ -624,12 +624,12 @@ For more details and code examples, see the [`KeyValueStore`](../api/key-value-s
 
 **Parameters**:
 
--   **`[storeIdOrName]`**: `string` - ID or name of the key-value store to be opened. If `null` or `undefined`, the function returns the default
-    key-value store associated with the actor run.
--   **`[options]`**: `object`
-    -   **`[forceCloud]`**: `boolean` <code> = false</code> - If set to `true` then the function uses cloud storage usage even if the
-        `APIFY_LOCAL_STORAGE_DIR` environment variable is set. This way it is possible to combine local and cloud storage.
-    -   **`[config]`**: [`Configuration`](../api/configuration) - SDK configuration instance, defaults to the static register
+- **`[storeIdOrName]`**: `string` - ID or name of the key-value store to be opened. If `null` or `undefined`, the function returns the default
+  key-value store associated with the actor run.
+- **`[options]`**: `object`
+    - **`[forceCloud]`**: `boolean` <code> = false</code> - If set to `true` then the function uses cloud storage usage even if the
+      `APIFY_LOCAL_STORAGE_DIR` environment variable is set. This way it is possible to combine local and cloud storage.
+    - **`[config]`**: [`Configuration`](../api/configuration) - SDK configuration instance, defaults to the static register
 
 **Returns**:
 
@@ -652,25 +652,29 @@ For more details and code examples, see the [`RequestList`](../api/request-list)
 **Example usage:**
 
 ```javascript
-const sources = ['https://www.example.com', 'https://www.google.com', 'https://www.bing.com'];
+const sources = [
+    'https://www.example.com',
+    'https://www.google.com',
+    'https://www.bing.com',
+];
 
 const requestList = await Apify.openRequestList('my-name', sources);
 ```
 
 **Parameters**:
 
--   **`listName`**: `string` | `null` - Name of the request list to be opened. Setting a name enables the `RequestList`'s state to be persisted in the
-    key-value store. This is useful in case of a restart or migration. Since `RequestList` is only stored in memory, a restart or migration wipes it
-    clean. Setting a name will enable the `RequestList`'s state to survive those situations and continue where it left off.
+- **`listName`**: `string` | `null` - Name of the request list to be opened. Setting a name enables the `RequestList`'s state to be persisted in the
+  key-value store. This is useful in case of a restart or migration. Since `RequestList` is only stored in memory, a restart or migration wipes it
+  clean. Setting a name will enable the `RequestList`'s state to survive those situations and continue where it left off.
 
     The name will be used as a prefix in key-value store, producing keys such as `NAME-REQUEST_LIST_STATE` and `NAME-REQUEST_LIST_SOURCES`.
 
     If `null`, the list will not be persisted and will only be stored in memory. Process restart will then cause the list to be crawled again from the
     beginning. We suggest always using a name.
 
--   **`sources`**: [`Array<(RequestOptions|Request|string)>`](../typedefs/request-options) - An array of sources of URLs for the
-    [`RequestList`](../api/request-list). It can be either an array of strings, plain objects that define at least the `url` property, or an array of
-    [`Request`](../api/request) instances.
+- **`sources`**: [`Array<(RequestOptions|Request|string)>`](../typedefs/request-options) - An array of sources of URLs for the
+  [`RequestList`](../api/request-list). It can be either an array of strings, plain objects that define at least the `url` property, or an array of
+  [`Request`](../api/request) instances.
 
     **IMPORTANT:** The `sources` array will be consumed (left empty) after [`RequestList`](../api/request-list) initializes. This is a measure to
     prevent memory leaks in situations when millions of sources are added.
@@ -681,10 +685,10 @@ parameter containing regular expression pattern for URLs to be included.
 
 For details, see the [`RequestListOptions.sources`](../typedefs/request-list-options#sources)
 
--   **`[options]`**: [`RequestListOptions`](../typedefs/request-list-options) - The [`RequestList`](../api/request-list) options. Note that the
-    `listName` parameter supersedes the [`RequestListOptions.persistStateKey`](../typedefs/request-list-options#persiststatekey) and
-    [`RequestListOptions.persistRequestsKey`](../typedefs/request-list-options#persistrequestskey) options and the `sources` parameter supersedes the
-    [`RequestListOptions.sources`](../typedefs/request-list-options#sources) option.
+- **`[options]`**: [`RequestListOptions`](../typedefs/request-list-options) - The [`RequestList`](../api/request-list) options. Note that the
+  `listName` parameter supersedes the [`RequestListOptions.persistStateKey`](../typedefs/request-list-options#persiststatekey) and
+  [`RequestListOptions.persistRequestsKey`](../typedefs/request-list-options#persistrequestskey) options and the `sources` parameter supersedes the
+  [`RequestListOptions.sources`](../typedefs/request-list-options#sources) option.
 
 **Returns**:
 
@@ -706,11 +710,11 @@ For more details and code examples, see the [`RequestQueue`](../api/request-queu
 
 **Parameters**:
 
--   **`[queueIdOrName]`**: `string` - ID or name of the request queue to be opened. If `null` or `undefined`, the function returns the default request
-    queue associated with the actor run.
--   **`[options]`**: `object`
-    -   **`[forceCloud]`**: `boolean` <code> = false</code> - If set to `true` then the function uses cloud storage usage even if the
-        `APIFY_LOCAL_STORAGE_DIR` environment variable is set. This way it is possible to combine local and cloud storage.
+- **`[queueIdOrName]`**: `string` - ID or name of the request queue to be opened. If `null` or `undefined`, the function returns the default request
+  queue associated with the actor run.
+- **`[options]`**: `object`
+    - **`[forceCloud]`**: `boolean` <code> = false</code> - If set to `true` then the function uses cloud storage usage even if the
+      `APIFY_LOCAL_STORAGE_DIR` environment variable is set. This way it is possible to combine local and cloud storage.
 
 **Returns**:
 
@@ -728,7 +732,7 @@ For more details and code examples, see the [`SessionPool`](../api/session-pool)
 
 **Parameters**:
 
--   **`sessionPoolOptions`**: [`SessionPoolOptions`](../typedefs/session-pool-options)
+- **`sessionPoolOptions`**: [`SessionPoolOptions`](../typedefs/session-pool-options)
 
 **Returns**:
 
@@ -761,8 +765,8 @@ For more information, see [`Apify.openDataset()`](../api/apify#opendataset) and 
 
 **Parameters**:
 
--   **`item`**: `object` - Object or array of objects containing data to be stored in the default dataset. The objects must be serializable to JSON
-    and the JSON representation of each object must be smaller than 9MB.
+- **`item`**: `object` - Object or array of objects containing data to be stored in the default dataset. The objects must be serializable to JSON
+  and the JSON representation of each object must be smaller than 9MB.
 
 **Returns**:
 
@@ -796,14 +800,14 @@ For more information, see [`Apify.openKeyValueStore()`](../api/apify#openkeyvalu
 
 **Parameters**:
 
--   **`key`**: `string` - Unique record key.
--   **`value`**: `*` - Record data, which can be one of the following values:
-    -   If `null`, the record in the key-value store is deleted.
-    -   If no `options.contentType` is specified, `value` can be any JavaScript object and it will be stringified to JSON.
-    -   If `options.contentType` is set, `value` is taken as is and it must be a `String` or [`Buffer`](https://nodejs.org/api/buffer.html). For any
-        other value an error will be thrown.
--   **`[options]`**: `object`
-    -   **`[contentType]`**: `string` - Specifies a custom MIME content type of the record.
+- **`key`**: `string` - Unique record key.
+- **`value`**: `*` - Record data, which can be one of the following values:
+    - If `null`, the record in the key-value store is deleted.
+    - If no `options.contentType` is specified, `value` can be any JavaScript object and it will be stringified to JSON.
+    - If `options.contentType` is set, `value` is taken as is and it must be a `String` or [`Buffer`](https://nodejs.org/api/buffer.html). For any
+      other value an error will be thrown.
+- **`[options]`**: `object`
+    - **`[contentType]`**: `string` - Specifies a custom MIME content type of the record.
 
 **Returns**:
 

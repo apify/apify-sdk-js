@@ -46,11 +46,11 @@ Apify.main(async () => {
             console.log(`Processing ${request.url}...`);
 
             // A function to be evaluated by Puppeteer within the browser context.
-            const data = await page.$$eval('.athing', $posts => {
+            const data = await page.$$eval('.athing', ($posts) => {
                 const scrapedData = [];
 
                 // We're getting the title, rank and URL of each post on Hacker News.
-                $posts.forEach($post => {
+                $posts.forEach(($post) => {
                     scrapedData.push({
                         title: $post.querySelector('.title a').innerText,
                         rank: $post.querySelector('.rank').innerText,
@@ -71,7 +71,8 @@ Apify.main(async () => {
                 selector: '.morelink',
             });
 
-            if (infos.length === 0) console.log(`${request.url} is the last page!`);
+            if (infos.length === 0)
+                console.log(`${request.url} is the last page!`);
         },
 
         // This function is called if the page processing failed more than maxRequestRetries+1 times.

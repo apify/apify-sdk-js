@@ -3,21 +3,26 @@ import { once } from 'node:events';
 import { readdir, readFile } from 'node:fs/promises';
 import { basename, dirname, join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { Worker, isMainThread, workerData } from 'node:worker_threads';
+import { isMainThread, Worker, workerData } from 'node:worker_threads';
+
+import { ApifyClient } from 'apify-client';
 
 import { ACTOR_SOURCE_TYPES } from '@apify/consts';
+import { log } from '@apify/log';
 import { cryptoRandomObjectId } from '@apify/utilities';
-import { ApifyClient } from 'apify-client';
 
 const rootPath = dirname(fileURLToPath(import.meta.url));
 const basePath = join(rootPath, 'sdk');
 const actorBasePath = join(basePath, 'actorBase');
 
 async function run() {
-    console.log(`Running E2E SDK tests`);
+    log.info(`Running E2E SDK tests`);
 
     const paths = await readdir(basePath, { withFileTypes: true });
-    const dirs = paths.filter((dirent) => dirent.isDirectory() && dirent.name !== basename(actorBasePath));
+    const dirs = paths.filter(
+        (dirent) =>
+            dirent.isDirectory() && dirent.name !== basename(actorBasePath),
+    );
 
     for (const dir of dirs) {
         await runWorker(dir.name);
@@ -33,21 +38,21 @@ async function runWorker(dirName) {
 
     worker.on('exit', (exitCode) => {
         if (exitCode !== 0) {
-            console.error(`Test ${dirName} failed`);
+            log.error(`Test ${dirName} failed`);
 
             const out = worker.stdout.read();
             if (out) {
-                console.log('Captured stdout:');
+                log.info('Captured stdout:');
                 process.stdout.write(out);
             }
 
             const err = worker.stderr.read();
             if (err) {
-                console.log('Captured stderr:');
+                log.info('Captured stderr:');
                 process.stderr.write(err);
             }
         } else {
-            console.log(`${dirName} OK`);
+            log.info(`${dirName} OK`);
         }
     });
 
@@ -58,21 +63,25 @@ async function packDir(dirName) {
     const sourceFiles = {};
     const textSuffixes = ['.mjs', '.json', 'Dockerfile'];
 
-    for (const dirent of await readdir(dirName, { recursive: true, withFileTypes: true })) {
+    for (const dirent of await readdir(dirName, {
+        recursive: true,
+        withFileTypes: true,
+    })) {
         if (!dirent.isFile()) {
             continue;
         }
 
         const name = relative(dirName, join(dirent.parentPath, dirent.name));
-        const format = textSuffixes.some((suffix) => name.endsWith(suffix)) ? 'TEXT' : 'BASE64';
+        const format = textSuffixes.some((suffix) => name.endsWith(suffix))
+            ? 'TEXT'
+            : 'BASE64';
 
         sourceFiles[name] = {
             name,
             format,
-            content: await readFile(
-                join(dirent.parentPath, dirent.name),
-                { encoding: format === 'base64' ? 'base64' : 'utf8' },
-            ),
+            content: await readFile(join(dirent.parentPath, dirent.name), {
+                encoding: format === 'base64' ? 'base64' : 'utf8',
+            }),
         };
     }
 
@@ -90,7 +99,9 @@ async function runTest(dirName) {
     sourceFiles['apify.tgz'] = {
         name: 'apify.tgz',
         format: 'BASE64',
-        content: await readFile(join(rootPath, 'apify.tgz'), { encoding: 'base64' }),
+        content: await readFile(join(rootPath, 'apify.tgz'), {
+            encoding: 'base64',
+        }),
     };
 
     const client = new ApifyClient({
@@ -118,7 +129,9 @@ async function runTest(dirName) {
 
     const actorClient = client.actor(actor.id);
     const build = await actorClient.build('0.0');
-    const buildResult = await client.build(build.id).waitForFinish({ waitSecs: 30 * 60 });
+    const buildResult = await client
+        .build(build.id)
+        .waitForFinish({ waitSecs: 30 * 60 });
 
     if (buildResult.status !== 'SUCCEEDED') {
         throw new Error('Build failed');
@@ -145,16 +158,14 @@ async function runTest(dirName) {
     const { pricingInfos = [] } = await actorClient.get();
 
     if (pricingInfos.length > 0) {
-        await actorClient.update(
-            {
-                pricingInfos: [
-                    ...pricingInfos,
-                    {
-                        pricingModel: 'FREE',
-                    },
-                ],
-            },
-        );
+        await actorClient.update({
+            pricingInfos: [
+                ...pricingInfos,
+                {
+                    pricingModel: 'FREE',
+                },
+            ],
+        });
     }
 
     if (testProcess.exitCode === 0) {

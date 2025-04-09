@@ -9,8 +9,9 @@ const internalUrls = ['sdk.apify.com'];
  */
 function isInternal(href) {
     return internalUrls.some(
-        (internalUrl) => href.host === internalUrl
-            || (!href.protocol && !href.host && (href.pathname || href.hash)),
+        (internalUrl) =>
+            href.host === internalUrl ||
+            (!href.protocol && !href.host && (href.pathname || href.hash)),
     );
 }
 
@@ -21,9 +22,9 @@ exports.externalLinkProcessor = () => {
     return async (tree) => {
         (await visit)(tree, 'element', (node) => {
             if (
-                node.tagName === 'a'
-                && node.properties
-                && typeof node.properties.href === 'string'
+                node.tagName === 'a' &&
+                node.properties &&
+                typeof node.properties.href === 'string'
             ) {
                 const href = parse(node.properties.href);
 

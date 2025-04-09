@@ -13,7 +13,7 @@ title: BrowserPlugin
 
 **Parameters**:
 
--   **`launcher`**: `*`
--   **`context`**: `Object<string, *>`
+- **`launcher`**: `*`
+- **`context`**: `Object<string, *>`
 
 ---

@@ -1,11 +1,12 @@
 ---
 ---
+
 ## Overview
 
 The Apify SDK is available as the [`apify`](https://www.npmjs.com/package/apify) NPM package and it provides the following tools:
 
 - [`Actor`](https://sdk.apify.com/api/apify/class/Actor) - Serves as an alternative approach to the static helpers exported from the package.
-This class can be used to control the current Actor run and to interact with the Actor's environment.
+  This class can be used to control the current Actor run and to interact with the Actor's environment.
 
 - [`ApifyClient`](https://sdk.apify.com/api/apify/class/ApifyClient) - Allows user to interact with the Apify platform from code, control and schedule Actors on the platform and access the result data stores.
 

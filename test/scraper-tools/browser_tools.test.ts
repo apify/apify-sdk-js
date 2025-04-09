@@ -1,6 +1,7 @@
+import { KeyValueStore, launchPuppeteer, sleep } from 'crawlee';
+
 import log from '@apify/log';
 import { browserTools } from '@apify/scraper-tools';
-import { launchPuppeteer, KeyValueStore } from 'crawlee';
 
 describe('browserTools', () => {
     let browser: Awaited<ReturnType<typeof launchPuppeteer>>;
@@ -16,7 +17,10 @@ describe('browserTools', () => {
     describe('createBrowserHandle()', () => {
         it('should work', async () => {
             const page = await browser.newPage();
-            const handle = await browserTools.createBrowserHandle(page, () => 42);
+            const handle = await browserTools.createBrowserHandle(
+                page,
+                () => 42,
+            );
             const result = await page.evaluate((browserHandle: string) => {
                 // @ts-expect-error We are not extending the window interface but we are extending the object
                 return window[browserHandle]();
@@ -32,7 +36,11 @@ describe('browserTools', () => {
             const instance = await KeyValueStore.open();
             const methods = ['getValue', 'setValue'] as const;
 
-            const handlesMap = await browserTools.createBrowserHandlesForObject(page, instance, methods);
+            const handlesMap = await browserTools.createBrowserHandlesForObject(
+                page,
+                instance,
+                methods,
+            );
 
             expect(typeof handlesMap.getValue).toBe('object');
             expect(typeof handlesMap.getValue.value).toBe('string');
@@ -40,20 +48,29 @@ describe('browserTools', () => {
             expect(typeof handlesMap.setValue).toBe('object');
             expect(typeof handlesMap.setValue.value).toBe('string');
             expect(handlesMap.setValue.type).toBe('METHOD');
-            expect(handlesMap.setValue.value).not.toStrictEqual(handlesMap.getValue.value);
+            expect(handlesMap.setValue.value).not.toStrictEqual(
+                handlesMap.getValue.value,
+            );
 
             await page.evaluate(async (setValueHandle: string) => {
                 // @ts-expect-error We are not extending the window interface but we are extending the object
-                await window[setValueHandle]('123', 'hello', { contentType: 'text/plain' });
+                await window[setValueHandle]('123', 'hello', {
+                    contentType: 'text/plain',
+                });
             }, handlesMap.setValue.value);
             const value = await instance.getValue('123');
             expect(value).toBe('hello');
 
-            await instance.setValue('321', 'bye', { contentType: 'text/plain' });
-            const valueFromBrowser = await page.evaluate(async (getValueHandle: string) => {
-                // @ts-expect-error We are not extending the window interface but we are extending the object
-                return window[getValueHandle]('321');
-            }, handlesMap.getValue.value);
+            await instance.setValue('321', 'bye', {
+                contentType: 'text/plain',
+            });
+            const valueFromBrowser = await page.evaluate(
+                async (getValueHandle: string) => {
+                    // @ts-expect-error We are not extending the window interface but we are extending the object
+                    return window[getValueHandle]('321');
+                },
+                handlesMap.getValue.value,
+            );
             expect(valueFromBrowser).toBe('bye');
 
             const nodeContext = {
@@ -93,7 +110,9 @@ describe('browserTools', () => {
                 console.error('error');
                 console.debug('debug');
 
-                await new Promise((r) => setTimeout(r, 10));
+                await new Promise((resolve) => {
+                    setTimeout(resolve, 10);
+                });
             });
 
             expect(debug).toBeCalledTimes(1);
@@ -109,7 +128,9 @@ describe('browserTools', () => {
             await page.evaluate(async () => {
                 /* eslint-disable no-console */
                 console.error('error');
-                await new Promise((r) => setTimeout(r, 10));
+                await new Promise((resolve) => {
+                    setTimeout(resolve, 10);
+                });
             });
 
             expect(error).toBeCalledTimes(1);

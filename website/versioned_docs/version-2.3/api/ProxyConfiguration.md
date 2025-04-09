@@ -63,10 +63,10 @@ rich representation of a proxy URL. If you need the URL string only, use [`Proxy
 
 **Parameters**:
 
--   **`[sessionId]`**: `string` | `number` - Represents the identifier of user [`Session`](../api/session) that can be managed by the
-    [`SessionPool`](../api/session-pool) or you can use the Apify Proxy [Session](https://docs.apify.com/proxy#sessions) identifier. When the provided
-    sessionId is a number, it's converted to a string. Property sessionId of [`ProxyInfo`](../typedefs/proxy-info) is always returned as a type
-    string.
+- **`[sessionId]`**: `string` | `number` - Represents the identifier of user [`Session`](../api/session) that can be managed by the
+  [`SessionPool`](../api/session-pool) or you can use the Apify Proxy [Session](https://docs.apify.com/proxy#sessions) identifier. When the provided
+  sessionId is a number, it's converted to a string. Property sessionId of [`ProxyInfo`](../typedefs/proxy-info) is always returned as a type
+  string.
 
 All the HTTP requests going through the proxy with the same session identifier will use the same target proxy server (i.e. the same IP address). The
 identifier must not be longer than 50 characters and include only the following: `0-9`, `a-z`, `A-Z`, `"."`, `"_"` and `"~"`.
@@ -85,9 +85,9 @@ Returns a new proxy URL based on provided configuration options and the `session
 
 **Parameters**:
 
--   **`[sessionId]`**: `string` | `number` - Represents the identifier of user [`Session`](../api/session) that can be managed by the
-    [`SessionPool`](../api/session-pool) or you can use the Apify Proxy [Session](https://docs.apify.com/proxy#sessions) identifier. When the provided
-    sessionId is a number, it's converted to a string.
+- **`[sessionId]`**: `string` | `number` - Represents the identifier of user [`Session`](../api/session) that can be managed by the
+  [`SessionPool`](../api/session-pool) or you can use the Apify Proxy [Session](https://docs.apify.com/proxy#sessions) identifier. When the provided
+  sessionId is a number, it's converted to a string.
 
 All the HTTP requests going through the proxy with the same session identifier will use the same target proxy server (i.e. the same IP address). The
 identifier must not be longer than 50 characters and include only the following: `0-9`, `a-z`, `A-Z`, `"."`, `"_"` and `"~"`.

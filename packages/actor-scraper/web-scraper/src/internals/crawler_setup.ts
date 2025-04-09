@@ -3,39 +3,61 @@ import { dirname } from 'node:path';
 import { setTimeout } from 'node:timers/promises';
 import { fileURLToPath, URL } from 'node:url';
 
-import { browserTools, constants as scraperToolsConstants, CrawlerSetupOptions, createContext, tools } from '@apify/scraper-tools';
-import {
+import type {
     AutoscaledPool,
-    Dataset,
-    KeyValueStore,
-    PuppeteerCrawlingContext,
-    PuppeteerCrawler,
-    PuppeteerCrawlerOptions,
-    puppeteerUtils,
-    Request,
-    RequestList,
-    RequestQueueV2,
-    log,
     Awaitable,
     Dictionary,
     ProxyConfiguration,
+    PuppeteerCrawlerOptions,
+    PuppeteerCrawlingContext,
+    Request,
 } from '@crawlee/puppeteer';
-import { Actor, ApifyEnv } from 'apify';
+import {
+    Dataset,
+    KeyValueStore,
+    log,
+    PuppeteerCrawler,
+    puppeteerUtils,
+    RequestList,
+    RequestQueueV2,
+} from '@crawlee/puppeteer';
+import type { ApifyEnv } from 'apify';
+import { Actor } from 'apify';
 import contentType from 'content-type';
 // @ts-expect-error no typings
 import DevToolsServer from 'devtools-server';
 import { getInjectableScript } from 'idcac-playwright';
-import { HTTPResponse, Page } from 'puppeteer';
+import type { HTTPResponse, Page } from 'puppeteer';
+
+import type { CrawlerSetupOptions, createContext } from '@apify/scraper-tools';
+import {
+    browserTools,
+    constants as scraperToolsConstants,
+    tools,
+} from '@apify/scraper-tools';
 
 import { createBundle } from './bundle.browser.js';
-import { BreakpointLocation, CHROME_DEBUGGER_PORT, Input, ProxyRotation, RunMode } from './consts.js';
+import type { Input } from './consts.js';
+import {
+    BreakpointLocation,
+    CHROME_DEBUGGER_PORT,
+    ProxyRotation,
+    RunMode,
+} from './consts.js';
 import { GlobalStore } from './global_store.js';
 
 const SESSION_STORE_NAME = 'APIFY-WEB-SCRAPER-SESSION-STORE';
 
 const MAX_CONCURRENCY_IN_DEVELOPMENT = 1;
-const { SESSION_MAX_USAGE_COUNTS, DEFAULT_VIEWPORT, DEVTOOLS_TIMEOUT_SECS, META_KEY } = scraperToolsConstants;
-const SCHEMA = JSON.parse(await readFile(new URL('../../INPUT_SCHEMA.json', import.meta.url), 'utf8'));
+const {
+    SESSION_MAX_USAGE_COUNTS,
+    DEFAULT_VIEWPORT,
+    DEVTOOLS_TIMEOUT_SECS,
+    META_KEY,
+} = scraperToolsConstants;
+const SCHEMA = JSON.parse(
+    await readFile(new URL('../../INPUT_SCHEMA.json', import.meta.url), 'utf8'),
+);
 
 interface PageContext {
     apifyNamespace: string;
@@ -44,6 +66,7 @@ interface PageContext {
         start: [number, number];
         navStart?: [number, number];
     };
+    // eslint-disable-next-line no-use-before-define -- Circular dependency with WeakMap
     browserHandles?: Awaited<ReturnType<CrawlerSetup['_injectBrowserHandles']>>;
 }
 
@@ -98,7 +121,10 @@ export class CrawlerSetup implements CrawlerSetupOptions {
         this.rawInput = JSON.stringify(input);
 
         // Attempt to load page function from disk if not present on input.
-        tools.maybeLoadPageFunctionFromDisk(input, dirname(fileURLToPath(import.meta.url)));
+        tools.maybeLoadPageFunctionFromDisk(
+            input,
+            dirname(fileURLToPath(import.meta.url)),
+        );
 
         // Validate INPUT if not running on Apify Cloud Platform.
         if (!Actor.isAtHome()) tools.checkInputOrThrow(input, SCHEMA);
@@ -108,40 +134,76 @@ export class CrawlerSetup implements CrawlerSetupOptions {
 
         // Validations
         this.input.pseudoUrls.forEach((purl) => {
-            if (!tools.isPlainObject(purl)) throw new Error('The pseudoUrls Array must only contain Objects.');
-            if (purl.userData && !tools.isPlainObject(purl.userData)) throw new Error('The userData property of a pseudoUrl must be an Object.');
+            if (!tools.isPlainObject(purl)) {
+                throw new Error(
+                    'The pseudoUrls Array must only contain Objects.',
+                );
+            }
+            if (purl.userData && !tools.isPlainObject(purl.userData)) {
+                throw new Error(
+                    'The userData property of a pseudoUrl must be an Object.',
+                );
+            }
         });
 
         this.input.initialCookies.forEach((cookie) => {
-            if (!tools.isPlainObject(cookie)) throw new Error('The initialCookies Array must only contain Objects.');
+            if (!tools.isPlainObject(cookie)) {
+                throw new Error(
+                    'The initialCookies Array must only contain Objects.',
+                );
+            }
         });
 
         this.input.waitUntil.forEach((event) => {
-            if (!/^(domcontentloaded|load|networkidle2|networkidle0)$/.test(event)) {
-                throw new Error('Navigation wait until events must be valid. See tooltip.');
+            if (
+                !/^(domcontentloaded|load|networkidle2|networkidle0)$/.test(
+                    event,
+                )
+            ) {
+                throw new Error(
+                    'Navigation wait until events must be valid. See tooltip.',
+                );
             }
         });
 
         // solving proxy rotation settings
-        this.maxSessionUsageCount = SESSION_MAX_USAGE_COUNTS[this.input.proxyRotation];
+        this.maxSessionUsageCount =
+            SESSION_MAX_USAGE_COUNTS[this.input.proxyRotation];
 
         tools.evalFunctionOrThrow(this.input.pageFunction);
 
         if (this.input.preNavigationHooks) {
-            this.evaledPreNavigationHooks = tools.evalFunctionArrayOrThrow(this.input.preNavigationHooks, 'preNavigationHooks');
+            this.evaledPreNavigationHooks = tools.evalFunctionArrayOrThrow(
+                this.input.preNavigationHooks,
+                'preNavigationHooks',
+            );
         } else {
             this.evaledPreNavigationHooks = [];
         }
 
         if (this.input.postNavigationHooks) {
-            this.evaledPostNavigationHooks = tools.evalFunctionArrayOrThrow(this.input.postNavigationHooks, 'postNavigationHooks');
+            this.evaledPostNavigationHooks = tools.evalFunctionArrayOrThrow(
+                this.input.postNavigationHooks,
+                'postNavigationHooks',
+            );
         } else {
             this.evaledPostNavigationHooks = [];
         }
 
         // Excluded resources
         if (!this.input.downloadMedia) {
-            this.blockedUrlPatterns = ['.jpg', '.jpeg', '.png', '.svg', '.gif', '.webp', '.webm', '.ico', '.woff', '.eot'];
+            this.blockedUrlPatterns = [
+                '.jpg',
+                '.jpeg',
+                '.png',
+                '.svg',
+                '.gif',
+                '.webp',
+                '.webm',
+                '.ico',
+                '.woff',
+                '.eot',
+            ];
         }
 
         if (!this.input.downloadCss) {
@@ -195,20 +257,27 @@ export class CrawlerSetup implements CrawlerSetupOptions {
 
         const args = ['--disable-dev-shm-usage'];
         if (this.input.ignoreCorsAndCsp) args.push('--disable-web-security');
-        if (this.isDevRun) args.push(`--remote-debugging-port=${CHROME_DEBUGGER_PORT}`);
+        if (this.isDevRun)
+            args.push(`--remote-debugging-port=${CHROME_DEBUGGER_PORT}`);
 
         const options: PuppeteerCrawlerOptions = {
             requestHandler: this._requestHandler.bind(this),
             requestList: this.requestList,
             requestQueue: this.requestQueue,
-            requestHandlerTimeoutSecs: this.isDevRun ? DEVTOOLS_TIMEOUT_SECS : this.input.pageFunctionTimeoutSecs,
+            requestHandlerTimeoutSecs: this.isDevRun
+                ? DEVTOOLS_TIMEOUT_SECS
+                : this.input.pageFunctionTimeoutSecs,
             preNavigationHooks: [],
             postNavigationHooks: [],
             failedRequestHandler: this._failedRequestHandler.bind(this),
-            maxConcurrency: this.isDevRun ? MAX_CONCURRENCY_IN_DEVELOPMENT : this.input.maxConcurrency,
+            maxConcurrency: this.isDevRun
+                ? MAX_CONCURRENCY_IN_DEVELOPMENT
+                : this.input.maxConcurrency,
             maxRequestRetries: this.input.maxRequestRetries,
             maxRequestsPerCrawl: this.input.maxPagesPerCrawl,
-            proxyConfiguration: await Actor.createProxyConfiguration(this.input.proxyConfiguration) as any as ProxyConfiguration,
+            proxyConfiguration: (await Actor.createProxyConfiguration(
+                this.input.proxyConfiguration,
+            )) as any as ProxyConfiguration,
             browserPoolOptions: {
                 preLaunchHooks: [
                     async () => {
@@ -217,8 +286,11 @@ export class CrawlerSetup implements CrawlerSetupOptions {
                         }
 
                         const devToolsServer = new DevToolsServer({
-                            containerHost: new URL(process.env.ACTOR_WEB_SERVER_URL!).host,
-                            devToolsServerPort: process.env.ACTOR_WEB_SERVER_PORT,
+                            containerHost: new URL(
+                                process.env.ACTOR_WEB_SERVER_URL!,
+                            ).host,
+                            devToolsServerPort:
+                                process.env.ACTOR_WEB_SERVER_PORT,
                             chromeRemoteDebuggingPort: CHROME_DEBUGGER_PORT,
                         });
                         await devToolsServer.start();
@@ -237,7 +309,9 @@ export class CrawlerSetup implements CrawlerSetupOptions {
             useSessionPool: !this.isDevRun,
             persistCookiesPerSession: !this.isDevRun,
             sessionPoolOptions: {
-                persistStateKeyValueStoreId: this.input.sessionPoolName ? SESSION_STORE_NAME : undefined,
+                persistStateKeyValueStoreId: this.input.sessionPoolName
+                    ? SESSION_STORE_NAME
+                    : undefined,
                 persistStateKey: this.input.sessionPoolName,
                 sessionOptions: {
                     maxUsageCount: this.maxSessionUsageCount,
@@ -264,90 +338,142 @@ export class CrawlerSetup implements CrawlerSetupOptions {
     }
 
     private _createNavigationHooks(options: PuppeteerCrawlerOptions) {
-        options.preNavigationHooks!.push(async ({ request, page, session }, gotoOptions) => {
-            const start = process.hrtime();
+        options.preNavigationHooks!.push(
+            async ({ request, page, session }, gotoOptions) => {
+                const start = process.hrtime();
 
-            // Create a new page context with a new random key for Apify namespace.
-            const pageContext: PageContext = {
-                apifyNamespace: await tools.createRandomHash(),
-                skipLinks: false,
-                timers: { start },
-            };
-            this.pageContexts.set(page, pageContext);
+                // Create a new page context with a new random key for Apify namespace.
+                const pageContext: PageContext = {
+                    apifyNamespace: await tools.createRandomHash(),
+                    skipLinks: false,
+                    timers: { start },
+                };
+                this.pageContexts.set(page, pageContext);
 
-            // Attach a console listener to get all logs as soon as possible.
-            if (this.input.browserLog) browserTools.dumpConsole(page);
+                // Attach a console listener to get all logs as soon as possible.
+                if (this.input.browserLog) browserTools.dumpConsole(page);
 
-            // Prevent download of stylesheets and media, unless selected otherwise
-            if (this.blockedUrlPatterns.length) {
-                await puppeteerUtils.blockRequests(page, {
-                    urlPatterns: this.blockedUrlPatterns,
-                });
-            }
-
-            // Add initial cookies, if any.
-            if (this.input.initialCookies && this.input.initialCookies.length) {
-                const cookiesToSet = session
-                    ? tools.getMissingCookiesFromSession(session, this.input.initialCookies, request.url)
-                    : this.input.initialCookies;
-                if (cookiesToSet && cookiesToSet.length) {
-                    // setting initial cookies that are not already in the session and page
-                    // TODO: We can remove the condition when there is an option to define blocked status codes in sessionPool
-                    session?.setCookies(cookiesToSet, request.url);
-                    await page.setCookie(...cookiesToSet);
+                // Prevent download of stylesheets and media, unless selected otherwise
+                if (this.blockedUrlPatterns.length) {
+                    await puppeteerUtils.blockRequests(page, {
+                        urlPatterns: this.blockedUrlPatterns,
+                    });
                 }
-            }
 
-            // Disable content security policy.
-            if (this.input.ignoreCorsAndCsp) await page.setBypassCSP(true);
-
-            tools.logPerformance(request, 'gotoFunction INIT', start);
-            const handleStart = process.hrtime();
-            pageContext.browserHandles = await this._injectBrowserHandles(page, pageContext);
-            tools.logPerformance(request, 'gotoFunction INJECTION HANDLES', handleStart);
-
-            const evalStart = process.hrtime();
-            await Promise.all([
-                page.evaluateOnNewDocument(createBundle, pageContext.apifyNamespace),
-                page.evaluateOnNewDocument(browserTools.wrapPageFunction(this.input.pageFunction, pageContext.apifyNamespace)),
-            ]);
-            tools.logPerformance(request, 'gotoFunction INJECTION EVAL', evalStart);
-
-            if (this.isDevRun) {
-                const cdpClient = await page.target().createCDPSession();
-                await cdpClient.send('Debugger.enable');
-                if (this.input.breakpointLocation === BreakpointLocation.BeforeGoto) {
-                    await cdpClient.send('Debugger.pause');
+                // Add initial cookies, if any.
+                if (
+                    this.input.initialCookies &&
+                    this.input.initialCookies.length
+                ) {
+                    const cookiesToSet = session
+                        ? tools.getMissingCookiesFromSession(
+                              session,
+                              this.input.initialCookies,
+                              request.url,
+                          )
+                        : this.input.initialCookies;
+                    if (cookiesToSet && cookiesToSet.length) {
+                        // setting initial cookies that are not already in the session and page
+                        // TODO: We can remove the condition when there is an option to define blocked status codes in sessionPool
+                        session?.setCookies(cookiesToSet, request.url);
+                        await page.setCookie(...cookiesToSet);
+                    }
                 }
-            }
 
-            pageContext.timers.navStart = process.hrtime();
-            if (gotoOptions) {
-                gotoOptions.timeout = this.input.pageLoadTimeoutSecs * 1000;
-                gotoOptions.waitUntil = this.input.waitUntil;
-            }
-        });
+                // Disable content security policy.
+                if (this.input.ignoreCorsAndCsp) await page.setBypassCSP(true);
 
-        options.preNavigationHooks!.push(...this._runHookWithEnhancedContext(this.evaledPreNavigationHooks));
-        options.postNavigationHooks!.push(...this._runHookWithEnhancedContext(this.evaledPostNavigationHooks));
+                tools.logPerformance(request, 'gotoFunction INIT', start);
+                const handleStart = process.hrtime();
+                pageContext.browserHandles = await this._injectBrowserHandles(
+                    page,
+                    pageContext,
+                );
+                tools.logPerformance(
+                    request,
+                    'gotoFunction INJECTION HANDLES',
+                    handleStart,
+                );
 
-        options.postNavigationHooks!.push(async ({ request, page, response }) => {
-            await this._waitForLoadEventWhenXml(page, response);
-            const pageContext = this.pageContexts.get(page)!;
-            tools.logPerformance(request, 'gotoFunction NAVIGATION', pageContext.timers.navStart!);
+                const evalStart = process.hrtime();
+                await Promise.all([
+                    page.evaluateOnNewDocument(
+                        createBundle,
+                        pageContext.apifyNamespace,
+                    ),
+                    page.evaluateOnNewDocument(
+                        browserTools.wrapPageFunction(
+                            this.input.pageFunction,
+                            pageContext.apifyNamespace,
+                        ),
+                    ),
+                ]);
+                tools.logPerformance(
+                    request,
+                    'gotoFunction INJECTION EVAL',
+                    evalStart,
+                );
 
-            const delayStart = process.hrtime();
-            await this._assertNamespace(page, pageContext.apifyNamespace);
+                if (this.isDevRun) {
+                    const cdpClient = await page.target().createCDPSession();
+                    await cdpClient.send('Debugger.enable');
+                    if (
+                        this.input.breakpointLocation ===
+                        BreakpointLocation.BeforeGoto
+                    ) {
+                        await cdpClient.send('Debugger.pause');
+                    }
+                }
 
-            // Inject selected libraries
-            if (this.input.injectJQuery) await puppeteerUtils.injectJQuery(page);
+                pageContext.timers.navStart = process.hrtime();
+                if (gotoOptions) {
+                    gotoOptions.timeout = this.input.pageLoadTimeoutSecs * 1000;
+                    gotoOptions.waitUntil = this.input.waitUntil;
+                }
+            },
+        );
 
-            tools.logPerformance(request, 'gotoFunction INJECTION DELAY', delayStart);
-            tools.logPerformance(request, 'gotoFunction EXECUTION', pageContext.timers.start);
-        });
+        options.preNavigationHooks!.push(
+            ...this._runHookWithEnhancedContext(this.evaledPreNavigationHooks),
+        );
+        options.postNavigationHooks!.push(
+            ...this._runHookWithEnhancedContext(this.evaledPostNavigationHooks),
+        );
+
+        options.postNavigationHooks!.push(
+            async ({ request, page, response }) => {
+                await this._waitForLoadEventWhenXml(page, response);
+                const pageContext = this.pageContexts.get(page)!;
+                tools.logPerformance(
+                    request,
+                    'gotoFunction NAVIGATION',
+                    pageContext.timers.navStart!,
+                );
+
+                const delayStart = process.hrtime();
+                await this._assertNamespace(page, pageContext.apifyNamespace);
+
+                // Inject selected libraries
+                if (this.input.injectJQuery)
+                    await puppeteerUtils.injectJQuery(page);
+
+                tools.logPerformance(
+                    request,
+                    'gotoFunction INJECTION DELAY',
+                    delayStart,
+                );
+                tools.logPerformance(
+                    request,
+                    'gotoFunction EXECUTION',
+                    pageContext.timers.start,
+                );
+            },
+        );
     }
 
-    private _runHookWithEnhancedContext(hooks: ((...args: unknown[]) => Awaitable<void>)[]) {
+    private _runHookWithEnhancedContext(
+        hooks: ((...args: unknown[]) => Awaitable<void>)[],
+    ) {
         return hooks.map((hook) => (ctx: Dictionary, ...args: unknown[]) => {
             const { customData } = this.input;
             return hook({ ...ctx, customData }, ...args);
@@ -355,9 +481,12 @@ export class CrawlerSetup implements CrawlerSetupOptions {
     }
 
     private async _failedRequestHandler({ request }: PuppeteerCrawlingContext) {
-        const lastError = request.errorMessages[request.errorMessages.length - 1];
+        const lastError =
+            request.errorMessages[request.errorMessages.length - 1];
         const errorMessage = lastError ? lastError.split('\n')[0] : 'no error';
-        log.error(`Request ${request.url} failed and will not be retried anymore. Marking as failed.\nLast Error Message: ${errorMessage}`);
+        log.error(
+            `Request ${request.url} failed and will not be retried anymore. Marking as failed.\nLast Error Message: ${errorMessage}`,
+        );
         return this._handleResult(request, undefined, undefined, true);
     }
 
@@ -384,7 +513,9 @@ export class CrawlerSetup implements CrawlerSetupOptions {
         tools.ensureMetaData(request);
 
         // Abort the crawler if the maximum number of results was reached.
-        const aborted = await this._handleMaxResultsPerCrawl(crawler.autoscaledPool);
+        const aborted = await this._handleMaxResultsPerCrawl(
+            crawler.autoscaledPool,
+        );
         if (aborted) return;
 
         // Setup Context and pass the configuration down to Browser.
@@ -412,8 +543,15 @@ export class CrawlerSetup implements CrawlerSetupOptions {
          */
         tools.logPerformance(request, 'requestHandler PREPROCESSING', start);
 
-        if (this.isDevRun && this.input.breakpointLocation === BreakpointLocation.BeforePageFunction) {
-            await page.evaluate(async () => { debugger; }); // eslint-disable-line no-debugger
+        if (
+            this.isDevRun &&
+            this.input.breakpointLocation ===
+                BreakpointLocation.BeforePageFunction
+        ) {
+            await page.evaluate(async () => {
+                // eslint-disable-next-line no-debugger -- Debugger is enabled in dev run
+                debugger;
+            });
         }
 
         if (this.input.closeCookieModals) {
@@ -423,57 +561,76 @@ export class CrawlerSetup implements CrawlerSetupOptions {
         }
 
         if (this.input.maxScrollHeightPixels > 0) {
-            await crawlingContext.infiniteScroll({ maxScrollHeight: this.input.maxScrollHeightPixels });
+            await crawlingContext.infiniteScroll({
+                maxScrollHeight: this.input.maxScrollHeightPixels,
+            });
         }
 
         const startUserFn = process.hrtime();
 
         const namespace = pageContext.apifyNamespace;
-        const output = await page.evaluate(async (ctxOpts: typeof contextOptions, namespc: string) => {
-            const context: ReturnType<typeof createContext>['context'] = window[namespc].createContext(ctxOpts);
-            // eslint-disable-next-line @typescript-eslint/no-shadow
-            const output = {} as Output;
-            try {
-                output.pageFunctionResult = await window[namespc].pageFunction(context);
-            } catch (err) {
-                const casted = err as Error;
-                output.pageFunctionError = Object.getOwnPropertyNames(casted)
-                    .reduce((memo, name) => {
+        const output = await page.evaluate(
+            async (ctxOpts: typeof contextOptions, namespc: string) => {
+                const context: ReturnType<typeof createContext>['context'] =
+                    window[namespc].createContext(ctxOpts);
+                // eslint-disable-next-line @typescript-eslint/no-shadow
+                const output = {} as Output;
+                try {
+                    output.pageFunctionResult =
+                        await window[namespc].pageFunction(context);
+                } catch (err) {
+                    const casted = err as Error;
+                    output.pageFunctionError = Object.getOwnPropertyNames(
+                        casted,
+                    ).reduce((memo, name) => {
                         memo[name] = casted[name as keyof Error];
                         return memo;
                     }, {} as Dictionary);
-            }
-
-            // This needs to be added after pageFunction has run.
-            output.requestFromBrowser = context.request as Request;
-
-            /**
-             * Since Dates cannot travel back to Node and Puppeteer does not use .toJSON
-             * to stringify, they come back as empty objects. We could use JSON.stringify
-             * ourselves, but that exposes us to overridden .toJSON in the target websites.
-             * This hack is not ideal, but it avoids both problems.
-             */
-            function replaceAllDatesInObjectWithISOStrings(obj: Output) {
-                for (const [key, value] of Object.entries(obj)) {
-                    if (value instanceof Date && typeof value.toISOString === 'function') {
-                        Reflect.set(obj, key, value.toISOString());
-                    } else if (value && typeof value === 'object') {
-                        replaceAllDatesInObjectWithISOStrings(value as Output);
-                    }
                 }
-                return obj;
-            }
 
-            return replaceAllDatesInObjectWithISOStrings(output);
-        }, contextOptions, namespace);
+                // This needs to be added after pageFunction has run.
+                output.requestFromBrowser = context.request as Request;
 
-        tools.logPerformance(request, 'requestHandler USER FUNCTION', startUserFn);
+                /**
+                 * Since Dates cannot travel back to Node and Puppeteer does not use .toJSON
+                 * to stringify, they come back as empty objects. We could use JSON.stringify
+                 * ourselves, but that exposes us to overridden .toJSON in the target websites.
+                 * This hack is not ideal, but it avoids both problems.
+                 */
+                function replaceAllDatesInObjectWithISOStrings(obj: Output) {
+                    for (const [key, value] of Object.entries(obj)) {
+                        if (
+                            value instanceof Date &&
+                            typeof value.toISOString === 'function'
+                        ) {
+                            Reflect.set(obj, key, value.toISOString());
+                        } else if (value && typeof value === 'object') {
+                            replaceAllDatesInObjectWithISOStrings(
+                                value as Output,
+                            );
+                        }
+                    }
+                    return obj;
+                }
+
+                return replaceAllDatesInObjectWithISOStrings(output);
+            },
+            contextOptions,
+            namespace,
+        );
+
+        tools.logPerformance(
+            request,
+            'requestHandler USER FUNCTION',
+            startUserFn,
+        );
         const finishUserFn = process.hrtime();
 
         /**
          * POST-PROCESSING
          */
-        const { pageFunctionResult, requestFromBrowser, pageFunctionError } = output;
+        const { pageFunctionResult, requestFromBrowser, pageFunctionError } =
+            output;
         // Merge requestFromBrowser into request to preserve modifications that
         // may have been made in browser context.
         Object.assign(request, requestFromBrowser);
@@ -491,30 +648,56 @@ export class CrawlerSetup implements CrawlerSetupOptions {
         // Save the `pageFunction`s result (or just metadata) to the default dataset.
         await this._handleResult(request, response, pageFunctionResult);
 
-        tools.logPerformance(request, 'requestHandler POSTPROCESSING', finishUserFn);
+        tools.logPerformance(
+            request,
+            'requestHandler POSTPROCESSING',
+            finishUserFn,
+        );
         tools.logPerformance(request, 'requestHandler EXECUTION', start);
 
-        if (this.isDevRun && this.input.breakpointLocation === BreakpointLocation.AfterPageFunction) {
-            await page.evaluate(async () => { debugger; }); // eslint-disable-line no-debugger
+        if (
+            this.isDevRun &&
+            this.input.breakpointLocation ===
+                BreakpointLocation.AfterPageFunction
+        ) {
+            await page.evaluate(async () => {
+                // eslint-disable-next-line no-debugger -- Debugger is enabled in dev run
+                debugger;
+            });
         }
     }
 
     private async _handleMaxResultsPerCrawl(autoscaledPool?: AutoscaledPool) {
-        if (!this.input.maxResultsPerCrawl || this.pagesOutputted < this.input.maxResultsPerCrawl) return false;
+        if (
+            !this.input.maxResultsPerCrawl ||
+            this.pagesOutputted < this.input.maxResultsPerCrawl
+        )
+            return false;
         if (!autoscaledPool) return false;
-        log.info(`User set limit of ${this.input.maxResultsPerCrawl} results was reached. Finishing the crawl.`);
+        log.info(
+            `User set limit of ${this.input.maxResultsPerCrawl} results was reached. Finishing the crawl.`,
+        );
         await autoscaledPool.abort();
         return true;
     }
 
-    private async _handleLinks({ request, enqueueLinks }: PuppeteerCrawlingContext) {
+    private async _handleLinks({
+        request,
+        enqueueLinks,
+    }: PuppeteerCrawlingContext) {
         if (!(this.input.linkSelector && this.requestQueue)) return;
         const start = process.hrtime();
 
-        const currentDepth = (request.userData![META_KEY] as tools.RequestMetadata).depth;
-        const hasReachedMaxDepth = this.input.maxCrawlingDepth && currentDepth >= this.input.maxCrawlingDepth;
+        const currentDepth = (
+            request.userData![META_KEY] as tools.RequestMetadata
+        ).depth;
+        const hasReachedMaxDepth =
+            this.input.maxCrawlingDepth &&
+            currentDepth >= this.input.maxCrawlingDepth;
         if (hasReachedMaxDepth) {
-            log.debug(`Request ${request.url} reached the maximum crawling depth of ${currentDepth}.`);
+            log.debug(
+                `Request ${request.url} reached the maximum crawling depth of ${currentDepth}.`,
+            );
             return;
         }
 
@@ -539,9 +722,19 @@ export class CrawlerSetup implements CrawlerSetupOptions {
         tools.logPerformance(request, 'handleLinks EXECUTION', start);
     }
 
-    private async _handleResult(request: Request, response?: HTTPResponse, pageFunctionResult?: Dictionary, isError?: boolean) {
+    private async _handleResult(
+        request: Request,
+        response?: HTTPResponse,
+        pageFunctionResult?: Dictionary,
+        isError?: boolean,
+    ) {
         const start = process.hrtime();
-        const payload = tools.createDatasetPayload(request, response, pageFunctionResult, isError);
+        const payload = tools.createDatasetPayload(
+            request,
+            response,
+            pageFunctionResult,
+            isError,
+        );
         await this.dataset.pushData(payload);
         this.pagesOutputted++;
         tools.logPerformance(request, 'handleResult EXECUTION', start);
@@ -549,19 +742,28 @@ export class CrawlerSetup implements CrawlerSetupOptions {
 
     private async _assertNamespace(page: Page, namespace: string) {
         try {
-            await page.waitForFunction((nmspc: string) => !!window[nmspc], { timeout: this.input.pageLoadTimeoutSecs * 1000 }, namespace);
+            await page.waitForFunction(
+                (nmspc: string) => !!window[nmspc],
+                { timeout: this.input.pageLoadTimeoutSecs * 1000 },
+                namespace,
+            );
         } catch (err) {
             const casted = err as Error;
             if (casted.stack!.startsWith('TimeoutError')) {
-                throw new Error('Injection of environment into the browser context timed out. '
-                    + 'If this persists even after retries, try increasing the Page load timeout input setting.');
+                throw new Error(
+                    'Injection of environment into the browser context timed out. ' +
+                        'If this persists even after retries, try increasing the Page load timeout input setting.',
+                );
             } else {
                 throw err;
             }
         }
     }
 
-    private async _waitForLoadEventWhenXml(page: Page, response?: HTTPResponse) {
+    private async _waitForLoadEventWhenXml(
+        page: Page,
+        response?: HTTPResponse,
+    ) {
         // Response can sometimes be null.
         if (!response) return;
 
@@ -576,12 +778,17 @@ export class CrawlerSetup implements CrawlerSetupOptions {
 
         try {
             const timeout = this.input.pageLoadTimeoutSecs * 1000;
-            await page.waitForFunction(() => document.readyState === 'complete', { timeout });
+            await page.waitForFunction(
+                () => document.readyState === 'complete',
+                { timeout },
+            );
         } catch (err) {
             const casted = err as Error;
             if (casted.stack!.startsWith('TimeoutError')) {
-                throw new Error('Parsing of XML in the page timed out. If you\'re expecting a large XML file, '
-                    + ' such as a site map, try increasing the Page load timeout input setting.');
+                throw new Error(
+                    "Parsing of XML in the page timed out. If you're expecting a large XML file, " +
+                        ' such as a site map, try increasing the Page load timeout input setting.',
+                );
             } else {
                 throw err;
             }
@@ -589,24 +796,51 @@ export class CrawlerSetup implements CrawlerSetupOptions {
     }
 
     private async _injectBrowserHandles(page: Page, pageContext: PageContext) {
-        const saveSnapshotP = browserTools.createBrowserHandle(page, async () => browserTools.saveSnapshot({ page }));
-        const skipLinksP = browserTools.createBrowserHandle(page, () => { pageContext.skipLinks = true; });
+        const saveSnapshotP = browserTools.createBrowserHandle(page, async () =>
+            browserTools.saveSnapshot({ page }),
+        );
+        const skipLinksP = browserTools.createBrowserHandle(page, () => {
+            pageContext.skipLinks = true;
+        });
         const globalStoreP = browserTools.createBrowserHandlesForObject(
             page,
             this.globalStore,
-            ['size', 'clear', 'delete', 'entries', 'get', 'has', 'keys', 'set', 'values'],
+            [
+                'size',
+                'clear',
+                'delete',
+                'entries',
+                'get',
+                'has',
+                'keys',
+                'set',
+                'values',
+            ],
             ['size'],
         );
-        const logP = browserTools.createBrowserHandlesForObject(
-            page,
-            log,
-            ['LEVELS', 'setLevel', 'getLevel', 'debug', 'info', 'warning', 'error', 'exception'],
-        );
+        const logP = browserTools.createBrowserHandlesForObject(page, log, [
+            'LEVELS',
+            'setLevel',
+            'getLevel',
+            'debug',
+            'info',
+            'warning',
+            'error',
+            'exception',
+        ]);
         const requestQueueP = this.requestQueue
-            ? browserTools.createBrowserHandlesForObject(page, this.requestQueue, ['addRequest'])
+            ? browserTools.createBrowserHandlesForObject(
+                  page,
+                  this.requestQueue,
+                  ['addRequest'],
+              )
             : null;
         const keyValueStoreP = this.keyValueStore
-            ? browserTools.createBrowserHandlesForObject(page, this.keyValueStore, ['getValue', 'setValue'])
+            ? browserTools.createBrowserHandlesForObject(
+                  page,
+                  this.keyValueStore,
+                  ['getValue', 'setValue'],
+              )
             : null;
 
         const [
@@ -616,7 +850,14 @@ export class CrawlerSetup implements CrawlerSetupOptions {
             logHandle,
             requestQueue,
             keyValueStore,
-        ] = await Promise.all([saveSnapshotP, skipLinksP, globalStoreP, logP, requestQueueP, keyValueStoreP]);
+        ] = await Promise.all([
+            saveSnapshotP,
+            skipLinksP,
+            globalStoreP,
+            logP,
+            requestQueueP,
+            keyValueStoreP,
+        ]);
 
         return {
             saveSnapshot,

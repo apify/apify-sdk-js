@@ -11,9 +11,9 @@ Typically, you will be developing the code on your local computer and thus set t
 
 **Related links**
 
--   [Apify platform storage documentation](https://docs.apify.com/storage)
--   [View storage in Apify app](https://my.apify.com/storage)
--   [Request queues API reference](https://docs.apify.com/api/v2#/reference/request-queues)
+- [Apify platform storage documentation](https://docs.apify.com/storage)
+- [View storage in Apify app](https://my.apify.com/storage)
+- [Request queues API reference](https://docs.apify.com/api/v2#/reference/request-queues)
 
 ## Request queue
 
@@ -98,6 +98,7 @@ This is necessary to avoid the same URL being processed more than once (from the
 In practical terms, such a combination can be useful when there are numerous initial URLs, but more URLs would be added dynamically by the crawler.
 
 The following code demonstrates how to use Request queue and Request list in the same crawler:
+
 ```javascript
 // Prepare the sources array with URLs to visit (it can contain millions of URLs)
 const sources = [
@@ -119,7 +120,9 @@ const crawler = new Apify.PuppeteerCrawler({
     // At this point request with the same URL would exist in the list and the queue
     handlePageFunction: async ({ request, page }) => {
         // Add new request to the queue
-        await requestQueue.addRequest({ url: 'http://www.example.com/new-page' });
+        await requestQueue.addRequest({
+            url: 'http://www.example.com/new-page',
+        });
 
         // Add links found on page to the queue
         await Apify.utils.enqueueLinks({ page, requestQueue });

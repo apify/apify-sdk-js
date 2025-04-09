@@ -138,7 +138,7 @@ the fly, to pause the crawler by calling [`AutoscaledPool.pause()`](../api/autos
 
 **Parameters**:
 
--   **`options`**: [`PlaywrightCrawlerOptions`](../typedefs/playwright-crawler-options) - All `PlaywrightCrawler` parameters are passed via an options
-    object.
+- **`options`**: [`PlaywrightCrawlerOptions`](../typedefs/playwright-crawler-options) - All `PlaywrightCrawler` parameters are passed via an options
+  object.
 
 ---

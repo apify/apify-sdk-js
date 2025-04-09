@@ -1,6 +1,6 @@
 ---
-
 ---
+
 ## Overview
 
 The Apify SDK is available as the [`apify`](https://www.npmjs.com/package/apify) NPM package and it provides the following tools:

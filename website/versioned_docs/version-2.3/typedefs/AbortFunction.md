@@ -7,7 +7,7 @@ title: AbortFunction
 
 **Parameters**:
 
--   **`response`**: `IncomingMessage`
+- **`response`**: `IncomingMessage`
 
 **Returns**:
 

@@ -1,4 +1,11 @@
-import { getTestDir, getStats, getDatasetItems, run, expect, validateDataset } from '../../tools.mjs';
+import {
+    expect,
+    getDatasetItems,
+    getStats,
+    getTestDir,
+    run,
+    validateDataset,
+} from '../../tools.mjs';
 
 const testDir = getTestDir(import.meta.url);
 
@@ -6,18 +13,23 @@ const { exit } = process;
 process.exit = () => {};
 
 await run(testDir, 'puppeteer-scraper', {
-    startUrls: [{
-        url: 'https://warehouse-theme-metal.myshopify.com/collections/all-tvs',
-        method: 'GET',
-        userData: { label: 'START' },
-    }],
-    pseudoUrls: [{
-        purl: 'https://warehouse-theme-metal.myshopify.com/products/sony-xbr-65x950g-65-class-64-5-diag-bravia-4k-hdr-ultra-hd-tv',
-        method: 'GET',
-        userData: { label: 'DETAIL' },
-    }],
+    startUrls: [
+        {
+            url: 'https://warehouse-theme-metal.myshopify.com/collections/all-tvs',
+            method: 'GET',
+            userData: { label: 'START' },
+        },
+    ],
+    pseudoUrls: [
+        {
+            purl: 'https://warehouse-theme-metal.myshopify.com/products/sony-xbr-65x950g-65-class-64-5-diag-bravia-4k-hdr-ultra-hd-tv',
+            method: 'GET',
+            userData: { label: 'DETAIL' },
+        },
+    ],
     linkSelector: 'a',
     keepUrlFragments: false,
+    // eslint-disable-next-line consistent-return -- simplifies branching in pageFunction
     pageFunction: async function pageFunction(context) {
         const { request, log, skipLinks, page } = context;
 
@@ -33,8 +45,14 @@ await run(testDir, 'puppeteer-scraper', {
             const urlPart = url.split('/').slice(-1); // ['sennheiser-mke-440-professional-stereo-shotgun-microphone-mke-440']
             const manufacturer = urlPart[0].split('-')[0]; // 'sennheiser'
 
-            const title = await page.locator('.product-meta h1').map((el) => el.textContent).wait();
-            const sku = await page.locator('span.product-meta__sku-number').map((el) => el.textContent).wait();
+            const title = await page
+                .locator('.product-meta h1')
+                .map((el) => el.textContent)
+                .wait();
+            const sku = await page
+                .locator('span.product-meta__sku-number')
+                .map((el) => el.textContent)
+                .wait();
 
             const rawPriceString = await page
                 .locator('span.price')
@@ -48,7 +66,7 @@ await run(testDir, 'puppeteer-scraper', {
             const inStock = await page
                 .locator('span.product-form__inventory')
                 .filter((el) => el.textContent.includes('In stock'))
-                .map((el) => (!!el))
+                .map((el) => !!el)
                 .wait();
 
             return {
@@ -81,17 +99,14 @@ await expect(stats.requestsFinished === 2, 'All requests finished');
 const datasetItems = await getDatasetItems(testDir);
 await expect(datasetItems.length === 1, 'Number of dataset items');
 await expect(
-    validateDataset(
-        datasetItems,
-        [
-            'url',
-            'manufacturer',
-            'title',
-            'sku',
-            'currentPrice',
-            'availableInStock',
-        ],
-    ),
+    validateDataset(datasetItems, [
+        'url',
+        'manufacturer',
+        'title',
+        'sku',
+        'currentPrice',
+        'availableInStock',
+    ]),
     'Dataset items validation',
 );
 

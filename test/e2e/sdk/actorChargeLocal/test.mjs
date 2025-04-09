@@ -23,10 +23,16 @@ test('basic functionality', async () => {
     assert.strictEqual(run.status, 'SUCCEEDED');
     assert.deepEqual(run.chargedEventCounts, undefined);
 
-    const chargingDataset = await Dataset.open(run.defaultDatasetId, { storageClient: client });
+    const chargingDataset = await Dataset.open(run.defaultDatasetId, {
+        storageClient: client,
+    });
     const chargingRecords = await chargingDataset.getData();
 
-    assert.strictEqual(chargingRecords.count, 1, `There must be exactly one item in the charging dataset (ID ${chargingDataset.id})`);
+    assert.strictEqual(
+        chargingRecords.count,
+        1,
+        `There must be exactly one item in the charging dataset (ID ${chargingDataset.id})`,
+    );
     assert.strictEqual(chargingRecords.items[0].chargedCount, 4);
     assert.strictEqual(chargingRecords.items[0].eventName, 'foobar');
 });
@@ -37,10 +43,16 @@ test('charge limit', async () => {
     assert.strictEqual(run.status, 'SUCCEEDED');
     assert.deepEqual(run.chargedEventCounts, undefined);
 
-    const chargingDataset = await Dataset.open(run.defaultDatasetId, { storageClient: client });
+    const chargingDataset = await Dataset.open(run.defaultDatasetId, {
+        storageClient: client,
+    });
     const chargingRecords = await chargingDataset.getData();
 
-    assert.strictEqual(chargingRecords.count, 1, `There must be exactly one item in the charging dataset (ID ${chargingDataset.id})`);
+    assert.strictEqual(
+        chargingRecords.count,
+        1,
+        `There must be exactly one item in the charging dataset (ID ${chargingDataset.id})`,
+    );
     assert.strictEqual(chargingRecords.items[0].chargedCount, 2);
     assert.strictEqual(chargingRecords.items[0].eventName, 'foobar');
 });

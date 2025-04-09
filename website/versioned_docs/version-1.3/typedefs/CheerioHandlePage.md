@@ -8,7 +8,7 @@ id: cheerio-handle-page
 
 **Parameters**:
 
--   **`inputs`**: [`CheerioHandlePageInputs`](../typedefs/cheerio-handle-page-inputs) - Arguments passed to this callback.
+- **`inputs`**: [`CheerioHandlePageInputs`](../typedefs/cheerio-handle-page-inputs) - Arguments passed to this callback.
 
 **Returns**:
 

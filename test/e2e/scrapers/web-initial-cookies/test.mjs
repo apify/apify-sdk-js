@@ -1,4 +1,10 @@
-import { getTestDir, getStats, run, expect, getDatasetItems } from '../../tools.mjs';
+import {
+    expect,
+    getDatasetItems,
+    getStats,
+    getTestDir,
+    run,
+} from '../../tools.mjs';
 
 const testDir = getTestDir(import.meta.url);
 
@@ -6,10 +12,12 @@ const { exit } = process;
 process.exit = () => {};
 
 await run(testDir, 'web-scraper', {
-    startUrls: [{
-        url: 'https://api.apify.com/v2/browser-info',
-        method: 'GET',
-    }],
+    startUrls: [
+        {
+            url: 'https://api.apify.com/v2/browser-info',
+            method: 'GET',
+        },
+    ],
     keepUrlFragments: false,
     linkSelector: 'a[href]',
     pageFunction: async function pageFunction({ input, log }) {
@@ -28,14 +36,19 @@ await run(testDir, 'web-scraper', {
         let numberOfMatchingCookies = 0;
         pageCookies.forEach((cookieObject) => {
             initialCookies.forEach((initialCookieObject) => {
-                if (cookieObject.name === initialCookieObject.name && cookieObject.value === initialCookieObject.value) {
+                if (
+                    cookieObject.name === initialCookieObject.name &&
+                    cookieObject.value === initialCookieObject.value
+                ) {
                     numberOfMatchingCookies++;
                 }
             });
         });
 
         if (numberOfMatchingCookies !== initialCookiesLength) {
-            throw new Error(`The number of the page cookies does not match the defined initial cookies number. Number of wrong cookies is ${initialCookiesLength - numberOfMatchingCookies}`);
+            throw new Error(
+                `The number of the page cookies does not match the defined initial cookies number. Number of wrong cookies is ${initialCookiesLength - numberOfMatchingCookies}`,
+            );
         }
 
         log.info('All cookies were successfully checked.');
@@ -76,11 +89,15 @@ const stats = await getStats(testDir);
 await expect(stats.requestsFinished === 1, 'All requests finished');
 
 const datasetItems = await getDatasetItems(testDir);
-await expect(datasetItems[0].numberOfMatchingCookies === 3, 'Number of page cookies');
 await expect(
-    datasetItems[0].numberOfMatchingCookies === datasetItems[0].initialCookiesLength,
-    `Page cookies match the initial defined cookies. Number of non-matching cookies is `
-    + `${datasetItems[0].initialCookiesLength - datasetItems[0].numberOfMatchingCookies}`,
+    datasetItems[0].numberOfMatchingCookies === 3,
+    'Number of page cookies',
+);
+await expect(
+    datasetItems[0].numberOfMatchingCookies ===
+        datasetItems[0].initialCookiesLength,
+    `Page cookies match the initial defined cookies. Number of non-matching cookies is ` +
+        `${datasetItems[0].initialCookiesLength - datasetItems[0].numberOfMatchingCookies}`,
 );
 
 process.exit(0);

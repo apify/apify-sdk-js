@@ -8,6 +8,7 @@ This example downloads and crawls the URLs from a sitemap.
 <!--DOCUSAURUS_CODE_TABS-->
 
 <!-- CheerioCrawler -->
+
 \
 Using `CheerioCrawler`:
 
@@ -37,6 +38,7 @@ Apify.main(async () => {
 ```
 
 <!-- PuppeteerCrawler -->
+
 \
 Using `PuppeteerCrawler`:
 
@@ -68,6 +70,7 @@ Apify.main(async () => {
 ```
 
 <!-- PlaywrightCrawler -->
+
 \
 Using `PlaywrightCrawler`:
 

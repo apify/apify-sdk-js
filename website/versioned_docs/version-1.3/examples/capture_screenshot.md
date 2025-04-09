@@ -52,7 +52,10 @@ Apify.main(async () => {
     // Navigate to the URL
     await page.goto(url);
     // Capture the screenshot
-    await Apify.utils.puppeteer.saveSnapshot(page, { key: 'my-key', saveHtml: false });
+    await Apify.utils.puppeteer.saveSnapshot(page, {
+        key: 'my-key',
+        saveHtml: false,
+    });
     // Close Puppeteer
     await browser.close();
 });
@@ -118,7 +121,10 @@ Apify.main(async () => {
         // Convert the URL into a valid key
         const key = request.url.replace(/[:/]/g, '_');
         // Capture the screenshot
-        await Apify.utils.puppeteer.saveSnapshot(page, { key, saveHtml: false });
+        await Apify.utils.puppeteer.saveSnapshot(page, {
+            key,
+            saveHtml: false,
+        });
     };
     // Create a PuppeteerCrawler
     const crawler = new Apify.PuppeteerCrawler({

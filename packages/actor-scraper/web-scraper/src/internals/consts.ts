@@ -1,11 +1,47 @@
-import type { ProxyConfigurationOptions, GlobInput, RegExpInput, PseudoUrlInput, RequestOptions, Session, Dictionary } from '@crawlee/puppeteer';
-import { PuppeteerLifeCycleEvent } from 'puppeteer';
+import type {
+    Dictionary,
+    GlobInput,
+    ProxyConfigurationOptions,
+    PseudoUrlInput,
+    RegExpInput,
+    RequestOptions,
+    Session,
+} from '@crawlee/puppeteer';
+import type { PuppeteerLifeCycleEvent } from 'puppeteer';
 
 /**
  * Port where the remote debugging interface in Chrome
  * should be started.
  */
 export const CHROME_DEBUGGER_PORT = 9222;
+
+export const enum RunMode {
+    Production = 'PRODUCTION',
+    Development = 'DEVELOPMENT',
+}
+
+export const enum ProxyRotation {
+    Recommended = 'RECOMMENDED',
+    PerRequest = 'PER_REQUEST',
+    UntilFailure = 'UNTIL_FAILURE',
+}
+
+export const enum BreakpointLocation {
+    None = 'NONE',
+    BeforeGoto = 'BEFORE_GOTO',
+    BeforePageFunction = 'BEFORE_PAGE_FUNCTION',
+    AfterPageFunction = 'AFTER_PAGE_FUNCTION',
+}
+
+declare global {
+    interface Window {
+        [K: string]: any;
+    }
+    // eslint-disable-next-line vars-on-top, no-var
+    var window: Window & typeof globalThis;
+    // eslint-disable-next-line vars-on-top, no-var
+    var document: Document;
+}
 
 /**
  * Replicates the INPUT_SCHEMA with TypeScript types for quick reference
@@ -51,33 +87,4 @@ export interface Input {
     keyValueStoreName?: string;
     requestQueueName?: string;
     headless: boolean;
-}
-
-export const enum RunMode {
-    Production = 'PRODUCTION',
-    Development = 'DEVELOPMENT',
-}
-
-export const enum ProxyRotation {
-    Recommended = 'RECOMMENDED',
-    PerRequest = 'PER_REQUEST',
-    UntilFailure = 'UNTIL_FAILURE',
-}
-
-export const enum BreakpointLocation {
-    None = 'NONE',
-    BeforeGoto = 'BEFORE_GOTO',
-    BeforePageFunction = 'BEFORE_PAGE_FUNCTION',
-    AfterPageFunction = 'AFTER_PAGE_FUNCTION',
-}
-
-declare global {
-    // eslint-disable-next-line vars-on-top, no-var
-    var window: Window & typeof globalThis;
-    // eslint-disable-next-line vars-on-top, no-var
-    var document: Document;
-
-    interface Window {
-        [K: string]: any;
-    }
 }

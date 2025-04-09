@@ -1,12 +1,8 @@
 {
-	"extends": "@apify/tsconfig",
-	"compilerOptions": {
-		"jsx": "preserve"
-	},
-	"include": [
-		"src/**/*.js",
-		"src/**/*.ts",
-		"src/**/*.jsx",
-		"src/**/*.tsx"
-	]
+    "extends": "@apify/tsconfig",
+    "compilerOptions": {
+        "jsx": "preserve",
+        "allowJs": true
+    },
+    "include": ["/**/*.js", "/**/*.ts", "src/**/*.jsx", "src/**/*.tsx"]
 }

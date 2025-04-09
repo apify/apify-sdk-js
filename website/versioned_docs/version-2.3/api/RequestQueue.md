@@ -42,7 +42,10 @@ const queueWithName = await Apify.openRequestQueue('some-name');
 // Enqueue few requests
 await queue.addRequest({ url: 'http://example.com/aaa' });
 await queue.addRequest({ url: 'http://example.com/bbb' });
-await queue.addRequest({ url: 'http://example.com/foo/bar' }, { forefront: true });
+await queue.addRequest(
+    { url: 'http://example.com/foo/bar' },
+    { forefront: true },
+);
 ```
 
 ---
@@ -60,10 +63,10 @@ To add multiple requests to the queue by extracting links from a webpage, see th
 
 **Parameters**:
 
--   **`requestLike`**: [`Request`](../api/request) | [`RequestOptions`](../typedefs/request-options) - [`Request`](../api/request) object or vanilla
-    object with request data. Note that the function sets the `uniqueKey` and `id` fields to the passed Request.
--   **`[options]`**: `Object`
-    -   **`[forefront]`**: `boolean` <code> = false</code> - If `true`, the request will be added to the foremost position in the queue.
+- **`requestLike`**: [`Request`](../api/request) | [`RequestOptions`](../typedefs/request-options) - [`Request`](../api/request) object or vanilla
+  object with request data. Note that the function sets the `uniqueKey` and `id` fields to the passed Request.
+- **`[options]`**: `Object`
+    - **`[forefront]`**: `boolean` <code> = false</code> - If `true`, the request will be added to the foremost position in the queue.
 
 **Returns**:
 
@@ -79,7 +82,7 @@ Gets the request from the queue specified by ID.
 
 **Parameters**:
 
--   **`id`**: `string` - ID of the request.
+- **`id`**: `string` - ID of the request.
 
 **Returns**:
 
@@ -116,7 +119,7 @@ after successful processing. Handled requests will never again be returned by th
 
 **Parameters**:
 
--   **`request`**: [`Request`](../api/request)
+- **`request`**: [`Request`](../api/request)
 
 **Returns**:
 
@@ -134,10 +137,10 @@ parameter. For example, this lets you store the number of retries or error messa
 
 **Parameters**:
 
--   **`request`**: [`Request`](../api/request)
--   **`[options]`**: `object` - **`[forefront]`**: `boolean` <code> = false</code> - If `true` then the request it placed to the beginning of the
-    queue, so that it's returned in the next call to [`RequestQueue.fetchNextRequest()`](../api/request-queue#fetchnextrequest). By default, it's put
-    to the end of the queue.
+- **`request`**: [`Request`](../api/request)
+- **`[options]`**: `object` - **`[forefront]`**: `boolean` <code> = false</code> - If `true` then the request it placed to the beginning of the
+  queue, so that it's returned in the next call to [`RequestQueue.fetchNextRequest()`](../api/request-queue#fetchnextrequest). By default, it's put
+  to the end of the queue.
 
 **Returns**:
 

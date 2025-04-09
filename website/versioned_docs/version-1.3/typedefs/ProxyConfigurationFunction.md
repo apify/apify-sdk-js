@@ -8,7 +8,7 @@ id: proxy-configuration-function
 
 **Parameters**:
 
--   **`sessionId`**: `string` | `number`
+- **`sessionId`**: `string` | `number`
 
 **Returns**:
 

@@ -1,8 +1,6 @@
 {
     "version": "independent",
-    "packages": [
-        "packages/*"
-    ],
+    "packages": ["packages/*"],
     "command": {
         "version": {
             "conventionalCommits": true,
@@ -14,8 +12,5 @@
         }
     },
     "useNx": false,
-    "ignoreChanges": [
-        "**/test/**",
-        "**/*.md"
-    ]
+    "ignoreChanges": ["**/test/**", "**/*.md"]
 }

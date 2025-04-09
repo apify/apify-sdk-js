@@ -9,8 +9,8 @@ If you're unfamiliar with web scraping or web development in general,
 you might prefer to start with [**Scraping with Web Scraper**](https://docs.apify.com/tutorials/apify-scrapers/web-scraper) tutorial from the Apify documentation and then continue with [**Scraping with Cheerio Scraper**](https://docs.apify.com/tutorials/apify-scrapers/cheerio-scraper), a tutorial which will walk you through all the steps and provide a number of examples.
 
 ## Cost of usage
-You can find the average usage cost for this Actor on the [pricing page](https://apify.com/pricing) under the `Which plan do I need?` section. Cheerio Scraper is equivalent to `Simple HTML pages` while Web Scraper, Puppeteer Scraper and Playwright Scraper are equivalent to `Full web pages`. These cost estimates are based on averages and might be lower or higher depending on how heavy the pages you scrape are.
 
+You can find the average usage cost for this Actor on the [pricing page](https://apify.com/pricing) under the `Which plan do I need?` section. Cheerio Scraper is equivalent to `Simple HTML pages` while Web Scraper, Puppeteer Scraper and Playwright Scraper are equivalent to `Full web pages`. These cost estimates are based on averages and might be lower or higher depending on how heavy the pages you scrape are.
 
 ## Usage
 
@@ -53,7 +53,7 @@ The web pages with various content types are parsed differently and
 thus the `context` parameter of the [**Page function**](#page-function) will have different values:
 
 | **Content types**                                       | [`context.body`](#body-stringbuffer) | [`context.$`](#-function) | [`context.json`](#json-object) |
-|---------------------------------------------------------|--------------------------------------|---------------------------|--------------------------------|
+| ------------------------------------------------------- | ------------------------------------ | ------------------------- | ------------------------------ |
 | `text/html`, `application/xhtml+xml`, `application/xml` | `String`                             | `Function`                | `null`                         |
 | `application/json`                                      | `String`                             | `null`                    | `Object`                       |
 | Other                                                   | `Buffer`                             | `null`                    | `null`                         |
@@ -114,9 +114,9 @@ A glob pattern is simply a string with wildcard characters.
 For example, a glob pattern `http://www.example.com/pages/**/*` will match all the
 following URLs:
 
--   `http://www.example.com/pages/deeper-level/page`
--   `http://www.example.com/pages/my-awesome-page`
--   `http://www.example.com/pages/something`
+- `http://www.example.com/pages/deeper-level/page`
+- `http://www.example.com/pages/my-awesome-page`
+- `http://www.example.com/pages/something`
 
 Note that you don't need to use the **Glob Patterns** setting at all, because you can completely control which pages the scraper will access by calling `await context.enqueueRequest()` from the **[Page function](#page-function)**.
 
@@ -131,9 +131,9 @@ a JavaScript-style regular expression to match against the URL.
 For example, a pseudo-URL `http://www.example.com/pages/[(\w|-)*]` will match all the
 following URLs:
 
--   `http://www.example.com/pages/`
--   `http://www.example.com/pages/my-awesome-page`
--   `http://www.example.com/pages/something`
+- `http://www.example.com/pages/`
+- `http://www.example.com/pages/my-awesome-page`
+- `http://www.example.com/pages/something`
 
 If either "`[`" or "`]`" are part of the normal query string, the symbol must be encoded as `[\x5B]` or `[\x5D]`, respectively. For example, the following pseudo-URL:
 
@@ -178,7 +178,7 @@ async function pageFunction(context) {
     // It will be stored to the resulting dataset.
     return {
         url,
-        pageTitle
+        pageTitle,
     };
 }
 ```
@@ -194,228 +194,234 @@ visit the [Mozilla documentation](https://developer.mozilla.org/en-US/docs/Web/J
 
 - ##### **`$: Function`**
 
-  A reference to the [Cheerio](https://cheerio.js.org/)'s function representing the root scope of the DOM
-  of the current HTML page.
+    A reference to the [Cheerio](https://cheerio.js.org/)'s function representing the root scope of the DOM
+    of the current HTML page.
 
-  This function is the starting point for traversing the DOM document and extracting data from it.
-  Like with [jQuery](https://jquery.com/), it is the primary method for selecting elements in the document,
-  but unlike jQuery it is built on top of the [`css-select`](https://www.npmjs.com/package/css-select) library,
-  which implements most of the [`Sizzle`](https://github.com/jquery/sizzle/wiki) selectors.
+    This function is the starting point for traversing the DOM document and extracting data from it.
+    Like with [jQuery](https://jquery.com/), it is the primary method for selecting elements in the document,
+    but unlike jQuery it is built on top of the [`css-select`](https://www.npmjs.com/package/css-select) library,
+    which implements most of the [`Sizzle`](https://github.com/jquery/sizzle/wiki) selectors.
 
-  For more information, see the [Cheerio](https://cheerio.js.org/) documentation.
+    For more information, see the [Cheerio](https://cheerio.js.org/) documentation.
 
-  Example:
+    Example:
 
-  ```html
-  <ul id="movies">
-    <li class="fun-movie">Fun Movie</li>
-    <li class="sad-movie">Sad Movie</li>
-    <li class="horror-movie">Horror Movie</li>
-  </ul>
-  ```
+    ```html
+    <ul id="movies">
+        <li class="fun-movie">Fun Movie</li>
+        <li class="sad-movie">Sad Movie</li>
+        <li class="horror-movie">Horror Movie</li>
+    </ul>
+    ```
 
-  ```javascript
-  $('#movies', '.fun-movie').text();
-  //=> Fun Movie
-  $('ul .sad-movie').attr('class');
-  //=> sad-movie
-  $('li[class=horror-movie]').html();
-  //=> Horror Movie
-  ```
+    ```javascript
+    $('#movies', '.fun-movie').text();
+    //=> Fun Movie
+    $('ul .sad-movie').attr('class');
+    //=> sad-movie
+    $('li[class=horror-movie]').html();
+    //=> Horror Movie
+    ```
 
 - ##### **`Actor: Object`**
 
-  A reference to the [Actor](https://sdk.apify.com/api/apify/class/Actor) object from [Apify SDK](https://sdk.apify.com/).
-  This is equivalent to:
+    A reference to the [Actor](https://sdk.apify.com/api/apify/class/Actor) object from [Apify SDK](https://sdk.apify.com/).
+    This is equivalent to:
 
-  ```javascript
-  import { Actor } from 'apify';
-  ```
+    ```javascript
+    import { Actor } from 'apify';
+    ```
 
 - ##### **`Apify: Object`**
 
-  A reference to the [Actor](https://sdk.apify.com/api/apify/class/Actor) object from [Apify SDK](https://sdk.apify.com/). Included for backward compatibility.
+    A reference to the [Actor](https://sdk.apify.com/api/apify/class/Actor) object from [Apify SDK](https://sdk.apify.com/). Included for backward compatibility.
 
 - ##### **`crawler: Object`**
 
-  A reference to the `CheerioCrawler` object, see [Crawlee docs](https://crawlee.dev/api/cheerio-crawler/class/CheerioCrawler) for more information.
+    A reference to the `CheerioCrawler` object, see [Crawlee docs](https://crawlee.dev/api/cheerio-crawler/class/CheerioCrawler) for more information.
 
 - ##### **`body: String|Buffer`**
 
-  The body from the target web page. If the web page is in HTML or XML format, the `body` will be a string that contains the HTML or XML content.
-  In other cases, the `body` with be a [Buffer](https://nodejs.org/api/buffer.html).
-  If you need to process the `body` as a string, you can use the information from `contentType` property to convert
-  the binary data into a string.
+    The body from the target web page. If the web page is in HTML or XML format, the `body` will be a string that contains the HTML or XML content.
+    In other cases, the `body` with be a [Buffer](https://nodejs.org/api/buffer.html).
+    If you need to process the `body` as a string, you can use the information from `contentType` property to convert
+    the binary data into a string.
 
-  Example:
+    Example:
 
-  ```javascript
-  const stringBody = context.body.toString(context.contentType.encoding)
-  ```
+    ```javascript
+    const stringBody = context.body.toString(context.contentType.encoding);
+    ```
 
 - ##### **`cheerio: Object`**
 
-  Reference to the [`Cheerio`](https://cheerio.js.org) module. Being the server-side version of the [jQuery](https://jquery.com) library, Cheerio features a very similar API with nearly identical selector implementation. This means DOM traversing, manipulation, querying, and data extraction are just as easy as with jQuery.
+    Reference to the [`Cheerio`](https://cheerio.js.org) module. Being the server-side version of the [jQuery](https://jquery.com) library, Cheerio features a very similar API with nearly identical selector implementation. This means DOM traversing, manipulation, querying, and data extraction are just as easy as with jQuery.
 
-  This is equivalent to:
+    This is equivalent to:
 
-  ```javascript
-  import * as cheerio from 'cheerio';
-  ```
+    ```javascript
+    import * as cheerio from 'cheerio';
+    ```
 
 - ##### **`contentType: Object`**
 
-  The `Content-Type` HTTP header parsed into an object with 2 properties, `type` and `encoding`.
+    The `Content-Type` HTTP header parsed into an object with 2 properties, `type` and `encoding`.
 
-  Example:
+    Example:
 
-  ```javascript
-  // Content-Type: application/json; charset=utf-8
-  const mimeType = contentType.type; // "application/json"
-  const encoding = contentType.encoding; // "utf-8"
-  ```
+    ```javascript
+    // Content-Type: application/json; charset=utf-8
+    const mimeType = contentType.type; // "application/json"
+    const encoding = contentType.encoding; // "utf-8"
+    ```
 
 - ##### **`customData: Object`**
 
-  Contains the object provided in the **Custom data** (`customData`) input field.
-  This is useful for passing dynamic parameters to your Cheerio Scraper using API.
+    Contains the object provided in the **Custom data** (`customData`) input field.
+    This is useful for passing dynamic parameters to your Cheerio Scraper using API.
 
 - ##### **`enqueueRequest(request, [options]): AsyncFunction`**
 
-  Adds a new URL to the request queue, if it wasn't already there.
+    Adds a new URL to the request queue, if it wasn't already there.
 
-  The `request` parameter is an object containing details of the request, with properties such as `url`, `userData`, `headers` etc. For the full list of the supported properties, see the [`Request`](https://crawlee.dev/api/core/class/Request) object's constructor in Crawlee's documentation.
+    The `request` parameter is an object containing details of the request, with properties such as `url`, `userData`, `headers` etc. For the full list of the supported properties, see the [`Request`](https://crawlee.dev/api/core/class/Request) object's constructor in Crawlee's documentation.
 
-  The optional `options` parameter is an object with additional options. Currently, it only supports the `forefront` boolean flag. If `true`, the request is added to the beginning of the queue. By default, requests are added to the end.
+    The optional `options` parameter is an object with additional options. Currently, it only supports the `forefront` boolean flag. If `true`, the request is added to the beginning of the queue. By default, requests are added to the end.
 
-  Example:
+    Example:
 
-  ```javascript
-  await context.enqueueRequest({ url: 'https://www.example.com' });
-  await context.enqueueRequest({ url: 'https://www.example.com/first' }, { forefront: true });
-  ```
+    ```javascript
+    await context.enqueueRequest({ url: 'https://www.example.com' });
+    await context.enqueueRequest(
+        { url: 'https://www.example.com/first' },
+        { forefront: true },
+    );
+    ```
 
 - ##### **`env: Object`**
 
-  A map of all relevant values set by the Apify platform to the Actor run via the `APIFY_` environment variable. For example, here you can find information such as Actor run ID, timeouts, Actor run memory, etc.
-  For the full list of available values, see the [`Actor.getEnv()`](https://sdk.apify.com/api/apify/class/Actor#getEnv) function in the Apify SDK documentation.
+    A map of all relevant values set by the Apify platform to the Actor run via the `APIFY_` environment variable. For example, here you can find information such as Actor run ID, timeouts, Actor run memory, etc.
+    For the full list of available values, see the [`Actor.getEnv()`](https://sdk.apify.com/api/apify/class/Actor#getEnv) function in the Apify SDK documentation.
 
-  Example:
+    Example:
 
-  ```javascript
-  console.log(`Actor run ID: ${context.env.actorRunId}`);
-  ```
+    ```javascript
+    console.log(`Actor run ID: ${context.env.actorRunId}`);
+    ```
 
 - ##### **`getValue(key): AsyncFunction`**
 
-  Gets a value from the default key-value store associated with the Actor run. The key-value store is useful for persisting named data records, such as state objects, files, etc. The function is very similar to the [`Actor.getValue()`](https://sdk.apify.com/api/apify/class/Actor#getValue) function in Apify SDK.
+    Gets a value from the default key-value store associated with the Actor run. The key-value store is useful for persisting named data records, such as state objects, files, etc. The function is very similar to the [`Actor.getValue()`](https://sdk.apify.com/api/apify/class/Actor#getValue) function in Apify SDK.
 
-  To set the value, use the dual function `context.setValue(key, value)`.
+    To set the value, use the dual function `context.setValue(key, value)`.
 
-  Example:
+    Example:
 
-  ```javascript
-  const value = await context.getValue('my-key');
-  console.dir(value);
-  ```
+    ```javascript
+    const value = await context.getValue('my-key');
+    console.dir(value);
+    ```
 
 - ##### **`globalStore: Object`**
 
-  Represents an in-memory store that can be used to share data across page function invocations, e.g. state variables, API responses, or other data. The `globalStore` object has an interface similar to JavaScript's [`Map`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map) object, with a few important differences:
+    Represents an in-memory store that can be used to share data across page function invocations, e.g. state variables, API responses, or other data. The `globalStore` object has an interface similar to JavaScript's [`Map`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map) object, with a few important differences:
+
     - All `globalStore` functions are `async`; use `await` when calling them.
     - Keys must be strings and values must be JSON stringify-able.
     - The `forEach()` function is not supported.
 
-  Note that stored data is not persisted. If the Actor run is restarted or migrated to another worker server,
-  the content of `globalStore` is reset. Therefore, never depend on a specific value to be present
-  in the store.
+    Note that stored data is not persisted. If the Actor run is restarted or migrated to another worker server,
+    the content of `globalStore` is reset. Therefore, never depend on a specific value to be present
+    in the store.
 
-  Example:
+    Example:
 
-  ```javascript
-  let movies = await context.globalStore.get('cached-movies');
-  if (!movies) {
-    movies = await fetch('http://example.com/movies.json');
-    await context.globalStore.set('cached-movies', movies);
-  }
-  console.dir(movies);
-  ```
+    ```javascript
+    let movies = await context.globalStore.get('cached-movies');
+    if (!movies) {
+        movies = await fetch('http://example.com/movies.json');
+        await context.globalStore.set('cached-movies', movies);
+    }
+    console.dir(movies);
+    ```
 
 - ##### **`input: Object`**
 
-  An object containing the Actor run input, i.e. Cheerio Scraper's configuration. Each page function invocation gets a fresh copy of the `input` object, so changing its properties has no effect.
+    An object containing the Actor run input, i.e. Cheerio Scraper's configuration. Each page function invocation gets a fresh copy of the `input` object, so changing its properties has no effect.
 
 - ##### **`json: Object`**
 
-  The parsed object from a JSON string if the response contains the content type `application/json`.
+    The parsed object from a JSON string if the response contains the content type `application/json`.
 
 - ##### **`log: Object`**
 
-  An object containing logging functions, with the same interface as provided by the
-  [`crawlee.utils.log`](https://crawlee.dev/api/core/class/Log) object in Crawlee. The log messages are written directly to the Actor run log, which is useful for monitoring and debugging.
-  Note that `log.debug()` only logs messages if the **Debug log** input setting is set.
+    An object containing logging functions, with the same interface as provided by the
+    [`crawlee.utils.log`](https://crawlee.dev/api/core/class/Log) object in Crawlee. The log messages are written directly to the Actor run log, which is useful for monitoring and debugging.
+    Note that `log.debug()` only logs messages if the **Debug log** input setting is set.
 
-  Example:
+    Example:
 
-  ```javascript
-  const log = context.log;
-  log.debug('Debug message', { hello: 'world!' });
-  log.info('Information message', { all: 'good' });
-  log.warning('Warning message');
-  log.error('Error message', { details: 'This is bad!' });
-  try {
-    throw new Error('Not good!');
-  } catch (e) {
-    log.exception(e, 'Exception occurred', { details: 'This is really bad!' });
-  }
-  ```
+    ```javascript
+    const log = context.log;
+    log.debug('Debug message', { hello: 'world!' });
+    log.info('Information message', { all: 'good' });
+    log.warning('Warning message');
+    log.error('Error message', { details: 'This is bad!' });
+    try {
+        throw new Error('Not good!');
+    } catch (e) {
+        log.exception(e, 'Exception occurred', {
+            details: 'This is really bad!',
+        });
+    }
+    ```
 
 - ##### **`saveSnapshot(): AsyncFunction`**
 
-  Saves the full HTML of the current page to the key-value store
-  associated with the Actor run, under the `SNAPSHOT-BODY` key.
-  This feature is useful when debugging your scraper.
+    Saves the full HTML of the current page to the key-value store
+    associated with the Actor run, under the `SNAPSHOT-BODY` key.
+    This feature is useful when debugging your scraper.
 
-  Note that each snapshot overwrites the previous one and the `saveSnapshot()` calls are throttled to at most one call in two seconds, in order to avoid excess consumption of resources and slowdown of the Actor.
+    Note that each snapshot overwrites the previous one and the `saveSnapshot()` calls are throttled to at most one call in two seconds, in order to avoid excess consumption of resources and slowdown of the Actor.
 
 - ##### **`setValue(key, data, options): AsyncFunction`**
 
-  Sets a value to the default key-value store associated with the Actor run. The key-value store is useful for persisting named data records, such as state objects, files, etc. The function is very similar to the [`Actor.setValue()`](https://sdk.apify.com/api/apify/class/Actor#setValue) function in Apify SDK.
+    Sets a value to the default key-value store associated with the Actor run. The key-value store is useful for persisting named data records, such as state objects, files, etc. The function is very similar to the [`Actor.setValue()`](https://sdk.apify.com/api/apify/class/Actor#setValue) function in Apify SDK.
 
-  To get the value, use the dual function `context.getValue(key)`.
+    To get the value, use the dual function `context.getValue(key)`.
 
-  Example:
+    Example:
 
-  ```javascript
-  await context.setValue('my-key', { hello: 'world' });
-  ```
+    ```javascript
+    await context.setValue('my-key', { hello: 'world' });
+    ```
 
 - ##### **`skipLinks(): AsyncFunction`**
 
-  Calling this function ensures that page links from the current page will not be added to the request queue, even if they match the [**Link selector**](#link-selector) and/or **[Glob Patterns](#glob-patterns)**/**[Pseudo-URLs](#pseudo-urls)** settings. This is useful to programmatically stop recursive crawling, e.g. if you know there are no more interesting links on the current page to follow.
+    Calling this function ensures that page links from the current page will not be added to the request queue, even if they match the [**Link selector**](#link-selector) and/or **[Glob Patterns](#glob-patterns)**/**[Pseudo-URLs](#pseudo-urls)** settings. This is useful to programmatically stop recursive crawling, e.g. if you know there are no more interesting links on the current page to follow.
 
 - ##### **`request: Object`**
 
-  An object containing information about the currently loaded web page, such as the URL, number of retries, a unique key, etc. Its properties are equivalent to the [`Request`](https://crawlee.dev/api/core/class/Request) object in Crawlee.
+    An object containing information about the currently loaded web page, such as the URL, number of retries, a unique key, etc. Its properties are equivalent to the [`Request`](https://crawlee.dev/api/core/class/Request) object in Crawlee.
 
 - ##### **`response: Object`**
 
-  An object containing information about the HTTP response from the web server. Currently, it only contains the `status` and `headers` properties. For example:
+    An object containing information about the HTTP response from the web server. Currently, it only contains the `status` and `headers` properties. For example:
 
-  ```javascript
-  {
-    // HTTP status code
-    status: 200,
+    ```javascript
+    {
+      // HTTP status code
+      status: 200,
 
-    // HTTP headers
-    headers: {
-      'content-type': 'text/html; charset=utf-8',
-      'date': 'Wed, 06 Nov 2019 16:01:53 GMT',
-      'cache-control': 'no-cache',
-      'content-encoding': 'gzip',
+      // HTTP headers
+      headers: {
+        'content-type': 'text/html; charset=utf-8',
+        'date': 'Wed, 06 Nov 2019 16:01:53 GMT',
+        'cache-control': 'no-cache',
+        'content-encoding': 'gzip',
+      }
     }
-  }
-  ```
+    ```
 
 <!-- TODO: We're missing more detailed description for prepareRequestFunction, what is it good for?
 Give some example, also better prefill -->
@@ -486,6 +492,7 @@ It accepts a JSON object with the following structure:
 ### Pre-navigation hooks
 
 <!-- todo request as browser is out -->
+
 This is an array of functions that will be executed **BEFORE** the main `pageFunction` is run. A similar `context` object is passed into each of these functions as is passed into the `pageFunction`; however, a second `gotOptions` object is also passed in.
 
 The available options can be seen here:
@@ -519,7 +526,7 @@ For example, if your page function returned the following object:
 
 ```js
 {
-  message: 'Hello world!'
+    message: 'Hello world!';
 }
 ```
 
@@ -528,17 +535,17 @@ The full object stored in the dataset will look as follows
 
 ```json
 {
-  "message": "Hello world!",
-  "#error": false,
-  "#debug": {
-    "requestId": "fvwscO2UJLdr10B",
-    "url": "https://www.example.com/",
-    "loadedUrl": "https://www.example.com/",
-    "method": "GET",
-    "retryCount": 0,
-    "errorMessages": null,
-    "statusCode": 200
-  }
+    "message": "Hello world!",
+    "#error": false,
+    "#debug": {
+        "requestId": "fvwscO2UJLdr10B",
+        "url": "https://www.example.com/",
+        "loadedUrl": "https://www.example.com/",
+        "method": "GET",
+        "retryCount": 0,
+        "errorMessages": null,
+        "statusCode": 200
+    }
 }
 ```
 
@@ -553,7 +560,7 @@ https://api.apify.com/v2/datasets/[DATASET_ID]/items?format=json
 where `[DATASET_ID]` is the ID of the Actor's run dataset, in which you can find the Run object returned when starting the Actor. Alternatively, you'll find the download links for the results in Apify Console.
 
 To skip the `#error` and `#debug` metadata fields from the results and not include empty result records,
-simply add the `clean=true` query parameter to the API URL, or select the  **Clean items** option when downloading the dataset in Apify Console.
+simply add the `clean=true` query parameter to the API URL, or select the **Clean items** option when downloading the dataset in Apify Console.
 
 To get the results in other formats, set the `format` query parameter to `xml`, `xlsx`, `csv`, `html`, etc.
 For more information, see [Datasets](https://docs.apify.com/storage#dataset) in documentation

@@ -7,7 +7,7 @@
     color: #41465d;
 }
 
-html[data-theme="dark"] .features {
+html[data-theme='dark'] .features {
     color: #b3b8d2;
 }
 
@@ -24,7 +24,7 @@ html[data-theme="dark"] .features {
     fill: url(#gradient-2) !important;
 }
 
-html[data-theme="dark"] .featureIcon {
+html[data-theme='dark'] .featureIcon {
     background: #272c3d;
 }
 

@@ -15,9 +15,9 @@ code changes are needed.
 
 **Related links**
 
--   [Apify platform storage documentation](https://docs.apify.com/storage)
--   [View storage in Apify app](https://my.apify.com/storage)
--   [API reference](https://apify.com/docs/api/v2#/reference/key-value-stores)
+- [Apify platform storage documentation](https://docs.apify.com/storage)
+- [View storage in Apify app](https://my.apify.com/storage)
+- [API reference](https://apify.com/docs/api/v2#/reference/key-value-stores)
 
 ## Key-value store
 
@@ -146,7 +146,10 @@ const queueWithName = await Apify.openRequestQueue('some-name');
 // Enqueue few requests
 await queue.addRequest({ url: 'http://example.com/aaa' });
 await queue.addRequest({ url: 'http://example.com/bbb' });
-await queue.addRequest({ url: 'http://example.com/foo/bar' }, { forefront: true });
+await queue.addRequest(
+    { url: 'http://example.com/foo/bar' },
+    { forefront: true },
+);
 
 // Get requests from queue
 const request1 = await queue.fetchNextRequest();
