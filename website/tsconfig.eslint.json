@@ -1,7 +1,18 @@
 {
     "extends": "@apify/tsconfig",
     "compilerOptions": {
-        "jsx": "preserve"
+        "jsx": "preserve",
+        "allowJs": true
     },
-    "include": ["src/**/*.js", "src/**/*.ts", "src/**/*.jsx", "src/**/*.tsx"]
+    "include": ["/**/*.js", "/**/*.ts", "src/**/*.jsx", "src/**/*.tsx"],
+    "exclude": [
+        "node_modules",
+        "dist",
+        "build",
+        "coverage",
+        "test",
+        "**/*.test.ts",
+        "**/*.test.js",
+        "eslint.config.mjs"
+    ]
 }
