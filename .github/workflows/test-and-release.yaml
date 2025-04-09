@@ -129,6 +129,9 @@ jobs:
             - name: ESLint
               run: npm run lint
 
+            - name: ESLint (website)
+              run: npm run --prefix website lint
+
             - name: Prettier
               run: npm run format:check
 
