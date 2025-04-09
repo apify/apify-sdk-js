@@ -1,5 +1,6 @@
 import { launchPuppeteer } from '@crawlee/puppeteer';
-import { Browser, Page } from 'puppeteer';
+import type { Browser, Page } from 'puppeteer';
+
 import { createBundle } from '../src/internals/bundle.browser';
 
 const NAMESPACE = 'Apify';

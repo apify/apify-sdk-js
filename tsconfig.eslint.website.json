@@ -1,0 +1,14 @@
+{
+    "extends": "@apify/tsconfig",
+    "compilerOptions": {
+        "jsx": "preserve",
+        "allowJs": true
+    },
+    "include": [
+        "website/**/*.js",
+        "website/**/*.ts",
+        "website/**/*.jsx",
+        "website/**/*.tsx",
+        "docs/**/*"
+    ]
+}
