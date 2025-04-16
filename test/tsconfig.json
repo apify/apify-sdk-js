@@ -5,9 +5,8 @@
         "sourceMap": true,
         "noUnusedLocals": false,
         "noUnusedParameters": false,
-        "strictNullChecks": false,
         "types": ["vitest/globals"],
-        "module": "Node16",
+        "module": "ESNext",
         "moduleResolution": "Bundler",
         "resolveJsonModule": true
     }

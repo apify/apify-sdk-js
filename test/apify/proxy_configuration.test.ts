@@ -1,6 +1,6 @@
 import { Actor, ProxyConfiguration } from 'apify';
 import { UserClient } from 'apify-client';
-import { Request, sleep } from 'crawlee';
+import { type Dictionary, Request, sleep } from 'crawlee';
 
 import { APIFY_ENV_VARS, LOCAL_APIFY_ENV_VARS } from '@apify/consts';
 
@@ -140,12 +140,12 @@ describe('ProxyConfiguration', () => {
     });
 
     test('should throw on invalid groups and countryCode args', async () => {
-        // @ts-expect-error invalid input
         expect(
+            // @ts-expect-error invalid input
             () => new ProxyConfiguration({ groups: [new Date()] }),
         ).toThrowError();
-        // @ts-expect-error invalid input
         expect(
+            // @ts-expect-error invalid input
             () => new ProxyConfiguration({ groups: [{}, 'fff', 'ccc'] }),
         ).toThrowError();
         expect(
@@ -154,13 +154,13 @@ describe('ProxyConfiguration', () => {
         expect(
             () => new ProxyConfiguration({ groups: ['ffff', 'fff', 'cc$c'] }),
         ).toThrowError();
-        // @ts-expect-error invalid input
         expect(
+            // @ts-expect-error invalid input
             () => new ProxyConfiguration({ apifyProxyGroups: [new Date()] }),
         ).toThrowError();
 
-        // @ts-expect-error invalid input
         expect(
+            // @ts-expect-error invalid input
             () => new ProxyConfiguration({ countryCode: new Date() }),
         ).toThrow();
         expect(() => new ProxyConfiguration({ countryCode: 'aa' })).toThrow();
@@ -231,7 +231,7 @@ describe('ProxyConfiguration', () => {
             'http://proxy.com:6666',
         ];
         const newUrlFunction = () => {
-            return customUrls.pop();
+            return customUrls.pop() ?? null;
         };
         const proxyConfiguration = new ProxyConfiguration({
             newUrlFunction,
@@ -248,14 +248,15 @@ describe('ProxyConfiguration', () => {
             'http://proxy.com:4444',
         );
 
+        // TODO enable strictNullChecks in tests
         // through newProxyInfo()
-        expect((await proxyConfiguration.newProxyInfo()).url).toEqual(
+        expect((await proxyConfiguration.newProxyInfo())?.url).toEqual(
             'http://proxy.com:3333',
         );
-        expect((await proxyConfiguration.newProxyInfo()).url).toEqual(
+        expect((await proxyConfiguration.newProxyInfo())?.url).toEqual(
             'http://proxy.com:2222',
         );
-        expect((await proxyConfiguration.newProxyInfo()).url).toEqual(
+        expect((await proxyConfiguration.newProxyInfo())?.url).toEqual(
             'http://proxy.com:1111',
         );
     });
@@ -271,7 +272,7 @@ describe('ProxyConfiguration', () => {
         ];
         const newUrlFunction = async () => {
             await sleep(5);
-            return customUrls.pop();
+            return customUrls.pop() ?? null;
         };
         const proxyConfiguration = new ProxyConfiguration({
             newUrlFunction,
@@ -289,13 +290,13 @@ describe('ProxyConfiguration', () => {
         );
 
         // through newProxyInfo()
-        expect((await proxyConfiguration.newProxyInfo()).url).toEqual(
+        expect((await proxyConfiguration.newProxyInfo())!.url).toEqual(
             'http://proxy.com:3333',
         );
-        expect((await proxyConfiguration.newProxyInfo()).url).toEqual(
+        expect((await proxyConfiguration.newProxyInfo())!.url).toEqual(
             'http://proxy.com:2222',
         );
-        expect((await proxyConfiguration.newProxyInfo()).url).toEqual(
+        expect((await proxyConfiguration.newProxyInfo())!.url).toEqual(
             'http://proxy.com:1111',
         );
     });
@@ -312,12 +313,12 @@ describe('ProxyConfiguration', () => {
 
             // @ts-expect-error private property
             const { proxyUrls } = proxyConfiguration;
-            expect(await proxyConfiguration.newUrl()).toEqual(proxyUrls[0]);
-            expect(await proxyConfiguration.newUrl()).toEqual(proxyUrls[1]);
-            expect(await proxyConfiguration.newUrl()).toEqual(proxyUrls[2]);
-            expect(await proxyConfiguration.newUrl()).toEqual(proxyUrls[0]);
-            expect(await proxyConfiguration.newUrl()).toEqual(proxyUrls[1]);
-            expect(await proxyConfiguration.newUrl()).toEqual(proxyUrls[2]);
+            expect(await proxyConfiguration.newUrl()).toEqual(proxyUrls![0]);
+            expect(await proxyConfiguration.newUrl()).toEqual(proxyUrls![1]);
+            expect(await proxyConfiguration.newUrl()).toEqual(proxyUrls![2]);
+            expect(await proxyConfiguration.newUrl()).toEqual(proxyUrls![0]);
+            expect(await proxyConfiguration.newUrl()).toEqual(proxyUrls![1]);
+            expect(await proxyConfiguration.newUrl()).toEqual(proxyUrls![2]);
         });
 
         test('newProxyInfo() should return correctly rotated URL', async () => {
@@ -331,23 +332,23 @@ describe('ProxyConfiguration', () => {
 
             // @ts-expect-error TODO private property?
             const { proxyUrls } = proxyConfiguration;
-            expect((await proxyConfiguration.newProxyInfo()).url).toEqual(
-                proxyUrls[0],
+            expect((await proxyConfiguration.newProxyInfo())!.url).toEqual(
+                proxyUrls![0],
             );
-            expect((await proxyConfiguration.newProxyInfo()).url).toEqual(
-                proxyUrls[1],
+            expect((await proxyConfiguration.newProxyInfo())!.url).toEqual(
+                proxyUrls![1],
             );
-            expect((await proxyConfiguration.newProxyInfo()).url).toEqual(
-                proxyUrls[2],
+            expect((await proxyConfiguration.newProxyInfo())!.url).toEqual(
+                proxyUrls![2],
             );
-            expect((await proxyConfiguration.newProxyInfo()).url).toEqual(
-                proxyUrls[0],
+            expect((await proxyConfiguration.newProxyInfo())!.url).toEqual(
+                proxyUrls![0],
             );
-            expect((await proxyConfiguration.newProxyInfo()).url).toEqual(
-                proxyUrls[1],
+            expect((await proxyConfiguration.newProxyInfo())!.url).toEqual(
+                proxyUrls![1],
             );
-            expect((await proxyConfiguration.newProxyInfo()).url).toEqual(
-                proxyUrls[2],
+            expect((await proxyConfiguration.newProxyInfo())!.url).toEqual(
+                proxyUrls![2],
             );
         });
 
@@ -372,38 +373,38 @@ describe('ProxyConfiguration', () => {
             const { proxyUrls } = proxyConfiguration;
             // should use same proxy URL
             expect(await proxyConfiguration.newUrl(sessions[0])).toEqual(
-                proxyUrls[0],
+                proxyUrls![0],
             );
             expect(await proxyConfiguration.newUrl(sessions[0])).toEqual(
-                proxyUrls[0],
+                proxyUrls![0],
             );
             expect(await proxyConfiguration.newUrl(sessions[0])).toEqual(
-                proxyUrls[0],
+                proxyUrls![0],
             );
 
             // should rotate different proxies
             expect(await proxyConfiguration.newUrl(sessions[1])).toEqual(
-                proxyUrls[1],
+                proxyUrls![1],
             );
             expect(await proxyConfiguration.newUrl(sessions[2])).toEqual(
-                proxyUrls[2],
+                proxyUrls![2],
             );
             expect(await proxyConfiguration.newUrl(sessions[3])).toEqual(
-                proxyUrls[0],
+                proxyUrls![0],
             );
             expect(await proxyConfiguration.newUrl(sessions[4])).toEqual(
-                proxyUrls[1],
+                proxyUrls![1],
             );
             expect(await proxyConfiguration.newUrl(sessions[5])).toEqual(
-                proxyUrls[2],
+                proxyUrls![2],
             );
 
             // should remember already used session
             expect(await proxyConfiguration.newUrl(sessions[1])).toEqual(
-                proxyUrls[1],
+                proxyUrls![1],
             );
             expect(await proxyConfiguration.newUrl(sessions[3])).toEqual(
-                proxyUrls[0],
+                proxyUrls![0],
             );
         });
 
@@ -510,13 +511,11 @@ describe('ProxyConfiguration', () => {
 
             // through newProxyInfo()
             expect(
-                (
-                    await proxyConfiguration.newProxyInfo('abc', {
-                        request: new Request({
-                            url: 'http://example.com',
-                        }) as any,
-                    })
-                ).url,
+                (await proxyConfiguration.newProxyInfo('abc', {
+                    request: new Request({
+                        url: 'http://example.com',
+                    }) as any,
+                }))!.url,
             ).toEqual('http://proxy.com:1111');
         });
 
@@ -594,7 +593,7 @@ describe('Actor.createProxyConfiguration()', () => {
 
     test('should work without password (with token)', async () => {
         process.env.APIFY_TOKEN = '123456789';
-        const opts = { ...basicOpts };
+        const opts: Dictionary = { ...basicOpts };
         delete opts.password;
 
         const getUserSpy = vitest.spyOn(UserClient.prototype, 'get');
@@ -743,20 +742,18 @@ describe('Actor.createProxyConfiguration()', () => {
 
             // through newUrl()
             expect(
-                await proxyConfiguration.newUrl('abc', {
+                await proxyConfiguration!.newUrl('abc', {
                     request: new Request({ url: 'http://example.com' }) as any,
                 }),
             ).toEqual('http://proxy.com:1111');
 
             // through newProxyInfo()
             expect(
-                (
-                    await proxyConfiguration.newProxyInfo('abc', {
-                        request: new Request({
-                            url: 'http://example.com',
-                        }) as any,
-                    })
-                ).url,
+                (await proxyConfiguration!.newProxyInfo('abc', {
+                    request: new Request({
+                        url: 'http://example.com',
+                    }) as any,
+                }))!.url,
             ).toEqual('http://proxy.com:1111');
         });
 
@@ -784,7 +781,7 @@ describe('Actor.createProxyConfiguration()', () => {
             });
 
             // eslint-disable-next-line dot-notation
-            expect(proxyConfiguration['tieredProxyUrls']).toEqual([
+            expect(proxyConfiguration!['tieredProxyUrls']).toEqual([
                 [
                     'http://groups-GROUP1,country-CZ:password@proxy.apify.com:8000',
                 ],

@@ -94,10 +94,10 @@ jobs:
                   token: ${{ secrets.APIFY_SERVICE_ACCOUNT_GITHUB_TOKEN }}
                   fetch-depth: 0
 
-            - name: Use Node.js 18
+            - name: Use Node.js 22
               uses: actions/setup-node@v4
               with:
-                  node-version: 18
+                  node-version: 22
                   cache: 'npm'
                   cache-dependency-path: 'package-lock.json'
 
