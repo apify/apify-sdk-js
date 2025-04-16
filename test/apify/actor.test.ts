@@ -838,6 +838,7 @@ describe('Actor', () => {
             this.readyRun = { ...this.run, status: ACT_JOB_STATUSES.READY };
             // @ts-expect-error
             this.expected = {
+                // @ts-expect-error
                 ...this.finishedRun,
                 output: {
                     contentType: globalOptions.contentType,

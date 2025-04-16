@@ -7,9 +7,9 @@ import { WebSocketServer } from 'ws';
 import { ACTOR_ENV_VARS, APIFY_ENV_VARS } from '@apify/consts';
 
 describe('events', () => {
-    let wss: WebSocketServer = null;
+    let wss: WebSocketServer = null!;
     const config = Configuration.getGlobalConfig();
-    let events: PlatformEventManager | null = null;
+    let events: PlatformEventManager = null!;
 
     beforeEach(() => {
         wss = new WebSocketServer({ port: 9099 });
@@ -130,7 +130,7 @@ describe('events', () => {
 
     test('should send persist state events in regular interval', async () => {
         const eventsReceived = [];
-        const interval = config.get('persistStateIntervalMillis');
+        const interval = config.get('persistStateIntervalMillis')!;
 
         events.on(EventType.PERSIST_STATE, (data) => eventsReceived.push(data));
         await events.init();

@@ -73,7 +73,7 @@ describe('printOutdatedSdkWarning()', () => {
         process.env[APIFY_ENV_VARS.SDK_LATEST_VERSION] = semver.inc(
             currentVersion,
             'minor',
-        );
+        )!;
         printOutdatedSdkWarning();
 
         expect(spy).toHaveBeenCalledTimes(1);
