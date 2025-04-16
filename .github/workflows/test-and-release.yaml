@@ -27,7 +27,7 @@ jobs:
                 # tests on windows are extremely unstable
                 # os: [ ubuntu-22.04, windows-2019 ]
                 os: [ubuntu-22.04]
-                node-version: [16, 18, 20]
+                node-version: [16, 18, 20, 22]
 
         steps:
             - name: Cancel Workflow Action
@@ -73,10 +73,10 @@ jobs:
             - name: Checkout Source code
               uses: actions/checkout@v4
 
-            - name: Use Node.js 18
+            - name: Use Node.js 22
               uses: actions/setup-node@v4
               with:
-                  node-version: 18
+                  node-version: 22
                   cache: 'npm'
                   cache-dependency-path: 'package-lock.json'
 
@@ -107,10 +107,10 @@ jobs:
             - name: Checkout repository
               uses: actions/checkout@v4
 
-            - name: Use Node.js 18
+            - name: Use Node.js 22
               uses: actions/setup-node@v4
               with:
-                  node-version: 18
+                  node-version: 22
                   cache: 'npm'
                   cache-dependency-path: 'package-lock.json'
 
@@ -144,10 +144,10 @@ jobs:
                   fetch-depth: 0 # we need to pull everything to have correct dev version suffix
                   ref: master
 
-            - name: Use Node.js 18
+            - name: Use Node.js 22
               uses: actions/setup-node@v4
               with:
-                  node-version: 18
+                  node-version: 22
                   cache: 'npm'
                   cache-dependency-path: 'package-lock.json'
 

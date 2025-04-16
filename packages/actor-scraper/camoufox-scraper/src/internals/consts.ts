@@ -53,7 +53,7 @@ export interface Input {
     keyValueStoreName?: string;
     requestQueueName?: string;
     headless: boolean;
-    os: string[];
+    os: ('linux' | 'macos' | 'windows')[];
     blockImages: boolean;
     blockWebrtc: boolean;
     blockWebgl: boolean;
