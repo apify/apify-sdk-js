@@ -25,6 +25,7 @@ export interface Input {
     pseudoUrls: PseudoUrlInput[];
     excludes: GlobInput[];
     keepUrlFragments: boolean;
+    respectRobotsTxtFile: boolean;
     runScripts: boolean;
     showInternalConsole: boolean;
     linkSelector?: string;

@@ -28,6 +28,7 @@ export interface Input {
     linkSelector?: string;
     clickableElementsSelector?: string;
     keepUrlFragments: boolean;
+    respectRobotsTxtFile: boolean;
     pageFunction: string;
     preNavigationHooks?: string;
     postNavigationHooks?: string;

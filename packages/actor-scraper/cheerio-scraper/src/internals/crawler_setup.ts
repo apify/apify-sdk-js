@@ -203,6 +203,7 @@ export class CrawlerSetup implements CrawlerSetupOptions {
             requestHandlerTimeoutSecs: this.input.pageFunctionTimeoutSecs,
             ignoreSslErrors: this.input.ignoreSslErrors,
             failedRequestHandler: this._failedRequestHandler.bind(this),
+            respectRobotsTxtFile: this.input.respectRobotsTxtFile,
             maxRequestRetries: this.input.maxRequestRetries,
             maxRequestsPerCrawl: this.input.maxPagesPerCrawl,
             additionalMimeTypes: this.input.additionalMimeTypes,

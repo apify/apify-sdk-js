@@ -249,6 +249,7 @@ export class CrawlerSetup implements CrawlerSetupOptions {
             preNavigationHooks: [],
             postNavigationHooks: [],
             failedRequestHandler: this._failedRequestHandler.bind(this),
+            respectRobotsTxtFile: this.input.respectRobotsTxtFile,
             maxConcurrency: this.input.maxConcurrency,
             maxRequestRetries: this.input.maxRequestRetries,
             maxRequestsPerCrawl: this.input.maxPagesPerCrawl,

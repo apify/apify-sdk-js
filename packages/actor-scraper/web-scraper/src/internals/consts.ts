@@ -52,6 +52,7 @@ export interface Input {
     pageFunction: string;
     runMode: RunMode;
     keepUrlFragments: boolean;
+    respectRobotsTxtFile: boolean;
     linkSelector?: string;
     globs: GlobInput[];
     regexps: RegExpInput[];

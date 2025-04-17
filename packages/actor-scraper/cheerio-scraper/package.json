@@ -6,7 +6,7 @@
     "type": "module",
     "dependencies": {
         "@apify/scraper-tools": "^1.1.4",
-        "@crawlee/cheerio": "^3.11.5",
+        "@crawlee/cheerio": "^3.13.2",
         "apify": "^3.2.6"
     },
     "devDependencies": {

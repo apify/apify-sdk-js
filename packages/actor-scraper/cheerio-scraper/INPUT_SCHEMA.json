@@ -19,6 +19,13 @@
             "default": false,
             "groupCaption": "Options"
         },
+        "respectRobotsTxtFile": {
+            "title": "Respect the robots.txt file",
+            "type": "boolean",
+            "description": "If enabled, the crawler will consult the robots.txt file for the target website before crawling each page. At the moment, the crawler does not use any specific user agent identifier. The crawl-delay directive is also not supported yet.",
+            "default": false,
+            "prefill": true
+        },
         "globs": {
             "title": "Glob Patterns",
             "type": "array",
