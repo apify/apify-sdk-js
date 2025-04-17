@@ -270,6 +270,7 @@ export class CrawlerSetup implements CrawlerSetupOptions {
             preNavigationHooks: [],
             postNavigationHooks: [],
             failedRequestHandler: this._failedRequestHandler.bind(this),
+            respectRobotsTxtFile: this.input.respectRobotsTxtFile,
             maxConcurrency: this.isDevRun
                 ? MAX_CONCURRENCY_IN_DEVELOPMENT
                 : this.input.maxConcurrency,

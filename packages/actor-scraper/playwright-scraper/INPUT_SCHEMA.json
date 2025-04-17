@@ -57,6 +57,13 @@
             "description": "URL fragments (the parts of URL after a <code>#</code>) are not considered when the scraper determines whether a URL has already been visited. This means that when adding URLs such as <code>https://example.com/#foo</code> and <code>https://example.com/#bar</code>, only the first will be visited. Turn this option on to tell the scraper to visit both.",
             "default": false
         },
+        "respectRobotsTxtFile": {
+            "title": "Respect the robots.txt file",
+            "type": "boolean",
+            "description": "If enabled, the crawler will consult the robots.txt file for the target website before crawling each page. At the moment, the crawler does not use any specific user agent identifier. The crawl-delay directive is also not supported yet.",
+            "default": false,
+            "prefill": true
+        },
         "pageFunction": {
             "title": "Page function",
             "type": "string",
