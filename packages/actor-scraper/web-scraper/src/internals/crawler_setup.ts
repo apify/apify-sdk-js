@@ -728,6 +728,8 @@ export class CrawlerSetup implements CrawlerSetupOptions {
         pageFunctionResult?: Dictionary,
         isError?: boolean,
     ) {
+        if (!pageFunctionResult) return;
+
         const start = process.hrtime();
         const payload = tools.createDatasetPayload(
             request,

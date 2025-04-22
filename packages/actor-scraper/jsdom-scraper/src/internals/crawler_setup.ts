@@ -437,6 +437,8 @@ export class CrawlerSetup implements CrawlerSetupOptions {
         pageFunctionResult?: Dictionary,
         isError?: boolean,
     ) {
+        if (!pageFunctionResult) return;
+
         const payload = tools.createDatasetPayload(
             request,
             response,
