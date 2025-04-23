@@ -1,4 +1,5 @@
-name: Build generic Actors
+name: Build generic Actors on Apify
+description: Build generic Actors and push them to Apify
 
 on:
     push:
