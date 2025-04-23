@@ -1,0 +1,128 @@
+name: Build generic Actors
+description: Build generic Actors and push them to Apify
+
+on:
+    workflow_dispatch:
+        inputs:
+            web-scraper:
+                description: apify/web-scraper
+                type: boolean
+                required: false
+                default: true
+            cheerio-scraper:
+                description: apify/cheerio-scraper
+                type: boolean
+                required: false
+                default: true
+            playwright-scraper:
+                description: apify/playwright-scraper
+                type: boolean
+                required: false
+                default: true
+            puppeteer-scraper:
+                description: apify/puppeteer-scraper
+                type: boolean
+                required: false
+                default: true
+            jsdom-scraper:
+                description: apify/jsdom-scraper
+                type: boolean
+                required: false
+                default: true
+            camoufox-scraper:
+                description: apify/camoufox-scraper
+                type: boolean
+                required: false
+                default: true
+            build-channel:
+                description: Build channel
+                type: choice
+                required: true
+                options:
+                    - stable
+                    - development
+                    - custom
+                default: stable
+            version:
+                description: Custom version (only for custom build channel)
+                type: string
+                required: false
+            build-tag:
+                description: Custom build tag (only for custom build channel)
+                type: string
+                required: false
+
+jobs:
+    push-to-apify:
+        runs-on: ubuntu-latest
+        strategy:
+            fail-fast: false
+            matrix:
+                settings:
+                    - actor: web-scraper
+                      stable-version: 3.0
+                      stable-build-tag: version-3
+                      development-version: 0.0
+                      development-build-tag: development
+                      should-build: ${{ github.event.inputs.web-scraper }}
+                    - actor: cheerio-scraper
+                      stable-version: 3.0
+                      stable-build-tag: version-3
+                      development-version: 0.0
+                      development-build-tag: development
+                      should-build: ${{ github.event.inputs.cheerio-scraper }}
+                    - actor: playwright-scraper
+                      stable-version: 1.0
+                      stable-build-tag: version-1
+                      development-version: 0.0
+                      development-build-tag: development
+                      should-build: ${{ github.event.inputs.playwright-scraper }}
+                    - actor: puppeteer-scraper
+                      stable-version: 3.0
+                      stable-build-tag: version-3
+                      development-version: 0.0
+                      development-build-tag: development
+                      should-build: ${{ github.event.inputs.puppeteer-scraper }}
+                    - actor: jsdom-scraper
+                      stable-version: 0.1
+                      stable-build-tag: latest
+                      development-version: 0.0
+                      development-build-tag: development
+                      should-build: ${{ github.event.inputs.jsdom-scraper }}
+                    - actor: camoufox-scraper
+                      stable-version: 3.0
+                      stable-build-tag: version-3
+                      development-version: 0.0
+                      development-build-tag: development
+                      should-build: ${{ github.event.inputs.camoufox-scraper }}
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Log matrix
+              run: |
+                  echo "Actor: ${{ matrix.settings.actor }}"
+                  echo "Should build: ${{ matrix.settings.should-build }}"
+
+            - name: Calculate versions and tags
+              id: calculate-versions
+              if: matrix.settings.should-build == 'true'
+              run: |
+                  if [ "${{ github.event.inputs.build-channel }}" = "stable" ]; then
+                      echo "version=${{ matrix.settings.stable-version }}\n" >> $GITHUB_ENV
+                      echo "build-tag=${{ matrix.settings.stable-build-tag }}\n" >> $GITHUB_ENV
+                  elif [ "${{ github.event.inputs.build-channel }}" = "development" ]; then
+                      echo "version=${{ matrix.settings.development-version }}\n" >> $GITHUB_ENV
+                      echo "build-tag=${{ matrix.settings.development-build-tag }}\n" >> $GITHUB_ENV
+                  else
+                      echo "version=${{ github.event.inputs.version }}\n" >> $GITHUB_ENV
+                      echo "build-tag=${{ github.event.inputs.build-tag }}\n" >> $GITHUB_ENV
+                  fi
+
+            - name: Build ${{ matrix.settings.actor }}
+              uses: apify/push-actor-action@master
+              if: matrix.settings.should-build == 'true'
+              with:
+                  token: ${{ secrets.APIFY_ACTOR_BUILD_TOKEN }}
+                  build-tag: ${{ steps.calculate-versions.outputs.build-tag }}
+                  version: ${{ steps.calculate-versions.outputs.version }}
+                  working-directory: packages/actor-scraper/${{ matrix.settings.actor }}
