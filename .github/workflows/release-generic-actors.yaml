@@ -1,6 +1,9 @@
 name: Build generic Actors
 
 on:
+    push:
+        branches:
+            - chore/automatic-actor-build
     workflow_dispatch:
         inputs:
             web-scraper:
@@ -112,9 +115,9 @@ jobs:
                   fi
 
             - name: Build ${{ matrix.settings.actor }}
-              uses: apify/push-actor-action@master
-              with:
-                  token: ${{ secrets.APIFY_ACTOR_BUILD_TOKEN }}
-                  build-tag: ${{ steps.calculate-versions.outputs.build-tag }}
-                  version: ${{ steps.calculate-versions.outputs.version }}
-                  working-directory: packages/actor-scraper/${{ matrix.settings.actor }}
+              run: |
+                  echo "Building ${{ matrix.settings.actor }}!"
+                  echo "Channel: ${{ github.event.inputs.build-channel }}"
+                  echo "Version: ${{ steps.calculate-versions.outputs.version }}"
+                  echo "Build tag: ${{ steps.calculate-versions.outputs.build-tag }}"
+                  echo "Working directory: packages/actor-scraper/${{ matrix.settings.actor }}"
