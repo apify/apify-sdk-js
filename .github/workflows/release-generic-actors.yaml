@@ -44,6 +44,7 @@ on:
                     - stable
                     - development
                     - custom
+                default: stable
             version:
                 description: Custom version (only for custom build channel)
                 type: string
@@ -98,6 +99,11 @@ jobs:
                       should-build: ${{ github.event.inputs.camoufox-scraper }}
         steps:
             - uses: actions/checkout@v4
+
+            - name: Log matrix
+              run: |
+                  echo "Actor: ${{ matrix.settings.actor }}"
+                  echo "Should build: ${{ matrix.settings.should-build }}"
 
             - name: Calculate versions and tags
               id: calculate-versions
