@@ -24,6 +24,7 @@ RUN npm --quiet set progress=false \
     && npm --version \
     && rm -r ~/.npm
 
+ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=0
 RUN npm run get-binaries
 
 COPY --chown=myuser . ./

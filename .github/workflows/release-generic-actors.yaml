@@ -60,39 +60,39 @@ jobs:
             matrix:
                 settings:
                     - actor: web-scraper
-                      stable-version: 3.0
+                      stable-version: '3.0'
                       stable-build-tag: version-3
-                      development-version: 0.0
+                      development-version: '0.0'
                       development-build-tag: development
                       should-build: ${{ github.event.inputs.web-scraper }}
                     - actor: cheerio-scraper
-                      stable-version: 3.0
+                      stable-version: '3.0'
                       stable-build-tag: version-3
-                      development-version: 0.0
+                      development-version: '0.0'
                       development-build-tag: development
                       should-build: ${{ github.event.inputs.cheerio-scraper }}
                     - actor: playwright-scraper
-                      stable-version: 1.0
+                      stable-version: '1.0'
                       stable-build-tag: version-1
-                      development-version: 0.0
+                      development-version: '0.0'
                       development-build-tag: development
                       should-build: ${{ github.event.inputs.playwright-scraper }}
                     - actor: puppeteer-scraper
-                      stable-version: 3.0
+                      stable-version: '3.0'
                       stable-build-tag: version-3
-                      development-version: 0.0
+                      development-version: '0.0'
                       development-build-tag: development
                       should-build: ${{ github.event.inputs.puppeteer-scraper }}
                     - actor: jsdom-scraper
-                      stable-version: 0.1
+                      stable-version: '0.1'
                       stable-build-tag: latest
-                      development-version: 0.0
+                      development-version: '0.0'
                       development-build-tag: development
                       should-build: ${{ github.event.inputs.jsdom-scraper }}
                     - actor: camoufox-scraper
-                      stable-version: 3.0
+                      stable-version: '3.0'
                       stable-build-tag: version-3
-                      development-version: 0.0
+                      development-version: '0.0'
                       development-build-tag: development
                       should-build: ${{ github.event.inputs.camoufox-scraper }}
         steps:
@@ -108,14 +108,14 @@ jobs:
               if: matrix.settings.should-build == 'true'
               run: |
                   if [ "${{ github.event.inputs.build-channel }}" = "stable" ]; then
-                      echo "version=${{ matrix.settings.stable-version }}\n" >> $GITHUB_ENV
-                      echo "build-tag=${{ matrix.settings.stable-build-tag }}\n" >> $GITHUB_ENV
+                      echo "version=${{ matrix.settings.stable-version }}" >> $GITHUB_ENV
+                      echo "build-tag=${{ matrix.settings.stable-build-tag }}" >> $GITHUB_ENV
                   elif [ "${{ github.event.inputs.build-channel }}" = "development" ]; then
-                      echo "version=${{ matrix.settings.development-version }}\n" >> $GITHUB_ENV
-                      echo "build-tag=${{ matrix.settings.development-build-tag }}\n" >> $GITHUB_ENV
+                      echo "version=${{ matrix.settings.development-version }}" >> $GITHUB_ENV
+                      echo "build-tag=${{ matrix.settings.development-build-tag }}" >> $GITHUB_ENV
                   else
-                      echo "version=${{ github.event.inputs.version }}\n" >> $GITHUB_ENV
-                      echo "build-tag=${{ github.event.inputs.build-tag }}\n" >> $GITHUB_ENV
+                      echo "version=${{ github.event.inputs.version }}" >> $GITHUB_ENV
+                      echo "build-tag=${{ github.event.inputs.build-tag }}" >> $GITHUB_ENV
                   fi
 
             - name: Build ${{ matrix.settings.actor }}
@@ -123,6 +123,6 @@ jobs:
               if: matrix.settings.should-build == 'true'
               with:
                   token: ${{ secrets.APIFY_ACTOR_BUILD_TOKEN }}
-                  build-tag: ${{ steps.calculate-versions.outputs.build-tag }}
-                  version: ${{ steps.calculate-versions.outputs.version }}
+                  build-tag: ${{ env.build-tag }}
+                  version: ${{ env.version }}
                   working-directory: packages/actor-scraper/${{ matrix.settings.actor }}
