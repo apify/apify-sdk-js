@@ -107,10 +107,10 @@ jobs:
               id: calculate-versions
               if: matrix.settings.should-build == 'true'
               run: |
-                  if [ "${{ github.event.inputs.build-channel }}" == "stable" ]; then
+                  if [ "${{ github.event.inputs.build-channel }}" = "stable" ]; then
                       echo "version=${{ matrix.settings.stable-version }}\n" >> $GITHUB_ENV
                       echo "build-tag=${{ matrix.settings.stable-build-tag }}\n" >> $GITHUB_ENV
-                  elif [ "${{ github.event.inputs.build-channel }}" == "development" ]; then
+                  elif [ "${{ github.event.inputs.build-channel }}" = "development" ]; then
                       echo "version=${{ matrix.settings.development-version }}\n" >> $GITHUB_ENV
                       echo "build-tag=${{ matrix.settings.development-build-tag }}\n" >> $GITHUB_ENV
                   else
