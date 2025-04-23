@@ -18,7 +18,7 @@
             "title": "Start URLs",
             "type": "array",
             "description": "A static list of URLs to scrape. <br><br>For details, see <a href='https://apify.com/apify/web-scraper#start-urls' target='_blank' rel='noopener'>Start URLs</a> in README.",
-            "prefill": [{ "url": "https://crawlee.dev" }],
+            "prefill": [{ "url": "https://crawlee.dev/js" }],
             "editor": "requestListSources"
         },
         "keepUrlFragments": {
@@ -50,7 +50,7 @@
             "default": [],
             "prefill": [
                 {
-                    "glob": "https://crawlee.dev/*/*"
+                    "glob": "https://crawlee.dev/js/*/*"
                 }
             ]
         },

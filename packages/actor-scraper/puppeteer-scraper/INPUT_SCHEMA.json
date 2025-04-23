@@ -9,7 +9,7 @@
             "title": "Start URLs",
             "type": "array",
             "description": "URLs to start with",
-            "prefill": [{ "url": "https://crawlee.dev" }],
+            "prefill": [{ "url": "https://crawlee.dev/js" }],
             "editor": "requestListSources"
         },
         "globs": {
@@ -20,7 +20,7 @@
             "default": [],
             "prefill": [
                 {
-                    "glob": "https://crawlee.dev/*/*"
+                    "glob": "https://crawlee.dev/js/*/*"
                 }
             ]
         },
