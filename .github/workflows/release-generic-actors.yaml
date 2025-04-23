@@ -115,6 +115,7 @@ jobs:
                   fi
 
             - name: Build ${{ matrix.settings.actor }}
+              if: matrix.settings.should-build == 'true'
               run: |
                   echo "Building ${{ matrix.settings.actor }}!"
                   echo "Channel: ${{ github.event.inputs.build-channel }}"
