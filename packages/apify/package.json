@@ -48,7 +48,7 @@
         "clean": "rimraf ./dist",
         "compile": "tsc -p tsconfig.build.json && gen-esm-wrapper ./dist/index.js ./dist/index.mjs",
         "copy": "tsx ../../scripts/copy.ts --readme=local",
-        "fixApifyExport": "tsx ../../scripts/temp_fix_apify_exports.ts"
+        "fixApifyExport": "node ../../scripts/temp_fix_apify_exports.mjs"
     },
     "publishConfig": {
         "access": "public"
