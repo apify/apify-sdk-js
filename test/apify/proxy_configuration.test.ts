@@ -619,7 +619,7 @@ describe('Actor.createProxyConfiguration()', () => {
         getUserSpy.mockRestore();
     });
 
-    test('should show warning log', async () => {
+    test.skip('should show warning log', async () => {
         process.env.APIFY_TOKEN = '123456789';
 
         const getUserSpy = vitest.spyOn(UserClient.prototype, 'get');
@@ -639,6 +639,18 @@ describe('Actor.createProxyConfiguration()', () => {
         logMock.mockRestore();
         getUserSpy.mockRestore();
         gotScrapingSpy.mockRestore();
+    });
+
+    test(`shouldn't request password from API when both PROXY_PASSWORD and TOKEN envs are provided`, async () => {
+        process.env[APIFY_ENV_VARS.TOKEN] = 'some_token';
+        process.env[APIFY_ENV_VARS.PROXY_PASSWORD] = 'proxy_password';
+
+        const getUserSpy = vitest.spyOn(UserClient.prototype, 'get');
+        const proxyConfiguration = new ProxyConfiguration();
+        await proxyConfiguration.initialize();
+        expect(getUserSpy).toBeCalledTimes(0);
+
+        getUserSpy.mockRestore();
     });
 
     // TODO: test that on platform we throw but locally we only print warning
