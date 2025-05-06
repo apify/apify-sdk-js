@@ -435,7 +435,7 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
     }
 
     /**
-     * Checks if proxy passowrd is provided in env, if not, fetches it from API using Apify Token
+     * Checks if proxy password is provided in env, if not, fetches it from API using Apify Token
      */
     // TODO: Make this private
     protected async _setPasswordIfToken(): Promise<void> {
