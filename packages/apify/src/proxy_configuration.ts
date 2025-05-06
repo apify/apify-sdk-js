@@ -260,7 +260,27 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
      */
     async initialize(): Promise<boolean> {
         if (this.usesApifyProxy) {
-            await this._setPasswordIfToken();
+            if (!this.password) {
+                await this._setPasswordIfToken();
+            }
+
+            if (!this.password) {
+                if (Actor.isAtHome()) {
+                    throw new Error(
+                        `Apify Proxy password must be provided using options.password or the "${APIFY_ENV_VARS.PROXY_PASSWORD}" environment variable. ` +
+                            `If you add the "${APIFY_ENV_VARS.TOKEN}" environment variable, ` +
+                            `while not providing "${APIFY_ENV_VARS.PROXY_PASSWORD}", the password will be automatically inferred.`,
+                    );
+                } else {
+                    this.log.warning(
+                        `No proxy password or token detected, running without proxy. To use Apify Proxy locally, ` +
+                            `provide options.password or "${APIFY_ENV_VARS.PROXY_PASSWORD}" environment variable. ` +
+                            `If you add the "${APIFY_ENV_VARS.TOKEN}" environment variable, ` +
+                            `while not providing "${APIFY_ENV_VARS.PROXY_PASSWORD}", the password will be automatically inferred.`,
+                    );
+                }
+            }
+
             return this._checkAccess();
         }
 
@@ -415,10 +435,10 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
     }
 
     /**
-     * Checks if Apify Token is provided in env and gets the password via API and sets it to env
+     * Checks if proxy passowrd is provided in env, if not, fetches it from API using Apify Token
      */
+    // TODO: Make this private
     protected async _setPasswordIfToken(): Promise<void> {
-        if (this.password) return;
         const token = this.config.get('token');
 
         if (token) {
@@ -442,23 +462,6 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
             const { password } = proxy!;
 
             this.password = password;
-        }
-
-        if (!this.password) {
-            if (Actor.isAtHome()) {
-                throw new Error(
-                    `Apify Proxy password must be provided using options.password or the "${APIFY_ENV_VARS.PROXY_PASSWORD}" environment variable. ` +
-                        `If you add the "${APIFY_ENV_VARS.TOKEN}" environment variable, ` +
-                        `while not providing "${APIFY_ENV_VARS.PROXY_PASSWORD}", the password will be automatically inferred.`,
-                );
-            } else {
-                this.log.warning(
-                    `No proxy password or token detected, running without proxy. To use Apify Proxy locally, ` +
-                        `provide options.password or "${APIFY_ENV_VARS.PROXY_PASSWORD}" environment variable. ` +
-                        `If you add the "${APIFY_ENV_VARS.TOKEN}" environment variable, ` +
-                        `while not providing "${APIFY_ENV_VARS.PROXY_PASSWORD}", the password will be automatically inferred.`,
-                );
-            }
         }
     }
 
