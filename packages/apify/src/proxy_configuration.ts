@@ -267,14 +267,14 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
                 if (Actor.isAtHome()) {
                     throw new Error(
                         `Apify Proxy password must be provided using options.password or the "${APIFY_ENV_VARS.PROXY_PASSWORD}" environment variable. ` +
-                            `You can also provide your Apify token via the "${APIFY_ENV_VARS.TOKEN}" environment variable,` +
+                            `You can also provide your Apify token via the "${APIFY_ENV_VARS.TOKEN}" environment variable, ` +
                             `so that the SDK can fetch the proxy password from Apify API, when ${APIFY_ENV_VARS.PROXY_PASSWORD} is not defined`,
                     );
                 } else {
                     this.log.warning(
                         `No proxy password or token detected, running without proxy. To use Apify Proxy locally, ` +
                             `provide options.password or "${APIFY_ENV_VARS.PROXY_PASSWORD}" environment variable. ` +
-                            `You can also provide your Apify token via the "${APIFY_ENV_VARS.TOKEN}" environment variable,` +
+                            `You can also provide your Apify token via the "${APIFY_ENV_VARS.TOKEN}" environment variable, ` +
                             `so that the SDK can fetch the proxy password from Apify API, when ${APIFY_ENV_VARS.PROXY_PASSWORD} is not defined`,
                     );
                 }
