@@ -619,26 +619,16 @@ describe('Actor.createProxyConfiguration()', () => {
         getUserSpy.mockRestore();
     });
 
-    test('should show warning log', async () => {
-        process.env.APIFY_TOKEN = '123456789';
+    test(`shouldn't request password from API when both PROXY_PASSWORD and TOKEN envs are provided`, async () => {
+        process.env[APIFY_ENV_VARS.TOKEN] = 'some_token';
+        process.env[APIFY_ENV_VARS.PROXY_PASSWORD] = 'proxy_password';
 
         const getUserSpy = vitest.spyOn(UserClient.prototype, 'get');
-        const status = { connected: true };
-        const fakeUserData = {
-            proxy: { password: 'some-other-users-password' },
-        };
-        getUserSpy.mockResolvedValueOnce(fakeUserData as any);
-        gotScrapingSpy.mockResolvedValueOnce({ body: status } as any);
-
-        const proxyConfiguration = new ProxyConfiguration(basicOpts);
-        // @ts-expect-error
-        const logMock = vitest.spyOn(proxyConfiguration.log, 'warning');
+        const proxyConfiguration = new ProxyConfiguration();
         await proxyConfiguration.initialize();
-        expect(logMock).toBeCalledTimes(1);
+        expect(getUserSpy).toBeCalledTimes(0);
 
-        logMock.mockRestore();
         getUserSpy.mockRestore();
-        gotScrapingSpy.mockRestore();
     });
 
     // TODO: test that on platform we throw but locally we only print warning
