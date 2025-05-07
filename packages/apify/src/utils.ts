@@ -55,7 +55,8 @@ export function checkCrawleeVersion() {
     ];
 
     for (const path of paths) {
-        if (!pathExistsSync(path)) {
+        // ignore unresolved paths or paths that are not in the project directory
+        if (!pathExistsSync(path) || !path.startsWith(process.cwd())) {
             continue;
         }
 
