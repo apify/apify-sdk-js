@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [3.4.1](https://github.com/apify/apify-sdk-js/compare/apify@3.4.0...apify@3.4.1) (2025-05-07)
+
+### Bug Fixes
+
+- convert `[@apilink](https://github.com/apilink)` to `[@link](https://github.com/link)` on build ([#383](https://github.com/apify/apify-sdk-js/issues/383)) ([ccae1ac](https://github.com/apify/apify-sdk-js/commit/ccae1ac9737dfc5bfc64e4586846e413ddb54a37))
+- improve check for crawlee version mismatch ([#386](https://github.com/apify/apify-sdk-js/issues/386)) ([721e67d](https://github.com/apify/apify-sdk-js/commit/721e67dbde367b01e1347900b73394221bca0c9d)), closes [#375](https://github.com/apify/apify-sdk-js/issues/375)
+- prefer proxy password from env var ([#385](https://github.com/apify/apify-sdk-js/issues/385)) ([132b5dc](https://github.com/apify/apify-sdk-js/commit/132b5dc5b0c5b77cad357b4d022b53ab6801a3a2)), closes [#20502](https://github.com/apify/apify-sdk-js/issues/20502)
+
 # [3.4.0](https://github.com/apify/apify-sdk-js/compare/apify@3.3.2...apify@3.4.0) (2025-04-01)
 
 ### Features
