@@ -85,7 +85,7 @@
         "globby": "^14.1.0",
         "husky": "^9.1.7",
         "lerna": "^8.1.8",
-        "lint-staged": "^15.2.8",
+        "lint-staged": "^16.0.0",
         "playwright": "^1.46.0",
         "prettier": "3.5.3",
         "puppeteer": "^24.0.0",
