@@ -20,7 +20,7 @@ import {
     RequestList,
     RequestQueueV2,
 } from '@crawlee/cheerio';
-import type { ApifyEnv } from 'apify';
+import type { ApifyClient, ApifyEnv } from 'apify';
 import { Actor } from 'apify';
 import { load } from 'cheerio';
 
@@ -70,7 +70,6 @@ export class CrawlerSetup implements CrawlerSetupOptions {
     requestQueueName?: string;
 
     crawler!: CheerioCrawler;
-    requestList!: RequestList;
     dataset!: Dataset;
     pagesOutputted!: number;
     proxyConfiguration?: ProxyConfiguration;
@@ -151,7 +150,6 @@ export class CrawlerSetup implements CrawlerSetupOptions {
 
         // Initialize async operations.
         this.crawler = null!;
-        this.requestList = null!;
         this.requestQueue = null!;
         this.dataset = null!;
         this.keyValueStore = null!;
@@ -167,10 +165,18 @@ export class CrawlerSetup implements CrawlerSetupOptions {
             return req;
         });
 
-        this.requestList = await RequestList.open('CHEERIO_SCRAPER', startUrls);
-
         // RequestQueue
         this.requestQueue = await RequestQueueV2.open(this.requestQueueName);
+
+        const requests: Request[] = [];
+        for await (const request of await RequestList.open(null, startUrls)) {
+            if (this.input.maxResultsPerCrawl > 0 && requests.length >= 1.5 * this.input.maxResultsPerCrawl) {
+                break
+            }
+            requests.push(request);
+        }
+
+        await this.requestQueue.addRequestsBatched(requests);
 
         // Dataset
         this.dataset = await Dataset.open(this.datasetName);
@@ -197,7 +203,6 @@ export class CrawlerSetup implements CrawlerSetupOptions {
             requestHandler: this._requestHandler.bind(this),
             preNavigationHooks: [],
             postNavigationHooks: [],
-            requestList: this.requestList,
             requestQueue: this.requestQueue,
             navigationTimeoutSecs: this.input.pageLoadTimeoutSecs,
             requestHandlerTimeoutSecs: this.input.pageFunctionTimeoutSecs,
@@ -249,6 +254,19 @@ export class CrawlerSetup implements CrawlerSetupOptions {
         }
 
         this.crawler = new CheerioCrawler(options);
+
+        (this.crawler.config.getStorageClient() as ApifyClient).httpClient.axios.interceptors.response.use(response => {
+                if (
+                    response.config.url?.includes(this.crawler.config.get('apiBaseUrl' as any)) 
+                    && response.config.url?.includes("v2/request-queues") 
+                    && response.config.url.endsWith('lock')
+                    && response.config.method === 'delete'
+                ) {
+                    log.info(`HTTP response ${response.status} <- ${response.config.method ?? 'get'} ${response.config.url}`);
+                }
+
+                return response;
+        })
 
         return this.crawler;
     }

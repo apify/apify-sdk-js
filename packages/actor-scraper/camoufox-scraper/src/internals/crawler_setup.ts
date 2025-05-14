@@ -76,7 +76,6 @@ export class CrawlerSetup implements CrawlerSetupOptions {
     requestQueueName?: string;
 
     crawler!: PlaywrightCrawler;
-    requestList!: RequestList;
     dataset!: Dataset;
     pagesOutputted!: number;
     private initPromise: Promise<void>;
@@ -167,7 +166,6 @@ export class CrawlerSetup implements CrawlerSetupOptions {
 
         // Initialize async operations.
         this.crawler = null!;
-        this.requestList = null!;
         this.requestQueue = null!;
         this.dataset = null!;
         this.keyValueStore = null!;
@@ -182,13 +180,18 @@ export class CrawlerSetup implements CrawlerSetupOptions {
             return req;
         });
 
-        this.requestList = await RequestList.open(
-            'PLAYWRIGHT_SCRAPER',
-            startUrls,
-        );
-
         // RequestQueue
         this.requestQueue = await RequestQueueV2.open(this.requestQueueName);
+
+        const requests: Request[] = [];
+        for await (const request of await RequestList.open(null, startUrls)) {
+            if (this.input.maxResultsPerCrawl > 0 && requests.length >= 1.5 * this.input.maxResultsPerCrawl) {
+                break
+            }
+            requests.push(request);
+        }
+
+        await this.requestQueue.addRequestsBatched(requests);
 
         // Dataset
         this.dataset = await Dataset.open(this.datasetName);
@@ -207,7 +210,6 @@ export class CrawlerSetup implements CrawlerSetupOptions {
 
         const options: PlaywrightCrawlerOptions = {
             requestHandler: this._requestHandler.bind(this),
-            requestList: this.requestList,
             requestQueue: this.requestQueue,
             requestHandlerTimeoutSecs: this.devtools
                 ? DEVTOOLS_TIMEOUT_SECS
