@@ -170,8 +170,11 @@ export class CrawlerSetup implements CrawlerSetupOptions {
 
         const requests: Request[] = [];
         for await (const request of await RequestList.open(null, startUrls)) {
-            if (this.input.maxResultsPerCrawl > 0 && requests.length >= 1.5 * this.input.maxResultsPerCrawl) {
-                break
+            if (
+                this.input.maxResultsPerCrawl > 0 &&
+                requests.length >= 1.5 * this.input.maxResultsPerCrawl
+            ) {
+                break;
             }
             requests.push(request);
         }
@@ -254,19 +257,6 @@ export class CrawlerSetup implements CrawlerSetupOptions {
         }
 
         this.crawler = new CheerioCrawler(options);
-
-        (this.crawler.config.getStorageClient() as ApifyClient).httpClient.axios.interceptors.response.use(response => {
-                if (
-                    response.config.url?.includes(this.crawler.config.get('apiBaseUrl' as any)) 
-                    && response.config.url?.includes("v2/request-queues") 
-                    && response.config.url.endsWith('lock')
-                    && response.config.method === 'delete'
-                ) {
-                    log.info(`HTTP response ${response.status} <- ${response.config.method ?? 'get'} ${response.config.url}`);
-                }
-
-                return response;
-        })
 
         return this.crawler;
     }
