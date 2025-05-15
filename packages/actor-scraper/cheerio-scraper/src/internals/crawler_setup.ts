@@ -20,7 +20,7 @@ import {
     RequestList,
     RequestQueueV2,
 } from '@crawlee/cheerio';
-import type { ApifyClient, ApifyEnv } from 'apify';
+import type { ApifyEnv } from 'apify';
 import { Actor } from 'apify';
 import { load } from 'cheerio';
 
