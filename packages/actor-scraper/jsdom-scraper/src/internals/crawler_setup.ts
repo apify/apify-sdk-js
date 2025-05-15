@@ -169,8 +169,11 @@ export class CrawlerSetup implements CrawlerSetupOptions {
 
         const requests: Request[] = [];
         for await (const request of await RequestList.open(null, startUrls)) {
-            if (this.input.maxResultsPerCrawl > 0 && requests.length >= 1.5 * this.input.maxResultsPerCrawl) {
-                break
+            if (
+                this.input.maxResultsPerCrawl > 0 &&
+                requests.length >= 1.5 * this.input.maxResultsPerCrawl
+            ) {
+                break;
             }
             requests.push(request);
         }
