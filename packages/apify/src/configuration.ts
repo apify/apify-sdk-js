@@ -120,7 +120,7 @@ export class Configuration extends CoreConfiguration {
     // maps environment variables to config keys (e.g. `APIFY_MEMORY_MBYTES` to `memoryMbytes`)
     protected static override ENV_MAP = {
         // regular crawlee env vars are also supported
-        ...super.ENV_MAP,
+        ...CoreConfiguration.ENV_MAP,
 
         // support crawlee env vars prefixed with `APIFY_` too
         APIFY_AVAILABLE_MEMORY_RATIO: 'availableMemoryRatio',
@@ -180,7 +180,7 @@ export class Configuration extends CoreConfiguration {
     };
 
     protected static override INTEGER_VARS = [
-        ...super.INTEGER_VARS,
+        ...CoreConfiguration.INTEGER_VARS,
         'proxyPort',
         'containerPort',
         'metamorphAfterSleepMillis',
@@ -188,14 +188,14 @@ export class Configuration extends CoreConfiguration {
     ];
 
     protected static override BOOLEAN_VARS = [
-        ...super.BOOLEAN_VARS,
+        ...CoreConfiguration.BOOLEAN_VARS,
         'isAtHome',
         'testPayPerEvent',
         'useChargingLogDataset',
     ];
 
     protected static override DEFAULTS = {
-        ...super.DEFAULTS,
+        ...CoreConfiguration.DEFAULTS,
         defaultKeyValueStoreId:
             LOCAL_ACTOR_ENV_VARS[ACTOR_ENV_VARS.DEFAULT_KEY_VALUE_STORE_ID],
         defaultDatasetId:
