@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [3.4.2](https://github.com/apify/apify-sdk-js/compare/apify@3.4.1...apify@3.4.2) (2025-05-19)
+
+### Bug Fixes
+
+- improve extension of `Configuration` class to fix issues in native ESM projects ([#394](https://github.com/apify/apify-sdk-js/issues/394)) ([8842706](https://github.com/apify/apify-sdk-js/commit/884270611e09a0fec40903958f74d458ba454300))
+
 ## [3.4.1](https://github.com/apify/apify-sdk-js/compare/apify@3.4.0...apify@3.4.1) (2025-05-07)
 
 ### Bug Fixes
