@@ -44,6 +44,7 @@ const SCHEMA = JSON.parse(
 
 const MAX_EVENT_LOOP_OVERLOADED_RATIO = 0.9;
 const SESSION_STORE_NAME = 'APIFY-CHEERIO-SCRAPER-SESSION-STORE';
+const REQUEST_QUEUE_INIT_FLAG_KEY = 'REQUEST_QUEUE_INITIALIZED';
 
 /**
  * Holds all the information necessary for constructing a crawler
@@ -165,29 +166,46 @@ export class CrawlerSetup implements CrawlerSetupOptions {
             return req;
         });
 
+        // KeyValueStore
+        this.keyValueStore = await KeyValueStore.open(this.keyValueStoreName);
+
         // RequestQueue
         this.requestQueue = await RequestQueueV2.open(this.requestQueueName);
 
-        const requests: Request[] = [];
-        for await (const request of await RequestList.open(null, startUrls)) {
-            if (
-                this.input.maxResultsPerCrawl > 0 &&
-                requests.length >= 1.5 * this.input.maxResultsPerCrawl
-            ) {
-                break;
+        if (
+            !(await this.keyValueStore.recordExists(
+                REQUEST_QUEUE_INIT_FLAG_KEY,
+            ))
+        ) {
+            const requests: Request[] = [];
+            for await (const request of await RequestList.open(
+                null,
+                startUrls,
+            )) {
+                if (
+                    this.input.maxResultsPerCrawl > 0 &&
+                    requests.length >= 1.5 * this.input.maxResultsPerCrawl
+                ) {
+                    break;
+                }
+                requests.push(request);
             }
-            requests.push(request);
-        }
 
-        await this.requestQueue.addRequestsBatched(requests);
+            const { waitForAllRequestsToBeAdded } =
+                await this.requestQueue.addRequestsBatched(requests);
+
+            waitForAllRequestsToBeAdded.then(async () => {
+                await this.keyValueStore.setValue(
+                    REQUEST_QUEUE_INIT_FLAG_KEY,
+                    '1',
+                );
+            });
+        }
 
         // Dataset
         this.dataset = await Dataset.open(this.datasetName);
         const info = await this.dataset.getInfo();
         this.pagesOutputted = info?.itemCount ?? 0;
-
-        // KeyValueStore
-        this.keyValueStore = await KeyValueStore.open(this.keyValueStoreName);
 
         // Proxy configuration
         this.proxyConfiguration = (await Actor.createProxyConfiguration(
