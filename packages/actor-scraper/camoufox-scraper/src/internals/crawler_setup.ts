@@ -209,7 +209,7 @@ export class CrawlerSetup implements CrawlerSetupOptions {
             const { waitForAllRequestsToBeAdded } =
                 await this.requestQueue.addRequestsBatched(requests);
 
-            waitForAllRequestsToBeAdded.then(async () => {
+            void waitForAllRequestsToBeAdded.then(async () => {
                 await this.keyValueStore.setValue(
                     REQUEST_QUEUE_INIT_FLAG_KEY,
                     '1',
