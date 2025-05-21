@@ -41,6 +41,7 @@ import type { Input } from './consts.js';
 import { ProxyRotation } from './consts.js';
 
 const SESSION_STORE_NAME = 'APIFY-PUPPETEER-SCRAPER-SESSION-STORE';
+const REQUEST_QUEUE_INIT_FLAG_KEY = 'REQUEST_QUEUE_INITIALIZED';
 
 const {
     META_KEY,
@@ -79,7 +80,6 @@ export class CrawlerSetup implements CrawlerSetupOptions {
     requestQueueName?: string;
 
     crawler!: PuppeteerCrawler;
-    requestList!: RequestList;
     dataset!: Dataset;
     pagesOutputted!: number;
     private initPromise: Promise<void>;
@@ -195,7 +195,6 @@ export class CrawlerSetup implements CrawlerSetupOptions {
 
         // Initialize async operations.
         this.crawler = null!;
-        this.requestList = null!;
         this.requestQueue = null!;
         this.dataset = null!;
         this.keyValueStore = null!;
@@ -210,21 +209,46 @@ export class CrawlerSetup implements CrawlerSetupOptions {
             return req;
         });
 
-        this.requestList = await RequestList.open(
-            'PUPPETEER_SCRAPER',
-            startUrls,
-        );
+        // KeyValueStore
+        this.keyValueStore = await KeyValueStore.open(this.keyValueStoreName);
 
         // RequestQueue
         this.requestQueue = await RequestQueueV2.open(this.requestQueueName);
+
+        if (
+            !(await this.keyValueStore.recordExists(
+                REQUEST_QUEUE_INIT_FLAG_KEY,
+            ))
+        ) {
+            const requests: Request[] = [];
+            for await (const request of await RequestList.open(
+                null,
+                startUrls,
+            )) {
+                if (
+                    this.input.maxResultsPerCrawl > 0 &&
+                    requests.length >= 1.5 * this.input.maxResultsPerCrawl
+                ) {
+                    break;
+                }
+                requests.push(request);
+            }
+
+            const { waitForAllRequestsToBeAdded } =
+                await this.requestQueue.addRequestsBatched(requests);
+
+            void waitForAllRequestsToBeAdded.then(async () => {
+                await this.keyValueStore.setValue(
+                    REQUEST_QUEUE_INIT_FLAG_KEY,
+                    '1',
+                );
+            });
+        }
 
         // Dataset
         this.dataset = await Dataset.open(this.datasetName);
         const info = await this.dataset.getInfo();
         this.pagesOutputted = info?.itemCount ?? 0;
-
-        // KeyValueStore
-        this.keyValueStore = await KeyValueStore.open(this.keyValueStoreName);
     }
 
     /**
@@ -238,7 +262,6 @@ export class CrawlerSetup implements CrawlerSetupOptions {
 
         const options: PuppeteerCrawlerOptions = {
             requestHandler: this._requestHandler.bind(this),
-            requestList: this.requestList,
             requestQueue: this.requestQueue,
             requestHandlerTimeoutSecs: this.devtools
                 ? DEVTOOLS_TIMEOUT_SECS
