@@ -11,13 +11,49 @@ interface ChargingStateItem {
 }
 
 export interface ChargeOptions {
+    /**
+     * The name of the event type to charge for.
+     * This should match one of the event names defined in the Actor's pricing configuration.
+     */
     eventName: string;
+
+    /**
+     * The number of events to charge for.
+     * @default 1
+     */
     count?: number;
 }
 
 export interface ChargeResult {
+    /**
+     * Whether the charge limit was reached for the specific event type that was being charged.
+     *
+     * When `true`, it means no more events of this specific type can be charged without exceeding
+     * the total budget limit. This does NOT mean the limit for all events was reached - other
+     * event types might still be chargeable.
+     *
+     * For more flexible budget checking across all event types, use the `chargeableWithinLimit` field.
+     */
     eventChargeLimitReached: boolean;
+
+    /**
+     * The actual number of events that were successfully charged.
+     *
+     * This may be less than the requested count if charging the full amount would exceed
+     * the maximum total charge limit (`maxTotalChargeUsd`).
+     */
     chargedCount: number;
+
+    /**
+     * A record showing how many events of each type can still be charged within the budget limit.
+     *
+     * The keys are event names and the values are the maximum number of events of that type
+     * that can still be charged without exceeding `maxTotalChargeUsd`. This provides a comprehensive
+     * view of remaining budget capacity across all event types.
+     *
+     * Use this field when you need flexible budget management across multiple event types,
+     * rather than relying on `eventChargeLimitReached` which only applies to the current event.
+     */
     chargeableWithinLimit: Record<string, number>;
 }
 
@@ -192,6 +228,9 @@ export class ChargingManager {
 
     /**
      * Charge for a specified number of events - sub-operations of the Actor.
+     *
+     * This method attempts to charge for the specified number of events, but may charge fewer
+     * if doing so would exceed the total budget limit (`maxTotalChargeUsd`).
      *
      * @param options The name of the event to charge for and the number of events to be charged.
      */
