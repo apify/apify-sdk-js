@@ -234,7 +234,7 @@ export class ChargingManager {
 
         if (chargedCount === 0) {
             return {
-                eventChargeLimitReached: true,
+                eventChargeLimitReached: count > 0, // Only true if user wanted to charge but couldn't
                 chargedCount: 0,
                 chargeableWithinLimit: calculateChargeableWithinLimit(),
             };
