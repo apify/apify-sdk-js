@@ -6,10 +6,10 @@ env:
 on:
     # Push to master will deploy a dev version
     push:
-        branches: [master, renovate/**]
+        branches: [master, v4, renovate/**]
     # PR to master branch will skip deployment
     pull_request:
-        branches: [master]
+        branches: [master, v4]
     # A release via GitHub releases will deploy the latest version
     release:
         types: [published]
@@ -27,7 +27,7 @@ jobs:
                 # tests on windows are extremely unstable
                 # os: [ ubuntu-22.04, windows-2019 ]
                 os: [ubuntu-22.04]
-                node-version: [16, 18, 20, 22]
+                node-version: [22, 24]
 
         steps:
             - name: Cancel Workflow Action
@@ -134,7 +134,7 @@ jobs:
 
     publish:
         name: Publish
-        if: (github.ref == 'refs/heads/master' || github.event_name == 'release') && !contains(github.event.head_commit.message, '[skip ci]') && !contains(github.event.head_commit.message, 'docs:')
+        if: (github.ref == 'refs/heads/v4' || github.event_name == 'release') && !contains(github.event.head_commit.message, '[skip ci]') && !contains(github.event.head_commit.message, 'docs:')
         runs-on: ubuntu-22.04
         needs: [lint, build_and_test]
         steps:
@@ -142,7 +142,7 @@ jobs:
               uses: actions/checkout@v4
               with:
                   fetch-depth: 0 # we need to pull everything to have correct dev version suffix
-                  ref: master
+                  ref: v4
 
             - name: Use Node.js 22
               uses: actions/setup-node@v4

@@ -1,5 +1,5 @@
-import { copyFileSync, readFileSync, writeFileSync } from 'fs';
-import { resolve } from 'path';
+import { copyFileSync, readFileSync, writeFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 
 const options = process.argv.slice(2).reduce((args, arg) => {
     const [key, value] = arg.split('=');
@@ -24,7 +24,7 @@ function rewrite(path: string, replacer: (from: string) => string): void {
 
 // as we publish only the dist folder, we need to copy some meta files inside (readme/license/package.json)
 // also changes paths inside the copied `package.json` (`dist/index.js` -> `index.js`)
-const root = resolve(__dirname, '..');
+const root = resolve(import.meta.dirname, '..');
 const target = resolve(process.cwd(), 'dist');
 
 switch (options.readme) {

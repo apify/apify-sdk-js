@@ -3,7 +3,7 @@ import { KeyValueStore as CoreKeyValueStore } from '@crawlee/core';
 
 import { createHmacSignature } from '@apify/utilities';
 
-import type { Configuration } from './configuration';
+import type { Configuration } from './configuration.js';
 
 // @ts-ignore newer crawlee versions already declare this method in core
 const { getPublicUrl } = CoreKeyValueStore.prototype;

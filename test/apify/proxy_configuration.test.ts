@@ -1,6 +1,7 @@
 import { Actor, ProxyConfiguration } from 'apify';
 import { UserClient } from 'apify-client';
 import { type Dictionary, Request, sleep } from 'crawlee';
+import { gotScraping } from 'got-scraping';
 
 import { APIFY_ENV_VARS, LOCAL_APIFY_ENV_VARS } from '@apify/consts';
 
@@ -20,17 +21,11 @@ const basicOptsProxyUrl =
 const proxyUrlNoSession =
     'http://groups-GROUP1+GROUP2,country-CZ:test12345@proxy.apify.com:8000';
 
-vitest.mock('@crawlee/utils', async (importActual) => {
-    // eslint-disable-next-line @typescript-eslint/consistent-type-imports -- importing from an ESM package (`got-scraping`)
-    const mod = await importActual<typeof import('@crawlee/utils')>();
-
+vitest.mock('got-scraping', async () => {
     return {
-        ...mod,
         gotScraping: vitest.fn(),
     };
 });
-
-const { gotScraping } = await import('@crawlee/utils');
 
 const gotScrapingSpy = vitest.mocked(gotScraping);
 

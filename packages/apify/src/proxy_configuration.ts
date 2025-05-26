@@ -3,7 +3,7 @@ import type {
     ProxyInfo as CoreProxyInfo,
 } from '@crawlee/core';
 import { ProxyConfiguration as CoreProxyConfiguration } from '@crawlee/core';
-import { gotScraping } from '@crawlee/utils';
+import { gotScraping } from 'got-scraping';
 import ow from 'ow';
 
 import { APIFY_ENV_VARS, APIFY_PROXY_VALUE_REGEX } from '@apify/consts';

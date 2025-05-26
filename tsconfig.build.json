@@ -1,7 +1,9 @@
 {
     "extends": "@apify/tsconfig",
     "compilerOptions": {
-        "target": "ES2020",
+        "module": "NodeNext",
+        "moduleResolution": "NodeNext",
+        "target": "ESNext",
         "lib": ["ESNext", "DOM", "ES2020"],
         "baseUrl": ".",
         "allowJs": true,
