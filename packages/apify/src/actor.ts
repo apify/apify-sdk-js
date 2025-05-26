@@ -1387,6 +1387,9 @@ export class Actor<Data extends Dictionary = Dictionary> {
     /**
      * Charge for a specified number of events - sub-operations of the Actor.
      *
+     * This method attempts to charge for the specified number of events, but may charge fewer
+     * if doing so would exceed the total budget limit (`maxTotalChargeUsd`).
+     *
      * @param options The name of the event to charge for and the number of events to be charged.
      * @ignore
      */
@@ -2175,6 +2178,9 @@ export class Actor<Data extends Dictionary = Dictionary> {
 
     /**
      * Charge for a specified number of events - sub-operations of the Actor.
+     *
+     * This method attempts to charge for the specified number of events, but may charge fewer
+     * if doing so would exceed the total budget limit (`maxTotalChargeUsd`).
      *
      * @param options The name of the event to charge for and the number of events to be charged.
      */
