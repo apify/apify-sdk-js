@@ -1,4 +1,4 @@
-FROM apify/actor-node-playwright-firefox:22 AS builder
+FROM apify/actor-node-playwright-camoufox:22 AS builder
 
 COPY --chown=myuser package*.json ./
 
@@ -8,7 +8,7 @@ COPY --chown=myuser . ./
 
 RUN npm run build
 
-FROM apify/actor-node-playwright-firefox:22
+FROM apify/actor-node-playwright-camoufox:22
 
 COPY --from=builder --chown=myuser /home/myuser/dist ./dist
 
@@ -24,12 +24,7 @@ RUN npm --quiet set progress=false \
     && npm --version \
     && rm -r ~/.npm
 
-ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=0
-RUN npm run get-binaries
-
 COPY --chown=myuser . ./
-
-RUN rm -rf ./pw-browsers/
 
 ENV APIFY_DISABLE_OUTDATED_WARNING=1
 

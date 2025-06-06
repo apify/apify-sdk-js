@@ -24,8 +24,7 @@
         "start": "npm run start:dev",
         "start:prod": "node dist/main.js",
         "start:dev": "tsx src/main.ts",
-        "build": "tsc",
-        "get-binaries": "camoufox-js fetch"
+        "build": "tsc"
     },
     "repository": {
         "type": "git",
