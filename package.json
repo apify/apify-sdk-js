@@ -94,7 +94,7 @@
         "turbo": "2.5.4",
         "typescript": "~5.8.0",
         "typescript-eslint": "^8.28.0",
-        "vite-tsconfig-paths": "^4.3.2",
+        "vite-tsconfig-paths": "^5.0.0",
         "vitest": "^3.0.0"
     },
     "overrides": {
