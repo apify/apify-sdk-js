@@ -36,13 +36,13 @@ import { Configuration } from './configuration.js';
  *   When a user aborts an Actor run on the Apify platform, they can choose to abort gracefully to allow
  *   the Actor some time before getting killed. This graceful abort emits the `aborting` event which the SDK
  *   uses to gracefully stop running crawls and you can use it to do your own cleanup as well.
- * - `persistState`: `{ "isMigrating": Boolean }`
+ * - `persistState`: `{ "isMigrating": Boolean, "isAborting": Boolean }`
  *   Emitted in regular intervals (by default 60 seconds) to notify all components of Apify SDK that it is time to persist
  *   their state, in order to avoid repeating all work when the Actor restarts.
- *   This event is automatically emitted together with the `migrating` event,
- *   in which case the `isMigrating` flag is set to `true`. Otherwise the flag is `false`.
+ *   This event is automatically emitted together with the `migrating` and `aborting` events,
+ *   in which case the `isMigrating` or `isAborting` flag is set to `true`. Otherwise the flags are `false`.
  *   Note that the `persistState` event is provided merely for user convenience,
- *   you can achieve the same effect using `setInterval()` and listening for the `migrating` event.
+ *   you can achieve the same effect using `setInterval()` and listening for the `migrating` and `aborting` events.
  */
 export class PlatformEventManager extends EventManager {
     /** Websocket connection to Actor events. */
@@ -84,10 +84,14 @@ export class PlatformEventManager extends EventManager {
                 const { name, data } = JSON.parse(String(message));
                 this.events.emit(name, data);
 
-                if (name === ACTOR_EVENT_NAMES.MIGRATING) {
+                if (
+                    name === ACTOR_EVENT_NAMES.MIGRATING ||
+                    name === ACTOR_EVENT_NAMES.ABORTING
+                ) {
                     betterClearInterval(this.intervals.persistState!); // Don't send any other persist state event.
                     this.events.emit(EventType.PERSIST_STATE, {
-                        isMigrating: true,
+                        isMigrating: name === ACTOR_EVENT_NAMES.MIGRATING,
+                        isAborting: name === ACTOR_EVENT_NAMES.ABORTING,
                     });
                 }
             } catch (err) {
