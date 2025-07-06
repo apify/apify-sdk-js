@@ -26,7 +26,7 @@ function readJSONIfExists(path: string): Dictionary | null {
     return null;
 }
 
-export const readInputSchema = async (): Promise<Dictionary | null> => {
+export const readInputSchema = (): Dictionary | null => {
     const localConfig = readJSONIfExists(
         join(process.cwd(), ACTOR_SPECIFICATION_FOLDER, LOCAL_CONFIG_NAME),
     );
