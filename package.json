@@ -61,7 +61,7 @@
         "test/**/*": [
             "eslint --fix"
         ],
-        "*": "prettier --write"
+        "*": "prettier --write --ignore-unknown"
     },
     "devDependencies": {
         "@apify/consts": "^2.29.0",
