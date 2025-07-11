@@ -47,6 +47,10 @@ import { addTimeoutToPromise } from '@apify/timeout';
 import type { ChargeOptions, ChargeResult } from './charging.js';
 import { ChargingManager } from './charging.js';
 import { Configuration } from './configuration.js';
+import {
+    getDefaultsFromInputSchema,
+    readInputSchema,
+} from './input-schemas.js';
 import { KeyValueStore } from './key_value_store.js';
 import { PlatformEventManager } from './platform_event_manager.js';
 import type { ProxyConfigurationOptions } from './proxy_configuration.js';
@@ -1219,9 +1223,12 @@ export class Actor<Data extends Dictionary = Dictionary> {
         const inputSecretsPrivateKeyPassphrase = this.config.get(
             'inputSecretsPrivateKeyPassphrase',
         );
-        const input = await this.getValue<T>(this.config.get('inputKey'));
+        const rawInput = await this.getValue<T>(this.config.get('inputKey'));
+
+        let input = rawInput as T;
+
         if (
-            ow.isValid(input, ow.object.nonEmpty) &&
+            ow.isValid(rawInput, ow.object.nonEmpty) &&
             inputSecretsPrivateKeyFile &&
             inputSecretsPrivateKeyPassphrase
         ) {
@@ -1229,8 +1236,14 @@ export class Actor<Data extends Dictionary = Dictionary> {
                 key: Buffer.from(inputSecretsPrivateKeyFile, 'base64'),
                 passphrase: inputSecretsPrivateKeyPassphrase,
             });
-            return decryptInputSecrets<T>({ input, privateKey });
+
+            input = decryptInputSecrets({ input: rawInput, privateKey });
         }
+
+        if (ow.isValid(input, ow.object.nonEmpty) && !Buffer.isBuffer(input)) {
+            input = await this.insertDefaultsFromInputSchema(input);
+        }
+
         return input;
     }
 
@@ -2272,5 +2285,34 @@ export class Actor<Data extends Dictionary = Dictionary> {
                 'Did you forget to call Actor.init()?',
             ].join('\n'),
         );
+    }
+
+    private async insertDefaultsFromInputSchema<T extends Dictionary>(
+        input: T,
+    ): Promise<T> {
+        // TODO: v0, move all this logic from here and apify-cli to input_schema module
+
+        const env = this.getEnv();
+        let inputSchema: Dictionary | undefined | null;
+
+        // On platform, we can get the input schema from the build data
+        if (this.isAtHome() && env.actorBuildId) {
+            const buildData = await this.apifyClient
+                .build(env.actorBuildId)
+                .get();
+
+            inputSchema = buildData?.actorDefinition?.input;
+        } else {
+            // On local, we can get the input schema from the local config
+            inputSchema = readInputSchema();
+        }
+
+        if (!inputSchema) {
+            return input;
+        }
+
+        const defaults = getDefaultsFromInputSchema(inputSchema);
+
+        return { ...defaults, ...input };
     }
 }
