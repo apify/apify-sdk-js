@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [3.4.3](https://github.com/apify/apify-sdk-js/compare/apify@3.4.2...apify@3.4.3) (2025-07-14)
+
+### Bug Fixes
+
+- Return eventChargeLimitReached=false for charge calls with count=0 ([#395](https://github.com/apify/apify-sdk-js/issues/395)) ([4f97da0](https://github.com/apify/apify-sdk-js/commit/4f97da0cf4bbda33dcaa3d91f0f543f080dbab8b)), closes [#372](https://github.com/apify/apify-sdk-js/issues/372)
+
 ## [3.4.2](https://github.com/apify/apify-sdk-js/compare/apify@3.4.1...apify@3.4.2) (2025-05-19)
 
 ### Bug Fixes
