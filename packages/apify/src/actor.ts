@@ -112,7 +112,7 @@ export interface ApifyEnv {
     userId: string | null;
 
     /**
-     * If set to "1", the user calling the Actor is as paying user (APIFY_USER_IS_PAYING)
+     * If set to "1", the user calling the Actor is paying user (APIFY_USER_IS_PAYING)
      */
     userIsPaying: string | null;
 
