@@ -106,6 +106,7 @@ export interface ConfigurationOptions extends CoreConfigurationOptions {
  * `proxyPort` | `APIFY_PROXY_PORT` | `8000`
  * `proxyStatusUrl` | `APIFY_PROXY_STATUS_URL` | `'http://proxy.apify.com'`
  * `userId` | `APIFY_USER_ID` | -
+ * `userIsPaying` | `APIFY_USER_IS_PAYING` | -
  * `xvfb` | `APIFY_XVFB` | -
  * `standbyPort` | `ACTOR_STANDBY_PORT` | `4321`
  * `standbyUrl` | `ACTOR_STANDBY_URL` | -
@@ -151,6 +152,7 @@ export class Configuration extends CoreConfiguration {
         APIFY_CONTAINER_PORT: 'containerPort',
         APIFY_CONTAINER_URL: 'containerUrl',
         APIFY_USER_ID: 'userId',
+        APIFY_USER_IS_PAYING: 'userIsPaying',
         APIFY_PROXY_HOSTNAME: 'proxyHostname',
         APIFY_PROXY_PASSWORD: 'proxyPassword',
         APIFY_PROXY_STATUS_URL: 'proxyStatusUrl',
