@@ -112,6 +112,11 @@ export interface ApifyEnv {
     userId: string | null;
 
     /**
+     * If it is `1`, it means that the user who started the Actor is a paying user. (APIFY_USER_IS_PAYING)
+     */
+    userIsPaying: string | null;
+
+    /**
      * Authentication token representing privileges given to the Actor run,
      * it can be passed to various Apify APIs (APIFY_TOKEN)
      */
