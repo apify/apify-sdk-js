@@ -329,7 +329,7 @@ export const EXIT_CODES = {
  */
 export class Actor<Data extends Dictionary = Dictionary> {
     /** @internal */
-    // eslint-disable-next-line no-use-before-define -- self-reference
+     
     static _instance: Actor;
 
     /**
@@ -553,6 +553,15 @@ export class Actor<Data extends Dictionary = Dictionary> {
         log.debug(
             `Waiting for all event listeners to complete their execution (with ${options.timeoutSecs} seconds timeout)`,
         );
+
+        if (options.exit) {
+            // `addTimeoutToPromise` is a cooperative timeout. This ensures that the process exits
+            // after the timeout, even if the event listeners are still running.
+            setTimeout(() => {
+                process.exit(options.exitCode!);
+            }, options.timeoutSecs * 1000);
+        }
+
         await addTimeoutToPromise(
             async () => {
                 await events.waitForAllListenersToComplete();
