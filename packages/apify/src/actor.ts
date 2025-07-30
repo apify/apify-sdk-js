@@ -556,7 +556,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
 
         if (options.exit) {
             // `addTimeoutToPromise` is a cooperative timeout. This ensures that the process exits
-            // after the timeout, even if the event listeners are still running.
+            // after the timeout, even if the event listeners don't trigger the timeout.
             setTimeout(() => {
                 process.exit(options.exitCode);
             }, options.timeoutSecs * 1000);
