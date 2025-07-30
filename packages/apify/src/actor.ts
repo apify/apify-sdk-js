@@ -329,7 +329,7 @@ export const EXIT_CODES = {
  */
 export class Actor<Data extends Dictionary = Dictionary> {
     /** @internal */
-     
+    // eslint-disable-next-line no-use-before-define -- self-reference
     static _instance: Actor;
 
     /**
