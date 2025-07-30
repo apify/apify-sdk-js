@@ -553,6 +553,15 @@ export class Actor<Data extends Dictionary = Dictionary> {
         log.debug(
             `Waiting for all event listeners to complete their execution (with ${options.timeoutSecs} seconds timeout)`,
         );
+
+        if (options.exit) {
+            // `addTimeoutToPromise` is a cooperative timeout. This ensures that the process exits
+            // after the timeout, even if the event listeners don't trigger the timeout.
+            setTimeout(() => {
+                process.exit(options.exitCode);
+            }, options.timeoutSecs * 1000);
+        }
+
         await addTimeoutToPromise(
             async () => {
                 await events.waitForAllListenersToComplete();
