@@ -141,6 +141,25 @@ module.exports = {
                 routeBasePath: 'reference',
             },
         ],
+        [
+            '@signalwire/docusaurus-plugin-llms-txt',
+            {
+                content: {
+                    includeVersionedDocs: false,
+                    enableLlmsFullTxt: true,
+                    includeBlog: true,
+                    includeGeneratedIndex: false,
+                    includePages: true,
+                    relativePaths: false,
+                    excludeRoutes: [
+                        '/sdk/js/reference/3.*/**',
+                        '/sdk/js/reference/3.*',
+                        '/sdk/js/reference/next/**',
+                        '/sdk/js/reference/next',
+                    ],
+                },
+            },
+        ],
         ...config.plugins,
     ],
     themeConfig: { ...config.themeConfig, versions },
