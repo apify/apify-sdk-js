@@ -1,7 +1,10 @@
 import type { StorageManagerOptions } from '@crawlee/core';
 import { KeyValueStore as CoreKeyValueStore } from '@crawlee/core';
 
-import { createHmacSignature } from '@apify/utilities';
+import {
+    createHmacSignature,
+    createStorageContentSignature,
+} from '@apify/utilities';
 
 import type { Configuration } from './configuration';
 
@@ -40,6 +43,41 @@ export class KeyValueStore extends CoreKeyValueStore {
     }
 
     /**
+     * Generates a URL that can be used to access key-value store keys.
+     *
+     * If the client has permission to access the key-value store's URL signing key,
+     * the URL will include a signature to verify its authenticity.
+     *
+     * You can optionally control how long the signed URL should be valid using the `expiresInMillis` option.
+     * This value sets the expiration duration in milliseconds from the time the URL is generated.
+     * If not provided, the URL will not expire.
+     *
+     * Any other options (like `limit` or `prefix`) will be included as query parameters in the URL.
+     */
+    createKeysPublicUrl(expiresInMillis?: number): string | undefined {
+        const config = this.config as Configuration;
+        if (!config.get('isAtHome')) {
+            return undefined;
+        }
+
+        const createKeysPublicUrl = new URL(
+            `${config.get('apiPublicBaseUrl')}/v2/key-value-stores/${this.id}/keys`,
+        );
+
+        if (this.storageObject?.urlSigningSecretKey) {
+            const signature = createStorageContentSignature({
+                resourceId: this.id,
+                urlSigningSecretKey: this.storageObject
+                    .urlSigningSecretKey as string,
+                expiresInMillis,
+            });
+            createKeysPublicUrl.searchParams.set('signature', signature);
+        }
+
+        return createKeysPublicUrl.toString();
+    }
+
+    /**
      * @inheritDoc
      */
     static override async open(
@@ -52,3 +90,7 @@ export class KeyValueStore extends CoreKeyValueStore {
 
 // @ts-ignore newer crawlee versions already declare this method in core
 CoreKeyValueStore.prototype.getPublicUrl = KeyValueStore.prototype.getPublicUrl;
+
+// @ts-ignore this method is not declared in core, but we want to add it to the prototype
+CoreKeyValueStore.prototype.createKeysPublicUrl =
+    KeyValueStore.prototype.createKeysPublicUrl;
