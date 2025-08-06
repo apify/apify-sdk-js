@@ -90,7 +90,3 @@ export class KeyValueStore extends CoreKeyValueStore {
 
 // @ts-ignore newer crawlee versions already declare this method in core
 CoreKeyValueStore.prototype.getPublicUrl = KeyValueStore.prototype.getPublicUrl;
-
-// @ts-ignore this method is not declared in core, but we want to add it to the prototype
-CoreKeyValueStore.prototype.createKeysPublicUrl =
-    KeyValueStore.prototype.createKeysPublicUrl;

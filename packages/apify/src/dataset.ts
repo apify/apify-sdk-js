@@ -1,11 +1,14 @@
 import type { StorageManagerOptions } from '@crawlee/core';
 import { Dataset as CoreDataset } from '@crawlee/core';
+import type { Dictionary } from '@crawlee/types';
 
 import { createStorageContentSignature } from '@apify/utilities';
 
 import type { Configuration } from './configuration';
 
-export class Dataset extends CoreDataset {
+export class Dataset<
+    Data extends Dictionary = Dictionary,
+> extends CoreDataset<Data> {
     /**
      * Generates a URL that can be used to access dataset items.
      *
@@ -51,7 +54,3 @@ export class Dataset extends CoreDataset {
         return super.open(storeIdOrName, options) as unknown as Dataset;
     }
 }
-
-// @ts-ignore newer crawlee versions already declare this method in core
-CoreDataset.prototype.createItemsPublicUrl =
-    Dataset.prototype.createItemsPublicUrl;

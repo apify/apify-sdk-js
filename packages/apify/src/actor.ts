@@ -10,7 +10,6 @@ import type {
 } from '@crawlee/core';
 import {
     Configuration as CoreConfiguration,
-    Dataset,
     EventType,
     purgeDefaultStorages,
     RequestQueue,
@@ -47,6 +46,7 @@ import { addTimeoutToPromise } from '@apify/timeout';
 import type { ChargeOptions, ChargeResult } from './charging.js';
 import { ChargingManager } from './charging.js';
 import { Configuration } from './configuration.js';
+import { Dataset } from './dataset.js';
 import { KeyValueStore } from './key_value_store.js';
 import { PlatformEventManager } from './platform_event_manager.js';
 import type { ProxyConfigurationOptions } from './proxy_configuration.js';
