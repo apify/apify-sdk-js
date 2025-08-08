@@ -4,8 +4,8 @@ export * from './configuration.js';
 export * from './proxy_configuration.js';
 export * from './platform_event_manager.js';
 export * from './key_value_store.js';
+export * from './dataset.js';
 export {
-    Dataset,
     DatasetDataOptions,
     DatasetIteratorOptions,
     DatasetConsumer,
