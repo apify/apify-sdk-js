@@ -193,7 +193,7 @@ The page function accepts a single argument, the `context` object, whose propert
 
 The return value of the page function is an object (or an array of objects) representing the data extracted from the web page. The return value must be stringify-able to JSON, i.e. it can only contain basic types and no circular references. If you don't want to extract any data from the page and skip it in the clean results, simply return `null` or `undefined`.
 
-The page function supports the JavaScript ES6 syntax and is asynchronous, which means you can use the `await` keyword to wait for background operations to finish. To learn more about `async` functions, see <a href="[https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/async_function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/async_function)">Mozilla documentation</a>.
+The page function supports the JavaScript ES6 syntax and is asynchronous, which means you can use the `await` keyword to wait for background operations to finish. To learn more about `async` functions, see <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/async_function">Mozilla documentation</a>.
 
 **Properties of the `context` object:**
 
@@ -203,7 +203,7 @@ The page function supports the JavaScript ES6 syntax and is asynchronous, which 
     
 - **`enqueueRequest(request, [options]): AsyncFunction`**
     
-    Adds a new URL to the request queue, if it wasn't already there. The `request` parameter is an object containing details of the request, with properties such as `url`, `label`, `userData`, `headers` etc. For the full list of the supported properties, see the <a href="[https://crawlee.dev/api/core/class/Request](https://crawlee.dev/api/core/class/Request)" target="_blank">`Request`</a> object's constructor in Crawlee documentation.
+    Adds a new URL to the request queue, if it wasn't already there. The `request` parameter is an object containing details of the request, with properties such as `url`, `label`, `userData`, `headers` etc. For the full list of the supported properties, see the <a href="https://crawlee.dev/api/core/class/Request" target="_blank">`Request`</a> object's constructor in Crawlee documentation.
     
     The optional `options` parameter is an object with additional options. Currently, it only supports the `forefront` boolean flag. If it's `true`, the request is added to the beginning of the queue. By default, requests are added to the end.
     
@@ -223,7 +223,7 @@ The page function supports the JavaScript ES6 syntax and is asynchronous, which 
     A map of all relevant values set by the Apify platform to the Actor run via the `APIFY_` environment variables. For example, you can find here information such as Actor run ID, timeouts, Actor run memory, etc. 
     
     For the full list of available values, see
-    <a href="[https://sdk.apify.com/api/apify/interface/ApifyEnv](https://sdk.apify.com/api/apify/interface/ApifyEnv)" target="_blank">`ApifyEnv`</a> interface in Apify SDK.
+    <a href="https://sdk.apify.com/api/apify/interface/ApifyEnv" target="_blank">`ApifyEnv`</a> interface in Apify SDK.
     
     Example:
     
@@ -234,7 +234,7 @@ The page function supports the JavaScript ES6 syntax and is asynchronous, which 
     
 - **`getValue(key): AsyncFunction`**
     
-    Gets a value from the default key-value store associated with the Actor run. The key-value store is useful for persisting named data records, such as state objects, files, etc. The function is very similar to <a href="[https://sdk.apify.com/api/apify/class/Actor#getValue](https://sdk.apify.com/api/apify/class/Actor#getValue)" target="_blank">`Actor.getValue()`</a> function in Apify SDK.
+    Gets a value from the default key-value store associated with the Actor run. The key-value store is useful for persisting named data records, such as state objects, files, etc. The function is very similar to <a href="https://sdk.apify.com/api/apify/class/Actor#getValue" target="_blank">`Actor.getValue()`</a> function in Apify SDK.
     
     To set the value, use the dual function `context.setValue(key, value)`.
     
@@ -248,7 +248,7 @@ The page function supports the JavaScript ES6 syntax and is asynchronous, which 
     
 - **`globalStore: Object`**
     
-    Represents an in-memory store that can be used to share data across page function invocations, e.g. state variables, API responses or other data. The `globalStore` object has an equivalent interface as JavaScript's <a href="[https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map)" target="_blank">`Map`</a> object, with a few important differences:
+    Represents an in-memory store that can be used to share data across page function invocations, e.g. state variables, API responses or other data. The `globalStore` object has an equivalent interface as JavaScript's <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map" target="_blank">`Map`</a> object, with a few important differences:
     
     - All functions of `globalStore` are `async`; use `await` when calling them.
     - Keys must be strings and values need to be JSON stringify-able.
@@ -274,7 +274,7 @@ The page function supports the JavaScript ES6 syntax and is asynchronous, which 
     
 - **`jQuery: Function`**
     
-    A reference to the <a href="[https://api.jquery.com/](https://api.jquery.com/)" target="_blank">`jQuery`</a> library, which is extremely useful for DOM traversing, manipulation, querying and data extraction. This field is only available if the **Inject jQuery** option is enabled.
+    A reference to the <a href="https://api.jquery.com/" target="_blank">`jQuery`</a> library, which is extremely useful for DOM traversing, manipulation, querying and data extraction. This field is only available if the **Inject jQuery** option is enabled.
     
     Typically, the jQuery function is registered under a global variable called <code>$</code>.
     However, the web page might use this global variable for something else. To avoid conflicts, the jQuery object is not registered globally and is only available through the `context.jQuery` property.
@@ -289,7 +289,7 @@ The page function supports the JavaScript ES6 syntax and is asynchronous, which 
     
 - **`log: Object`**
     
-    An object containing logging functions, with the same interface as provided by the <a href="[https://crawlee.dev/api/core/class/Log](https://crawlee.dev/api/core/class/Log)" target="_blank">`Crawlee.utils.log`</a> object in Crawlee. The log messages are written directly to the Actor run log, which is useful for monitoring and debugging. Note that `log.debug()` only prints messages to the log if the **Enable debug log** input setting is set.
+    An object containing logging functions, with the same interface as provided by the <a href="https://crawlee.dev/api/core/class/Log" target="_blank">`Crawlee.utils.log`</a> object in Crawlee. The log messages are written directly to the Actor run log, which is useful for monitoring and debugging. Note that `log.debug()` only prints messages to the log if the **Enable debug log** input setting is set.
     
     Example:
     
@@ -311,7 +311,7 @@ The page function supports the JavaScript ES6 syntax and is asynchronous, which 
     
 - **`request: Object`**
     
-    An object containing information about the currently loaded web page, such as the URL, number of retries, a unique key, etc. Its properties are equivalent to the <a href="[https://crawlee.dev/api/core/class/Request](https://crawlee.dev/api/core/class/Request)" target="_blank">`Request`</a> object in Crawlee.
+    An object containing information about the currently loaded web page, such as the URL, number of retries, a unique key, etc. Its properties are equivalent to the <a href="https://crawlee.dev/api/core/class/Request" target="_blank">`Request`</a> object in Crawlee.
     
 - **`response: Object`**
     
@@ -342,7 +342,7 @@ The page function supports the JavaScript ES6 syntax and is asynchronous, which 
     
 - **`setValue(key, data, options): AsyncFunction`**
     
-    Sets a value to the default key-value store associated with the Actor run. The key-value store is useful for persisting named data records, such as state objects, files, etc. The function is very similar to <a href="[https://crawlee.dev/api/core/class/KeyValueStore#setValue](https://crawlee.dev/api/core/class/KeyValueStore#setValue)" target="_blank">`KeyValueStore.setValue()`</a> function in Crawlee.
+    Sets a value to the default key-value store associated with the Actor run. The key-value store is useful for persisting named data records, such as state objects, files, etc. The function is very similar to <a href="https://crawlee.dev/api/core/class/KeyValueStore#setValue" target="_blank">`KeyValueStore.setValue()`</a> function in Crawlee.
     
     To get the value, use the dual function `await context.getValue(key)`.
     
