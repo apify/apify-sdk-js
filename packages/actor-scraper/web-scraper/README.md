@@ -90,7 +90,7 @@ When starting to develop your Scraper, you want to be able to inspect what's hap
 The **Start URLs** (`startUrls`) field represent the initial list of URLs of pages that the scraper will visit. You can either enter these URLs manually one by one, upload them in a CSV file or
 [link URLs from the Google Sheets](https://help.apify.com/en/articles/2906022-scraping-a-list-of-urls-from-a-google-sheets-document) document. Each URL must start with either a `http://` or `https://` protocol prefix.
 
-The scraper supports adding new URLs to scrape on the fly, either using the [**Link selector**](#link-selector) and [**Glob Patterns**](#glob-patterns)/[**Pseudo-URLs**](#pseudo-urls) options or by calling await `context.enqueueRequest()` inside [**Page function**](#page-function).
+The scraper supports adding new URLs to scrape on the fly, either using the [**Link selector**](#link-selector) and [**Glob Patterns**](#glob-patterns)/[**Pseudo-URLs**](#pseudo-urls) options or by calling `await context.enqueueRequest()` inside [**Page function**](#page-function).
 
 Optionally, each URL can be associated with custom user data - a JSON object that can be referenced from your JavaScript code in [**Page function**](#page-function) under `context.request.userData`. This is useful for determining which start URL is currently loaded, in order to perform some page-specific actions. For example, when crawling an online store, you might want to perform different
 actions on a page listing the products vs. a product detail page. For details, see our [web scraping tutorial](https://docs.apify.com/tutorials/apify-scrapers/getting-started#the-start-url).
@@ -133,24 +133,24 @@ The **Pseudo-URLs** (`pseudoUrls`) field specifies what kind of URLs found by [*
 
 A pseudo-URL is simply a URL with special directives enclosed in `[]` brackets. Currently, the only supported directive is `[regexp]`, which defines a JavaScript-style regular expression to match against the URL.
 
-For example, a pseudo-URL `http://www.example.com/pages/[(\\w|-)*]` will match all the
+For example, a pseudo-URL `http://www.example.com/pages/[(\w|-)*]` will match all the
 following URLs:
 
 - `http://www.example.com/pages/`
 - `http://www.example.com/pages/my-awesome-page`
 - `http://www.example.com/pages/something`
 
-If either `[` or `]` is part of the normal query string, it must be encoded as `[\\x5B]` or `[\\x5D]`, respectively. For example, the following pseudo-URL:
+If either `[` or `]` is part of the normal query string, it must be encoded as `[\x5B]` or `[\x5D]`, respectively. For example, the following pseudo-URL:
 
 ```
-<http://www.example.com/search?do[\\x5B]load[\\x5D]=1>
+http://www.example.com/search?do[\x5B]load[\x5D]=1
 
 ```
 
 will match the URL:
 
 ```
-<http://www.example.com/search?do[load]=1>
+http://www.example.com/search?do[load]=1
 
 ```
 
@@ -177,7 +177,7 @@ async function pageFunction(context) {
     context.log.info(`URL: ${context.request.url}, TITLE: ${pageTitle}`);
 
     // Manually add a new page to the scraping queue.
-    await context.enqueueRequest({ url: '<http://www.example.com>' });
+    await context.enqueueRequest({ url: 'http://www.example.com' });
 
     // Return an object with the data extracted from the page.
     // It will be stored to the resulting dataset.
@@ -210,9 +210,9 @@ The page function supports the JavaScript ES6 syntax and is asynchronous, which 
     Example:
     
     ```jsx
-    await context.enqueueRequest({ url: '<https://www.example.com>' });
+    await context.enqueueRequest({ url: 'https://www.example.com' });
     await context.enqueueRequest(
-        { url: '<https://www.example.com/first>' },
+        { url: 'https://www.example.com/first' },
         { forefront: true },
     );
     
@@ -261,7 +261,7 @@ The page function supports the JavaScript ES6 syntax and is asynchronous, which 
     ```jsx
     let movies = await context.globalStore.get('cached-movies');
     if (!movies) {
-        movies = await fetch('<http://example.com/movies.json>');
+        movies = await fetch('http://example.com/movies.json');
         await context.globalStore.set('cached-movies', movies);
     }
     console.dir(movies);
@@ -401,13 +401,13 @@ Proxy is required to run the scraper. The following table lists the available op
 <tr>
 <th><b>Apify Proxy (automatic)</b></td>
 <td>
-The scraper will load all web pages using <a href="[https://apify.com/proxy](https://apify.com/proxy)">Apify Proxy</a> in the automatic mode. In this mode, the proxy uses all proxy groups that are available to the user, and for each new web page it automatically selects the proxy that hasn't been used in the longest time for the specific hostname, in order to reduce the chance of detection by the website. You can view the list of available proxy groups on the <a href="[https://console.apify.com/proxy](https://console.apify.com/proxy)" target="_blank" rel="noopener">Proxy</a> page in Apify Console.
+The scraper will load all web pages using <a href="https://apify.com/proxy">Apify Proxy</a> in the automatic mode. In this mode, the proxy uses all proxy groups that are available to the user, and for each new web page it automatically selects the proxy that hasn't been used in the longest time for the specific hostname, in order to reduce the chance of detection by the website. You can view the list of available proxy groups on the <a href="https://console.apify.com/proxy" target="_blank" rel="noopener">Proxy</a> page in Apify Console.
 </td>
 </tr>
 <tr>
 <th><b>Apify Proxy (selected groups)</b></td>
 <td>
-The scraper will load all web pages using <a href="[https://apify.com/proxy](https://apify.com/proxy)">Apify Proxy</a> with specific groups of target proxy servers.
+The scraper will load all web pages using <a href="https://apify.com/proxy">Apify Proxy</a> with specific groups of target proxy servers.
 </td>
 </tr>
 <tr>
@@ -419,7 +419,8 @@ The scraper will use a custom list of proxy servers. The proxies must be specifi
 <p>
 Example:
 </p>
-<pre><code class="language-none">[http://bob:password@proxy1.example.com:8000](http://bob:password@proxy1.example.com:8000/)[http://bob:password@proxy2.example.com:8000](http://bob:password@proxy2.example.com:8000/)</code></pre>
+<pre><code class="language-none">http://bob:password@proxy1.example.com:8000
+    http://bob:password@proxy2.example.com:8000</code></pre>
 </td>
 </tr>
 </tbody>
@@ -557,8 +558,8 @@ The full object stored in the dataset will look as follows
     "#error": false,
     "#debug": {
         "requestId": "fvwscO2UJLdr10B",
-        "url": "<https://www.example.com/>",
-        "loadedUrl": "<https://www.example.com/>",
+        "url": "https://www.example.com/",
+        "loadedUrl": "https://www.example.com/",
         "method": "GET",
         "retryCount": 0,
         "errorMessages": null,
@@ -571,7 +572,7 @@ The full object stored in the dataset will look as follows
 To download the results, call the [Get dataset items](https://docs.apify.com/api/v2#/reference/datasets/item-collection) API endpoint:
 
 ```
-<https://api.apify.com/v2/datasets/[DATASET_ID]/items?format=json>
+https://api.apify.com/v2/datasets/[DATASET_ID]/items?format=json
 
 ```
 
