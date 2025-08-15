@@ -90,9 +90,9 @@ When starting to develop your Scraper, you want to be able to inspect what's hap
 The **Start URLs** (`startUrls`) field represent the initial list of URLs of pages that the scraper will visit. You can either enter these URLs manually one by one, upload them in a CSV file or
 [link URLs from the Google Sheets](https://help.apify.com/en/articles/2906022-scraping-a-list-of-urls-from-a-google-sheets-document) document. Each URL must start with either a `http://` or `https://` protocol prefix.
 
-The scraper supports adding new URLs to scrape on the fly, either using the [**Link selector**](https://www.notion.so/Web-Scraper-231f39950a22806da3a2e5206794df3e?pvs=21) and [**Glob Patterns**](https://www.notion.so/Web-Scraper-231f39950a22806da3a2e5206794df3e?pvs=21)/[**Pseudo-URLs**](https://www.notion.so/Web-Scraper-231f39950a22806da3a2e5206794df3e?pvs=21) options or by calling await `context.enqueueRequest()` inside [**Page function**](https://www.notion.so/Web-Scraper-231f39950a22806da3a2e5206794df3e?pvs=21).
+The scraper supports adding new URLs to scrape on the fly, either using the [**Link selector**](#link-selector) and [**Glob Patterns**](#glob-patterns)/[**Pseudo-URLs**](#pseudo-urls) options or by calling await `context.enqueueRequest()` inside [**Page function**](#page-function).
 
-Optionally, each URL can be associated with custom user data - a JSON object that can be referenced from your JavaScript code in [**Page function**](https://www.notion.so/Web-Scraper-231f39950a22806da3a2e5206794df3e?pvs=21) under `context.request.userData`. This is useful for determining which start URL is currently loaded, in order to perform some page-specific actions. For example, when crawling an online store, you might want to perform different
+Optionally, each URL can be associated with custom user data - a JSON object that can be referenced from your JavaScript code in [**Page function**](#page-function) under `context.request.userData`. This is useful for determining which start URL is currently loaded, in order to perform some page-specific actions. For example, when crawling an online store, you might want to perform different
 actions on a page listing the products vs. a product detail page. For details, see our [web scraping tutorial](https://docs.apify.com/tutorials/apify-scrapers/getting-started#the-start-url).
 
 <!-- TODO: Describe how the queue works, unique key etc. plus link -->
@@ -101,7 +101,7 @@ actions on a page listing the products vs. a product detail page. For details, s
 
 The **Link selector** (`linkSelector`) field contains a CSS selector that is used to find links to other web pages, i.e. `<a>` elements with the `href` attribute.
 
-On every page loaded, the scraper looks for all links matching **Link selector**, checks that the target URL matches one of the [**Glob Patterns**](https://www.notion.so/Web-Scraper-231f39950a22806da3a2e5206794df3e?pvs=21)/[**Pseudo-URLs**](https://www.notion.so/Web-Scraper-231f39950a22806da3a2e5206794df3e?pvs=21), and if so then adds the URL to the request queue, so that it's loaded by the scraper later.
+On every page loaded, the scraper looks for all links matching **Link selector**, checks that the target URL matches one of the [**Glob Patterns**](#glob-patterns)/[**Pseudo-URLs**](#pseudo-urls), and if so then adds the URL to the request queue, so that it's loaded by the scraper later.
 
 By default, new scrapers are created with the following selector that matches all links:
 
@@ -110,11 +110,11 @@ a[href]
 
 ```
 
-If **Link selector** is empty, the page links are ignored, and the scraper only loads pages that were specified in [**Start URLs](https://www.notion.so/Web-Scraper-231f39950a22806da3a2e5206794df3e?pvs=21)** or that were manually added to the request queue by calling `await context.enqueueRequest()` in [**Page function**](https://www.notion.so/Web-Scraper-231f39950a22806da3a2e5206794df3e?pvs=21).
+If **Link selector** is empty, the page links are ignored, and the scraper only loads pages that were specified in [**Start URLs**](#start-urls) or that were manually added to the request queue by calling `await context.enqueueRequest()` in [**Page function**](#page-function).
 
 ### Glob Patterns
 
-The **Glob Patterns** (`globs`) field specifies which types of URLs found by [**Link selector**](https://www.notion.so/Web-Scraper-231f39950a22806da3a2e5206794df3e?pvs=21) should be added to the request queue.
+The **Glob Patterns** (`globs`) field specifies which types of URLs found by [**Link selector**](#link-selector) should be added to the request queue.
 
 A glob pattern is simply a string with wildcard characters.
 
@@ -125,11 +125,11 @@ following URLs:
 - `http://www.example.com/pages/my-awesome-page`
 - `http://www.example.com/pages/something`
 
-Note that you don't need to use the **Glob Patterns** setting at all, because you can completely control which pages the scraper will access by calling `await context.enqueueRequest()` from the [**Page function**](https://www.notion.so/Web-Scraper-231f39950a22806da3a2e5206794df3e?pvs=21).
+Note that you don't need to use the **Glob Patterns** setting at all, because you can completely control which pages the scraper will access by calling `await context.enqueueRequest()` from the [**Page function**](#page-function).
 
 ### Pseudo-URLs
 
-The **Pseudo-URLs** (`pseudoUrls`) field specifies what kind of URLs found by [**Link selector**](https://www.notion.so/Web-Scraper-231f39950a22806da3a2e5206794df3e?pvs=21) should be added to the request queue.
+The **Pseudo-URLs** (`pseudoUrls`) field specifies what kind of URLs found by [**Link selector**](#link-selector) should be added to the request queue.
 
 A pseudo-URL is simply a URL with special directives enclosed in `[]` brackets. Currently, the only supported directive is `[regexp]`, which defines a JavaScript-style regular expression to match against the URL.
 
@@ -155,9 +155,9 @@ will match the URL:
 ```
 
 Optionally, each pseudo-URL can be associated with user data that can be referenced from
-your [**Page function**](https://www.notion.so/Web-Scraper-231f39950a22806da3a2e5206794df3e?pvs=21) using `context.request.label` to determine which kind of page is currently loaded in the browser.
+your [**Page function**](#page-function) using `context.request.label` to determine which kind of page is currently loaded in the browser.
 
-Note that you don't need to use the **Pseudo-URLs** setting at all, because you can completely control which pages the scraper will access by calling `await context.enqueueRequest()` from [**Page function**](https://www.notion.so/Web-Scraper-231f39950a22806da3a2e5206794df3e?pvs=21).
+Note that you don't need to use the **Pseudo-URLs** setting at all, because you can completely control which pages the scraper will access by calling `await context.enqueueRequest()` from [**Page function**](#page-function).
 
 ### Page function
 
@@ -355,7 +355,7 @@ The page function supports the JavaScript ES6 syntax and is asynchronous, which 
     
 - **`skipLinks(): AsyncFunction`**
     
-    Calling this function ensures that page links from the current page will not be added to the request queue, even if they match the [**Link selector](https://www.notion.so/Web-Scraper-231f39950a22806da3a2e5206794df3e?pvs=21)** and/or [**Glob Patterns**](https://www.notion.so/Web-Scraper-231f39950a22806da3a2e5206794df3e?pvs=21)/[**Pseudo-URLs**](https://www.notion.so/Web-Scraper-231f39950a22806da3a2e5206794df3e?pvs=21) settings. This is useful to programmatically stop recursive crawling, e.g. if you know there are no more interesting links on the current page to follow.
+    Calling this function ensures that page links from the current page will not be added to the request queue, even if they match the [**Link selector**](https://www.notion.so/Web-Scraper-231f39950a22806da3a2e5206794df3e?pvs=21) and/or [**Glob Patterns**](https://www.notion.so/Web-Scraper-231f39950a22806da3a2e5206794df3e?pvs=21)/[**Pseudo-URLs**](https://www.notion.so/Web-Scraper-231f39950a22806da3a2e5206794df3e?pvs=21) settings. This is useful to programmatically stop recursive crawling, e.g. if you know there are no more interesting links on the current page to follow.
     
 - **`waitFor(task, options): AsyncFunction`**
     
@@ -511,7 +511,7 @@ Check out the docs for [Post-navigation hooks](https://crawlee.dev/api/puppeteer
 
 ### Insert breakpoint
 
-This property has no effect if [Run mode](https://www.notion.so/Web-Scraper-231f39950a22806da3a2e5206794df3e?pvs=21) is set to **PRODUCTION**. When set to **DEVELOPMENT** it inserts a breakpoint at the selected location in every page the scraper visits. Execution of code stops at the breakpoint until manually resumed in the DevTools window accessible via Live View tab or Container URL. Additional breakpoints can be added by adding debugger; statements within your Page function.
+This property has no effect if [Run mode](#run-mode) is set to **PRODUCTION**. When set to **DEVELOPMENT** it inserts a breakpoint at the selected location in every page the scraper visits. Execution of code stops at the breakpoint until manually resumed in the DevTools window accessible via Live View tab or Container URL. Additional breakpoints can be added by adding debugger; statements within your Page function.
 
 ### Debug log
 
@@ -523,7 +523,7 @@ When set to true, console messages from the browser will be included in the Acto
 
 ### Custom data
 
-Since the input UI is fixed, it does not support adding of other fields that may be needed for all specific use cases. If you need to pass arbitrary data to the scraper, use the [Custom data](https://www.notion.so/Web-Scraper-231f39950a22806da3a2e5206794df3e?pvs=21) input field within [Advanced configuration](https://www.notion.so/Web-Scraper-231f39950a22806da3a2e5206794df3e?pvs=21) and its contents will be available under the `customData` context key as an object within the [pageFunction](https://www.notion.so/Web-Scraper-231f39950a22806da3a2e5206794df3e?pvs=21).
+Since the input UI is fixed, it does not support adding of other fields that may be needed for all specific use cases. If you need to pass arbitrary data to the scraper, use the [Custom data](#custom-data) input field within [Advanced configuration](#advanced-configuration) and its contents will be available under the `customData` context key as an object within the [pageFunction](#page-function).
 
 ### Custom names
 
@@ -537,7 +537,7 @@ Leave the storage unnamed if you only want the data within it to be persisted on
 
 ## Results
 
-All scraping results returned by [**Page function](https://www.notion.so/Web-Scraper-231f39950a22806da3a2e5206794df3e?pvs=21)** are stored in the default dataset associated with the Actor run, and can be saved in several different formats, such as JSON, XML, CSV or Excel. For each object returned by [**Page function**](https://www.notion.so/Web-Scraper-231f39950a22806da3a2e5206794df3e?pvs=21), Web Scraper pushes one record into the dataset, and extends it with metadata such as the URL of the web page where the results come from.
+All scraping results returned by [**Page function**](#page-function) are stored in the default dataset associated with the Actor run, and can be saved in several different formats, such as JSON, XML, CSV or Excel. For each object returned by [**Page function**](#page-function), Web Scraper pushes one record into the dataset, and extends it with metadata such as the URL of the web page where the results come from.
 
 For example, if your page function returned the following object:
 
