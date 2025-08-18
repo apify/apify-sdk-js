@@ -483,7 +483,6 @@ The available options can be seen here:
 preNavigationHooks: [
     async ({ id, request, session, proxyInfo }, { timeout, waitUntil, referer }) => {}
 ]
-
 ```
 
 > Unlike with playwright, puppeteer and cheerio scrapers, in web scraper we don't have the Actor object available in the hook parameters, as the hook is executed inside the browser.
@@ -499,7 +498,6 @@ An array of functions that will be executed **AFTER** the main `pageFunction` is
 postNavigationHooks: [
     async ({ id, request, session, proxyInfo, response }) => {}
 ]
-
 ```
 
 > Unlike with playwright, puppeteer and cheerio scrapers, in web scraper we don't have the Actor object available in the hook parameters, as the hook is executed inside the browser.
