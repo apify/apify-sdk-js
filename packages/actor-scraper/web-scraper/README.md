@@ -107,7 +107,6 @@ By default, new scrapers are created with the following selector that matches al
 
 ```
 a[href]
-
 ```
 
 If **Link selector** is empty, the page links are ignored, and the scraper only loads pages that were specified in [**Start URLs**](#start-urls) or that were manually added to the request queue by calling `await context.enqueueRequest()` in [**Page function**](#page-function).
@@ -144,14 +143,12 @@ If either `[` or `]` is part of the normal query string, it must be encoded as `
 
 ```
 http://www.example.com/search?do[\x5B]load[\x5D]=1
-
 ```
 
 will match the URL:
 
 ```
 http://www.example.com/search?do[load]=1
-
 ```
 
 Optionally, each pseudo-URL can be associated with user data that can be referenced from
@@ -355,7 +352,7 @@ The page function supports the JavaScript ES6 syntax and is asynchronous, which 
     
 - **`skipLinks(): AsyncFunction`**
     
-    Calling this function ensures that page links from the current page will not be added to the request queue, even if they match the [**Link selector**](https://www.notion.so/Web-Scraper-231f39950a22806da3a2e5206794df3e?pvs=21) and/or [**Glob Patterns**](https://www.notion.so/Web-Scraper-231f39950a22806da3a2e5206794df3e?pvs=21)/[**Pseudo-URLs**](https://www.notion.so/Web-Scraper-231f39950a22806da3a2e5206794df3e?pvs=21) settings. This is useful to programmatically stop recursive crawling, e.g. if you know there are no more interesting links on the current page to follow.
+    Calling this function ensures that page links from the current page will not be added to the request queue, even if they match the [**Link selector**](#link-selector) and/or [**Glob Patterns**](#glob-patterns)/[**Pseudo-URLs**](#pseudo-urls) settings. This is useful to programmatically stop recursive crawling, e.g. if you know there are no more interesting links on the current page to follow.
     
 - **`waitFor(task, options): AsyncFunction`**
     
@@ -420,7 +417,7 @@ The scraper will use a custom list of proxy servers. The proxies must be specifi
 Example:
 </p>
 <pre><code class="language-none">http://bob:password@proxy1.example.com:8000
-    http://bob:password@proxy2.example.com:8000</code></pre>
+http://bob:password@proxy2.example.com:8000</code></pre>
 </td>
 </tr>
 </tbody>
@@ -546,7 +543,6 @@ For example, if your page function returned the following object:
 {
     message: 'Hello world!';
 }
-
 ```
 
 The full object stored in the dataset will look as follows
@@ -573,7 +569,6 @@ To download the results, call the [Get dataset items](https://docs.apify.com/api
 
 ```
 https://api.apify.com/v2/datasets/[DATASET_ID]/items?format=json
-
 ```
 
 where `[DATASET_ID]` is the ID of the Actor's run dataset, in which you can find the Run object returned when starting the Actor. Alternatively, you'll find the download links for the results in Apify Console.
