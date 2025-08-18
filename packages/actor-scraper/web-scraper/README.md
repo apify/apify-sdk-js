@@ -13,7 +13,7 @@ Web Scraper is a tool for extracting data from any website. It can navigate page
 
 ## What can Web Scraper data be used for?
 
-Web Scraper can extract almost any data from any site, effectively turning any site into a data source. All data can be exported into **JSON, CSV, HTML, and Excel** formats. 
+Web Scraper can extract almost any data from any site, effectively turning any site into a data source. All data can be exported into **JSON, CSV, HTML, and Excel** formats.
 
 Here are some examples:
 
@@ -23,11 +23,11 @@ Here are some examples:
 - **Monitor mentions** of a brand or person on specific sites
 - **Collect and monitor product prices** on e-commerce websites
 
-As a generic tool, Web Scraper can also serve as a template to **build your own scraper** which you can then market on Apify Store. 
+As a generic tool, Web Scraper can also serve as a template to **build your own scraper** which you can then market on Apify Store.
 
 ## How much does the Web Scraper cost?
 
-Web Scraper is free to use, but you do pay for Apify platform usage, which is calculated in [compute units](https://help.apify.com/en/articles/3490384-what-is-a-compute-unit?ref=apify) (CU). On the free plan, these are charged at $0.04 per CU. CUs get cheaper with higher subscription plans - [see our pricing page](https://apify.com/pricing) for more details. 
+Web Scraper is free to use, but you do pay for Apify platform usage, which is calculated in [compute units](https://help.apify.com/en/articles/3490384-what-is-a-compute-unit?ref=apify) (CU). On the free plan, these are charged at $0.04 per CU. CUs get cheaper with higher subscription plans - [see our pricing page](https://apify.com/pricing) for more details.
 
 With our free plan, you get **$5 in platform credits every month**, which is enough to scrape from 500 to 1,000 **web pages**. If you sign up to our Starter plan, you can expect to scrape thousands.
 
@@ -44,7 +44,7 @@ For more in-depth instructions, please read our article on [scraping with Web Sc
 
 ## Using Web Scraper with the Apify API
 
-The Apify API gives you programmatic access to the Apify platform. The API is organized around RESTful HTTP endpoints that enable you to manage, schedule, and run Apify Actors. The API also lets you access any datasets, monitor actor performance, fetch results, create and update versions, and more. 
+The Apify API gives you programmatic access to the Apify platform. The API is organized around RESTful HTTP endpoints that enable you to manage, schedule, and run Apify Actors. The API also lets you access any datasets, monitor actor performance, fetch results, create and update versions, and more.
 
 To access the API using Node.js, use the `apify-client` [NPM package](https://apify.com/apify/web-scraper/api/javascript). To access the API using Python, use the `apify-client` [PyPI package](https://apify.com/apify/web-scraper/api/python).
 
@@ -52,7 +52,7 @@ Click on the [API tab](https://apify.com/apify/web-scraper/api/python) for code 
 
 ## Web Scraper and MCP Server
 
-With Apify API, you can use almost any Actor in conjunction with an MCP server. You can connect to the MCP server using clients like ClaudeDesktop and LibreChat, or even build your own. Read all about how you can [set up Apify Actors with MCP](https://blog.apify.com/how-to-use-mcp/). 
+With Apify API, you can use almost any Actor in conjunction with an MCP server. You can connect to the MCP server using clients like ClaudeDesktop and LibreChat, or even build your own. Read all about how you can [set up Apify Actors with MCP](https://blog.apify.com/how-to-use-mcp/).
 
 For Web Scraper, go to the [MCP tab](https://apify.com/apify/web-scraper/api/mcp) and then go through the following steps:
 
@@ -63,7 +63,7 @@ For Web Scraper, go to the [MCP tab](https://apify.com/apify/web-scraper/api/mcp
 
 ## Integrating Web Scraper into your workflows
 
-You can integrate Web Scraper with almost any cloud service or web app. We offer integrations with **Make, Zapier, Slack, Airbyte, GitHub, Google Sheets, Google Drive**, [and plenty more](https://docs.apify.com/integrations). 
+You can integrate Web Scraper with almost any cloud service or web app. We offer integrations with **Make, Zapier, Slack, Airbyte, GitHub, Google Sheets, Google Drive**, [and plenty more](https://docs.apify.com/integrations).
 
 Alternatively, you could use [webhooks](https://docs.apify.com/integrations/webhooks) to carry out an action whenever an event occurs, such as getting a notification whenever Web Scraper successfully finishes a run.
 
@@ -73,7 +73,7 @@ Below you’ll find detailed instructions on more advanced configuration setting
 
 ## Input configurations
 
-On input, the Web Scraper Actor accepts a number of configuration settings. These can be entered either manually in the user interface in [Apify Console](https://console.apify.com/), or programmatically in a JSON object using the [Apify API](https://docs.apify.com/api/v2#/reference/actors/run-collection/run-actor). 
+On input, the Web Scraper Actor accepts a number of configuration settings. These can be entered either manually in the user interface in [Apify Console](https://console.apify.com/), or programmatically in a JSON object using the [Apify API](https://docs.apify.com/api/v2#/reference/actors/run-collection/run-actor).
 
 For a complete list of input fields and their type, please see the [input tab](https://apify.com/apify/web-scraper/input-schema).
 
@@ -163,7 +163,7 @@ data from the web page, manipulate the DOM by clicking elements, add new URLs to
 
 Example:
 
-```jsx
+```javascript
 async function pageFunction(context) {
     // jQuery is handy for finding DOM elements and extracting data from them.
     // To use it, make sure to enable the "Inject jQuery" option.
@@ -183,7 +183,6 @@ async function pageFunction(context) {
         pageTitle,
     };
 }
-
 ```
 
 The page function accepts a single argument, the `context` object, whose properties are listed in the table below. Since the function is executed in the context of the web page, it can access the DOM, e.g. using the `window` or `document` global variables.
@@ -195,102 +194,64 @@ The page function supports the JavaScript ES6 syntax and is asynchronous, which 
 **Properties of the `context` object:**
 
 - **`customData: Object`**
-    
-    Contains the object provided in the **Custom data** (`customData`) input setting. This is useful for passing dynamic parameters to your Web Scraper using API.
-    
+  Contains the object provided in the **Custom data** (`customData`) input setting. This is useful for passing dynamic parameters to your Web Scraper using API.
 - **`enqueueRequest(request, [options]): AsyncFunction`**
-    
-    Adds a new URL to the request queue, if it wasn't already there. The `request` parameter is an object containing details of the request, with properties such as `url`, `label`, `userData`, `headers` etc. For the full list of the supported properties, see the <a href="https://crawlee.dev/api/core/class/Request" target="_blank">`Request`</a> object's constructor in Crawlee documentation.
-    
-    The optional `options` parameter is an object with additional options. Currently, it only supports the `forefront` boolean flag. If it's `true`, the request is added to the beginning of the queue. By default, requests are added to the end.
-    
-    Example:
-    
-    ```jsx
+  Adds a new URL to the request queue, if it wasn't already there. The `request` parameter is an object containing details of the request, with properties such as `url`, `label`, `userData`, `headers` etc. For the full list of the supported properties, see the <a href="https://crawlee.dev/api/core/class/Request" target="_blank">`Request`</a> object's constructor in Crawlee documentation.
+  The optional `options` parameter is an object with additional options. Currently, it only supports the `forefront` boolean flag. If it's `true`, the request is added to the beginning of the queue. By default, requests are added to the end.
+  Example:
+    ```javascript
     await context.enqueueRequest({ url: 'https://www.example.com' });
     await context.enqueueRequest(
         { url: 'https://www.example.com/first' },
         { forefront: true },
     );
-    
     ```
-    
 - **`env: Object`**
-    
-    A map of all relevant values set by the Apify platform to the Actor run via the `APIFY_` environment variables. For example, you can find here information such as Actor run ID, timeouts, Actor run memory, etc. 
-    
-    For the full list of available values, see
-    <a href="https://sdk.apify.com/api/apify/interface/ApifyEnv" target="_blank">`ApifyEnv`</a> interface in Apify SDK.
-    
-    Example:
-    
-    ```jsx
+  A map of all relevant values set by the Apify platform to the Actor run via the `APIFY_` environment variables. For example, you can find here information such as Actor run ID, timeouts, Actor run memory, etc.
+  For the full list of available values, see
+  <a href="https://sdk.apify.com/api/apify/interface/ApifyEnv" target="_blank">`ApifyEnv`</a> interface in Apify SDK.
+  Example:
+    ```javascript
     console.log(`Actor run ID: ${context.env.actorRunId}`);
-    
     ```
-    
 - **`getValue(key): AsyncFunction`**
-    
-    Gets a value from the default key-value store associated with the Actor run. The key-value store is useful for persisting named data records, such as state objects, files, etc. The function is very similar to <a href="https://sdk.apify.com/api/apify/class/Actor#getValue" target="_blank">`Actor.getValue()`</a> function in Apify SDK.
-    
-    To set the value, use the dual function `context.setValue(key, value)`.
-    
-    Example:
-    
-    ```jsx
+  Gets a value from the default key-value store associated with the Actor run. The key-value store is useful for persisting named data records, such as state objects, files, etc. The function is very similar to <a href="https://sdk.apify.com/api/apify/class/Actor#getValue" target="_blank">`Actor.getValue()`</a> function in Apify SDK.
+  To set the value, use the dual function `context.setValue(key, value)`.
+  Example:
+    ```javascript
     const value = await context.getValue('my-key');
     console.dir(value);
-    
     ```
-    
 - **`globalStore: Object`**
-    
-    Represents an in-memory store that can be used to share data across page function invocations, e.g. state variables, API responses or other data. The `globalStore` object has an equivalent interface as JavaScript's <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map" target="_blank">`Map`</a> object, with a few important differences:
-    
+  Represents an in-memory store that can be used to share data across page function invocations, e.g. state variables, API responses or other data. The `globalStore` object has an equivalent interface as JavaScript's <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map" target="_blank">`Map`</a> object, with a few important differences:
     - All functions of `globalStore` are `async`; use `await` when calling them.
     - Keys must be strings and values need to be JSON stringify-able.
     - `forEach()` function is not supported.
-    
-    Note that the stored data is not persisted. If the Actor run is restarted or migrated to another worker server, the content of `globalStore` is reset. Therefore, never depend on a specific value to be present in the store.
-    
-    Example:
-    
-    ```jsx
+      Note that the stored data is not persisted. If the Actor run is restarted or migrated to another worker server, the content of `globalStore` is reset. Therefore, never depend on a specific value to be present in the store.
+      Example:
+    ```javascript
     let movies = await context.globalStore.get('cached-movies');
     if (!movies) {
         movies = await fetch('http://example.com/movies.json');
         await context.globalStore.set('cached-movies', movies);
     }
     console.dir(movies);
-    
     ```
-    
 - **`input: Object`**
-    
-    An object containing the Actor run input, i.e. the Web Scraper's configuration. Each page function invocation gets a fresh copy of the `input` object, so changing its properties has no effect.
-    
+  An object containing the Actor run input, i.e. the Web Scraper's configuration. Each page function invocation gets a fresh copy of the `input` object, so changing its properties has no effect.
 - **`jQuery: Function`**
-    
-    A reference to the <a href="https://api.jquery.com/" target="_blank">`jQuery`</a> library, which is extremely useful for DOM traversing, manipulation, querying and data extraction. This field is only available if the **Inject jQuery** option is enabled.
-    
-    Typically, the jQuery function is registered under a global variable called <code>$</code>.
-    However, the web page might use this global variable for something else. To avoid conflicts, the jQuery object is not registered globally and is only available through the `context.jQuery` property.
-    
-    Example:
-    
-    ```jsx
+  A reference to the <a href="https://api.jquery.com/" target="_blank">`jQuery`</a> library, which is extremely useful for DOM traversing, manipulation, querying and data extraction. This field is only available if the **Inject jQuery** option is enabled.
+  Typically, the jQuery function is registered under a global variable called <code>$</code>.
+  However, the web page might use this global variable for something else. To avoid conflicts, the jQuery object is not registered globally and is only available through the `context.jQuery` property.
+  Example:
+    ```javascript
     const $ = context.jQuery;
     const pageTitle = $('title').first().text();
-    
     ```
-    
 - **`log: Object`**
-    
-    An object containing logging functions, with the same interface as provided by the <a href="https://crawlee.dev/api/core/class/Log" target="_blank">`Crawlee.utils.log`</a> object in Crawlee. The log messages are written directly to the Actor run log, which is useful for monitoring and debugging. Note that `log.debug()` only prints messages to the log if the **Enable debug log** input setting is set.
-    
-    Example:
-    
-    ```jsx
+  An object containing logging functions, with the same interface as provided by the <a href="https://crawlee.dev/api/core/class/Log" target="_blank">`Crawlee.utils.log`</a> object in Crawlee. The log messages are written directly to the Actor run log, which is useful for monitoring and debugging. Note that `log.debug()` only prints messages to the log if the **Enable debug log** input setting is set.
+  Example:
+    ```javascript
     const log = context.log;
     log.debug('Debug message', { hello: 'world!' });
     log.info('Information message', { all: 'good' });
@@ -303,22 +264,17 @@ The page function supports the JavaScript ES6 syntax and is asynchronous, which 
             details: 'This is really bad!',
         });
     }
-    
     ```
-    
 - **`request: Object`**
-    
-    An object containing information about the currently loaded web page, such as the URL, number of retries, a unique key, etc. Its properties are equivalent to the <a href="https://crawlee.dev/api/core/class/Request" target="_blank">`Request`</a> object in Crawlee.
-    
+  An object containing information about the currently loaded web page, such as the URL, number of retries, a unique key, etc. Its properties are equivalent to the <a href="https://crawlee.dev/api/core/class/Request" target="_blank">`Request`</a> object in Crawlee.
 - **`response: Object`**
-    
-    An object containing information about the HTTP response from the web server. Currently, it only contains the `status` and `headers` properties. For example:
-    
-    ```jsx
+  An object containing information about the HTTP response from the web server. Currently, it only contains the `status` and `headers` properties. For example:
+
+    ```javascript
     {
       // HTTP status code
       status: 200,
-    
+
       // HTTP headers
       headers: {
         'content-type': 'text/html; charset=utf-8',
@@ -327,54 +283,40 @@ The page function supports the JavaScript ES6 syntax and is asynchronous, which 
         'content-encoding': 'gzip',
       },
     }
-    
+
     ```
-    
+
 - **`saveSnapshot(): AsyncFunction`**
-    
-    Saves a screenshot and full HTML of the current page to the key-value store
-    associated with the Actor run, under the `SNAPSHOT-SCREENSHOT` and `SNAPSHOT-HTML` keys, respectively. This feature is useful when debugging your scraper.
-    
-    Note that each snapshot overwrites the previous one and the `saveSnapshot()` calls are throttled to at most one call in two seconds, in order to avoid excess consumption of resources and slowdown of the Actor.
-    
+  Saves a screenshot and full HTML of the current page to the key-value store
+  associated with the Actor run, under the `SNAPSHOT-SCREENSHOT` and `SNAPSHOT-HTML` keys, respectively. This feature is useful when debugging your scraper.
+  Note that each snapshot overwrites the previous one and the `saveSnapshot()` calls are throttled to at most one call in two seconds, in order to avoid excess consumption of resources and slowdown of the Actor.
 - **`setValue(key, data, options): AsyncFunction`**
-    
-    Sets a value to the default key-value store associated with the Actor run. The key-value store is useful for persisting named data records, such as state objects, files, etc. The function is very similar to <a href="https://crawlee.dev/api/core/class/KeyValueStore#setValue" target="_blank">`KeyValueStore.setValue()`</a> function in Crawlee.
-    
-    To get the value, use the dual function `await context.getValue(key)`.
-    
-    Example:
-    
-    ```jsx
+  Sets a value to the default key-value store associated with the Actor run. The key-value store is useful for persisting named data records, such as state objects, files, etc. The function is very similar to <a href="https://crawlee.dev/api/core/class/KeyValueStore#setValue" target="_blank">`KeyValueStore.setValue()`</a> function in Crawlee.
+  To get the value, use the dual function `await context.getValue(key)`.
+  Example:
+    ```javascript
     await context.setValue('my-key', { hello: 'world' });
-    
     ```
-    
 - **`skipLinks(): AsyncFunction`**
-    
-    Calling this function ensures that page links from the current page will not be added to the request queue, even if they match the [**Link selector**](#link-selector) and/or [**Glob Patterns**](#glob-patterns)/[**Pseudo-URLs**](#pseudo-urls) settings. This is useful to programmatically stop recursive crawling, e.g. if you know there are no more interesting links on the current page to follow.
-    
+  Calling this function ensures that page links from the current page will not be added to the request queue, even if they match the [**Link selector**](#link-selector) and/or [**Glob Patterns**](#glob-patterns)/[**Pseudo-URLs**](#pseudo-urls) settings. This is useful to programmatically stop recursive crawling, e.g. if you know there are no more interesting links on the current page to follow.
 - **`waitFor(task, options): AsyncFunction`**
-    
-    A helper function that waits either a specific amount of time (in milliseconds), for an element specified using a CSS selector to appear in the DOM or for a provided function to return `true`.
-    This is useful for extracting data from web pages with dynamic content, where the content might not be available at the time when the page function is called.
-    
-    The `options` parameter is an object with the following properties and default values:
-    
-    ```jsx
+  A helper function that waits either a specific amount of time (in milliseconds), for an element specified using a CSS selector to appear in the DOM or for a provided function to return `true`.
+  This is useful for extracting data from web pages with dynamic content, where the content might not be available at the time when the page function is called.
+  The `options` parameter is an object with the following properties and default values:
+
+    ```javascript
     {
       // Maximum time to wait
       timeoutMillis: 20000,
-    
+
       // How often to check if the condition changes
       pollingIntervalMillis: 50,
     }
-    
     ```
-    
+
     Example:
-    
-    ```jsx
+
+    ```javascript
     // Wait for selector
     await context.waitFor('.foo');
     // Wait for 1 second
@@ -383,9 +325,7 @@ The page function supports the JavaScript ES6 syntax and is asynchronous, which 
     await context.waitFor(() => !!document.querySelector('.foo'), {
         timeoutMillis: 5000,
     });
-    
     ```
-    
 
 ## Proxy configuration
 
@@ -394,39 +334,39 @@ The **Proxy configuration** (`proxyConfiguration`) option enables you to set pro
 Proxy is required to run the scraper. The following table lists the available options of the proxy configuration setting:
 
 <table class="table table-bordered table-condensed">
-<tbody>
-<tr>
-<th><b>Apify Proxy (automatic)</b></td>
-<td>
-The scraper will load all web pages using <a href="https://apify.com/proxy">Apify Proxy</a> in the automatic mode. In this mode, the proxy uses all proxy groups that are available to the user, and for each new web page it automatically selects the proxy that hasn't been used in the longest time for the specific hostname, in order to reduce the chance of detection by the website. You can view the list of available proxy groups on the <a href="https://console.apify.com/proxy" target="_blank" rel="noopener">Proxy</a> page in Apify Console.
-</td>
-</tr>
-<tr>
-<th><b>Apify Proxy (selected groups)</b></td>
-<td>
-The scraper will load all web pages using <a href="https://apify.com/proxy">Apify Proxy</a> with specific groups of target proxy servers.
-</td>
-</tr>
-<tr>
-<th><b>Custom proxies</b></td>
-<td>
-<p>
-The scraper will use a custom list of proxy servers. The proxies must be specified in the `scheme://user:password@host:port` format, multiple proxies should be separated by a space or new line. The URL scheme can be either `HTTP` or `SOCKS5`. User and password might be omitted, but the port must always be present.
-</p>
-<p>
-Example:
-</p>
-<pre><code class="language-none">http://bob:password@proxy1.example.com:8000
+    <tbody>
+    <tr>
+        <th><b>Apify Proxy (automatic)</b></td>
+        <td>
+            The scraper will load all web pages using <a href="https://apify.com/proxy">Apify Proxy</a> in the automatic mode. In this mode, the proxy uses all proxy groups that are available to the user, and for each new web page it automatically selects the proxy that hasn't been used in the longest time for the specific hostname, in order to reduce the chance of detection by the website. You can view the list of available proxy groups on the <a href="https://console.apify.com/proxy" target="_blank" rel="noopener">Proxy</a> page in Apify Console.
+        </td>
+    </tr>
+    <tr>
+        <th><b>Apify Proxy (selected groups)</b></td>
+        <td>
+            The scraper will load all web pages using <a href="https://apify.com/proxy">Apify Proxy</a> with specific groups of target proxy servers.
+        </td>
+    </tr>
+    <tr>
+        <th><b>Custom proxies</b></td>
+        <td>
+            <p>
+                The scraper will use a custom list of proxy servers. The proxies must be specified in the `scheme://user:password@host:port` format, multiple proxies should be separated by a space or new line. The URL scheme can be either `HTTP` or `SOCKS5`. User and password might be omitted, but the port must always be present.
+            </p>
+            <p>
+                Example:
+            </p>
+            <pre><code class="language-none">http://bob:password@proxy1.example.com:8000
 http://bob:password@proxy2.example.com:8000</code></pre>
-</td>
-</tr>
-</tbody>
+        </td>
+    </tr>
+    </tbody>
 </table>
 
 The proxy configuration can be set programmatically when calling the Actor using the API
 by setting the `proxyConfiguration` field. It accepts a JSON object with the following structure:
 
-```jsx
+```javascript
 {
     // Indicates whether to use Apify Proxy or not.
     "useApifyProxy": Boolean,
@@ -439,7 +379,6 @@ by setting the `proxyConfiguration` field. It accepts a JSON object with the fol
     // If missing or null, custom proxies are not used.
     "proxyUrls": String[],
 }
-
 ```
 
 ### Logging into websites with Web Scraper
@@ -468,7 +407,6 @@ The scraper expects the cookies in the **Initial cookies** field to be stored as
         "id": 1
     }
 ]
-
 ```
 
 ## Advanced configuration
@@ -479,14 +417,16 @@ This is an array of functions that will be executed **BEFORE** the main `pageFun
 
 The available options can be seen here:
 
-```
+```javascript
 preNavigationHooks: [
-    async ({ id, request, session, proxyInfo }, { timeout, waitUntil, referer }) => {}
-]
+    async (
+        { id, request, session, proxyInfo },
+        { timeout, waitUntil, referer },
+    ) => {},
+];
 ```
 
 > Unlike with playwright, puppeteer and cheerio scrapers, in web scraper we don't have the Actor object available in the hook parameters, as the hook is executed inside the browser.
-> 
 
 Check out the docs for [Pre-navigation hooks](https://crawlee.dev/api/puppeteer-crawler/interface/PuppeteerCrawlerOptions#preNavigationHooks) and the [PuppeteerHook type](https://crawlee.dev/api/puppeteer-crawler/interface/PuppeteerHook) for more info regarding the objects passed into these functions.
 
@@ -494,14 +434,13 @@ Check out the docs for [Pre-navigation hooks](https://crawlee.dev/api/puppeteer-
 
 An array of functions that will be executed **AFTER** the main `pageFunction` is run. The only available parameter is the `CrawlingContext` object.
 
-```
+```javascript
 postNavigationHooks: [
-    async ({ id, request, session, proxyInfo, response }) => {}
-]
+    async ({ id, request, session, proxyInfo, response }) => {},
+],
 ```
 
 > Unlike with playwright, puppeteer and cheerio scrapers, in web scraper we don't have the Actor object available in the hook parameters, as the hook is executed inside the browser.
-> 
 
 Check out the docs for [Post-navigation hooks](https://crawlee.dev/api/puppeteer-crawler/interface/PuppeteerCrawlerOptions#postNavigationHooks) and the [PuppeteerHook type](https://crawlee.dev/api/puppeteer-crawler/interface/PuppeteerHook) for more info regarding the objects passed into these functions.
 
@@ -537,9 +476,9 @@ All scraping results returned by [**Page function**](#page-function) are stored 
 
 For example, if your page function returned the following object:
 
-```
+```javascript
 {
-    message: 'Hello world!';
+    message: 'Hello world!',
 }
 ```
 
@@ -560,7 +499,6 @@ The full object stored in the dataset will look as follows
         "statusCode": 200
     }
 }
-
 ```
 
 To download the results, call the [Get dataset items](https://docs.apify.com/api/v2#/reference/datasets/item-collection) API endpoint:
