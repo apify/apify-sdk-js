@@ -40,7 +40,9 @@ With our free plan, you get **$5 in platform credits every month**, which is eno
 5. Click the “Start” button and wait for the data to be extracted
 6. Download your data in JSON, XML, CSV, Excel, or HTML
 
-For more in-depth instructions, please read our article on [scraping with Web Scraper](https://docs.apify.com/tutorials/apify-scrapers/web-scraper), which features step-by-step instructions on how to use Web Scraper on the basis of real-life examples.
+For more in-depth instructions, please read our article on [scraping with Web Scraper](https://docs.apify.com/tutorials/apify-scrapers/web-scraper), which features step-by-step instructions on how to use Web Scraper on the basis of real-life examples. We also have a video tutorial you can follow along with:
+
+https://www.youtube.com/watch?v=5kcaHAuGxmY
 
 ## Using Web Scraper with the Apify API
 
