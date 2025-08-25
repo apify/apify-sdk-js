@@ -11,6 +11,6 @@
         "packages/**/test/**/*.js",
         "packages/**/test/**/*.ts",
         "docs/examples/**/*",
-        "vitest.config.ts"
+        "vitest.config.mts"
     ]
 }

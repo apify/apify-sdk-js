@@ -1,3 +1,4 @@
+/* eslint-disable import/no-default-export, import/extensions */
 import { resolve } from 'node:path';
 
 import tsconfigPaths from 'vite-tsconfig-paths';
