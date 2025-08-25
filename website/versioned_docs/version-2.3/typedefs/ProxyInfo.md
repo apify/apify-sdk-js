@@ -1,6 +1,7 @@
 ---
 id: proxy-info
 title: ProxyInfo
+description: The main purpose of the ProxyInfo object is to provide information about the current proxy connection used by the crawler for the request.
 ---
 
 <a name="proxyinfo"></a>
@@ -11,10 +12,9 @@ crawlers, you can get this object by calling [`ProxyConfiguration.newProxyInfo`]
 **Example usage:**
 
 ```javascript
-
 const proxyConfiguration = await Apify.createProxyConfiguration({
-  groups: ['GROUP1', 'GROUP2'] // List of Apify Proxy groups
-  countryCode: 'US',
+    groups: ['GROUP1', 'GROUP2'], // List of Apify Proxy groups
+    countryCode: 'US',
 });
 
 // Getting proxyInfo object by calling class method directly
@@ -22,17 +22,16 @@ const proxyInfo = proxyConfiguration.newProxyInfo();
 
 // In crawler
 const crawler = new Apify.CheerioCrawler({
-  // ...
-  proxyConfiguration,
-  handlePageFunction: ({ proxyInfo }) => {
-     // Getting used proxy URL
-      const proxyUrl = proxyInfo.url;
+    // ...
+    proxyConfiguration,
+    handlePageFunction: ({ proxyInfo }) => {
+        // Getting used proxy URL
+        const proxyUrl = proxyInfo.url;
 
-     // Getting ID of used Session
-      const sessionIdentifier = proxyInfo.sessionId;
-  }
-})
-
+        // Getting ID of used Session
+        const sessionIdentifier = proxyInfo.sessionId;
+    },
+});
 ```
 
 ## Properties

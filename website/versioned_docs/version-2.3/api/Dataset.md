@@ -1,6 +1,7 @@
 ---
 id: dataset
 title: Dataset
+description: The Dataset class represents a store for structured data where each object stored has the same attributes, such as online store products or real estate offers.
 ---
 
 <a name="dataset"></a>

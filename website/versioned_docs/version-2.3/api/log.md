@@ -1,6 +1,7 @@
 ---
 id: log
 title: utils.log
+description: The log instance enables level aware logging of messages and we advise to use it instead of `console.log()`.
 ---
 
 <a name="log"></a>

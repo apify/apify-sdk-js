@@ -1,6 +1,7 @@
 ---
 id: request-queue
 title: RequestQueue
+description: Represents a queue of URLs to crawl, which is used for deep crawling of websites where you start with several URLs and then recursively follow links to other pages.
 ---
 
 <a name="requestqueue"></a>

@@ -1,6 +1,7 @@
 ---
 id: configuration
 title: Configuration
+description: Configuration is a value object holding the SDK configuration.
 ---
 
 <a name="configuration"></a>
@@ -128,7 +129,7 @@ instance.
 Caching works based on the API URL and token, so calling this method with different options will return multiple instances, one for each variant of
 the options.
 
-**Internal**:  
+**Internal**:
 **Parameters**:
 
 - **`[options]`**: `object`
@@ -153,7 +154,7 @@ instance.
 Caching works based on the `storageDir` option, so calling this method with different `storageDir` will return multiple instances, one for each
 directory.
 
-**Internal**:  
+**Internal**:
 **Parameters**:
 
 - **`[options]`**: `object`
@@ -172,7 +173,7 @@ directory.
 
 Creates an instance of ApifyClient using options as defined in the environment variables or in this `Configuration` instance.
 
-**Internal**:  
+**Internal**:
 **Parameters**:
 
 - **`[options]`**: `object`
@@ -192,7 +193,7 @@ Creates an instance of ApifyClient using options as defined in the environment v
 
 Creates an instance of ApifyStorageLocal using options as defined in the environment variables or in this `Configuration` instance.
 
-**Internal**:  
+**Internal**:
 **Parameters**:
 
 - **`[options]`**: `object`
