@@ -18,8 +18,8 @@ import type {
     RequestMetadata,
 } from '@apify/scraper-tools';
 
-import type { Input } from './consts';
-import type { GlobalStore } from './global_store';
+import type { Input } from './consts.ts';
+import type { GlobalStore } from './global_store.ts';
 
 interface PoolOptions {
     pollingIntervalMillis?: number;
