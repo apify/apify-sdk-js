@@ -115,7 +115,7 @@ export interface ConfigurationOptions extends CoreConfigurationOptions {
  */
 export class Configuration extends CoreConfiguration {
     /** @inheritDoc */
-    // eslint-disable-next-line no-use-before-define -- Self-reference
+
     static override globalConfig?: Configuration;
 
     // maps environment variables to config keys (e.g. `APIFY_MEMORY_MBYTES` to `memoryMbytes`)

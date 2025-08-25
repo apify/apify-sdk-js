@@ -37,9 +37,9 @@ declare global {
     interface Window {
         [K: string]: any;
     }
-    // eslint-disable-next-line vars-on-top, no-var
+    // eslint-disable-next-line vars-on-top
     var window: Window & typeof globalThis;
-    // eslint-disable-next-line vars-on-top, no-var
+    // eslint-disable-next-line vars-on-top
     var document: Document;
 }
 
