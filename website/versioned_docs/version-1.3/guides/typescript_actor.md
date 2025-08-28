@@ -1,6 +1,7 @@
 ---
 id_old: version-1.3-type-script-actor
-title: TypeScript Actors
+sidebar_label: TypeScript Actors
+title: Setting up a TypeScript project
 id: type-script-actor
 ---
 
@@ -9,8 +10,6 @@ allows writing code with auto-completion for TypeScript and JavaScript code alik
 Besides that, actors written in TypeScript can take advantage of compile-time
 type-checking and avoid many coding mistakes, while providing documentation for
 functions, parameters and return values.
-
-# Setting up a TypeScript project
 
 To use TypeScript in your actors, you'll need the following prerequisites.
 
