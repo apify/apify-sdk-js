@@ -74,20 +74,20 @@ To use TypeScript in your actors, you'll need the following prerequisites.
 
     Also, if you are a VSCode user that is using JavaScript, create a `jsconfig.json` with the same content, adding `"checkJs": true` to `"compilerOptions"`, so you can enjoy using the types in your `.js` source files.
 
-# Auto-completion
+## Auto-completion
 
 IDE auto-completion should work in most places. That's true even if you are writting
 actors in pure JavaScript. For time constraints, we left out the amendment of an
 internal API for the time being, and these need to be added as the SDK developers write
 new and enhance old code.
 
-# SDK Documentation
+## SDK Documentation
 
 SDK documentation has grown a lot. There is a new API Reference section **Type definitions**
 that holds documentation for all constructible types, function parameters and
 return types, in the Apify SDK.
 
-# Caveats
+## Caveats
 
 As of version 1.0+, the generated typings, due to JSDoc limitations, have some properties
 and parameters annotated with `any` type, therefore the settings `noImplicitAny` and `strictNullChecks`, set to `true`, may not be advised. You may try enabling them, but it might hinder development because of the need for typecasts to be able to compile, your mileage may vary.
