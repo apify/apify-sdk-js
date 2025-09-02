@@ -834,12 +834,12 @@ export class Actor<Data extends Dictionary = Dictionary> {
             ...this.config
                 .getEventManager()
                 .listeners(EventType.PERSIST_STATE)
-                .map(async (x) => x()),
+                .map(async (x) => (x as any)({})),
             // `migrating` to pause Apify crawlers
             ...this.config
                 .getEventManager()
                 .listeners(EventType.MIGRATING)
-                .map(async (x) => x()),
+                .map(async (x) => (x as any)({})),
         ]);
 
         const runId = this.config.get('actorRunId')!;
