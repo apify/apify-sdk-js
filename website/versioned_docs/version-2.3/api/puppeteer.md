@@ -212,7 +212,6 @@ await Apify.utils.puppeteer.enqueueLinksByClickingElements({
 **Parameters**:
 
 - **`options`**: `object` - All `enqueueLinksByClickingElements()` parameters are passed via an options object with the following keys:
-
     - **`page`**: `Page` - Puppeteer [`Page`](https://pptr.dev/#?product=Puppeteer&show=api-class-page) object.
     - **`requestQueue`**: [`RequestQueue`](../api/request-queue) - A request queue to which the URLs will be enqueued.
     - **`selector`**: `string` - A CSS selector matching elements to be clicked on. Unlike in [`utils.enqueueLinks()`](../api/utils#enqueuelinks),
@@ -225,7 +224,6 @@ await Apify.utils.puppeteer.enqueueLinksByClickingElements({
     [`Request`](../api/request) objects.
 
     If `pseudoUrls` is an empty array, `null` or `undefined`, then the function enqueues all links found on the page.
-
     - **`[transformRequestFunction]`**: [`RequestTransform`](../typedefs/request-transform) - Just before a new [`Request`](../api/request) is
       constructed and enqueued to the [`RequestQueue`](../api/request-queue), this function can be used to remove it or modify its contents such as
       `userData`, `payload` or, most importantly `uniqueKey`. This is useful when you need to enqueue multiple `Requests` to the queue that share
@@ -256,7 +254,6 @@ await Apify.utils.puppeteer.enqueueLinksByClickingElements({
 
     You may want to reduce this for example when you're sure that your clicks do not open new tabs, or increase when you're not getting all the
     expected URLs.
-
     - **`[maxWaitForPageIdleSecs]`**: `number` <code> = 5</code> - This is the maximum period for which the function will keep tracking events, even
       if more events keep coming. Its purpose is to prevent a deadlock in the page by periodic events, often unrelated to the clicking itself. See
       `waitForPageIdleSecs` above for an explanation.
