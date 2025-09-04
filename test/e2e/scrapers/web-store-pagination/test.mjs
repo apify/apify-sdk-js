@@ -121,7 +121,7 @@ await run(testDir, 'web-scraper', {
     debugLog: false,
     browserLog: false,
     maxPagesPerCrawl: 30,
-    maxConcurrency: 5,
+    maxConcurrency: 3,
 });
 
 process.exit = exit;
