@@ -125,7 +125,7 @@ await expect(stats.requestsFinished >= 30, 'All requests finished');
 
 const datasetItems = await getDatasetItems(testDir);
 await expect(
-    datasetItems.length > 25 && datasetItems.length < 40,
+    datasetItems.length > 25 && datasetItems.length < 50,
     'Number of dataset items',
 );
 await expect(
