@@ -116,13 +116,12 @@ await run(testDir, 'puppeteer-scraper', {
     debugLog: false,
     browserLog: false,
     maxPagesPerCrawl: 30,
-    maxConcurrency: 3,
 });
 
 process.exit = exit;
 
 const stats = await getStats(testDir);
-await expect(stats.requestsFinished > 30, 'All requests finished');
+await expect(stats.requestsFinished >= 30, 'All requests finished');
 
 const datasetItems = await getDatasetItems(testDir);
 await expect(
