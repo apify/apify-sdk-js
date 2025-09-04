@@ -116,6 +116,7 @@ await run(testDir, 'puppeteer-scraper', {
     debugLog: false,
     browserLog: false,
     maxPagesPerCrawl: 30,
+    maxConcurrency: 5,
 });
 
 process.exit = exit;
