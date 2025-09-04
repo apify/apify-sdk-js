@@ -13,9 +13,9 @@ const { exit } = process;
 process.exit = () => {};
 
 await run(testDir, 'cheerio-scraper', {
-    startUrls: [{ url: 'https://crawlee.dev' }],
+    startUrls: [{ url: 'https://crawlee.dev/js/docs/guides/request-storage' }],
     keepUrlFragments: false,
-    globs: ['https://crawlee.dev/*/*'],
+    globs: ['https://crawlee.dev/js/docs/guides/**'],
     linkSelector: 'a',
     pageFunction: async function pageFunction(context) {
         const { $, request, log } = context;
