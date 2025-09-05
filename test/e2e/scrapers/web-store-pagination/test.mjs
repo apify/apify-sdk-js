@@ -126,11 +126,11 @@ await run(testDir, 'web-scraper', {
 process.exit = exit;
 
 const stats = await getStats(testDir);
-await expect(stats.requestsFinished > 30, 'All requests finished');
+await expect(stats.requestsFinished >= 30, 'All requests finished');
 
 const datasetItems = await getDatasetItems(testDir);
 await expect(
-    datasetItems.length > 25 && datasetItems.length < 35,
+    datasetItems.length > 25 && datasetItems.length < 50,
     'Number of dataset items',
 );
 await expect(

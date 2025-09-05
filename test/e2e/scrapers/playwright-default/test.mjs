@@ -13,10 +13,10 @@ const { exit } = process;
 process.exit = () => {};
 
 await run(testDir, 'playwright-scraper', {
-    startUrls: [{ url: 'https://crawlee.dev' }],
-    globs: ['https://crawlee.dev/*/*'],
-    linkSelector: 'a',
+    startUrls: [{ url: 'https://crawlee.dev/js/docs/guides/request-storage' }],
     keepUrlFragments: false,
+    globs: ['https://crawlee.dev/js/docs/guides/**'],
+    linkSelector: 'a',
     pageFunction: async function pageFunction(context) {
         const { page, request, log } = context;
         const { url } = request;

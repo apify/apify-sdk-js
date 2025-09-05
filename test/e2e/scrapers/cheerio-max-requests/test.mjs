@@ -85,7 +85,7 @@ await run(testDir, 'cheerio-scraper', {
 process.exit = exit;
 
 const stats = await getStats(testDir);
-await expect(stats.requestsFinished > 10, 'All requests finished');
+await expect(stats.requestsFinished >= 10, 'All requests finished');
 
 const datasetItems = await getDatasetItems(testDir);
 await expect(

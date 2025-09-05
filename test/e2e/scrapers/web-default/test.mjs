@@ -14,10 +14,10 @@ process.exit = () => {};
 
 await run(testDir, 'web-scraper', {
     runMode: 'PRODUCTION',
-    startUrls: [{ url: 'https://crawlee.dev' }],
-    pseudoUrls: [{ purl: 'https://crawlee.dev[(/[\\w-]+){2}]' }],
-    linkSelector: 'a[href]',
+    startUrls: [{ url: 'https://crawlee.dev/js/docs/guides/request-storage' }],
     keepUrlFragments: false,
+    globs: ['https://crawlee.dev/js/docs/guides/**'],
+    linkSelector: 'a[href]',
     pageFunction: async function pageFunction(context) {
         const $ = context.jQuery;
 

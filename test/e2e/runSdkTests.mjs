@@ -8,7 +8,7 @@ import { isMainThread, Worker, workerData } from 'node:worker_threads';
 import { ApifyClient } from 'apify-client';
 
 import { ACTOR_SOURCE_TYPES } from '@apify/consts';
-import { log } from '@apify/log';
+import log from '@apify/log';
 import { cryptoRandomObjectId } from '@apify/utilities';
 
 const rootPath = dirname(fileURLToPath(import.meta.url));
@@ -51,6 +51,8 @@ async function runWorker(dirName) {
                 log.info('Captured stderr:');
                 process.stderr.write(err);
             }
+
+            process.exit(exitCode);
         } else {
             log.info(`${dirName} OK`);
         }
