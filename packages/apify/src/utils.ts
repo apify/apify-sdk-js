@@ -89,5 +89,5 @@ export function printOutdatedSdkWarning() {
         return;
 
     log.warning(`You are using an outdated version (${apifyVersion}) of Apify SDK. We recommend you to update to the latest version (${latestApifyVersion}).
-         Read more about Apify SDK versioning at: https://help.apify.com/en/articles/3184510-updates-and-versioning-of-apify-sdk`);
+         Read more about Apify SDK updates in the changelog: https://docs.apify.com/sdk/js/docs/changelog`);
 }
