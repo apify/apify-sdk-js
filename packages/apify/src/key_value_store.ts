@@ -1,5 +1,6 @@
 import type { StorageManagerOptions } from '@crawlee/core';
 import { KeyValueStore as CoreKeyValueStore } from '@crawlee/core';
+import { KeyValueStoreClient as RemoteKeyValueStoreClient } from 'apify-client';
 
 import { createHmacSignature } from '@apify/utilities';
 
@@ -18,7 +19,13 @@ export class KeyValueStore extends CoreKeyValueStore {
      */
     override getPublicUrl(key: string): string {
         const config = this.config as Configuration;
-        if (!config.get('isAtHome') && getPublicUrl) {
+
+        const isLocalStore = !(
+            // eslint-disable-next-line dot-notation
+            this['client'] instanceof RemoteKeyValueStoreClient
+        );
+
+        if (isLocalStore && getPublicUrl) {
             return getPublicUrl.call(this, key);
         }
 
