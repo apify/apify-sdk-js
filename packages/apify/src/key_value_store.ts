@@ -22,7 +22,7 @@ export class KeyValueStore extends CoreKeyValueStore {
 
         const isLocalStore = !(
             // eslint-disable-next-line dot-notation
-            this['client'] instanceof RemoteKeyValueStoreClient
+            (this['client'] instanceof RemoteKeyValueStoreClient)
         );
 
         if (isLocalStore && getPublicUrl) {
