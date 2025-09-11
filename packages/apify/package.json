@@ -62,7 +62,7 @@
         "@crawlee/core": "^3.14.1",
         "@crawlee/types": "^3.14.1",
         "@crawlee/utils": "^3.14.1",
-        "apify-client": "^2.12.1",
+        "apify-client": "^2.17.0",
         "fs-extra": "^11.2.0",
         "ow": "^0.28.2",
         "semver": "^7.5.4",
