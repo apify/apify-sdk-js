@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [3.4.5](https://github.com/apify/apify-sdk-js/compare/apify@3.4.4...apify@3.4.5) (2025-09-11)
+
+### Bug Fixes
+
+- consistent parameters for platform event listeners ([#451](https://github.com/apify/apify-sdk-js/issues/451)) ([705ae50](https://github.com/apify/apify-sdk-js/commit/705ae502495a6c2716552f16b8e1dc16e847ebcf)), closes [#405](https://github.com/apify/apify-sdk-js/issues/405)
+- force quit stuck `Actor.exit()` calls ([#420](https://github.com/apify/apify-sdk-js/issues/420)) ([483fc43](https://github.com/apify/apify-sdk-js/commit/483fc4399890f3b2c00869c85c295b8c5aee8826))
+- respect `forceCloud` in `KeyValueStore.getPublicUrl()` calls ([#462](https://github.com/apify/apify-sdk-js/issues/462)) ([12e5f9f](https://github.com/apify/apify-sdk-js/commit/12e5f9f877465e04829e390ed1dff2a0b34e66e8)), closes [#302](https://github.com/apify/apify-sdk-js/issues/302) [#459](https://github.com/apify/apify-sdk-js/issues/459)
+
 ## [3.4.4](https://github.com/apify/apify-sdk-js/compare/apify@3.4.3...apify@3.4.4) (2025-07-28)
 
 **Note:** Version bump only for package apify
