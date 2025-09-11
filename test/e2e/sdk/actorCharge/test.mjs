@@ -58,9 +58,9 @@ test('charge limit', async () => {
     assert.deepEqual(run.chargedEventCounts, { foobar: 2 });
 });
 
-test('default charge limit 0', async () => {
+test('default options start cost-unlimited runs', async () => {
     const run = await runActor({}, {});
 
     assert.strictEqual(run.status, 'SUCCEEDED');
-    assert.deepEqual(run.chargedEventCounts, { foobar: 0 });
+    assert.deepEqual(run.chargedEventCounts, { foobar: 4 });
 });
