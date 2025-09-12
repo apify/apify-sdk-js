@@ -51,11 +51,7 @@ import { KeyValueStore } from './key_value_store.js';
 import { PlatformEventManager } from './platform_event_manager.js';
 import type { ProxyConfigurationOptions } from './proxy_configuration.js';
 import { ProxyConfiguration } from './proxy_configuration.js';
-import {
-    checkCrawleeVersion,
-    getSystemInfo,
-    printOutdatedSdkWarning,
-} from './utils.js';
+import { checkCrawleeVersion, getSystemInfo } from './utils.js';
 
 export interface InitOptions {
     storage?: StorageClient;
@@ -492,7 +488,6 @@ export class Actor<Data extends Dictionary = Dictionary> {
 
         checkCrawleeVersion();
         log.info('System info', getSystemInfo());
-        printOutdatedSdkWarning();
 
         // reset global config instance to respect APIFY_ prefixed env vars
         CoreConfiguration.globalConfig = Configuration.getGlobalConfig();
