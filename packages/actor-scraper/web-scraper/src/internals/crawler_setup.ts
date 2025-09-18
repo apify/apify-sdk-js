@@ -885,7 +885,9 @@ export class CrawlerSetup implements CrawlerSetupOptions {
             skipLinksP,
             globalStoreP,
             logP,
+            // eslint-disable-next-line @typescript-eslint/await-thenable
             requestQueueP,
+            // eslint-disable-next-line @typescript-eslint/await-thenable
             keyValueStoreP,
         ]);
 
