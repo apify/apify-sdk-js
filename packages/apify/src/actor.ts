@@ -534,6 +534,9 @@ export class Actor<Data extends Dictionary = Dictionary> {
         options.exit ??= true;
         options.exitCode ??= EXIT_CODES.SUCCESS;
         options.timeoutSecs ??= 30;
+
+        this._ensureActorInit('exit');
+
         const client = this.config.getStorageClient();
         const events = this.config.getEventManager();
 
@@ -807,6 +810,8 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @ignore
      */
     async reboot(options: RebootOptions = {}): Promise<void> {
+        this._ensureActorInit('reboot');
+
         if (!this.isAtHome()) {
             log.warning(
                 'Actor.reboot() is only supported when running on the Apify platform.',
@@ -915,6 +920,8 @@ export class Actor<Data extends Dictionary = Dictionary> {
         const { isStatusMessageTerminal, level } = options || {};
         ow(statusMessage, ow.string);
         ow(isStatusMessageTerminal, ow.optional.boolean);
+
+        this._ensureActorInit('setStatusMessage');
 
         const loggedStatusMessage = `[Status message]: ${statusMessage}`;
 
