@@ -1523,6 +1523,8 @@ export class Actor<Data extends Dictionary = Dictionary> {
         defaultValue = {} as State,
         options?: UseStateOptions,
     ) {
+        this._ensureActorInit('useState');
+
         const kvStore = await KeyValueStore.open(options?.keyValueStoreName, {
             config: options?.config || Configuration.getGlobalConfig(),
         });
