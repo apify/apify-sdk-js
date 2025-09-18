@@ -567,6 +567,11 @@ describe('Actor.createProxyConfiguration()', () => {
         const proxyUrl = proxyUrlNoSession;
         const url = 'http://proxy.apify.com/?format=json';
         gotScrapingSpy.mockResolvedValueOnce({ body: status } as any);
+        const checkAccessSpy = vitest.spyOn(
+            ProxyConfiguration.prototype,
+            // @ts-ignore protected method
+            '_checkAccess',
+        );
 
         const proxyConfiguration =
             await Actor.createProxyConfiguration(basicOpts);
@@ -582,6 +587,7 @@ describe('Actor.createProxyConfiguration()', () => {
         expect(proxyConfiguration.hostname).toBe(hostname);
         // @ts-expect-error private property
         expect(proxyConfiguration.port).toBe(port);
+        expect(checkAccessSpy).toHaveBeenCalled();
 
         expect(gotScrapingSpy).toBeCalledWith({
             url,
@@ -589,6 +595,37 @@ describe('Actor.createProxyConfiguration()', () => {
             timeout: { request: 4000 },
             responseType: 'json',
         });
+    });
+
+    test('disabling `checkAccess`', async () => {
+        const status = { connected: true };
+        const proxyUrl = proxyUrlNoSession;
+        const url = 'http://proxy.apify.com/?format=json';
+        gotScrapingSpy.mockResolvedValueOnce({ body: status } as any);
+        const checkAccessSpy = vitest.spyOn(
+            ProxyConfiguration.prototype,
+            // @ts-ignore protected method
+            '_checkAccess',
+        );
+
+        const proxyConfiguration = await Actor.createProxyConfiguration({
+            ...basicOpts,
+            checkAccess: false,
+        });
+
+        expect(proxyConfiguration).toBeInstanceOf(ProxyConfiguration);
+        // @ts-expect-error private property
+        expect(proxyConfiguration.groups).toBe(groups);
+        // @ts-expect-error private property
+        expect(proxyConfiguration.countryCode).toBe(countryCode);
+        // @ts-expect-error private property
+        expect(proxyConfiguration.password).toBe(password);
+        // @ts-expect-error private property
+        expect(proxyConfiguration.hostname).toBe(hostname);
+        // @ts-expect-error private property
+        expect(proxyConfiguration.port).toBe(port);
+        expect(checkAccessSpy).not.toHaveBeenCalled();
+        expect(gotScrapingSpy).not.toHaveBeenCalled();
     });
 
     test('should work without password (with token)', async () => {
