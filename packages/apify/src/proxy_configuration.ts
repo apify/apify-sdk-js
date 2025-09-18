@@ -65,6 +65,12 @@ export interface ProxyConfigurationOptions
         ProxyConfigurationOptions,
         keyof CoreProxyConfigurationOptions | 'tieredProxyConfig'
     >[];
+
+    /**
+     * As part of the init process, we verify the configuration by checking the proxy status endpoint.
+     * This can make the init slower, to opt-out of this, use `checkAccess: false` (defaults to `true`).
+     */
+    checkAccess?: boolean;
 }
 
 /**
@@ -256,8 +262,11 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
      *
      * You should use the {@apilink createProxyConfiguration} function to create a pre-initialized
      * `ProxyConfiguration` instance instead of calling this manually.
+     *
+     * As part of the init process, we verify the configuration by checking the proxy status endpoint.
+     * This can make the init slower, to opt-out of this, use `checkAccess: false`.
      */
-    async initialize(): Promise<boolean> {
+    async initialize(options?: { checkAccess?: boolean }): Promise<boolean> {
         if (this.usesApifyProxy) {
             if (!this.password) {
                 await this._setPasswordIfToken();
@@ -280,7 +289,9 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
                 }
             }
 
-            return this._checkAccess();
+            if (options?.checkAccess !== false) {
+                return this._checkAccess();
+            }
         }
 
         return true;
