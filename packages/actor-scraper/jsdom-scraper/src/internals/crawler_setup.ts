@@ -232,7 +232,10 @@ export class CrawlerSetup implements CrawlerSetupOptions {
             failedRequestHandler: this._failedRequestHandler.bind(this),
             respectRobotsTxtFile: this.input.respectRobotsTxtFile,
             maxRequestRetries: this.input.maxRequestRetries,
-            maxRequestsPerCrawl: this.input.maxPagesPerCrawl,
+            maxRequestsPerCrawl:
+                this.input.maxPagesPerCrawl === 0
+                    ? undefined
+                    : this.input.maxPagesPerCrawl,
             additionalMimeTypes: this.input.additionalMimeTypes,
             autoscaledPoolOptions: {
                 maxConcurrency: this.input.maxConcurrency,

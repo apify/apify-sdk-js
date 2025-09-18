@@ -15,10 +15,10 @@ import contentTypeParser from 'content-type';
 
 import log from '@apify/log';
 
-import type { SnapshotOptions } from './browser_tools';
 import { saveSnapshot } from './browser_tools.js';
+import type { SnapshotOptions } from './browser_tools.ts';
 import { META_KEY } from './consts.js';
-import type { RequestMetadata } from './tools';
+import type { RequestMetadata } from './tools.ts';
 
 export interface MapLike<K, V>
     extends Omit<Map<K, V>, 'values' | 'keys' | 'entries' | 'set'> {

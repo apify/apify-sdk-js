@@ -2,5 +2,12 @@
     "actorSpecification": 1,
     "name": "camoufox-scraper",
     "version": "0.1",
-    "buildTag": "latest"
+    "buildTag": "latest",
+    "storages": {
+        "dataset": {
+            "actorSpecification": 1,
+            "fields": {},
+            "views": {}
+        }
+    }
 }

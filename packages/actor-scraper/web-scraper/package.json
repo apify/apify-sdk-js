@@ -7,7 +7,7 @@
     "type": "module",
     "dependencies": {
         "@apify/scraper-tools": "^1.1.4",
-        "@crawlee/puppeteer": "^3.13.2",
+        "@crawlee/puppeteer": "^3.14.1",
         "apify": "^3.2.6",
         "content-type": "^1.0.5",
         "crawlee": "^3.13.2",
@@ -20,7 +20,7 @@
         "@types/content-type": "^1.1.8",
         "@types/node": "^22.7.4",
         "tsx": "^4.19.1",
-        "typescript": "~5.8.0"
+        "typescript": "~5.9.0"
     },
     "scripts": {
         "start": "npm run start:dev",

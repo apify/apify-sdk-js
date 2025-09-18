@@ -8,8 +8,6 @@ import semver from 'semver';
 import { APIFY_ENV_VARS } from '@apify/consts';
 import log from '@apify/log';
 
-import { printOutdatedSdkWarning } from '../../packages/apify/src/utils.js';
-
 describe('Actor.isAtHome()', () => {
     test('works', () => {
         expect(Actor.isAtHome()).toBe(false);
@@ -39,53 +37,6 @@ describe('Actor.newClient()', () => {
 
         expect(client.token).toBe('token');
         expect(client.baseUrl).toBe('https://api.apify.com/v2');
-    });
-});
-
-describe('printOutdatedSdkWarning()', () => {
-    const currentVersion = require('../../packages/apify/package.json').version; // eslint-disable-line
-
-    afterEach(() => {
-        delete process.env[APIFY_ENV_VARS.SDK_LATEST_VERSION];
-        delete process.env[APIFY_ENV_VARS.DISABLE_OUTDATED_WARNING];
-    });
-
-    test('should do nothing when ENV_VARS.SDK_LATEST_VERSION is not set', () => {
-        const spy = vitest.spyOn(log, 'warning');
-
-        printOutdatedSdkWarning();
-
-        expect(spy).not.toHaveBeenCalled();
-    });
-
-    test('should do nothing when ENV_VARS.DISABLE_OUTDATED_WARNING is set', () => {
-        const spy = vitest.spyOn(log, 'warning');
-
-        process.env[APIFY_ENV_VARS.DISABLE_OUTDATED_WARNING] = '1';
-        printOutdatedSdkWarning();
-
-        expect(spy).not.toHaveBeenCalled();
-    });
-
-    test('should correctly work when outdated', () => {
-        const spy = vitest.spyOn(log, 'warning');
-
-        process.env[APIFY_ENV_VARS.SDK_LATEST_VERSION] = semver.inc(
-            currentVersion,
-            'minor',
-        )!;
-        printOutdatedSdkWarning();
-
-        expect(spy).toHaveBeenCalledTimes(1);
-    });
-
-    test('should correctly work when up to date', () => {
-        const spy = vitest.spyOn(log, 'warning');
-
-        process.env[APIFY_ENV_VARS.SDK_LATEST_VERSION] = '0.13.0';
-        printOutdatedSdkWarning();
-
-        expect(spy).not.toHaveBeenCalled();
     });
 });
 

@@ -67,7 +67,7 @@ interface PageContext {
         start: [number, number];
         navStart?: [number, number];
     };
-    // eslint-disable-next-line no-use-before-define -- Circular dependency with WeakMap
+
     browserHandles?: Awaited<ReturnType<CrawlerSetup['_injectBrowserHandles']>>;
 }
 
@@ -301,7 +301,10 @@ export class CrawlerSetup implements CrawlerSetupOptions {
                 ? MAX_CONCURRENCY_IN_DEVELOPMENT
                 : this.input.maxConcurrency,
             maxRequestRetries: this.input.maxRequestRetries,
-            maxRequestsPerCrawl: this.input.maxPagesPerCrawl,
+            maxRequestsPerCrawl:
+                this.input.maxPagesPerCrawl === 0
+                    ? undefined
+                    : this.input.maxPagesPerCrawl,
             proxyConfiguration: (await Actor.createProxyConfiguration(
                 this.input.proxyConfiguration,
             )) as any as ProxyConfiguration,
@@ -882,7 +885,9 @@ export class CrawlerSetup implements CrawlerSetupOptions {
             skipLinksP,
             globalStoreP,
             logP,
+            // eslint-disable-next-line @typescript-eslint/await-thenable
             requestQueueP,
+            // eslint-disable-next-line @typescript-eslint/await-thenable
             keyValueStoreP,
         ]);
 

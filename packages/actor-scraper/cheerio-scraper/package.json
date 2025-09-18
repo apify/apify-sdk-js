@@ -6,14 +6,14 @@
     "type": "module",
     "dependencies": {
         "@apify/scraper-tools": "^1.1.4",
-        "@crawlee/cheerio": "^3.13.4",
+        "@crawlee/cheerio": "^3.14.1",
         "apify": "^3.2.6"
     },
     "devDependencies": {
         "@apify/tsconfig": "^0.1.0",
         "@types/node": "^22.7.4",
         "tsx": "^4.19.1",
-        "typescript": "~5.8.0"
+        "typescript": "~5.9.0"
     },
     "peerDependencies": {
         "cheerio": "^1.0.0-rc.12"

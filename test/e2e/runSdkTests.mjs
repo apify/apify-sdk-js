@@ -51,6 +51,8 @@ async function runWorker(dirName) {
                 log.info('Captured stderr:');
                 process.stderr.write(err);
             }
+
+            process.exit(exitCode);
         } else {
             log.info(`${dirName} OK`);
         }

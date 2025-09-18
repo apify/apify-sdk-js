@@ -132,8 +132,8 @@ function Features() {
                 <div className="col col--6 text--center">
                     <ThemedImage
                         sources={{
-                            light: useBaseUrl('/img/sdk-split-light.png'),
-                            dark: useBaseUrl('/img/sdk-split-dark.png'),
+                            light: useBaseUrl('/img/sdk-split-light.webp'),
+                            dark: useBaseUrl('/img/sdk-split-dark.webp'),
                         }}
                         className={clsx(styles.hideSmall)}
                     />

@@ -4,7 +4,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { isMainThread, Worker, workerData } from 'node:worker_threads';
 
-import { log } from '@apify/log';
+import log from '@apify/log';
 
 import { clearStorage, colors, SKIPPED_TEST_CLOSE_CODE } from './tools.mjs';
 

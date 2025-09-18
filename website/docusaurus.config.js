@@ -9,6 +9,21 @@ const packagesOrder = ['apify'];
 
 /** @type {Partial<import('@docusaurus/types').DocusaurusConfig>} */
 module.exports = {
+    future: {
+        experimental_faster: {
+            swcJsLoader: true,
+            swcJsMinimizer: true,
+            swcHtmlMinimizer: true,
+            lightningCssMinimizer: true,
+            rspackBundler: true,
+            mdxCrossCompilerCache: true,
+            rspackPersistentCache: true,
+        },
+        v4: {
+            removeLegacyPostBuildHeadAttribute: true,
+            useCssCascadeLayers: false,
+        },
+    },
     title: 'SDK for JavaScript | Apify Documentation',
     url: absoluteUrl,
     baseUrl: '/sdk/js',
@@ -16,6 +31,7 @@ module.exports = {
     organizationName: 'apify',
     projectName: 'apify-sdk-js',
     favicon: 'img/favicon.svg',
+    scripts: [...(config.scripts ?? [])],
     onBrokenLinks:
         /** @type {import('@docusaurus/types').ReportingSeverity} */ ('throw'),
     onBrokenMarkdownLinks:
@@ -24,6 +40,7 @@ module.exports = {
         [
             '@apify/docs-theme',
             {
+                changelogFromRoot: true,
                 subNavbar: {
                     title: 'SDK for JavaScript',
                     items: [
@@ -125,8 +142,30 @@ module.exports = {
                 routeBasePath: 'reference',
             },
         ],
+        [
+            '@signalwire/docusaurus-plugin-llms-txt',
+            {
+                content: {
+                    includeVersionedDocs: false,
+                    enableLlmsFullTxt: true,
+                    includeBlog: true,
+                    includeGeneratedIndex: false,
+                    includePages: true,
+                    relativePaths: false,
+                    excludeRoutes: [
+                        '/sdk/js/reference/3.*/**',
+                        '/sdk/js/reference/3.*',
+                        '/sdk/js/reference/next/**',
+                        '/sdk/js/reference/next',
+                    ],
+                },
+            },
+        ],
         ...config.plugins,
     ],
     themeConfig: { ...config.themeConfig, versions },
     staticDirectories: ['node_modules/@apify/docs-theme/static', 'static'],
+    customFields: {
+        ...(config.customFields ?? []),
+    },
 };

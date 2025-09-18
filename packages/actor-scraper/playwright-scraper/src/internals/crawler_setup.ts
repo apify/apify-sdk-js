@@ -275,7 +275,10 @@ export class CrawlerSetup implements CrawlerSetupOptions {
             respectRobotsTxtFile: this.input.respectRobotsTxtFile,
             maxConcurrency: this.input.maxConcurrency,
             maxRequestRetries: this.input.maxRequestRetries,
-            maxRequestsPerCrawl: this.input.maxPagesPerCrawl,
+            maxRequestsPerCrawl:
+                this.input.maxPagesPerCrawl === 0
+                    ? undefined
+                    : this.input.maxPagesPerCrawl,
             proxyConfiguration: (await Actor.createProxyConfiguration(
                 this.input.proxyConfiguration,
             )) as any as ProxyConfiguration,

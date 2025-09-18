@@ -68,7 +68,6 @@ await Apify.utils.enqueueLinks({
 **Parameters**:
 
 - **`options`**: `object` - All `enqueueLinks()` parameters are passed via an options object with the following keys:
-
     - **`[page]`**: `PuppeteerPage` | `PlaywrightPage` - Puppeteer [`Page`](https://pptr.dev/#?product=Puppeteer&show=api-class-page) object. Either
       `page` or `$` option must be provided.
     - **`[limit]`**: `Number` - Limit the count of actually enqueued URLs to this number. Useful for testing across the entire crawling scope.
@@ -86,7 +85,6 @@ await Apify.utils.enqueueLinks({
     [`Request`](../api/request) objects.
 
     If `pseudoUrls` is an empty array, `null` or `undefined`, then the function enqueues all links found on the page.
-
     - **`[transformRequestFunction]`**: [`RequestTransform`](../typedefs/request-transform) - Just before a new [`Request`](../api/request) is
       constructed and enqueued to the [`RequestQueue`](../api/request-queue), this function can be used to remove it or modify its contents such as
       `userData`, `payload` or, most importantly `uniqueKey`. This is useful when you need to enqueue multiple `Requests` to the queue that share

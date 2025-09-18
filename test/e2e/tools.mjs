@@ -166,7 +166,7 @@ export async function expect(bool, message) {
  * @param {string} reason
  */
 export async function skipTest(reason) {
-    log.warn(`[test skipped] ${reason}`);
+    log.warning(`[test skipped] ${reason}`);
     process.exit(SKIPPED_TEST_CLOSE_CODE);
 }
 

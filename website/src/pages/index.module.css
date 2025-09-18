@@ -68,7 +68,7 @@
     position: absolute;
     top: 0;
     z-index: 1;
-    width: calc(100% - 2rem);
+    width: calc(100% - (2 * var(--ifm-spacing-horizontal)));
 }
 
 .heroBanner h1::selection,

@@ -55,11 +55,7 @@ import { KeyValueStore } from './key_value_store.js';
 import { PlatformEventManager } from './platform_event_manager.js';
 import type { ProxyConfigurationOptions } from './proxy_configuration.js';
 import { ProxyConfiguration } from './proxy_configuration.js';
-import {
-    checkCrawleeVersion,
-    getSystemInfo,
-    printOutdatedSdkWarning,
-} from './utils.js';
+import { checkCrawleeVersion, getSystemInfo } from './utils.js';
 
 export interface InitOptions {
     storage?: StorageClient;
@@ -114,6 +110,11 @@ export interface ApifyEnv {
      * different than the owner of the Actor (APIFY_USER_ID)
      */
     userId: string | null;
+
+    /**
+     * If it is `1`, it means that the user who started the Actor is a paying user. (APIFY_USER_IS_PAYING)
+     */
+    userIsPaying: string | null;
 
     /**
      * Authentication token representing privileges given to the Actor run,
@@ -328,7 +329,7 @@ export const EXIT_CODES = {
  */
 export class Actor<Data extends Dictionary = Dictionary> {
     /** @internal */
-    // eslint-disable-next-line no-use-before-define -- self-reference
+
     static _instance: Actor;
 
     /**
@@ -491,7 +492,6 @@ export class Actor<Data extends Dictionary = Dictionary> {
 
         checkCrawleeVersion();
         log.info('System info', getSystemInfo());
-        printOutdatedSdkWarning();
 
         // reset global config instance to respect APIFY_ prefixed env vars
         CoreConfiguration.globalConfig = Configuration.getGlobalConfig();
@@ -538,6 +538,9 @@ export class Actor<Data extends Dictionary = Dictionary> {
         options.exit ??= true;
         options.exitCode ??= EXIT_CODES.SUCCESS;
         options.timeoutSecs ??= 30;
+
+        this._ensureActorInit('exit');
+
         const client = this.config.getStorageClient();
         const events = this.config.getEventManager();
 
@@ -552,6 +555,15 @@ export class Actor<Data extends Dictionary = Dictionary> {
         log.debug(
             `Waiting for all event listeners to complete their execution (with ${options.timeoutSecs} seconds timeout)`,
         );
+
+        if (options.exit) {
+            // `addTimeoutToPromise` is a cooperative timeout. This ensures that the process exits
+            // after the timeout, even if the event listeners don't trigger the timeout.
+            setTimeout(() => {
+                process.exit(options.exitCode);
+            }, options.timeoutSecs * 1000);
+        }
+
         await addTimeoutToPromise(
             async () => {
                 await events.waitForAllListenersToComplete();
@@ -802,6 +814,8 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @ignore
      */
     async reboot(options: RebootOptions = {}): Promise<void> {
+        this._ensureActorInit('reboot');
+
         if (!this.isAtHome()) {
             log.warning(
                 'Actor.reboot() is only supported when running on the Apify platform.',
@@ -824,12 +838,12 @@ export class Actor<Data extends Dictionary = Dictionary> {
             ...this.config
                 .getEventManager()
                 .listeners(EventType.PERSIST_STATE)
-                .map(async (x) => x()),
+                .map(async (x) => (x as any)({})),
             // `migrating` to pause Apify crawlers
             ...this.config
                 .getEventManager()
                 .listeners(EventType.MIGRATING)
-                .map(async (x) => x()),
+                .map(async (x) => (x as any)({})),
         ]);
 
         const runId = this.config.get('actorRunId')!;
@@ -910,6 +924,8 @@ export class Actor<Data extends Dictionary = Dictionary> {
         const { isStatusMessageTerminal, level } = options || {};
         ow(statusMessage, ow.string);
         ow(isStatusMessageTerminal, ow.optional.boolean);
+
+        this._ensureActorInit('setStatusMessage');
 
         const loggedStatusMessage = `[Status message]: ${statusMessage}`;
 
@@ -1527,6 +1543,8 @@ export class Actor<Data extends Dictionary = Dictionary> {
         defaultValue = {} as State,
         options?: UseStateOptions,
     ) {
+        this._ensureActorInit('useState');
+
         const kvStore = await KeyValueStore.open(options?.keyValueStoreName, {
             config: options?.config || Configuration.getGlobalConfig(),
         });

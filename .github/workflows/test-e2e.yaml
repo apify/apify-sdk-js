@@ -22,10 +22,10 @@ jobs:
                   access_token: ${{ github.token }}
 
             - name: Checkout repository
-              uses: actions/checkout@v4
+              uses: actions/checkout@v5
 
             - name: Use Node.js 22
-              uses: actions/setup-node@v4
+              uses: actions/setup-node@v5
               with:
                   node-version: 22
                   cache: 'npm'
@@ -40,9 +40,6 @@ jobs:
                   restore-keys: |
                       turbo-${{ github.job }}-${{ github.ref_name }}-
 
-            - name: Login to Apify
-              run: npx -y apify-cli login -t ${{ secrets.APIFY_SCRAPER_TESTS_API_TOKEN }}
-
             - name: Install Dependencies
               run: npm ci --force
 
@@ -51,3 +48,5 @@ jobs:
 
             - name: Test
               run: npm run test:e2e
+              env:
+                  APIFY_TOKEN: ${{ secrets.APIFY_SCRAPER_TESTS_API_TOKEN }}
