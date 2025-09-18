@@ -241,7 +241,7 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
         this.port = port;
         this.usesApifyProxy = !this.proxyUrls && !this.newUrlFunction;
 
-        if (proxyUrls && proxyUrls.some((url) => url.includes('apify.com'))) {
+        if (proxyUrls && proxyUrls.some((url) => url?.includes('apify.com'))) {
             this.log.warning(
                 'Some Apify proxy features may work incorrectly. Please consider setting up Apify properties instead of `proxyUrls`.\n' +
                     'See https://sdk.apify.com/docs/guides/proxy-management#apify-proxy-configuration',
@@ -368,7 +368,7 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
             );
         }
         if (this.proxyUrls) {
-            return this._handleCustomUrl(sessionId);
+            return this._handleCustomUrl(sessionId) ?? undefined;
         }
 
         if (this.tieredProxyUrls) {
