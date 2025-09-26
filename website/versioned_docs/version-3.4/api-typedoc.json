@@ -1782,7 +1782,7 @@
                                     },
                                     {
                                         "kind": "text",
-                                        "text": " object which contains information parsed from all the Apify environment variables.\n\nFor the list of the Apify environment variables, see\n[Actor documentation](https://docs.apify.com/actor/run#environment-variables).\nIf some of the variables are not defined or are invalid, the corresponding value in the resulting object will be null."
+                                        "text": " object which contains information parsed from all the Apify environment variables.\n\nFor the list of the Apify environment variables, see\n[Actor documentation](https://docs.apify.com/platform/actors/development/programming-interface/environment-variables).\nIf some of the variables are not defined or are invalid, the corresponding value in the resulting object will be null."
                                     }
                                 ]
                             },
