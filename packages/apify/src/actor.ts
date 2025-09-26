@@ -1450,7 +1450,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * Returns a new {@apilink ApifyEnv} object which contains information parsed from all the Apify environment variables.
      *
      * For the list of the Apify environment variables, see
-     * [Actor documentation](https://docs.apify.com/actor/run#environment-variables).
+     * [Actor documentation](https://docs.apify.com/platform/actors/development/programming-interface/environment-variables).
      * If some variables are not defined or are invalid, the corresponding value in the resulting object will be null.
      * @ignore
      */
@@ -2225,7 +2225,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * Returns a new {@apilink ApifyEnv} object which contains information parsed from all the Apify environment variables.
      *
      * For the list of the Apify environment variables, see
-     * [Actor documentation](https://docs.apify.com/actor/run#environment-variables).
+     * [Actor documentation](https://docs.apify.com/platform/actors/development/programming-interface/environment-variables).
      * If some of the variables are not defined or are invalid, the corresponding value in the resulting object will be null.
      */
     static getEnv(): ApifyEnv {
