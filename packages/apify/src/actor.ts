@@ -49,6 +49,7 @@ import { ChargingManager } from './charging.js';
 import { Configuration } from './configuration.js';
 import {
     getDefaultsFromInputSchema,
+    kNoActorInputSchemaDefined,
     readInputSchema,
 } from './input-schemas.js';
 import { KeyValueStore } from './key_value_store.js';
@@ -2318,9 +2319,14 @@ export class Actor<Data extends Dictionary = Dictionary> {
         // On local, we can get the input schema from the local config
         const inputSchema = readInputSchema();
 
+        // Don't emit warning if there is no input schema defined
+        if (inputSchema === kNoActorInputSchemaDefined) {
+            return input;
+        }
+
         if (!inputSchema) {
             log.warning(
-                'Failed to find the input schema for the local run of this Actor. Your input will be missing fields that have default values set.',
+                'Failed to find the input schema for the local run of this Actor. Your input will be missing fields that have default values set if they are missing from the input you are using.',
             );
 
             return input;
