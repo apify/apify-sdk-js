@@ -51,8 +51,11 @@ export const readInputSchema = (): Dictionary | null => {
     // Try to find it from possible default paths
     for (const path of DEFAULT_INPUT_SCHEMA_PATHS) {
         const fullPath = join(process.cwd(), ...path);
-        if (existsSync(fullPath)) {
-            return readJSONIfExists(fullPath);
+
+        const result = readJSONIfExists(fullPath);
+
+        if (result) {
+            return result;
         }
     }
 

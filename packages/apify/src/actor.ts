@@ -2320,7 +2320,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
 
         if (!inputSchema) {
             log.warning(
-                'Failed to find the input schema for the local run of this Actor. Your input will be missing fields that have default values set',
+                'Failed to find the input schema for the local run of this Actor. Your input will be missing fields that have default values set.',
             );
 
             return input;
