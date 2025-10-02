@@ -1257,7 +1257,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
         }
 
         if (ow.isValid(input, ow.object.nonEmpty) && !Buffer.isBuffer(input)) {
-            input = await this.insertDefaultsFromInputSchema(input);
+            input = await this.inferDefaultsFromInputSchema(input);
         }
 
         return input;
@@ -2305,27 +2305,24 @@ export class Actor<Data extends Dictionary = Dictionary> {
         );
     }
 
-    private async insertDefaultsFromInputSchema<T extends Dictionary>(
+    private async inferDefaultsFromInputSchema<T extends Dictionary>(
         input: T,
     ): Promise<T> {
-        // TODO: v0, move all this logic from here and apify-cli to input_schema module
+        // TODO: https://github.com/apify/apify-shared-js/issues/547
 
-        const env = this.getEnv();
-        let inputSchema: Dictionary | undefined | null;
-
-        // On platform, we can get the input schema from the build data
-        if (this.isAtHome() && env.actorBuildId) {
-            const buildData = await this.apifyClient
-                .build(env.actorBuildId)
-                .get();
-
-            inputSchema = buildData?.actorDefinition?.input;
-        } else {
-            // On local, we can get the input schema from the local config
-            inputSchema = readInputSchema();
+        // On platform, this is already handled
+        if (this.isAtHome()) {
+            return input;
         }
 
+        // On local, we can get the input schema from the local config
+        const inputSchema = readInputSchema();
+
         if (!inputSchema) {
+            log.warning(
+                'Failed to find the input schema for the local run of this Actor. Your input will be missing fields that have default values set',
+            );
+
             return input;
         }
 

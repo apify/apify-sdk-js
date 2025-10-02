@@ -12,7 +12,8 @@
                 "title": "Foo",
                 "type": "string",
                 "description": "Foo",
-                "default": "bar"
+                "default": "bar",
+                "editor": "textfield"
             }
         }
     }
