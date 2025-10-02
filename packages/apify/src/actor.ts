@@ -1388,6 +1388,10 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * ```
      * { useApifyProxy: false }
      * ```
+     *
+     * As part of the init process, we verify the configuration by checking the proxy status endpoint.
+     * This can make the init slower, to opt-out of this, use `checkAccess: false` (defaults to `true`).
+     *
      * @ignore
      */
     async createProxyConfiguration(
@@ -1397,7 +1401,8 @@ export class Actor<Data extends Dictionary = Dictionary> {
     ): Promise<ProxyConfiguration | undefined> {
         // Compatibility fix for Input UI where proxy: None returns { useApifyProxy: false }
         // Without this, it would cause proxy to use the zero config / auto mode.
-        const { useApifyProxy, ...options } = proxyConfigurationOptions;
+        const { useApifyProxy, checkAccess, ...options } =
+            proxyConfigurationOptions;
         const dontUseApifyProxy = useApifyProxy === false;
         const dontUseCustomProxies = !proxyConfigurationOptions.proxyUrls;
 
@@ -1407,7 +1412,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
 
         const proxyConfiguration = new ProxyConfiguration(options, this.config);
 
-        if (await proxyConfiguration.initialize()) {
+        if (await proxyConfiguration.initialize({ checkAccess })) {
             return proxyConfiguration;
         }
 
@@ -1459,7 +1464,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * Returns a new {@apilink ApifyEnv} object which contains information parsed from all the Apify environment variables.
      *
      * For the list of the Apify environment variables, see
-     * [Actor documentation](https://docs.apify.com/actor/run#environment-variables).
+     * [Actor documentation](https://docs.apify.com/platform/actors/development/programming-interface/environment-variables).
      * If some variables are not defined or are invalid, the corresponding value in the resulting object will be null.
      * @ignore
      */
@@ -2197,6 +2202,9 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * ```
      * { useApifyProxy: false }
      * ```
+     *
+     * As part of the init process, we verify the configuration by checking the proxy status endpoint.
+     * This can make the init slower, to opt-out of this, use `checkAccess: false` (defaults to `true`).
      */
     static async createProxyConfiguration(
         proxyConfigurationOptions: ProxyConfigurationOptions & {
@@ -2231,7 +2239,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * Returns a new {@apilink ApifyEnv} object which contains information parsed from all the Apify environment variables.
      *
      * For the list of the Apify environment variables, see
-     * [Actor documentation](https://docs.apify.com/actor/run#environment-variables).
+     * [Actor documentation](https://docs.apify.com/platform/actors/development/programming-interface/environment-variables).
      * If some of the variables are not defined or are invalid, the corresponding value in the resulting object will be null.
      */
     static getEnv(): ApifyEnv {
