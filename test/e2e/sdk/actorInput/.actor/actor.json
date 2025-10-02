@@ -1,0 +1,20 @@
+{
+    "actorSpecification": 1,
+    "name": "apify-sdk-js-test-input",
+    "version": "0.0",
+    "input": {
+        "title": "Actor Input",
+        "description": "Test input",
+        "type": "object",
+        "schemaVersion": 1,
+        "properties": {
+            "foo": {
+                "title": "Foo",
+                "type": "string",
+                "description": "Foo",
+                "default": "bar",
+                "editor": "textfield"
+            }
+        }
+    }
+}
