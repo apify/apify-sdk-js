@@ -27,14 +27,17 @@ const readJSONIfExists = (path: string): Dictionary | null => {
     return null;
 };
 
-export const kNoActorInputSchemaDefined = Symbol.for(
+/**
+ * @ignore
+ */
+export const noActorInputSchemaDefinedMarker = Symbol.for(
     'apify.noActorInputSchemaDefined',
 );
 
 export const readInputSchema = ():
     | Dictionary
     | null
-    | typeof kNoActorInputSchemaDefined => {
+    | typeof noActorInputSchemaDefinedMarker => {
     const localConfig = readJSONIfExists(
         join(process.cwd(), ACTOR_SPECIFICATION_FOLDER, LOCAL_CONFIG_NAME),
     );
@@ -68,7 +71,7 @@ export const readInputSchema = ():
 
     // If we are in an Actor context, BUT we do not have an input schema defined, we want to skip the warning
     if (!localConfig?.input) {
-        return kNoActorInputSchemaDefined;
+        return noActorInputSchemaDefinedMarker;
     }
 
     return null;

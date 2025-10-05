@@ -49,7 +49,7 @@ import { ChargingManager } from './charging.js';
 import { Configuration } from './configuration.js';
 import {
     getDefaultsFromInputSchema,
-    kNoActorInputSchemaDefined,
+    noActorInputSchemaDefinedMarker,
     readInputSchema,
 } from './input-schemas.js';
 import { KeyValueStore } from './key_value_store.js';
@@ -2328,7 +2328,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
         const inputSchema = readInputSchema();
 
         // Don't emit warning if there is no input schema defined
-        if (inputSchema === kNoActorInputSchemaDefined) {
+        if (inputSchema === noActorInputSchemaDefinedMarker) {
             return input;
         }
 
