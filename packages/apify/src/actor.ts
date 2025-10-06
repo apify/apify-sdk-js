@@ -47,6 +47,11 @@ import { addTimeoutToPromise } from '@apify/timeout';
 import type { ChargeOptions, ChargeResult } from './charging.js';
 import { ChargingManager } from './charging.js';
 import { Configuration } from './configuration.js';
+import {
+    getDefaultsFromInputSchema,
+    noActorInputSchemaDefinedMarker,
+    readInputSchema,
+} from './input-schemas.js';
 import { KeyValueStore } from './key_value_store.js';
 import { PlatformEventManager } from './platform_event_manager.js';
 import type { ProxyConfigurationOptions } from './proxy_configuration.js';
@@ -1235,9 +1240,12 @@ export class Actor<Data extends Dictionary = Dictionary> {
         const inputSecretsPrivateKeyPassphrase = this.config.get(
             'inputSecretsPrivateKeyPassphrase',
         );
-        const input = await this.getValue<T>(this.config.get('inputKey'));
+        const rawInput = await this.getValue<T>(this.config.get('inputKey'));
+
+        let input = rawInput as T;
+
         if (
-            ow.isValid(input, ow.object.nonEmpty) &&
+            ow.isValid(rawInput, ow.object.nonEmpty) &&
             inputSecretsPrivateKeyFile &&
             inputSecretsPrivateKeyPassphrase
         ) {
@@ -1245,8 +1253,14 @@ export class Actor<Data extends Dictionary = Dictionary> {
                 key: Buffer.from(inputSecretsPrivateKeyFile, 'base64'),
                 passphrase: inputSecretsPrivateKeyPassphrase,
             });
-            return decryptInputSecrets<T>({ input, privateKey });
+
+            input = decryptInputSecrets({ input: rawInput, privateKey });
         }
+
+        if (ow.isValid(input, ow.object.nonEmpty) && !Buffer.isBuffer(input)) {
+            input = await this.inferDefaultsFromInputSchema(input);
+        }
+
         return input;
     }
 
@@ -2298,5 +2312,36 @@ export class Actor<Data extends Dictionary = Dictionary> {
                 'Did you forget to call Actor.init()?',
             ].join('\n'),
         );
+    }
+
+    private async inferDefaultsFromInputSchema<T extends Dictionary>(
+        input: T,
+    ): Promise<T> {
+        // TODO: https://github.com/apify/apify-shared-js/issues/547
+
+        // On platform, this is already handled
+        if (this.isAtHome()) {
+            return input;
+        }
+
+        // On local, we can get the input schema from the local config
+        const inputSchema = readInputSchema();
+
+        // Don't emit warning if there is no input schema defined
+        if (inputSchema === noActorInputSchemaDefinedMarker) {
+            return input;
+        }
+
+        if (!inputSchema) {
+            log.warning(
+                'Failed to find the input schema for the local run of this Actor. Your input will be missing fields that have default values set if they are missing from the input you are using.',
+            );
+
+            return input;
+        }
+
+        const defaults = getDefaultsFromInputSchema(inputSchema);
+
+        return { ...defaults, ...input };
     }
 }

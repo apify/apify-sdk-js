@@ -16,6 +16,11 @@ const basePath = join(rootPath, 'sdk');
 const actorBasePath = join(basePath, 'actorBase');
 
 async function run() {
+    if (!process.env.APIFY_TOKEN) {
+        log.error('APIFY_TOKEN is not set in the environment variables.');
+        return;
+    }
+
     log.info(`Running E2E SDK tests`);
 
     const paths = await readdir(basePath, { withFileTypes: true });
