@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [3.5.0](https://github.com/apify/apify-sdk-js/compare/apify@3.4.5...apify@3.5.0) (2025-10-06)
+
+### Bug Fixes
+
+- adjust `ProxyConfiguration` to support crawlee v3.15 ([#473](https://github.com/apify/apify-sdk-js/issues/473)) ([f5c7feb](https://github.com/apify/apify-sdk-js/commit/f5c7febb8566e48d850cf27e4d2e2b048177394b))
+- ensure the `Actor` instance is initialized while calling its methods ([#471](https://github.com/apify/apify-sdk-js/issues/471)) ([70465f7](https://github.com/apify/apify-sdk-js/commit/70465f7a5ab722b41c82e71a0a1addb0c8612ad0))
+
+### Features
+
+- allow skipping access checks when initializing ProxyConfiguration ([#474](https://github.com/apify/apify-sdk-js/issues/474)) ([c87a228](https://github.com/apify/apify-sdk-js/commit/c87a2289598c094e6700374f176fb91e4246aead)), closes [#472](https://github.com/apify/apify-sdk-js/issues/472)
+- respect input schema defaults in `Actor.getInput()` ([#409](https://github.com/apify/apify-sdk-js/issues/409)) ([bd9181d](https://github.com/apify/apify-sdk-js/commit/bd9181d11044e66b56120c37a6813fe11a37556e)), closes [#287](https://github.com/apify/apify-sdk-js/issues/287)
+
 ## [3.4.5](https://github.com/apify/apify-sdk-js/compare/apify@3.4.4...apify@3.4.5) (2025-09-11)
 
 ### Bug Fixes
