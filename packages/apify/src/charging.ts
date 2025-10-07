@@ -202,6 +202,8 @@ export class ChargingManager {
             }
         }
 
+        this.chargingState ??= {};
+
         if (!this.isPayPerEvent || !this.useChargingLogDataset) {
             return;
         }
@@ -222,10 +224,6 @@ export class ChargingManager {
             this.chargingLogDataset = await Dataset.open(
                 this.LOCAL_CHARGING_LOG_DATASET_NAME,
             );
-        }
-
-        if (this.chargingState === undefined) {
-            throw new Error('init() method left `chargingState` uninitialized');
         }
     }
 
