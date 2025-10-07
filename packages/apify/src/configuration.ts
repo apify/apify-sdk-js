@@ -39,6 +39,8 @@ export interface ConfigurationOptions extends CoreConfigurationOptions {
     metaOrigin?: (typeof META_ORIGINS)[keyof typeof META_ORIGINS];
     testPayPerEvent?: boolean;
     useChargingLogDataset?: boolean;
+    actorPricingInfo?: string;
+    chargedEventCounts?: string;
 }
 
 /**
@@ -179,6 +181,8 @@ export class Configuration extends CoreConfiguration {
         ACTOR_MAX_TOTAL_CHARGE_USD: 'maxTotalChargeUsd',
         ACTOR_TEST_PAY_PER_EVENT: 'testPayPerEvent',
         ACTOR_USE_CHARGING_LOG_DATASET: 'useChargingLogDataset',
+        APIFY_ACTOR_PRICING_INFO: 'actorPricingInfo',
+        APIFY_CHARGED_ACTOR_EVENT_COUNTS: 'chargedEventCounts',
     };
 
     protected static override INTEGER_VARS = [
