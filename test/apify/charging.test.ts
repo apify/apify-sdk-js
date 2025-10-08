@@ -14,10 +14,16 @@ describe('ChargingManager', () => {
 
     afterEach(async () => {
         await Actor.exit({ exit: false });
+
+        // @ts-expect-error
+        Actor._instance = undefined; // eslint-disable-line no-underscore-dangle
+
         await localStorageEmulator.destroy();
 
         delete process.env.ACTOR_TEST_PAY_PER_EVENT;
         delete process.env.ACTOR_MAX_TOTAL_CHARGE_USD;
+        delete process.env.APIFY_ACTOR_PRICING_INFO;
+        delete process.env.APIFY_CHARGED_ACTOR_EVENT_COUNTS;
     });
 
     describe('charge()', () => {
@@ -39,6 +45,35 @@ describe('ChargingManager', () => {
             });
             expect(zeroResult.eventChargeLimitReached).toBe(false);
             expect(zeroResult.chargedCount).toBe(0);
+        });
+
+        test('should charge events when ACTOR_MAX_TOTAL_CHARGE_USD is set to "" (cost-unlimited)', async () => {
+            process.env.ACTOR_MAX_TOTAL_CHARGE_USD = '';
+
+            // Set pricing info via env vars (as if coming from platform)
+            process.env.APIFY_ACTOR_PRICING_INFO = JSON.stringify({
+                pricingModel: 'PAY_PER_EVENT',
+                pricingPerEvent: {
+                    actorChargeEvents: {
+                        foobar: {
+                            eventTitle: 'Foo bar',
+                            eventPriceUsd: 0.1,
+                            eventDescription: 'Foo foo bar bar',
+                        },
+                    },
+                },
+            });
+            process.env.APIFY_CHARGED_ACTOR_EVENT_COUNTS = JSON.stringify({});
+
+            await Actor.init();
+
+            const chargeResult = await Actor.charge({
+                eventName: 'foobar',
+                count: 4,
+            });
+
+            expect(chargeResult.chargedCount).toBe(4);
+            expect(chargeResult.eventChargeLimitReached).toBe(false);
         });
     });
 });

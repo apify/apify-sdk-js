@@ -102,7 +102,7 @@ export class ChargingManager {
                 JSON.parse(
                     configuration.get('actorPricingInfo'),
                 ) as ActorRunPricingInfo,
-                configuration.get('maxTotalChargeUsd'),
+                configuration.get('maxTotalChargeUsd') || Infinity,
             );
             this.loadChargedEventCounts(
                 JSON.parse(configuration.get('chargedEventCounts')) as Record<
@@ -137,7 +137,7 @@ export class ChargingManager {
 
     private loadPricingInfo(
         pricingInfo: ActorRunPricingInfo | undefined,
-        maxTotalChargeUsd: number | undefined,
+        maxTotalChargeUsd: number,
     ) {
         this.pricingModel = pricingInfo?.pricingModel;
 
@@ -152,8 +152,7 @@ export class ChargingManager {
                 };
             }
 
-            this.maxTotalChargeUsd =
-                maxTotalChargeUsd ?? this.maxTotalChargeUsd;
+            this.maxTotalChargeUsd = maxTotalChargeUsd;
         }
     }
 
@@ -196,7 +195,7 @@ export class ChargingManager {
 
                 this.loadPricingInfo(
                     run.pricingInfo,
-                    run.options.maxTotalChargeUsd,
+                    run.options.maxTotalChargeUsd || Infinity,
                 );
                 this.loadChargedEventCounts(run.chargedEventCounts);
             }
