@@ -59,6 +59,7 @@ test('charge limit', async () => {
 });
 
 test('default options start cost-unlimited runs', async () => {
+    console.log(process.env)
     const run = await runActor({}, {});
 
     assert.strictEqual(run.status, 'SUCCEEDED');
