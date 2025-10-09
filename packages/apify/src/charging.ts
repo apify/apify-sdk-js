@@ -86,31 +86,16 @@ export class ChargingManager {
 
     private apifyClient: ApifyClient;
 
-    constructor(configuration: Configuration, apifyClient: ApifyClient) {
+    constructor(
+        private configuration: Configuration,
+        apifyClient: ApifyClient,
+    ) {
         this.maxTotalChargeUsd =
             configuration.get('maxTotalChargeUsd') || Infinity; // convert `0` to `Infinity` in case the value is an empty string
         this.isAtHome = configuration.get('isAtHome');
         this.actorRunId = configuration.get('actorRunId');
         this.purgeChargingLogDataset = configuration.get('purgeOnStart');
         this.useChargingLogDataset = configuration.get('useChargingLogDataset');
-
-        if (
-            configuration.get('actorPricingInfo') &&
-            configuration.get('chargedEventCounts')
-        ) {
-            this.loadPricingInfo(
-                JSON.parse(
-                    configuration.get('actorPricingInfo'),
-                ) as ActorRunPricingInfo,
-                configuration.get('maxTotalChargeUsd') || Infinity,
-            );
-            this.loadChargedEventCounts(
-                JSON.parse(configuration.get('chargedEventCounts')) as Record<
-                    string,
-                    number
-                >,
-            );
-        }
 
         if (this.useChargingLogDataset && this.isAtHome) {
             throw new Error(
@@ -124,8 +109,6 @@ export class ChargingManager {
                     'Using the ACTOR_TEST_PAY_PER_EVENT environment variable is only supported in a local development environment',
                 );
             }
-
-            this.pricingModel = 'PAY_PER_EVENT';
         }
 
         this.apifyClient = apifyClient;
@@ -135,11 +118,67 @@ export class ChargingManager {
         return this.pricingModel === 'PAY_PER_EVENT';
     }
 
-    private loadPricingInfo(
-        pricingInfo: ActorRunPricingInfo | undefined,
-        maxTotalChargeUsd: number,
-    ) {
-        this.pricingModel = pricingInfo?.pricingModel;
+    private async fetchPricingInfo(): Promise<{
+        pricingInfo?: ActorRunPricingInfo;
+        chargedEventCounts?: Record<string, number>;
+        maxTotalChargeUsd: number;
+    }> {
+        if (
+            this.configuration.get('actorPricingInfo') &&
+            this.configuration.get('chargedEventCounts')
+        ) {
+            return {
+                pricingInfo: JSON.parse(
+                    this.configuration.get('actorPricingInfo'),
+                ) as ActorRunPricingInfo,
+                chargedEventCounts: JSON.parse(
+                    this.configuration.get('chargedEventCounts'),
+                ) as Record<string, number>,
+                maxTotalChargeUsd:
+                    this.configuration.get('maxTotalChargeUsd') || Infinity,
+            };
+        }
+
+        if (this.isAtHome) {
+            if (this.actorRunId === undefined) {
+                throw new Error(
+                    'Actor run ID not found even though the Actor is running on Apify',
+                );
+            }
+
+            const run = await this.apifyClient.run(this.actorRunId).get();
+            if (run === undefined) {
+                throw new Error('Actor run not found');
+            }
+
+            return {
+                pricingInfo: run.pricingInfo,
+                chargedEventCounts: run.chargedEventCounts,
+                maxTotalChargeUsd: run.options.maxTotalChargeUsd || Infinity,
+            };
+        }
+
+        return {
+            pricingInfo: undefined,
+            chargedEventCounts: {},
+            maxTotalChargeUsd:
+                this.configuration.get('maxTotalChargeUsd') || Infinity,
+        };
+    }
+
+    /**
+     * Initialize the ChargingManager by loading pricing information and charging state via Apify API.
+     */
+    async init(): Promise<void> {
+        // Retrieve pricing information
+        const { pricingInfo, chargedEventCounts, maxTotalChargeUsd } =
+            await this.fetchPricingInfo();
+
+        if (this.configuration.get('testPayPerEvent')) {
+            this.pricingModel = 'PAY_PER_EVENT';
+        } else {
+            this.pricingModel ??= pricingInfo?.pricingModel;
+        }
 
         // Load per-event pricing information
         if (pricingInfo?.pricingModel === 'PAY_PER_EVENT') {
@@ -154,11 +193,7 @@ export class ChargingManager {
 
             this.maxTotalChargeUsd = maxTotalChargeUsd;
         }
-    }
 
-    private loadChargedEventCounts(
-        chargedEventCounts: Record<string, number> | undefined,
-    ) {
         this.chargingState = {};
 
         for (const [eventName, chargeCount] of Object.entries(
@@ -170,38 +205,6 @@ export class ChargingManager {
                     chargeCount * (this.pricingInfo[eventName]?.price ?? 0),
             };
         }
-    }
-
-    /**
-     * Initialize the ChargingManager by loading pricing information and charging state via Apify API.
-     */
-    async init(): Promise<void> {
-        // Retrieve pricing information
-        if (this.isAtHome) {
-            if (this.actorRunId === undefined) {
-                throw new Error(
-                    'Actor run ID not found even though the Actor is running on Apify',
-                );
-            }
-
-            if (
-                this.chargingState === undefined ||
-                this.pricingModel === undefined
-            ) {
-                const run = await this.apifyClient.run(this.actorRunId).get();
-                if (run === undefined) {
-                    throw new Error('Actor run not found');
-                }
-
-                this.loadPricingInfo(
-                    run.pricingInfo,
-                    run.options.maxTotalChargeUsd || Infinity,
-                );
-                this.loadChargedEventCounts(run.chargedEventCounts);
-            }
-        }
-
-        this.chargingState ??= {};
 
         if (!this.isPayPerEvent || !this.useChargingLogDataset) {
             return;
