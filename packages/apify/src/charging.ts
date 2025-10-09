@@ -97,20 +97,6 @@ export class ChargingManager {
         this.purgeChargingLogDataset = configuration.get('purgeOnStart');
         this.useChargingLogDataset = configuration.get('useChargingLogDataset');
 
-        if (this.useChargingLogDataset && this.isAtHome) {
-            throw new Error(
-                'Using the ACTOR_USE_CHARGING_LOG_DATASET environment variable is only supported in a local development environment',
-            );
-        }
-
-        if (configuration.get('testPayPerEvent')) {
-            if (this.isAtHome) {
-                throw new Error(
-                    'Using the ACTOR_TEST_PAY_PER_EVENT environment variable is only supported in a local development environment',
-                );
-            }
-        }
-
         this.apifyClient = apifyClient;
     }
 
@@ -170,6 +156,21 @@ export class ChargingManager {
      * Initialize the ChargingManager by loading pricing information and charging state via Apify API.
      */
     async init(): Promise<void> {
+        // Validate config - it may have changed since the instantiation
+        if (this.useChargingLogDataset && this.isAtHome) {
+            throw new Error(
+                'Using the ACTOR_USE_CHARGING_LOG_DATASET environment variable is only supported in a local development environment',
+            );
+        }
+
+        if (this.configuration.get('testPayPerEvent')) {
+            if (this.isAtHome) {
+                throw new Error(
+                    'Using the ACTOR_TEST_PAY_PER_EVENT environment variable is only supported in a local development environment',
+                );
+            }
+        }
+
         // Retrieve pricing information
         const { pricingInfo, chargedEventCounts, maxTotalChargeUsd } =
             await this.fetchPricingInfo();
