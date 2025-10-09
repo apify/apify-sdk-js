@@ -86,29 +86,16 @@ export class ChargingManager {
 
     private apifyClient: ApifyClient;
 
-    constructor(configuration: Configuration, apifyClient: ApifyClient) {
+    constructor(
+        private configuration: Configuration,
+        apifyClient: ApifyClient,
+    ) {
         this.maxTotalChargeUsd =
             configuration.get('maxTotalChargeUsd') || Infinity; // convert `0` to `Infinity` in case the value is an empty string
         this.isAtHome = configuration.get('isAtHome');
         this.actorRunId = configuration.get('actorRunId');
         this.purgeChargingLogDataset = configuration.get('purgeOnStart');
         this.useChargingLogDataset = configuration.get('useChargingLogDataset');
-
-        if (this.useChargingLogDataset && this.isAtHome) {
-            throw new Error(
-                'Using the ACTOR_USE_CHARGING_LOG_DATASET environment variable is only supported in a local development environment',
-            );
-        }
-
-        if (configuration.get('testPayPerEvent')) {
-            if (this.isAtHome) {
-                throw new Error(
-                    'Using the ACTOR_TEST_PAY_PER_EVENT environment variable is only supported in a local development environment',
-                );
-            }
-
-            this.pricingModel = 'PAY_PER_EVENT';
-        }
 
         this.apifyClient = apifyClient;
     }
@@ -117,13 +104,27 @@ export class ChargingManager {
         return this.pricingModel === 'PAY_PER_EVENT';
     }
 
-    /**
-     * Initialize the ChargingManager by loading pricing information and charging state via Apify API.
-     */
-    async init(): Promise<void> {
-        this.chargingState = {};
+    private async fetchPricingInfo(): Promise<{
+        pricingInfo?: ActorRunPricingInfo;
+        chargedEventCounts?: Record<string, number>;
+        maxTotalChargeUsd: number;
+    }> {
+        if (
+            this.configuration.get('actorPricingInfo') &&
+            this.configuration.get('chargedEventCounts')
+        ) {
+            return {
+                pricingInfo: JSON.parse(
+                    this.configuration.get('actorPricingInfo'),
+                ) as ActorRunPricingInfo,
+                chargedEventCounts: JSON.parse(
+                    this.configuration.get('chargedEventCounts'),
+                ) as Record<string, number>,
+                maxTotalChargeUsd:
+                    this.configuration.get('maxTotalChargeUsd') || Infinity,
+            };
+        }
 
-        // Retrieve pricing information
         if (this.isAtHome) {
             if (this.actorRunId === undefined) {
                 throw new Error(
@@ -136,33 +137,74 @@ export class ChargingManager {
                 throw new Error('Actor run not found');
             }
 
-            this.pricingModel = run.pricingInfo?.pricingModel;
+            return {
+                pricingInfo: run.pricingInfo,
+                chargedEventCounts: run.chargedEventCounts,
+                maxTotalChargeUsd: run.options.maxTotalChargeUsd || Infinity,
+            };
+        }
 
-            // Load per-event pricing information
-            if (run.pricingInfo?.pricingModel === 'PAY_PER_EVENT') {
-                for (const [eventName, eventPricing] of Object.entries(
-                    run.pricingInfo.pricingPerEvent.actorChargeEvents,
-                )) {
-                    this.pricingInfo[eventName] = {
-                        price: eventPricing.eventPriceUsd,
-                        title: eventPricing.eventTitle,
-                    };
-                }
+        return {
+            pricingInfo: undefined,
+            chargedEventCounts: {},
+            maxTotalChargeUsd:
+                this.configuration.get('maxTotalChargeUsd') || Infinity,
+        };
+    }
 
-                this.maxTotalChargeUsd =
-                    run.options.maxTotalChargeUsd ?? this.maxTotalChargeUsd;
+    /**
+     * Initialize the ChargingManager by loading pricing information and charging state via Apify API.
+     */
+    async init(): Promise<void> {
+        // Validate config - it may have changed since the instantiation
+        if (this.useChargingLogDataset && this.isAtHome) {
+            throw new Error(
+                'Using the ACTOR_USE_CHARGING_LOG_DATASET environment variable is only supported in a local development environment',
+            );
+        }
+
+        if (this.configuration.get('testPayPerEvent')) {
+            if (this.isAtHome) {
+                throw new Error(
+                    'Using the ACTOR_TEST_PAY_PER_EVENT environment variable is only supported in a local development environment',
+                );
             }
+        }
 
-            // Load charged event counts
-            for (const [eventName, chargeCount] of Object.entries(
-                run.chargedEventCounts ?? {},
+        // Retrieve pricing information
+        const { pricingInfo, chargedEventCounts, maxTotalChargeUsd } =
+            await this.fetchPricingInfo();
+
+        if (this.configuration.get('testPayPerEvent')) {
+            this.pricingModel = 'PAY_PER_EVENT';
+        } else {
+            this.pricingModel ??= pricingInfo?.pricingModel;
+        }
+
+        // Load per-event pricing information
+        if (pricingInfo?.pricingModel === 'PAY_PER_EVENT') {
+            for (const [eventName, eventPricing] of Object.entries(
+                pricingInfo.pricingPerEvent.actorChargeEvents,
             )) {
-                this.chargingState[eventName] = {
-                    chargeCount,
-                    totalChargedAmount:
-                        chargeCount * (this.pricingInfo[eventName]?.price ?? 0),
+                this.pricingInfo[eventName] = {
+                    price: eventPricing.eventPriceUsd,
+                    title: eventPricing.eventTitle,
                 };
             }
+
+            this.maxTotalChargeUsd = maxTotalChargeUsd;
+        }
+
+        this.chargingState = {};
+
+        for (const [eventName, chargeCount] of Object.entries(
+            chargedEventCounts ?? {},
+        )) {
+            this.chargingState[eventName] = {
+                chargeCount,
+                totalChargedAmount:
+                    chargeCount * (this.pricingInfo[eventName]?.price ?? 0),
+            };
         }
 
         if (!this.isPayPerEvent || !this.useChargingLogDataset) {
