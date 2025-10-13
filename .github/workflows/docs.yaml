@@ -43,7 +43,7 @@ jobs:
                   SMARTLOOK_PROJECT_KEY: ${{ secrets.SMARTLOOK_DOCS_PROJECT_KEY }}
 
             - name: Commit the updated package(-lock).json
-              uses: stefanzweifel/git-auto-commit-action@v6
+              uses: stefanzweifel/git-auto-commit-action@v7
               with:
                   commit_message: 'chore: Automatic theme updating workflow [skip ci]'
                   file_pattern: 'website/package*.json'
