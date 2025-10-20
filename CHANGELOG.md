@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [3.5.1](https://github.com/apify/apify-sdk-js/compare/apify@3.5.0...apify@3.5.1) (2025-10-20)
+
+### Performance Improvements
+
+- Use Apify-provided environment variables to obtain PPE pricing information ([#483](https://github.com/apify/apify-sdk-js/issues/483)) ([98dd09b](https://github.com/apify/apify-sdk-js/commit/98dd09b7d28f073e5cf35143634068b28d767d24)), closes [#481](https://github.com/apify/apify-sdk-js/issues/481)
+
 # [3.5.0](https://github.com/apify/apify-sdk-js/compare/apify@3.4.5...apify@3.5.0) (2025-10-06)
 
 ### Bug Fixes
