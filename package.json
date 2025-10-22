@@ -100,7 +100,7 @@
         "vitest": "^3.0.0"
     },
     "overrides": {
-        "vite": "5.4.11"
+        "vite": "5.4.21"
     },
     "packageManager": "npm@10.9.2"
 }
