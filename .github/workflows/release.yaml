@@ -40,7 +40,7 @@ jobs:
             matrix:
                 # We don't test on Windows as the tests are flaky
                 os: [ubuntu-22.04]
-                node-version: [16, 18, 20]
+                node-version: [18, 20, 22, 24]
 
         runs-on: ${{ matrix.os }}
 
@@ -94,10 +94,10 @@ jobs:
                   token: ${{ secrets.APIFY_SERVICE_ACCOUNT_GITHUB_TOKEN }}
                   fetch-depth: 0
 
-            - name: Use Node.js 22
+            - name: Use Node.js 24
               uses: actions/setup-node@v6
               with:
-                  node-version: 22
+                  node-version: 24
                   cache: 'npm'
                   cache-dependency-path: 'package-lock.json'
 
