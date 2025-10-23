@@ -583,10 +583,15 @@ export class Actor<Data extends Dictionary = Dictionary> {
                 }
 
                 if (options.statusMessage != null) {
-                    await this.setStatusMessage(options.statusMessage, {
-                        isStatusMessageTerminal: true,
-                        level: options.exitCode! > 0 ? 'ERROR' : 'INFO',
-                    });
+                    const statusMessagePromise = this.setStatusMessage(
+                        options.statusMessage,
+                        {
+                            isStatusMessageTerminal: true,
+                            level: options.exitCode! > 0 ? 'ERROR' : 'INFO',
+                        },
+                    );
+                    // Waiting 1ms is enough for the network request to be sent. We don't need to wait for the response.
+                    await Promise.race([statusMessagePromise, sleep(1)]);
                 }
             },
             options.timeoutSecs * 1000,
