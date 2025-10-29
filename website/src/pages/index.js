@@ -41,7 +41,7 @@ function Hero() {
                         <div className="col">
                             <div className={styles.heroButtons}>
                                 <Link
-                                    to="docs/guides/apify-platform"
+                                    to="/docs/guides/apify-platform"
                                     className={styles.getStarted}
                                 >
                                     Get started
