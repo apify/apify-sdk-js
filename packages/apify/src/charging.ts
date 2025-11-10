@@ -426,13 +426,16 @@ export class ChargingManager {
         }
 
         // First round as Math.floor(4.9999999999999999) will incorrectly return 5
-        return Math.floor(
-            Number(
-                (
-                    (this.maxTotalChargeUsd -
-                        this.calculateTotalChargedAmount()) /
-                    price
-                ).toFixed(4),
+        return Math.max(
+            0,
+            Math.floor(
+                Number(
+                    (
+                        (this.maxTotalChargeUsd -
+                            this.calculateTotalChargedAmount()) /
+                        price
+                    ).toFixed(4),
+                ),
             ),
         );
     }
