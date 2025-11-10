@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect,test } from 'vitest';
+import { afterEach, beforeEach, describe, expect, test } from 'vitest';
 
 import { Actor } from '../../packages/apify/src/index.js';
 import { MemoryStorageEmulator } from '../MemoryStorageEmulator.js';
