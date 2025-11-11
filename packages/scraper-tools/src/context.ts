@@ -7,7 +7,7 @@ import type {
     RequestQueueOperationOptions,
     RequestQueueV2,
 } from '@crawlee/core';
-import type { Dictionary } from '@crawlee/utils';
+import { type Dictionary, Sitemap } from '@crawlee/utils';
 import type { ApifyEnv } from 'apify';
 import { Actor } from 'apify';
 import type { MediaType } from 'content-type';
@@ -68,6 +68,7 @@ class Context<
     private readonly [internalState]: InternalState;
 
     readonly Actor = Actor;
+    readonly Sitemap = Sitemap;
     readonly Apify = Actor; // for back compatibility
     readonly log = log;
     readonly input: any;
@@ -101,6 +102,7 @@ class Context<
         this.saveSnapshot = this.saveSnapshot.bind(this);
         this.skipLinks = this.skipLinks.bind(this);
         this.enqueueRequest = this.enqueueRequest.bind(this);
+        this.enqueueRequests = this.enqueueRequests.bind(this);
     }
 
     async getValue<T>(...args: Parameters<KeyValueStore['getValue']>) {
@@ -136,17 +138,27 @@ class Context<
         requestOpts: RequestOptions = {} as RequestOptions,
         options: RequestQueueOperationOptions = {},
     ): ReturnType<RequestQueueV2['addRequest']> {
+        const newRequests = this._prepareRequestsForEnqueue([requestOpts]);
+        return this[setup].requestQueue.addRequest(newRequests[0], options);
+    }
+
+    async enqueueRequests(
+        requestsOpts: RequestOptions[] = [{}] as RequestOptions[],
+        options: RequestQueueOperationOptions = {},
+    ): ReturnType<RequestQueueV2['addRequests']> {
+        const newRequests = this._prepareRequestsForEnqueue(requestsOpts);
+        return this[setup].requestQueue.addRequests(newRequests, options);
+    }
+
+    _prepareRequestsForEnqueue(
+        requestsOpts: RequestOptions[] = [{}] as RequestOptions[],
+    ) {
         const defaultRequestOpts = {
             useExtendedUniqueKey: true,
             keepUrlFragment: this.input.keepUrlFragments,
         };
 
-        const newRequest = {
-            ...defaultRequestOpts,
-            ...requestOpts,
-        } as RequestOptions;
         const castedRequest = this.request as Request;
-
         const defaultUserData = {
             [META_KEY]: {
                 parentRequestId: castedRequest.id || castedRequest.uniqueKey,
@@ -156,9 +168,18 @@ class Context<
             },
         };
 
-        newRequest.userData = { ...defaultUserData, ...requestOpts.userData };
-
-        return this[setup].requestQueue.addRequest(newRequest, options);
+        const newRequests = requestsOpts.map(
+            (requestOpts) =>
+                ({
+                    ...defaultRequestOpts,
+                    ...requestOpts,
+                    userData: {
+                        ...defaultUserData,
+                        ...requestOpts.userData,
+                    },
+                }) as RequestOptions,
+        );
+        return newRequests;
     }
 }
 

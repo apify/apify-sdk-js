@@ -1,0 +1,13 @@
+{
+    "actorSpecification": 1,
+    "name": "cheerio-scraper",
+    "version": "0.1",
+    "buildTag": "latest",
+    "storages": {
+        "dataset": {
+            "actorSpecification": 1,
+            "fields": {},
+            "views": {}
+        }
+    }
+}
