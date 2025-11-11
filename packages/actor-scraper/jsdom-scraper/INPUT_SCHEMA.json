@@ -68,8 +68,9 @@
         "runScripts": {
             "title": "Run scripts",
             "type": "boolean",
-            "default": true,
-            "description": "Whether to execute JavaScript in the downloaded page. If enabled, the JSDOM engine will process the JavaScript in the page as if it was loaded in a browser. This is useful for pages that use JavaScript to render the content, but it can also cause secuirty issues."
+            "default": false,
+            "prefill": false,
+            "description": "Whether to execute JavaScript in the downloaded page. If enabled, the JSDOM engine will process the JavaScript in the page as if it was loaded in a browser. This is useful for pages that use JavaScript to render the content.\n\n⚠️ Warning ⚠️\n\nThis option allows potentially malicious scripts to be executed in the context of the Actor. Only enable this option if you trust the target website."
         },
         "showInternalConsole": {
             "title": "Show internal console logs",
