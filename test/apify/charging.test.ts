@@ -27,6 +27,7 @@ describe('ChargingManager', () => {
         delete process.env.APIFY_ACTOR_PRICING_INFO;
         delete process.env.APIFY_CHARGED_ACTOR_EVENT_COUNTS;
         delete process.env.APIFY_IS_AT_HOME;
+        delete process.env.APIFY_TOKEN;
         delete process.env.ACTOR_RUN_ID;
     });
 
@@ -86,6 +87,7 @@ describe('ChargingManager', () => {
 
             process.env.ACTOR_MAX_TOTAL_CHARGE_USD = '1.5';
             process.env.APIFY_IS_AT_HOME = '1';
+            process.env.APIFY_TOKEN = 'this-wont-work';
             process.env.ACTOR_RUN_ID = 'test-run-id';
 
             // Set pricing info via env vars (as if coming from platform)
@@ -159,6 +161,7 @@ describe('ChargingManager', () => {
 
             process.env.ACTOR_MAX_TOTAL_CHARGE_USD = '10.0';
             process.env.APIFY_IS_AT_HOME = '1';
+            process.env.APIFY_TOKEN = 'this-wont-work';
             process.env.ACTOR_RUN_ID = 'test-run-id';
 
             // Set pricing info via env vars
@@ -253,6 +256,7 @@ describe('ChargingManager', () => {
 
             process.env.ACTOR_MAX_TOTAL_CHARGE_USD = '0.00025';
             process.env.APIFY_IS_AT_HOME = '1';
+            process.env.APIFY_TOKEN = 'this-wont-work';
             process.env.ACTOR_RUN_ID = 'test-run-id';
 
             // Set pricing info
