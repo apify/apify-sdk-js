@@ -425,18 +425,14 @@ export class ChargingManager {
             return Infinity;
         }
 
+        // The raw number of events allowed by the budget
+        const unroundedResult =
+            (this.maxTotalChargeUsd - this.calculateTotalChargedAmount()) /
+            price;
+
         // First round as Math.floor(4.9999999999999999) will incorrectly return 5
-        return Math.max(
-            0,
-            Math.floor(
-                Number(
-                    (
-                        (this.maxTotalChargeUsd -
-                            this.calculateTotalChargedAmount()) /
-                        price
-                    ).toFixed(4),
-                ),
-            ),
-        );
+        const roundedResult = Math.floor(Number(unroundedResult.toFixed(4)));
+
+        return Math.max(0, roundedResult);
     }
 }
