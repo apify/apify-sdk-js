@@ -3,6 +3,16 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [3.5.2](https://github.com/apify/apify-sdk-js/compare/apify@3.5.1...apify@3.5.2) (2025-11-12)
+
+### Bug Fixes
+
+- Fix Actor.charge behavior when the budget is overdrawn ([#504](https://github.com/apify/apify-sdk-js/issues/504)) ([7d17dfa](https://github.com/apify/apify-sdk-js/commit/7d17dfad5a905e3add8b95af75fa2834bbd0b182))
+
+### Performance Improvements
+
+- don't await final status message ([#497](https://github.com/apify/apify-sdk-js/issues/497)) ([f726167](https://github.com/apify/apify-sdk-js/commit/f726167283d620ffab6ee7e95f639e0e1c6398af)), closes [/github.com/apify/crawlee/pull/3207#issuecomment-3435494322](https://github.com//github.com/apify/crawlee/pull/3207/issues/issuecomment-3435494322)
+
 ## [3.5.1](https://github.com/apify/apify-sdk-js/compare/apify@3.5.0...apify@3.5.1) (2025-10-20)
 
 ### Performance Improvements
