@@ -71,6 +71,7 @@ describe('ChargingManager', () => {
             process.env.APIFY_CHARGED_ACTOR_EVENT_COUNTS = JSON.stringify({});
 
             await Actor.init();
+            localStorageEmulator.reapplyStorageClient();
 
             const chargeResult = await Actor.charge({
                 eventName: 'foobar',
@@ -109,6 +110,7 @@ describe('ChargingManager', () => {
             process.env.APIFY_CHARGED_ACTOR_EVENT_COUNTS = JSON.stringify({});
 
             await Actor.init();
+            localStorageEmulator.reapplyStorageClient();
 
             // Mock the API client charge method
             const chargeSpy = vitest.fn().mockResolvedValue(undefined);
@@ -179,6 +181,7 @@ describe('ChargingManager', () => {
             process.env.APIFY_CHARGED_ACTOR_EVENT_COUNTS = JSON.stringify({});
 
             await Actor.init();
+            localStorageEmulator.reapplyStorageClient();
 
             // Mock the API client charge method
             const chargeSpy = vitest.fn().mockResolvedValue(undefined);
@@ -282,6 +285,7 @@ describe('ChargingManager', () => {
             });
 
             await Actor.init();
+            localStorageEmulator.reapplyStorageClient();
 
             // Mock the API client charge method
             const chargeSpy = vitest.fn().mockResolvedValue(undefined);
