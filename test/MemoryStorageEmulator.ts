@@ -18,6 +18,7 @@ const LOCAL_EMULATION_DIR = resolve(
 
 export class MemoryStorageEmulator {
     protected localStorageDirectories: string[] = [];
+    protected storage?: MemoryStorage;
 
     async init(dirName = cryptoRandomObjectId(10)) {
         StorageManager.clearCache();
@@ -25,13 +26,20 @@ export class MemoryStorageEmulator {
         this.localStorageDirectories.push(localStorageDir);
         await ensureDir(localStorageDir);
 
-        const storage = new MemoryStorage({
+        this.storage = new MemoryStorage({
             localDataDirectory: localStorageDir,
         });
-        Configuration.getGlobalConfig().useStorageClient(storage);
+        Configuration.getGlobalConfig().useStorageClient(this.storage);
         log.debug(
             `Initialized emulated memory storage in folder ${localStorageDir}`,
         );
+    }
+
+    reapplyStorageClient() {
+        if (!this.storage) {
+            throw new Error('Storage not initialized. Call init() first.');
+        }
+        Configuration.getGlobalConfig().useStorageClient(this.storage);
     }
 
     async destroy() {
