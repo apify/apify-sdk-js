@@ -1,7 +1,7 @@
 ---
-id: introduction
-title: Introduction
-sidebar_label: Introduction
+id: overview
+title: Apify SDK for JavaScript
+sidebar_label: Overview
 ---
 
 The Apify SDK for JavaScript is the official library for creating [Apify Actors](https://docs.apify.com/platform/actors) using JavaScript or TypeScript. It provides useful features like actor lifecycle management, local storage emulation, and actor event handling.
