@@ -84,8 +84,8 @@ jobs:
                       development-build-tag: development
                       should-build: ${{ github.event.inputs.puppeteer-scraper }}
                     - actor: jsdom-scraper
-                      stable-version: '0.1'
-                      stable-build-tag: latest
+                      stable-version: '0.2'
+                      stable-build-tag: version-0
                       development-version: '0.0'
                       development-build-tag: development
                       should-build: ${{ github.event.inputs.jsdom-scraper }}
