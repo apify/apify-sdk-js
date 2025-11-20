@@ -96,7 +96,7 @@ jobs:
                       development-build-tag: development
                       should-build: ${{ github.event.inputs.camoufox-scraper }}
         steps:
-            - uses: actions/checkout@v5
+            - uses: actions/checkout@v6
 
             - name: Log matrix
               run: |
