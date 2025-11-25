@@ -21,7 +21,7 @@ await Actor.exit();
 
 Actors are serverless cloud programs capable of performing tasks in a web browser, similar to what a human can do. These tasks can range from simple operations, such as filling out forms or unsubscribing from services, to complex jobs like scraping and processing large numbers of web pages.
 
-Actors can be executed locally or on the [Apify platform](https://docs.apify.com/platform). The Apify platform provides features for running Actors at scale, monitoring, scheduling, publishing and monetizing them.
+Actors can be executed locally or on the [Apify platform](https://docs.apify.com/platform). The Apify platform lets you run Actors at scale and provides features for monitoring, scheduling, publishing, and monetizing them.
 
 ## Quick start
 
@@ -37,6 +37,8 @@ The Apify SDK for JavaScript is typically installed when you create a new Actor 
 npm install apify
 ```
 
-:::note
+:::note API client alternative
+
 If you need to interact with the Apify API programmatically without creating Actors, use the [Apify API client for JavaScript](https://docs.apify.com/api/client/js) instead.
+
 :::
