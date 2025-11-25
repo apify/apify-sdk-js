@@ -107,6 +107,11 @@ export interface ApifyEnv {
     actorBuildId: string | null;
 
     /**
+     * [Permission level](https://docs.apify.com/platform/actors/development/permissions) the Actor is run under. (ACTOR_PERMISSION_LEVEL)
+     */
+    actorPermissionLevel: string | null;
+
+    /**
      * ID of the user who started the Actor - note that it might be
      * different than the owner of the Actor (APIFY_USER_ID)
      */
@@ -496,6 +501,10 @@ export class Actor<Data extends Dictionary = Dictionary> {
 
         // reset global config instance to respect APIFY_ prefixed env vars
         CoreConfiguration.globalConfig = Configuration.getGlobalConfig();
+
+        log.info('Permissions', {
+            actorPermissionLevel: this.getEnv().actorPermissionLevel,
+        });
 
         if (this.isAtHome()) {
             this.config.set('availableMemoryRatio', 1);
