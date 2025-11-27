@@ -503,10 +503,6 @@ export class Actor<Data extends Dictionary = Dictionary> {
         // reset global config instance to respect APIFY_ prefixed env vars
         CoreConfiguration.globalConfig = Configuration.getGlobalConfig();
 
-        log.info('Permissions', {
-            actorPermissionLevel: this.getEnv().actorPermissionLevel,
-        });
-
         if (this.isAtHome()) {
             this.config.set('availableMemoryRatio', 1);
             this.config.set('disableBrowserSandbox', true); // for browser launcher, adds `--no-sandbox` to args
