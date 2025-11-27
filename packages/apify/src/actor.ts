@@ -37,6 +37,7 @@ import ow from 'ow';
 
 import {
     ACTOR_ENV_VARS,
+    type ACTOR_PERMISSION_LEVEL,
     APIFY_ENV_VARS,
     INTEGER_ENV_VARS,
 } from '@apify/consts';
@@ -109,7 +110,7 @@ export interface ApifyEnv {
     /**
      * [Permission level](https://docs.apify.com/platform/actors/development/permissions) the Actor is run under. (ACTOR_PERMISSION_LEVEL)
      */
-    actorPermissionLevel: string | null;
+    actorPermissionLevel: ACTOR_PERMISSION_LEVEL | null;
 
     /**
      * ID of the user who started the Actor - note that it might be
