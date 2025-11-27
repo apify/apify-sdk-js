@@ -54,7 +54,7 @@
         "access": "public"
     },
     "dependencies": {
-        "@apify/consts": "^2.23.0",
+        "@apify/consts": "^2.47.1",
         "@apify/input_secrets": "^1.2.0",
         "@apify/log": "^2.4.3",
         "@apify/timeout": "^0.3.0",
