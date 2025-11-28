@@ -221,11 +221,18 @@ export interface ApifyEnv {
 
 export type UserFunc<T = unknown> = () => Awaitable<T>;
 
-export interface CallOptions extends ActorCallOptions {
+export interface CallOptions extends Omit<ActorCallOptions, 'timeout'> {
     /**
      * User API token that is used to run the Actor. By default, it is taken from the `APIFY_TOKEN` environment variable.
      */
     token?: string;
+    /**
+     * Timeout for the Actor run in seconds, or `'RemainingTime'`.
+     *
+     * Using `RemainingTime` will set timeout of the other Actor run to the time
+     * remaining from this Actor run timeout.
+     */
+    timeout?: number | 'RemainingTime';
 }
 
 export interface CallTaskOptions extends TaskCallOptions {
@@ -662,10 +669,13 @@ export class Actor<Data extends Dictionary = Dictionary> {
         input?: unknown,
         options: CallOptions = {},
     ): Promise<ClientActorRun> {
+        const timeout =
+            options.timeout === 'RemainingTime'
+                ? this._getRemainingTime()
+                : options.timeout;
         const { token, ...rest } = options;
         const client = token ? this.newClient({ token }) : this.apifyClient;
-
-        return client.actor(actorId).call(input, rest);
+        return client.actor(actorId).call(input, { ...rest, timeout });
     }
 
     /**
@@ -697,10 +707,14 @@ export class Actor<Data extends Dictionary = Dictionary> {
         input?: unknown,
         options: CallOptions = {},
     ): Promise<ClientActorRun> {
+        const timeout =
+            options.timeout === 'RemainingTime'
+                ? this._getRemainingTime()
+                : options.timeout;
         const { token, ...rest } = options;
         const client = token ? this.newClient({ token }) : this.apifyClient;
 
-        return client.actor(actorId).start(input, rest);
+        return client.actor(actorId).start(input, { ...rest, timeout });
     }
 
     /**
@@ -2317,6 +2331,23 @@ export class Actor<Data extends Dictionary = Dictionary> {
                 'Did you forget to call Actor.init()?',
             ].join('\n'),
         );
+    }
+
+    /**
+     * Get time remaining from the Actor run timeout. Returns `undefined` if not on an Apify platform or the current
+     * run was started without a timeout.
+     */
+    private _getRemainingTime(): number | undefined {
+        const env = this.getEnv();
+        if (env.isAtHome === '1' && env.timeoutAt !== null) {
+            return env.timeoutAt.getTime() - Date.now();
+        }
+        log.warning(
+            'Returning `undefined` instead of remaining time. Using `RemainingTime` argument is only possible when ' +
+                'the Actor is running on the Apify platform and when the timeout for the Actor run is set. ' +
+                `${env.isAtHome}, ${env.timeoutAt}`,
+        );
+        return undefined;
     }
 
     private async inferDefaultsFromInputSchema<T extends Dictionary>(
