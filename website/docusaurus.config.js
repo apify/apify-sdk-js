@@ -46,10 +46,10 @@ module.exports = {
                     items: [
                         {
                             type: 'doc',
-                            docId: 'guides/apify-platform',
+                            docId: 'overview',
                             label: 'Docs',
                             position: 'left',
-                            activeBaseRegex: 'guides',
+                            activeBaseRegex: 'guides|overview',
                         },
                         {
                             type: 'doc',
