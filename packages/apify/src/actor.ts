@@ -2344,8 +2344,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
         }
         log.warning(
             'Returning `undefined` instead of remaining time. Using `RemainingTime` argument is only possible when ' +
-                'the Actor is running on the Apify platform and when the timeout for the Actor run is set. ' +
-                `${env.isAtHome}, ${env.timeoutAt}`,
+                'the Actor is running on the Apify platform and when the timeout for the Actor run is set.',
         );
         return undefined;
     }
