@@ -227,12 +227,12 @@ export interface CallOptions extends Omit<ActorCallOptions, 'timeout'> {
      */
     token?: string;
     /**
-     * Timeout for the Actor run in seconds, or `'RemainingTime'`.
+     * Timeout for the Actor run in seconds, or `'inherit'`.
      *
-     * Using `RemainingTime` will set timeout of the other Actor run to the time
+     * Using `inherit` will set timeout of the other Actor run to the time
      * remaining from this Actor run timeout.
      */
-    timeout?: number | 'RemainingTime';
+    timeout?: number | 'inherit';
 }
 
 export interface CallTaskOptions extends TaskCallOptions {
@@ -670,7 +670,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
         options: CallOptions = {},
     ): Promise<ClientActorRun> {
         const timeout =
-            options.timeout === 'RemainingTime'
+            options.timeout === 'inherit'
                 ? this._getRemainingTime()
                 : options.timeout;
         const { token, ...rest } = options;
@@ -708,7 +708,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
         options: CallOptions = {},
     ): Promise<ClientActorRun> {
         const timeout =
-            options.timeout === 'RemainingTime'
+            options.timeout === 'inherit'
                 ? this._getRemainingTime()
                 : options.timeout;
         const { token, ...rest } = options;
@@ -2343,7 +2343,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
             return env.timeoutAt.getTime() - Date.now();
         }
         log.warning(
-            'Returning `undefined` instead of remaining time. Using `RemainingTime` argument is only possible when ' +
+            'Returning `undefined` instead of remaining time. Using `inherit` argument is only possible when ' +
                 'the Actor is running on the Apify platform and when the timeout for the Actor run is set.',
         );
         return undefined;

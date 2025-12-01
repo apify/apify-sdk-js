@@ -891,7 +891,7 @@ describe('Actor', () => {
         });
     });
 
-    describe('RemainingTime timeout option for Actor.', () => {
+    describe('inherit timeout option for Actor.', () => {
         const { actId, input } = globalOptions;
         const actorTimeout = 10000;
         const usedTime = actorTimeout / 2;
@@ -914,9 +914,9 @@ describe('Actor', () => {
         });
 
         test.each([{ methodName: 'call' }, { methodName: 'start' }])(
-            `$methodName({timeout: 'RemainingTime'})`,
+            `$methodName({timeout: 'inherit'})`,
             async ({ methodName }) => {
-                const options = { timeout: 'RemainingTime' as const };
+                const options = { timeout: 'inherit' as const };
 
                 const callSpy = vitest
                     .spyOn(ActorClient.prototype, methodName)
