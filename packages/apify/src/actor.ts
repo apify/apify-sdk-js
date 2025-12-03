@@ -2339,12 +2339,12 @@ export class Actor<Data extends Dictionary = Dictionary> {
      */
     private _getRemainingTime(): number | undefined {
         const env = this.getEnv();
-        if (env.isAtHome === '1' && env.timeoutAt !== null) {
+        if (this.isAtHome() && env.timeoutAt !== null) {
             return env.timeoutAt.getTime() - Date.now();
         }
         log.warning(
-            'Returning `undefined` instead of remaining time. Using `inherit` argument is only possible when ' +
-                'the Actor is running on the Apify platform and when the timeout for the Actor run is set.',
+            'Using `inherit` argument is only possible when the Actor is running on the Apify platform and when the ' +
+                'timeout for the Actor run is set.',
         );
         return undefined;
     }
