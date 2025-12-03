@@ -1,6 +1,11 @@
 module.exports = {
     docs: [
         {
+            type: 'doc',
+            label: 'Overview',
+            id: 'overview',
+        },
+        {
             type: 'category',
             label: 'Guides',
             link: {

@@ -95,6 +95,7 @@ export interface ConfigurationOptions extends CoreConfigurationOptions {
  * ---|---|---
  * `actorEventsWsUrl` | `ACTOR_EVENTS_WEBSOCKET_URL` | -
  * `actorId` | `ACTOR_ID` | -
+ * `actorPermissionLevel` | `ACTOR_PERMISSION_LEVEL` | -
  * `actorRunId` | `ACTOR_RUN_ID` | -
  * `actorTaskId` | `ACTOR_TASK_ID` | -
  * `apiBaseUrl` | `APIFY_API_BASE_URL` | `'https://api.apify.com'`
@@ -172,6 +173,7 @@ export class Configuration extends CoreConfiguration {
         ACTOR_ID: 'actorId',
         ACTOR_INPUT_KEY: 'inputKey',
         ACTOR_MEMORY_MBYTES: 'memoryMbytes',
+        ACTOR_PERMISSION_LEVEL: 'actorPermissionLevel',
         ACTOR_RUN_ID: 'actorRunId',
         ACTOR_STANDBY_PORT: 'standbyPort',
         ACTOR_STANDBY_URL: 'standbyUrl',
