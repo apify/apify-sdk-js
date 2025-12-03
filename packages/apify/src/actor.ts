@@ -229,8 +229,8 @@ export interface CallOptions extends Omit<ActorCallOptions, 'timeout'> {
     /**
      * Timeout for the Actor run in seconds, or `'inherit'`.
      *
-     * Using `inherit` will set timeout of the other Actor run to the time
-     * remaining from this Actor run timeout.
+     * Using `inherit` will set timeout of the newly started Actor run to the time
+     * remaining until this Actor run times out so that the new run does not outlive this one.
      */
     timeout?: number | 'inherit';
 }
