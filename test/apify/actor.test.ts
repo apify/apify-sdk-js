@@ -891,7 +891,7 @@ describe('Actor', () => {
         });
     });
 
-    describe('inherit timeout option for Actor.', () => {
+    describe('inherit timeout option', () => {
         const { actId, input } = globalOptions;
         const actorTimeout = 10000;
         const usedTime = actorTimeout / 2;
@@ -914,7 +914,7 @@ describe('Actor', () => {
         });
 
         test.each([{ methodName: 'call' }, { methodName: 'start' }])(
-            `$methodName({timeout: 'inherit'})`,
+            `Actor.$methodName({timeout: 'inherit'})`,
             async ({ methodName }) => {
                 const options = { timeout: 'inherit' as const };
 
@@ -927,6 +927,18 @@ describe('Actor', () => {
                 });
             },
         );
+
+        test(`Actor.callTask({timeout: 'inherit'})`, async () => {
+            const options = { timeout: 'inherit' as const };
+
+            const callSpy = vitest
+                .spyOn(TaskClient.prototype, 'call')
+                .mockReturnValue();
+            await Actor.callTask(actId, input, options);
+            expect(callSpy).toBeCalledWith(input, {
+                timeout: actorTimeout - usedTime,
+            });
+        });
     });
 
     // TODO we should remove the duplication if possible

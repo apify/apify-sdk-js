@@ -235,11 +235,18 @@ export interface CallOptions extends Omit<ActorCallOptions, 'timeout'> {
     timeout?: number | 'inherit';
 }
 
-export interface CallTaskOptions extends TaskCallOptions {
+export interface CallTaskOptions extends Omit<TaskCallOptions, 'timeout'> {
     /**
      * User API token that is used to run the Actor. By default, it is taken from the `APIFY_TOKEN` environment variable.
      */
     token?: string;
+    /**
+     * Timeout for the Actor task in seconds, or `'inherit'`.
+     *
+     * Using `inherit` will set timeout of the newly started Actor task to the time
+     * remaining until this Actor run times out so that the new run does not outlive this one.
+     */
+    timeout?: number | 'inherit';
 }
 
 export interface AbortOptions extends RunAbortOptions {
@@ -671,7 +678,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
     ): Promise<ClientActorRun> {
         const timeout =
             options.timeout === 'inherit'
-                ? this._getRemainingTime()
+                ? this.getRemainingTime()
                 : options.timeout;
         const { token, ...rest } = options;
         const client = token ? this.newClient({ token }) : this.apifyClient;
@@ -709,7 +716,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
     ): Promise<ClientActorRun> {
         const timeout =
             options.timeout === 'inherit'
-                ? this._getRemainingTime()
+                ? this.getRemainingTime()
                 : options.timeout;
         const { token, ...rest } = options;
         const client = token ? this.newClient({ token }) : this.apifyClient;
@@ -779,10 +786,14 @@ export class Actor<Data extends Dictionary = Dictionary> {
         input?: Dictionary,
         options: CallTaskOptions = {},
     ): Promise<ClientActorRun> {
+        const timeout =
+            options.timeout === 'inherit'
+                ? this.getRemainingTime()
+                : options.timeout;
         const { token, ...rest } = options;
         const client = token ? this.newClient({ token }) : this.apifyClient;
 
-        return client.task(taskId).call(input, rest);
+        return client.task(taskId).call(input, { ...rest, timeout });
     }
 
     /**
@@ -2337,7 +2348,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * Get time remaining from the Actor run timeout. Returns `undefined` if not on an Apify platform or the current
      * run was started without a timeout.
      */
-    private _getRemainingTime(): number | undefined {
+    private getRemainingTime(): number | undefined {
         const env = this.getEnv();
         if (this.isAtHome() && env.timeoutAt !== null) {
             return env.timeoutAt.getTime() - Date.now();
