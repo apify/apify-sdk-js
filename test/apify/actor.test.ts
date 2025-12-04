@@ -891,6 +891,56 @@ describe('Actor', () => {
         });
     });
 
+    describe('inherit timeout option', () => {
+        const { actId, input } = globalOptions;
+        const actorTimeout = 10000;
+        const usedTime = actorTimeout / 2;
+        let testStartTime: Date;
+
+        beforeEach(() => {
+            testStartTime = new Date();
+            process.env[ACTOR_ENV_VARS.TIMEOUT_AT] = new Date(
+                testStartTime.getTime() + actorTimeout,
+            ).toISOString();
+            process.env[APIFY_ENV_VARS.IS_AT_HOME] = '1';
+            vi.setSystemTime(new Date(testStartTime.getTime() + usedTime));
+        });
+
+        afterEach(() => {
+            delete process.env[ACTOR_ENV_VARS.TIMEOUT_AT];
+            delete process.env[APIFY_ENV_VARS.IS_AT_HOME];
+            vitest.restoreAllMocks();
+            vi.useRealTimers();
+        });
+
+        test.each([{ methodName: 'call' }, { methodName: 'start' }])(
+            `Actor.$methodName({timeout: 'inherit'})`,
+            async ({ methodName }) => {
+                const options = { timeout: 'inherit' as const };
+
+                const callSpy = vitest
+                    .spyOn(ActorClient.prototype, methodName)
+                    .mockReturnValue();
+                await Actor[methodName](actId, input, options);
+                expect(callSpy).toBeCalledWith(input, {
+                    timeout: actorTimeout - usedTime,
+                });
+            },
+        );
+
+        test(`Actor.callTask({timeout: 'inherit'})`, async () => {
+            const options = { timeout: 'inherit' as const };
+
+            const callSpy = vitest
+                .spyOn(TaskClient.prototype, 'call')
+                .mockReturnValue();
+            await Actor.callTask(actId, input, options);
+            expect(callSpy).toBeCalledWith(input, {
+                timeout: actorTimeout - usedTime,
+            });
+        });
+    });
+
     // TODO we should remove the duplication if possible
     describe('Actor.call()', () => {
         const { contentType, build, actId, input, token } = globalOptions;
