@@ -1553,6 +1553,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
         const { apifyVersion, crawleeVersion } = getSystemInfo();
         return new ApifyClient({
             baseUrl: this.config.get('apiBaseUrl'),
+            publicBaseUrl: this.config.get('apiPublicBaseUrl'),
             token: this.config.get('token'),
             userAgentSuffix: [
                 `SDK/${apifyVersion}`,
