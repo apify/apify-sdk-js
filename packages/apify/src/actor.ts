@@ -26,6 +26,7 @@ import type {
 import { sleep, snakeCaseToCamelCase } from '@crawlee/utils';
 import type {
     ActorCallOptions,
+    ActorStartOptions,
     ApifyClientOptions,
     RunAbortOptions,
     TaskCallOptions,
@@ -227,11 +228,14 @@ export interface ApifyEnv {
 
 export type UserFunc<T = unknown> = () => Awaitable<T>;
 
-export interface CallOptions extends Omit<ActorCallOptions, 'timeout'> {
+export interface Token {
     /**
-     * User API token that is used to run the Actor. By default, it is taken from the `APIFY_TOKEN` environment variable.
+     * User Apify API token that is used for API calls. By default, it is taken from the `APIFY_TOKEN` environment variable.
      */
     token?: string;
+}
+
+export interface Timeout {
     /**
      * Timeout for the Actor run in seconds, or `'inherit'`.
      *
@@ -241,26 +245,20 @@ export interface CallOptions extends Omit<ActorCallOptions, 'timeout'> {
     timeout?: number | 'inherit';
 }
 
-export interface CallTaskOptions extends Omit<TaskCallOptions, 'timeout'> {
-    /**
-     * User API token that is used to run the Actor. By default, it is taken from the `APIFY_TOKEN` environment variable.
-     */
-    token?: string;
-    /**
-     * Timeout for the Actor task in seconds, or `'inherit'`.
-     *
-     * Using `inherit` will set timeout of the newly started Actor task to the time
-     * remaining until this Actor run times out so that the new run does not outlive this one.
-     */
-    timeout?: number | 'inherit';
-}
+export interface CallOptions
+    extends Omit<ActorCallOptions, 'timeout'>,
+        Token,
+        Timeout {}
+export interface StartOptions
+    extends Omit<ActorStartOptions, 'waitForFinish' | 'timeout'>,
+        Token,
+        Timeout {}
+export interface CallTaskOptions
+    extends Omit<TaskCallOptions, 'timeout'>,
+        Token,
+        Timeout {}
 
-export interface AbortOptions extends RunAbortOptions {
-    /**
-     * User API token that is used to run the Actor. By default, it is taken from the `APIFY_TOKEN` environment variable.
-     */
-    token?: string;
-
+export interface AbortOptions extends RunAbortOptions, Token {
     /** Exit with given status message */
     statusMessage?: string;
 }
@@ -718,7 +716,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
     async start(
         actorId: string,
         input?: unknown,
-        options: CallOptions = {},
+        options: StartOptions = {},
     ): Promise<ClientActorRun> {
         const timeout =
             options.timeout === 'inherit'
