@@ -14,7 +14,7 @@ Typical use case for log redirection is to call another Actor using the [`Actor.
 
 ```javascript
 import { Actor } from 'apify';
-import {LoggerActorRedirect} from 'apify-client';
+import { LoggerActorRedirect } from 'apify-client';
 import { LEVELS, Log } from '@apify/log';
 
 const input = {}; // Some Actor input
@@ -50,7 +50,7 @@ You can further decide whether you want to redirect just new logs of the ongoing
 ```javascript
 import { Actor } from 'apify';
 
-const actorRunId = 'someRunId'; // ID of actor you want to call
+const actorRunId = 'someRunId'; // ID of the run you want to connect to
 
 await Actor.init();
 
