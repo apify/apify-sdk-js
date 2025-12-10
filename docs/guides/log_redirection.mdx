@@ -18,7 +18,7 @@ import { LoggerActorRedirect } from 'apify-client';
 import { LEVELS, Log } from '@apify/log';
 
 const input = {}; // Some Actor input
-const actorId= 'someActorId'; // ID of actor you want to call
+const actorId = 'someActorId'; // ID of actor you want to call
 
 await Actor.init();
 
@@ -26,18 +26,24 @@ await Actor.init();
 await Actor.call(actorId, input);
 
 // Default log redirection - explicitly
-await Actor.call(actorId, input, {log:'default'});
+await Actor.call(actorId, input, { log: 'default' });
 
 // No log redirection
-await Actor.call(actorId, input, {log:null});
+await Actor.call(actorId, input, { log: null });
 
 // Custom log redirection
-await Actor.call(actorId, input, {log: new Log({ level: LEVELS.DEBUG, prefix: 'customPrefix', logger: new LoggerActorRedirect()});
+await Actor.call(actorId, input, {
+    log: new Log({
+        level: LEVELS.DEBUG,
+        prefix: 'customPrefix',
+        logger: new LoggerActorRedirect(),
+    }),
+});
 
 await Actor.exit();
 ```
 
-Each default redirect log entry will have a specific format. After the timestamp, it will contain cyan colored text that will contain the redirect information - the other Actor's name and the run ID. The rest of the log message will be printed in the same manner as the parent Actor's log is configured.
+Each default redirect log entry has a specific format. First part is a cyan-colored text with the redirect information (the other Actor's name and the run ID), the rest of the log message is printed in the same manner as the parent Actor's log is configured.
 
 The log redirection can be deep, meaning that if the other Actor also starts another actor and is redirecting logs from it, then in the top-level Actor, you can see it as well.
 
@@ -55,7 +61,10 @@ const actorRunId = 'someRunId'; // ID of the run you want to connect to
 await Actor.init();
 
 // Redirect only new logs from the other Actor run, due to `fromStart: false`
-await Actor.newClient().run(actorRunId).getStreamedLog({ fromStart: false });
+const streamedLog = await Actor.newClient()
+    .run(actorRunId)
+    .getStreamedLog({ fromStart: false });
+
 streamedLog.start();
 // Do some stuff while also redirecting logs from another Actor
 await streamedLog.stop();
