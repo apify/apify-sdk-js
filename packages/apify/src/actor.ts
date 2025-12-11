@@ -1833,7 +1833,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
     static async start(
         actorId: string,
         input?: Dictionary,
-        options: CallOptions = {},
+        options: StartOptions = {},
     ): Promise<ClientActorRun> {
         return Actor.getDefaultInstance().start(actorId, input, options);
     }
