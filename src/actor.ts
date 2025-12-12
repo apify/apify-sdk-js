@@ -1112,21 +1112,56 @@ export class Actor<Data extends Dictionary = Dictionary> {
         this._ensureActorInit('pushData');
 
         const dataset = await this.openDataset();
-        const context: PpeAwarePushDataContext | undefined =
-            eventName !== undefined ? { eventName } : undefined;
 
-        await this.ppeAwarePushDataContext.run(context, async () => {
-            await dataset.pushData(item);
-        });
+        // Check if dataset is using PatchedApifyClient (which handles charging internally)
+        // or a different storage client (e.g., local storage in development)
+        const usingPatchedClient =
+            dataset.client ===
+            this.apifyClient.dataset(this.config.get('defaultDatasetId'));
 
-        if (eventName !== undefined) {
-            if (context?.chargeResult === undefined) {
-                throw new Error(
-                    'Internal error - missing result of charge operation',
-                );
+        if (usingPatchedClient) {
+            // PatchedDatasetClient will handle charging and item limiting
+            const context: PpeAwarePushDataContext | undefined =
+                eventName !== undefined ? { eventName } : undefined;
+
+            await this.ppeAwarePushDataContext.run(context, async () => {
+                await dataset.pushData(item);
+            });
+
+            if (eventName !== undefined) {
+                if (context?.chargeResult === undefined) {
+                    throw new Error(
+                        'Internal error - missing result of charge operation',
+                    );
+                }
+
+                return context.chargeResult;
+            }
+        } else {
+            // Local storage or other client - handle charging directly
+            const autoEventName =
+                eventName ??
+                (dataset.id === this.config.get('defaultDatasetId')
+                    ? 'apify-default-dataset-item'
+                    : undefined);
+
+            if (autoEventName === undefined) {
+                // No charging needed
+                await dataset.pushData(item);
+                return;
             }
 
-            return context.chargeResult;
+            const { limitedItems, countToCharge } =
+                this.calculatePushDataLimits(item, autoEventName);
+
+            if (countToCharge > 0) {
+                await dataset.pushData(limitedItems);
+            }
+
+            return await this.chargingManager.charge({
+                eventName: autoEventName,
+                count: countToCharge,
+            });
         }
     }
 
@@ -1575,60 +1610,48 @@ export class Actor<Data extends Dictionary = Dictionary> {
                         ? 'apify-default-dataset-item'
                         : undefined);
 
-                const maxChargedCount =
-                    eventName !== undefined
-                        ? actor.chargingManager.calculateMaxEventChargeCountWithinLimit(
-                              eventName,
-                          )
-                        : Infinity;
-                const toCharge = Array.isArray(items) ? items.length : 1;
-
-                if (toCharge > maxChargedCount) {
-                    // Push as many items as we can charge for
-                    const itemsToPush = Array.isArray(items)
-                        ? items
-                        : ([items] as string[] | Data[]);
-
-                    await super.pushItems(
-                        itemsToPush.slice(0, maxChargedCount),
-                    );
-                } else {
+                if (eventName === undefined) {
+                    // No charging needed
                     await super.pushItems(items);
+                    return;
                 }
 
-                if (eventName !== undefined) {
-                    const chargeResult = await actor.chargingManager.charge({
-                        eventName,
-                        count: toCharge,
-                    });
+                const { limitedItems, countToCharge } =
+                    actor.calculatePushDataLimits(items, eventName);
 
-                    if (context) {
-                        // For a single invocation of Dataset.pushData, there may be more than one call to DatasetClient.pushItems - we need to aggregate the `ChargeResult` objects
-                        if (context.chargeResult === undefined) {
-                            context.chargeResult = chargeResult;
-                        } else {
-                            context.chargeResult = {
-                                eventChargeLimitReached:
-                                    context.chargeResult
-                                        .eventChargeLimitReached &&
-                                    chargeResult.eventChargeLimitReached,
-                                chargedCount:
-                                    context.chargeResult.chargedCount +
-                                    chargeResult.chargedCount,
-                                chargeableWithinLimit: Object.fromEntries(
-                                    Object.entries(context.chargeResult).map(
-                                        ([key, oldValue]) => [
-                                            key,
-                                            Math.min(
-                                                oldValue,
-                                                chargeResult
-                                                    .chargeableWithinLimit[key],
-                                            ),
-                                        ],
+                if (countToCharge > 0) {
+                    await super.pushItems(limitedItems as string[] | Data[]);
+                }
+
+                const chargeResult = await actor.chargingManager.charge({
+                    eventName,
+                    count: countToCharge,
+                });
+
+                if (context) {
+                    // For a single invocation of Dataset.pushData, there may be more than one call to DatasetClient.pushItems - we need to aggregate the `ChargeResult` objects
+                    if (context.chargeResult === undefined) {
+                        context.chargeResult = chargeResult;
+                    } else {
+                        context.chargeResult = {
+                            eventChargeLimitReached:
+                                context.chargeResult.eventChargeLimitReached &&
+                                chargeResult.eventChargeLimitReached,
+                            chargedCount:
+                                context.chargeResult.chargedCount +
+                                chargeResult.chargedCount,
+                            chargeableWithinLimit: Object.fromEntries(
+                                Object.entries(
+                                    context.chargeResult.chargeableWithinLimit,
+                                ).map(([key, oldValue]) => [
+                                    key,
+                                    Math.min(
+                                        oldValue,
+                                        chargeResult.chargeableWithinLimit[key],
                                     ),
-                                ),
-                            };
-                        }
+                                ]),
+                            ),
+                        };
                     }
                 }
             }
@@ -2417,6 +2440,35 @@ export class Actor<Data extends Dictionary = Dictionary> {
     static getDefaultInstance(): Actor {
         this._instance ??= new Actor();
         return this._instance;
+    }
+
+    /**
+     * Helper to calculate how many items can be pushed within charging limits.
+     * Returns the limited items and count to charge.
+     */
+    private calculatePushDataLimits<T>(
+        items: T | T[],
+        eventName: string,
+    ): { limitedItems: T[]; countToCharge: number } {
+        const itemsArray = Array.isArray(items) ? items : [items];
+        const maxChargedCount =
+            this.chargingManager.calculateMaxEventChargeCountWithinLimit(
+                eventName,
+            );
+        const itemsToKeep = Math.min(itemsArray.length, maxChargedCount);
+
+        let limitedItems: T | T[];
+        if (Array.isArray(items)) {
+            limitedItems = itemsArray.slice(0, itemsToKeep);
+        } else {
+            // Single item: keep it if we can charge for at least one, otherwise empty array
+            limitedItems = [items];
+        }
+
+        return {
+            limitedItems,
+            countToCharge: Math.min(itemsArray.length, maxChargedCount),
+        };
     }
 
     private async _openStorage<T extends IStorage>(
