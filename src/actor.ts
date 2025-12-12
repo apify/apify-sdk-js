@@ -33,7 +33,11 @@ import type {
     Webhook,
     WebhookEventType,
 } from 'apify-client';
-import { ActorRun as ClientActorRun, ApifyClient } from 'apify-client';
+import {
+    ActorRun as ClientActorRun,
+    ApifyClient,
+    DatasetClient,
+} from 'apify-client';
 import ow from 'ow';
 
 import {
@@ -59,6 +63,7 @@ import { PlatformEventManager } from './platform_event_manager.js';
 import type { ProxyConfigurationOptions } from './proxy_configuration.js';
 import { ProxyConfiguration } from './proxy_configuration.js';
 import { checkCrawleeVersion, getSystemInfo } from './utils.js';
+import { AsyncLocalStorage } from 'node:async_hooks';
 
 export interface InitOptions {
     storage?: StorageClient;
@@ -341,6 +346,11 @@ export const EXIT_CODES = {
     ERROR_UNKNOWN: 92,
 };
 
+interface PpeAwarePushDataContext {
+    eventName: string;
+    chargeResult?: ChargeResult;
+}
+
 /**
  * `Actor` class serves as an alternative approach to the static helpers exported from the package. It allows to pass configuration
  * that will be used on the instance methods. Environment variables will have precedence over this configuration.
@@ -386,6 +396,10 @@ export class Actor<Data extends Dictionary = Dictionary> {
     private isRebooting = false;
 
     private chargingManager: ChargingManager;
+
+    private ppeAwarePushDataContext = new AsyncLocalStorage<
+        PpeAwarePushDataContext | undefined
+    >();
 
     constructor(options: ConfigurationOptions = {}) {
         // use default configuration object if nothing overridden (it fallbacks to env vars)
@@ -1098,28 +1112,21 @@ export class Actor<Data extends Dictionary = Dictionary> {
         this._ensureActorInit('pushData');
 
         const dataset = await this.openDataset();
+        const context: PpeAwarePushDataContext | undefined =
+            eventName !== undefined ? { eventName } : undefined;
 
-        const maxChargedCount =
-            eventName !== undefined
-                ? this.chargingManager.calculateMaxEventChargeCountWithinLimit(
-                      eventName,
-                  )
-                : Infinity;
-        const toCharge = Array.isArray(item) ? item.length : 1;
-
-        if (toCharge > maxChargedCount) {
-            // Push as many items as we can charge for
-            const items = Array.isArray(item) ? item : [item];
-            await dataset.pushData(items.slice(0, maxChargedCount));
-        } else {
+        await this.ppeAwarePushDataContext.run(context, async () => {
             await dataset.pushData(item);
-        }
+        });
 
-        if (eventName) {
-            return await this.chargingManager.charge({
-                eventName,
-                count: Math.min(toCharge, maxChargedCount),
-            });
+        if (eventName !== undefined) {
+            if (context?.chargeResult === undefined) {
+                throw new Error(
+                    'Internal error - missing result of charge operation',
+                );
+            }
+
+            return context.chargeResult;
         }
     }
 
@@ -1545,11 +1552,106 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @ignore
      */
     newClient(options: ApifyClientOptions = {}): ApifyClient {
+        const actor = this;
+
         const { storageDir, ...storageClientOptions } = this.config.get(
             'storageClientOptions',
         ) as Dictionary;
         const { apifyVersion, crawleeVersion } = getSystemInfo();
-        return new ApifyClient({
+
+        class PatchedDatasetClient<
+            Data extends Record<string | number, any> = Record<
+                string | number,
+                unknown
+            >,
+        > extends DatasetClient<Data> {
+            override async pushItems(
+                items: string | Data | string[] | Data[],
+            ): Promise<void> {
+                const context = actor.ppeAwarePushDataContext.getStore();
+                const eventName =
+                    context?.eventName ??
+                    (this.id === actor.config.get('defaultDatasetId')
+                        ? 'apify-default-dataset-item'
+                        : undefined);
+
+                const maxChargedCount =
+                    eventName !== undefined
+                        ? actor.chargingManager.calculateMaxEventChargeCountWithinLimit(
+                              eventName,
+                          )
+                        : Infinity;
+                const toCharge = Array.isArray(items) ? items.length : 1;
+
+                if (toCharge > maxChargedCount) {
+                    // Push as many items as we can charge for
+                    const itemsToPush = Array.isArray(items)
+                        ? items
+                        : ([items] as string[] | Data[]);
+
+                    await super.pushItems(
+                        itemsToPush.slice(0, maxChargedCount),
+                    );
+                } else {
+                    await super.pushItems(items);
+                }
+
+                if (eventName !== undefined) {
+                    const chargeResult = await actor.chargingManager.charge({
+                        eventName,
+                        count: toCharge,
+                    });
+
+                    if (context) {
+                        // For a single invocation of Dataset.pushData, there may be more than one call to DatasetClient.pushItems - we need to aggregate the `ChargeResult` objects
+                        if (context.chargeResult === undefined) {
+                            context.chargeResult = chargeResult;
+                        } else {
+                            context.chargeResult = {
+                                eventChargeLimitReached:
+                                    context.chargeResult
+                                        .eventChargeLimitReached &&
+                                    chargeResult.eventChargeLimitReached,
+                                chargedCount:
+                                    context.chargeResult.chargedCount +
+                                    chargeResult.chargedCount,
+                                chargeableWithinLimit: Object.fromEntries(
+                                    Object.entries(context.chargeResult).map(
+                                        ([key, oldValue]) => [
+                                            key,
+                                            Math.min(
+                                                oldValue,
+                                                chargeResult
+                                                    .chargeableWithinLimit[key],
+                                            ),
+                                        ],
+                                    ),
+                                ),
+                            };
+                        }
+                    }
+                }
+            }
+        }
+
+        class PatchedApifyClient extends ApifyClient {
+            override dataset<
+                Data extends Record<string | number, any> = Record<
+                    string | number,
+                    unknown
+                >,
+            >(id: string): DatasetClient<Data> {
+                return new PatchedDatasetClient<Data>({
+                    id,
+                    baseUrl: this.baseUrl,
+                    publicBaseUrl: this.publicBaseUrl,
+                    apifyClient: this,
+                    httpClient: this.httpClient,
+                });
+            }
+        }
+
+        const client = new PatchedApifyClient({
             baseUrl: this.config.get('apiBaseUrl'),
             publicBaseUrl: this.config.get('apiPublicBaseUrl'),
             token: this.config.get('token'),
@@ -1560,6 +1662,8 @@ export class Actor<Data extends Dictionary = Dictionary> {
             ...storageClientOptions,
             ...options, // allow overriding the instance configuration
         });
+
+        return client;
     }
 
     /**
