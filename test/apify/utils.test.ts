@@ -2,7 +2,7 @@ import type { IncomingMessage } from 'node:http';
 
 import type { Request } from '@crawlee/core';
 import { createRequestDebugInfo } from '@crawlee/utils';
-import { Actor } from 'apify';
+import { Actor, ApifyClient } from 'apify';
 import semver from 'semver';
 
 import { APIFY_ENV_VARS } from '@apify/consts';
@@ -25,7 +25,7 @@ describe('Actor.newClient()', () => {
         process.env[APIFY_ENV_VARS.TOKEN] = 'token';
         const client = Actor.newClient();
 
-        expect(client.constructor.name).toBe('ApifyClient');
+        expect(client).toBeInstanceOf(ApifyClient);
         expect(client.token).toBe('token');
         expect(client.baseUrl).toBe('http://www.example.com:1234/path/v2');
     });
