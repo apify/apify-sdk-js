@@ -1,4 +1,7 @@
+import type { MockInstance } from 'vitest';
 import { afterEach, beforeEach, describe, expect, test } from 'vitest';
+
+import log from '@apify/log';
 
 import { Actor } from '../../packages/apify/src/index.js';
 import { MemoryStorageEmulator } from '../MemoryStorageEmulator.js';
@@ -209,6 +212,89 @@ describe('ChargingManager', () => {
             });
             expect(result2.chargedCount).toBe(1);
         });
+
+        describe('with an unknown event', () => {
+            let loggerWarnSpy: MockInstance;
+
+            beforeEach(() => {
+                loggerWarnSpy = vitest
+                    .spyOn(log, 'warning')
+                    .mockImplementation(() => {});
+            });
+
+            test('when on the platform should ignore it and log a warning', async () => {
+                // Arrange
+
+                // Don't use ACTOR_TEST_PAY_PER_EVENT when simulating Apify platform
+                delete process.env.ACTOR_TEST_PAY_PER_EVENT;
+
+                process.env.ACTOR_MAX_TOTAL_CHARGE_USD = '10.0';
+                process.env.APIFY_IS_AT_HOME = '1';
+                process.env.APIFY_TOKEN = 'this-wont-work';
+                process.env.ACTOR_RUN_ID = 'test-run-id';
+
+                process.env.APIFY_ACTOR_PRICING_INFO = JSON.stringify({
+                    pricingModel: 'PAY_PER_EVENT',
+                    pricingPerEvent: { actorChargeEvents: {} },
+                });
+                process.env.APIFY_CHARGED_ACTOR_EVENT_COUNTS = JSON.stringify(
+                    {},
+                );
+
+                await Actor.init();
+                const chargingManager = Actor.getChargingManager();
+
+                // Act
+                const chargeResult = await chargingManager.charge({
+                    eventName: 'unknown-event',
+                    count: 5,
+                });
+
+                // Assert
+                expect(chargeResult).toStrictEqual({
+                    chargedCount: 5,
+                    eventChargeLimitReached: false,
+                    chargeableWithinLimit: {},
+                });
+                expect(loggerWarnSpy).toHaveBeenCalledWith(
+                    "Attempting to charge for an unknown event 'unknown-event'",
+                );
+            });
+
+            test('when running locally should pretend to charge it', async () => {
+                // Arrange
+
+                // Don't use ACTOR_TEST_PAY_PER_EVENT when simulating Apify platform
+                delete process.env.ACTOR_TEST_PAY_PER_EVENT;
+
+                process.env.ACTOR_MAX_TOTAL_CHARGE_USD = '10.0';
+
+                process.env.APIFY_ACTOR_PRICING_INFO = JSON.stringify({
+                    pricingModel: 'PAY_PER_EVENT',
+                    pricingPerEvent: { actorChargeEvents: {} },
+                });
+                process.env.APIFY_CHARGED_ACTOR_EVENT_COUNTS = JSON.stringify(
+                    {},
+                );
+
+                await Actor.init();
+                const chargingManager = Actor.getChargingManager();
+
+                // Act
+                const chargeResult = await chargingManager.charge({
+                    eventName: 'unknown-event',
+                    count: 3,
+                });
+
+                // Assert
+                expect(chargeResult).toStrictEqual({
+                    chargedCount: 3,
+                    eventChargeLimitReached: false,
+                    chargeableWithinLimit: {},
+                });
+                expect(loggerWarnSpy).not.toHaveBeenCalled();
+            });
+        });
     });
 
     describe('calculateMaxEventChargeCountWithinLimit()', () => {
@@ -249,6 +335,36 @@ describe('ChargingManager', () => {
                 );
 
             expect(maxCount).toBe(0);
+        });
+
+        test('should fallback to infinity for unknown event on the platform', async () => {
+            // Arrange
+
+            // Don't use ACTOR_TEST_PAY_PER_EVENT when simulating Apify platform
+            delete process.env.ACTOR_TEST_PAY_PER_EVENT;
+
+            process.env.ACTOR_MAX_TOTAL_CHARGE_USD = '0.00025';
+            process.env.APIFY_IS_AT_HOME = '1';
+            process.env.APIFY_TOKEN = 'this-wont-work';
+            process.env.ACTOR_RUN_ID = 'test-run-id';
+
+            process.env.APIFY_ACTOR_PRICING_INFO = JSON.stringify({
+                pricingModel: 'PAY_PER_EVENT',
+                pricingPerEvent: { actorChargeEvents: {} },
+            });
+            process.env.APIFY_CHARGED_ACTOR_EVENT_COUNTS = JSON.stringify({});
+
+            await Actor.init();
+            const chargingManager = Actor.getChargingManager();
+
+            // Act
+            const maxCount =
+                chargingManager.calculateMaxEventChargeCountWithinLimit(
+                    'unknown-event',
+                );
+
+            // Assert
+            expect(maxCount).toBe(Infinity);
         });
     });
 
