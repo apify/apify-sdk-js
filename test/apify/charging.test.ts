@@ -262,31 +262,16 @@ describe('ChargingManager', () => {
             });
 
             test('when running locally should pretend to charge it', async () => {
-                // Arrange
-
-                // Don't use ACTOR_TEST_PAY_PER_EVENT when simulating Apify platform
-                delete process.env.ACTOR_TEST_PAY_PER_EVENT;
-
-                process.env.ACTOR_MAX_TOTAL_CHARGE_USD = '10.0';
-
-                process.env.APIFY_ACTOR_PRICING_INFO = JSON.stringify({
-                    pricingModel: 'PAY_PER_EVENT',
-                    pricingPerEvent: { actorChargeEvents: {} },
-                });
-                process.env.APIFY_CHARGED_ACTOR_EVENT_COUNTS = JSON.stringify(
-                    {},
-                );
+                process.env.ACTOR_TEST_PAY_PER_EVENT = '1';
 
                 await Actor.init();
                 const chargingManager = Actor.getChargingManager();
 
-                // Act
                 const chargeResult = await chargingManager.charge({
                     eventName: 'unknown-event',
                     count: 3,
                 });
 
-                // Assert
                 expect(chargeResult).toStrictEqual({
                     chargedCount: 3,
                     eventChargeLimitReached: false,
