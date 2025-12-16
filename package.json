@@ -3,8 +3,7 @@
     "private": true,
     "description": "Apify SDK monorepo",
     "workspaces": [
-        "packages/*",
-        "packages/actor-scraper/*"
+        "packages/apify"
     ],
     "keywords": [
         "apify",
@@ -27,12 +26,12 @@
     "license": "Apache-2.0",
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/apify/apify-ts"
+        "url": "git+https://github.com/apify/apify-sdk-js"
     },
     "bugs": {
-        "url": "https://github.com/apify/apify-ts/issues"
+        "url": "https://github.com/apify/apify-sdk-js/issues"
     },
-    "homepage": "https://sdk.apify.com",
+    "homepage": "https://docs.apify.com/sdk/js",
     "scripts": {
         "prepare": "husky",
         "prepublishOnly": "turbo run copy",
@@ -40,8 +39,7 @@
         "build": "turbo run build",
         "ci:build": "turbo run build --cache-dir=\".turbo\"",
         "test": "vitest run --silent",
-        "test:e2e": "npm run test:e2e:scrapers && npm run test:e2e:sdk",
-        "test:e2e:scrapers": "node test/e2e/runScraperTests.mjs",
+        "test:e2e": "npm run test:e2e:sdk",
         "test:e2e:sdk": "npm run test:e2e:sdk:tarball && node test/e2e/runSdkTests.mjs",
         "test:e2e:sdk:tarball": "npm run build && cd packages/apify && mv $(npm pack | tail -n 1) ../../test/e2e/apify.tgz",
         "tsc-check-tests": "tsc --noEmit --project test/tsconfig.json",
