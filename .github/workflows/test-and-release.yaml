@@ -10,9 +10,6 @@ on:
     # PR to master branch will skip deployment
     pull_request:
         branches: [master]
-    # A release via GitHub releases will deploy the latest version
-    release:
-        types: [published]
 
 jobs:
     # NPM install is done in a separate job and cached to speed up the following jobs.
@@ -134,7 +131,7 @@ jobs:
 
     publish:
         name: Publish
-        if: (github.ref == 'refs/heads/master' || github.event_name == 'release') && !contains(github.event.head_commit.message, '[skip ci]') && !contains(github.event.head_commit.message, 'docs:')
+        if: (github.ref == 'refs/heads/master') && !contains(github.event.head_commit.message, 'docs:')
         runs-on: ubuntu-22.04
         needs: [lint, build_and_test]
         steps:
@@ -166,29 +163,20 @@ jobs:
             - name: Check for changes
               id: changed_packages
               run: |
-                  echo "::set-output name=changed_packages::$(node ./node_modules/.bin/lerna changed -p | wc -l | xargs)"
+                  echo "changed_packages=$(npx lerna changed -p | wc -l | xargs)" >> "$GITHUB_OUTPUT"
 
             - name: Check for changes 2
               if: steps.changed_packages.outputs.changed_packages == '0'
               run: |
                   echo "no changes detected by lerna"
 
-            - name: Build
+            - name: Publish beta to npm
+              uses: apify/workflows/execute-workflow@main
               if: steps.changed_packages.outputs.changed_packages != '0'
-              run: npm run build
-
-            - name: Set Release Tag
-              run: echo "RELEASE_TAG=$(if [ ${{ github.event_name }} = release ]; then echo latest; else echo next; fi)" >> $GITHUB_ENV
-
-            - name: Release dev version for testing
-              if: env.RELEASE_TAG == 'next' && steps.changed_packages.outputs.changed_packages != '0'
-              run: |
-                  git config --global user.name 'Apify Release Bot'
-                  git config --global user.email 'noreply@apify.com'
-                  echo "access=public" >> .npmrc
-                  echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" >> .npmrc
-                  npm run publish:next -- --yes --no-verify-access
-              env:
-                  NPM_TOKEN: ${{ secrets.APIFY_SERVICE_ACCOUNT_NPM_TOKEN }}
-                  GIT_USER: 'noreply@apify.com:${{ secrets.APIFY_SERVICE_ACCOUNT_GITHUB_TOKEN }}'
-                  GH_TOKEN: ${{ secrets.APIFY_SERVICE_ACCOUNT_GITHUB_TOKEN }}
+              with:
+                  workflow: publish_to_npm.yaml
+                  inputs: >
+                      {
+                          "ref": "${{ github.sha }}",
+                          "tag": "beta"
+                      }

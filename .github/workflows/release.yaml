@@ -1,8 +1,5 @@
 name: Release @latest
 
-env:
-    PUPPETEER_DOWNLOAD_BASE_URL: https://storage.googleapis.com/chrome-for-testing-public
-
 on:
     workflow_dispatch:
         inputs:
@@ -21,14 +18,6 @@ on:
                 required: false
                 type: string
                 default: ''
-            package:
-                description: The package to release
-                required: true
-                type: choice
-                # For maintainers, this should be the folder name, not the package name
-                options:
-                    - 'apify'
-                    - 'scraper-tools'
 
 jobs:
     # Test before releasing to ensure we don't release a broken version
@@ -80,11 +69,15 @@ jobs:
             - name: Tests
               run: npm test
 
-    release:
-        name: "Bump ${{ inputs.package }}: ${{ inputs.version }} version (${{ inputs.custom_version || 'n/a' }} custom version)"
+    update_changelog:
+        name: "Bump apify: ${{ inputs.version }} version (${{ inputs.custom_version || 'n/a' }} custom version)"
         if: (!contains(github.event.head_commit.message, '[skip ci]') && !contains(github.event.head_commit.message, 'docs:'))
         needs: build_and_test
         runs-on: ubuntu-22.04
+        outputs:
+            changelog_commitish: ${{ steps.commit.outputs.commit_long_sha || github.sha }}
+            version: ${{ steps.updated-version.outputs.result }}
+            release_notes: ${{ steps.changelog.outputs.release_notes }}
 
         steps:
             - name: Checkout repository
@@ -97,6 +90,7 @@ jobs:
               uses: actions/setup-node@v6
               with:
                   node-version: 24
+                  registry-url: 'https://registry.npmjs.org'
                   cache: 'npm'
                   cache-dependency-path: 'package-lock.json'
 
@@ -112,55 +106,74 @@ jobs:
             - name: Install Dependencies
               run: npm ci
 
-            - name: Setup git user and npm
-              run: |
-                  git config --global user.name "Apify Release Bot"
-                  git config --global user.email "noreply@apify.com"
-
-                  echo "access=public" > ~/.npmrc
-                  echo "//registry.npmjs.org/:_authToken=${{ secrets.APIFY_SERVICE_ACCOUNT_NPM_TOKEN }}" >> ~/.npmrc
-              env:
-                  NPM_TOKEN: ${{ secrets.APIFY_SERVICE_ACCOUNT_NPM_TOKEN }}
-                  GIT_USER: 'noreply@apify.com:${{ secrets.APIFY_SERVICE_ACCOUNT_GITHUB_TOKEN }}'
-                  GH_TOKEN: ${{ secrets.APIFY_SERVICE_ACCOUNT_GITHUB_TOKEN }}
-
-            - name: Mark all other packages as private
-              run: node ./scripts/actions/markPrivate.mjs ${{ inputs.package }}
-
             - name: Bump version to custom version
               if: inputs.version == 'custom' && inputs.custom_version != ''
               run: |
-                  npx lerna version ${{ inputs.custom_version }} --no-private --force-publish --yes
-              env:
-                  NPM_TOKEN: ${{ secrets.APIFY_SERVICE_ACCOUNT_NPM_TOKEN }}
-                  GIT_USER: 'noreply@apify.com:${{ secrets.APIFY_SERVICE_ACCOUNT_GITHUB_TOKEN }}'
-                  GH_TOKEN: ${{ secrets.APIFY_SERVICE_ACCOUNT_GITHUB_TOKEN }}
+                  npx lerna version ${{ inputs.custom_version }} \
+                      --yes \
+                      --force-publish \
+                      --no-git-tag-version \
+                      --no-push
 
             - name: Bump version to ${{ inputs.version }} version
               if: inputs.version != 'custom'
               run: |
-                  npx lerna version ${{ inputs.version }} --no-private --force-publish --yes
-              env:
-                  NPM_TOKEN: ${{ secrets.APIFY_SERVICE_ACCOUNT_NPM_TOKEN }}
-                  GIT_USER: 'noreply@apify.com:${{ secrets.APIFY_SERVICE_ACCOUNT_GITHUB_TOKEN }}'
-                  GH_TOKEN: ${{ secrets.APIFY_SERVICE_ACCOUNT_GITHUB_TOKEN }}
+                  npx lerna version ${{ inputs.version }} \
+                      --yes \
+                      --force-publish \
+                      --no-git-tag-version \
+                      --no-push
 
-            - name: Revert all other packages to public
-              run: node ./scripts/actions/unmarkPrivate.mjs
-
-            - name: Add all other changes to the release commit and push
+            - name: Get the updated package version
+              id: updated-version
               run: |
-                  git add .
-                  git commit -m 'chore(release): update internal dependencies [skip ci]'
-                  git push
-              env:
-                  NPM_TOKEN: ${{ secrets.APIFY_SERVICE_ACCOUNT_NPM_TOKEN }}
-                  GIT_USER: 'noreply@apify.com:${{ secrets.APIFY_SERVICE_ACCOUNT_GITHUB_TOKEN }}'
-                  GH_TOKEN: ${{ secrets.APIFY_SERVICE_ACCOUNT_GITHUB_TOKEN }}
+                  UPDATED_VERSION=$(node -p "require('./packages/apify/package.json').version")
+                  echo result=$UPDATED_VERSION | tee $GITHUB_OUTPUT
 
-            - name: Publish to NPM
-              run: npm run release -- --yes --no-verify-access
-              env:
-                  NPM_TOKEN: ${{ secrets.APIFY_SERVICE_ACCOUNT_NPM_TOKEN }}
-                  GIT_USER: 'noreply@apify.com:${{ secrets.APIFY_SERVICE_ACCOUNT_GITHUB_TOKEN }}'
-                  GH_TOKEN: ${{ secrets.APIFY_SERVICE_ACCOUNT_GITHUB_TOKEN }}
+            - name: Extract latest CHANGELOG entry
+              id: changelog
+              run: |
+                  RELEASE_NOTES="$(awk 'BEGIN{found=0} /^## /{if(found){exit} found=1} found{print}' CHANGELOG.md)"
+                  printf '%s\n' "$RELEASE_NOTES"
+                  {
+                      echo "release_notes<<'EOF'"
+                      printf '%s\n' "$RELEASE_NOTES"
+                      echo "EOF"
+                  } >> "$GITHUB_OUTPUT"
+
+            - name: Add changes to the release commit and push
+              id: commit
+              uses: EndBug/add-and-commit@v9
+              with:
+                  author_name: Apify Release Bot
+                  author_email: noreply@apify.com
+                  message: 'chore(release): set package version to ${{ steps.updated-version.outputs.result }} and update changelog [skip ci]'
+
+    create_github_release:
+        name: Create github release
+        needs: [update_changelog]
+        runs-on: ubuntu-latest
+        env:
+            GITHUB_TOKEN: ${{ secrets.APIFY_SERVICE_ACCOUNT_GITHUB_TOKEN }}
+        steps:
+            - name: Create release
+              uses: softprops/action-gh-release@v2
+              with:
+                  tag_name: apify@${{ needs.update_changelog.outputs.version }}
+                  name: apify@${{ needs.update_changelog.outputs.version }}
+                  target_commitish: ${{ needs.update_changelog.outputs.changelog_commitish }}
+                  body: ${{ needs.update_changelog.outputs.release_notes }}
+
+    publish_to_npm:
+        name: Publish to npm
+        runs-on: ubuntu-22.04
+        needs: [update_changelog]
+        steps:
+            - name: Publish to npm
+              uses: apify/workflows/execute-workflow@main
+              with:
+                  workflow: publish_to_npm.yaml
+                  inputs: >
+                      {
+                          "ref": "${{ needs.update_changelog.outputs.changelog_commitish }}"
+                      }
