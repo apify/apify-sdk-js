@@ -27,13 +27,14 @@ import { sleep, snakeCaseToCamelCase } from '@crawlee/utils';
 import type {
     ActorCallOptions,
     ActorStartOptions,
+    ApifyClient,
     ApifyClientOptions,
     RunAbortOptions,
     TaskCallOptions,
     Webhook,
     WebhookEventType,
 } from 'apify-client';
-import { ActorRun as ClientActorRun, ApifyClient } from 'apify-client';
+import { ActorRun as ClientActorRun } from 'apify-client';
 import ow from 'ow';
 
 import {
@@ -55,6 +56,12 @@ import {
     readInputSchema,
 } from './input-schemas.js';
 import { KeyValueStore } from './key_value_store.js';
+import {
+    createPatchedApifyClient,
+    type PpeAwarePushDataContext,
+    pushDataChargingContext,
+    USES_PUSH_DATA_INTERCEPTION,
+} from './patched_apify_client.js';
 import { PlatformEventManager } from './platform_event_manager.js';
 import type { ProxyConfigurationOptions } from './proxy_configuration.js';
 import { ProxyConfiguration } from './proxy_configuration.js';
@@ -1090,37 +1097,29 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @param eventName If provided, the method will attempt to charge for the event for each pushed item.
      * @ignore
      */
-    // eslint-disable-next-line consistent-return -- The `return` is inconsistent by design here (`ChargeResult` with `eventName` parameter)
     async pushData(
         item: Data | Data[],
         eventName?: string | undefined,
     ): Promise<ChargeResult | void> {
         this._ensureActorInit('pushData');
 
+        if (eventName?.startsWith('apify-')) {
+            throw new Error(
+                `Cannot charge for synthetic event '${eventName}' manually`,
+            ); // TODO this should be handled on charging manager level, too (but we also need to track dataset pushes manually 🙈)
+        }
+
         const dataset = await this.openDataset();
 
-        const maxChargedCount =
-            eventName !== undefined
-                ? this.chargingManager.calculateMaxEventChargeCountWithinLimit(
-                      eventName,
-                  )
-                : Infinity;
-        const toCharge = Array.isArray(item) ? item.length : 1;
-
-        if (toCharge > maxChargedCount) {
-            // Push as many items as we can charge for
-            const items = Array.isArray(item) ? item : [item];
-            await dataset.pushData(items.slice(0, maxChargedCount));
-        } else {
-            await dataset.pushData(item);
-        }
-
-        if (eventName) {
-            return await this.chargingManager.charge({
+        if (this.usesPushDataInterception(dataset)) {
+            return await this.pushDataViaInterceptedClient(
+                dataset,
+                item,
                 eventName,
-                count: Math.min(toCharge, maxChargedCount),
-            });
+            );
         }
+
+        return await this.pushDataViaDirectCharging(dataset, item, eventName);
     }
 
     /**
@@ -1549,17 +1548,21 @@ export class Actor<Data extends Dictionary = Dictionary> {
             'storageClientOptions',
         ) as Dictionary;
         const { apifyVersion, crawleeVersion } = getSystemInfo();
-        return new ApifyClient({
-            baseUrl: this.config.get('apiBaseUrl'),
-            publicBaseUrl: this.config.get('apiPublicBaseUrl'),
-            token: this.config.get('token'),
-            userAgentSuffix: [
-                `SDK/${apifyVersion}`,
-                `Crawlee/${crawleeVersion}`,
-            ],
-            ...storageClientOptions,
-            ...options, // allow overriding the instance configuration
-        });
+
+        return createPatchedApifyClient(
+            {
+                baseUrl: this.config.get('apiBaseUrl'),
+                publicBaseUrl: this.config.get('apiPublicBaseUrl'),
+                token: this.config.get('token'),
+                userAgentSuffix: [
+                    `SDK/${apifyVersion}`,
+                    `Crawlee/${crawleeVersion}`,
+                ],
+                ...storageClientOptions,
+                ...options, // allow overriding the instance configuration
+            },
+            this,
+        );
     }
 
     /**
@@ -2313,6 +2316,89 @@ export class Actor<Data extends Dictionary = Dictionary> {
     static getDefaultInstance(): Actor {
         this._instance ??= new Actor();
         return this._instance;
+    }
+
+    private usesPushDataInterception(dataset: Dataset): boolean {
+        return Boolean((dataset.client as any)[USES_PUSH_DATA_INTERCEPTION]);
+    }
+
+    private async pushDataViaInterceptedClient(
+        dataset: Dataset,
+        item: Data | Data[],
+        eventName: string | undefined,
+    ): Promise<ChargeResult | void> {
+        // PatchedDatasetClient will handle charging and item limiting.
+        // We only need to propagate `eventName` and (optionally) return aggregated charge info.
+        const context: PpeAwarePushDataContext = {
+            eventName,
+        };
+
+        await pushDataChargingContext.run(context, async () => {
+            await dataset.pushData(item);
+        });
+
+        if (eventName === undefined) return undefined;
+
+        if (context?.chargeResult === undefined) {
+            throw new Error(
+                'Internal error - missing result of charge operation',
+            );
+        }
+
+        return context.chargeResult;
+    }
+
+    private async pushDataViaDirectCharging(
+        dataset: Dataset,
+        items: Data | Data[],
+        explicitEventName: string | undefined,
+    ): Promise<ChargeResult | void> {
+        // `Actor.pushData()` historically worked even without calling `Actor.init()`.
+        // In that case, charging isn't configured, so just push the data through.
+        if (!this.initialized && explicitEventName === undefined) {
+            await dataset.pushData(items);
+            return undefined;
+        }
+
+        const isDefaultDataset =
+            dataset.id === this.config.get('defaultDatasetId');
+
+        const { limitedItems, eventsToCharge } =
+            this.chargingManager.calculatePushDataLimits({
+                items,
+                eventName: explicitEventName,
+                isDefaultDataset,
+            });
+
+        if (limitedItems.length > 0) {
+            // Preserve original `Dataset.pushData()` call shape for single items.
+            await dataset.pushData(
+                Array.isArray(items) ? limitedItems : limitedItems[0],
+            );
+        }
+
+        // Always return `ChargeResult` when user explicitly asked to charge for an event.
+        // This includes the case where the count is 0 (e.g. budget exhausted), because
+        // `ChargingManager.charge({ count: 0 })` is a cheap no-op and does not call the API.
+        if (Object.keys(eventsToCharge).length > 0) {
+            const results: Record<string, ChargeResult> = {};
+            await Promise.all(
+                Object.entries(eventsToCharge).map(
+                    async ([eventName, count]) => {
+                        results[eventName] = await this.chargingManager.charge({
+                            eventName,
+                            count,
+                        });
+                    },
+                ),
+            );
+
+            if (explicitEventName !== undefined) {
+                return results[explicitEventName];
+            }
+        }
+
+        return undefined;
     }
 
     private async _openStorage<T extends IStorage>(
