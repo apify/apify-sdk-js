@@ -2353,6 +2353,13 @@ export class Actor<Data extends Dictionary = Dictionary> {
         items: Data | Data[],
         explicitEventName: string | undefined,
     ): Promise<ChargeResult | void> {
+        // `Actor.pushData()` historically worked even without calling `Actor.init()`.
+        // In that case, charging isn't configured, so just push the data through.
+        if (!this.initialized && explicitEventName === undefined) {
+            await dataset.pushData(items);
+            return undefined;
+        }
+
         const isDefaultDataset =
             dataset.id === this.config.get('defaultDatasetId');
 
@@ -2364,28 +2371,31 @@ export class Actor<Data extends Dictionary = Dictionary> {
             });
 
         if (limitedItems.length > 0) {
-            await dataset.pushData(limitedItems);
+            // Preserve original `Dataset.pushData()` call shape for single items.
+            await dataset.pushData(
+                Array.isArray(items) ? limitedItems : limitedItems[0],
+            );
         }
 
-        if (
-            Object.values(eventsToCharge).length === 0 ||
-            Object.values(eventsToCharge).reduce((acc, val) => acc + val) <= 0
-        ) {
-            return undefined;
-        }
+        // Always return `ChargeResult` when user explicitly asked to charge for an event.
+        // This includes the case where the count is 0 (e.g. budget exhausted), because
+        // `ChargingManager.charge({ count: 0 })` is a cheap no-op and does not call the API.
+        if (Object.keys(eventsToCharge).length > 0) {
+            const results: Record<string, ChargeResult> = {};
+            await Promise.all(
+                Object.entries(eventsToCharge).map(
+                    async ([eventName, count]) => {
+                        results[eventName] = await this.chargingManager.charge({
+                            eventName,
+                            count,
+                        });
+                    },
+                ),
+            );
 
-        const results: Record<string, ChargeResult> = {};
-        await Promise.all(
-            Object.entries(eventsToCharge).map(async ([eventName, count]) => {
-                results[eventName] = await this.chargingManager.charge({
-                    eventName,
-                    count,
-                });
-            }),
-        );
-
-        if (explicitEventName !== undefined) {
-            return results[explicitEventName];
+            if (explicitEventName !== undefined) {
+                return results[explicitEventName];
+            }
         }
 
         return undefined;
