@@ -29,6 +29,8 @@ jobs:
               with:
                   ref: ${{ inputs.ref }}
                   token: ${{ secrets.APIFY_SERVICE_ACCOUNT_GITHUB_TOKEN }}
+                  fetch-depth: 0
+                  fetch-tags: true
 
             - name: Use Node.js 24
               uses: actions/setup-node@v6
