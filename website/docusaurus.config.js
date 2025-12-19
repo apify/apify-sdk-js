@@ -138,6 +138,46 @@ module.exports = {
                 })),
                 typedocOptions: {
                     excludeExternals: false,
+                    externalSymbolLinkMappings: {
+                        '@crawlee/core': {
+                            Configuration:
+                                'https://crawlee.dev/js/api/core/class/Configuration',
+                            Dataset:
+                                'https://crawlee.dev/js/api/core/class/Dataset',
+                            DatasetExportOptions:
+                                'https://crawlee.dev/js/api/core/interface/DatasetExportOptions',
+                            DatasetExportToOptions:
+                                'https://crawlee.dev/js/api/core/interface/DatasetExportToOptions',
+                            EventManager:
+                                'https://crawlee.dev/js/api/core/class/EventManager',
+                            KeyValueStore:
+                                'https://crawlee.dev/js/api/core/class/KeyValueStore',
+                            StorageManagerOptions:
+                                'https://crawlee.dev/js/api/core/interface/StorageManagerOptions',
+                            ConfigurationOptions:
+                                'https://crawlee.dev/js/api/core/interface/ConfigurationOptions',
+                            EventManager:
+                                'https://crawlee.dev/js/api/core/interface/EventManager',
+                            RecordOptions:
+                                'https://crawlee.dev/js/api/core/interface/RecordOptions',
+                            UseStateOptions:
+                                'https://crawlee.dev/js/api/core/interface/UseStateOptions',
+                        },
+                        'apify-client': {
+                            ActorCallOptions:
+                                'https://docs.apify.com/api/client/js/reference/interface/ActorCallOptions',
+                            ActorStartOptions:
+                                'https://docs.apify.com/api/client/js/reference/interface/ActorStartOptions',
+                            ApifyClientOptions:
+                                'https://docs.apify.com/api/client/js/reference/interface/ApifyClientOptions',
+                            RunAbortOptions:
+                                'https://docs.apify.com/api/client/js/reference/interface/RunAbortOptions',
+                            TaskCallOptions:
+                                'https://docs.apify.com/api/client/js/reference/interface/TaskCallOptions',
+                            Webhook:
+                                'https://docs.apify.com/api/client/js/reference/interface/Webhook',
+                        },
+                    },
                 },
                 routeBasePath: 'reference',
             },

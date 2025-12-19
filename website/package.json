@@ -28,7 +28,7 @@
     },
     "dependencies": {
         "@apify/docs-theme": "^1.0.181",
-        "@apify/docusaurus-plugin-typedoc-api": "^4.4.8",
+        "@apify/docusaurus-plugin-typedoc-api": "^4.4.12",
         "@apify/eslint-config": "^1.0.0",
         "@docusaurus/core": "^3.8.1",
         "@docusaurus/faster": "^3.8.1",

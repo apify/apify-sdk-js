@@ -1,0 +1,73 @@
+---
+id: log-redirection
+title: Log redirection
+description: Redirect logs from another Actor run
+---
+
+import ApiLink from '@site/src/components/ApiLink';
+
+In some situations, one Actor is going to start one or more other Actors and wait for them to finish and produce some results. In such cases, you might want to redirect the logs of the started Actors' runs back to the parent Actor run, so that you can see the progress of the started Actors' runs in the parent Actor's logs. This guide will show possibilities on how to do it.
+
+### Redirecting logs from `Actor.call`
+
+Typical use case for log redirection is to call another Actor using the [`Actor.call()`](/reference/class/Actor#call) method. This method has an optional logger argument, which is by default set to the `default` literal. This means that the logs of the called Actor will be automatically redirected to the parent Actor's logs with default formatting and filtering. If you set the logger argument to `null`, then no log redirection happens. The third option is to pass your own `Log` instance with the possibility to define your specific logging. Below you can see those three possible ways of log redirection when starting another Actor run through Actor.call.
+
+```javascript
+import { Actor } from 'apify';
+import { LoggerActorRedirect } from 'apify-client';
+import { LEVELS, Log } from '@apify/log';
+
+const input = {}; // Some Actor input
+const actorId = 'someActorId'; // ID of actor you want to call
+
+await Actor.init();
+
+// Default log redirection - implicitly
+await Actor.call(actorId, input);
+
+// Default log redirection - explicitly
+await Actor.call(actorId, input, { log: 'default' });
+
+// No log redirection
+await Actor.call(actorId, input, { log: null });
+
+// Custom log redirection
+await Actor.call(actorId, input, {
+    log: new Log({
+        level: LEVELS.DEBUG,
+        prefix: 'customPrefix',
+        logger: new LoggerActorRedirect(),
+    }),
+});
+
+await Actor.exit();
+```
+
+Each default redirect log entry has a specific format. First part is a cyan-colored text with the redirect information (the other Actor's name and the run ID), the rest of the log message is printed in the same manner as the parent Actor's log is configured.
+
+The log redirection can be deep, meaning that if the other Actor also starts another actor and is redirecting logs from it, then in the top-level Actor, you can see it as well.
+
+### Redirecting logs from already running Actor run
+
+In some cases, you might want to connect to an already running Actor run and redirect its logs to your current Actor run. This can be done using the <ApiLink to="class/ApifyClient">`ApifyClient`</ApiLink> and getting the streamed log from a specific Actor run. You can then control the log redirection manually by explicitly calling `start` and `stop` methods.
+
+You can further decide whether you want to redirect just new logs of the ongoing Actor run, or if you also want to redirect historical logs from that Actor's run, so all logs it has produced since it was started. This can be controlled by the `fromStart` option of the `getStreamedLog()` method. If you set it to `true`, all historical logs will be redirected first, and then new logs will be redirected as they are produced. If you set it to `false`, only new logs will be redirected.
+
+```javascript
+import { Actor } from 'apify';
+
+const actorRunId = 'someRunId'; // ID of the run you want to connect to
+
+await Actor.init();
+
+// Redirect only new logs from the other Actor run, due to `fromStart: false`
+const streamedLog = await Actor.newClient()
+    .run(actorRunId)
+    .getStreamedLog({ fromStart: false });
+
+streamedLog.start();
+// Do some stuff while also redirecting logs from another Actor
+await streamedLog.stop();
+
+await Actor.exit();
+```

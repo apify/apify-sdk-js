@@ -8,6 +8,8 @@
 Apify SDK is the core set of tools and utilities that we've built to help make your interaction with the [Apify Platform](https://apify.com) easier.
 This monorepo holds all the components and tools that we've created for it!
 
+This monorepo also used to hold the source code of generic scraper Actors. These have been moved to a separate repository - [apify/actor-scraper](https://github.com/apify/actor-scraper).
+
 > Would you like to work with us on Crawlee, Apify SDK or similar projects? [We are hiring!](https://apify.com/jobs#senior-node.js-engineer)
 
 | package                               | version                                                                                       |

@@ -3,8 +3,7 @@
     "private": true,
     "description": "Apify SDK monorepo",
     "workspaces": [
-        "packages/*",
-        "packages/actor-scraper/*"
+        "packages/apify"
     ],
     "keywords": [
         "apify",
@@ -27,12 +26,12 @@
     "license": "Apache-2.0",
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/apify/apify-ts"
+        "url": "git+https://github.com/apify/apify-sdk-js"
     },
     "bugs": {
-        "url": "https://github.com/apify/apify-ts/issues"
+        "url": "https://github.com/apify/apify-sdk-js/issues"
     },
-    "homepage": "https://sdk.apify.com",
+    "homepage": "https://docs.apify.com/sdk/js",
     "scripts": {
         "prepare": "husky",
         "prepublishOnly": "turbo run copy",
@@ -40,15 +39,11 @@
         "build": "turbo run build",
         "ci:build": "turbo run build --cache-dir=\".turbo\"",
         "test": "vitest run --silent",
-        "test:e2e": "npm run test:e2e:scrapers && npm run test:e2e:sdk",
-        "test:e2e:scrapers": "node test/e2e/runScraperTests.mjs",
+        "test:e2e": "npm run test:e2e:sdk",
         "test:e2e:sdk": "npm run test:e2e:sdk:tarball && node test/e2e/runSdkTests.mjs",
         "test:e2e:sdk:tarball": "npm run build && cd packages/apify && mv $(npm pack | tail -n 1) ../../test/e2e/apify.tgz",
         "tsc-check-tests": "tsc --noEmit --project test/tsconfig.json",
         "coverage": "vitest --coverage",
-        "release": "npm run build && lerna publish from-package --contents dist",
-        "publish:next": "lerna publish --canary --preid beta --dist-tag next",
-        "release:next": "npm run build && npm run publish:next",
         "lint": "eslint",
         "lint:fix": "eslint --fix",
         "format": "prettier --write .",
@@ -77,7 +72,7 @@
         "@types/semver": "^7.5.8",
         "@types/tough-cookie": "^4.0.5",
         "@types/ws": "^8.5.12",
-        "apify-client": "^2.17.0",
+        "apify-client": "^2.20.0",
         "commitlint": "^20.0.0",
         "crawlee": "^3.13.5",
         "eslint": "^9.23.0",
@@ -96,7 +91,7 @@
         "turbo": "2.6.0",
         "typescript": "~5.9.0",
         "typescript-eslint": "^8.28.0",
-        "vite-tsconfig-paths": "^5.0.0",
+        "vite-tsconfig-paths": "^6.0.0",
         "vitest": "^3.0.0"
     },
     "packageManager": "npm@10.9.2"

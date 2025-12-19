@@ -24,6 +24,7 @@ module.exports = {
                 'guides/pay-per-event',
                 'guides/type-script-actor',
                 'guides/docker-images',
+                'guides/log-redirection',
             ],
         },
         {
