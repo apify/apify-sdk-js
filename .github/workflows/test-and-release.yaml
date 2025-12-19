@@ -174,7 +174,7 @@ jobs:
               uses: apify/workflows/execute-workflow@main
               if: steps.changed_packages.outputs.changed_packages != '0'
               with:
-                  workflow: publish_to_npm.yaml
+                  workflow: publish-to-npm.yaml
                   inputs: >
                       {
                           "ref": "${{ github.sha }}",

@@ -172,7 +172,7 @@ jobs:
             - name: Publish to npm
               uses: apify/workflows/execute-workflow@main
               with:
-                  workflow: publish_to_npm.yaml
+                  workflow: publish-to-npm.yaml
                   inputs: >
                       {
                           "ref": "${{ needs.update_changelog.outputs.changelog_commitish }}"
