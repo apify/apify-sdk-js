@@ -1,0 +1,67 @@
+name: Publish to NPM
+
+on:
+    workflow_dispatch:
+        inputs:
+            ref:
+                description: Git ref to publish (branch, tag, or commit SHA)
+                required: true
+                type: string
+            tag:
+                description: NPM dist-tag
+                required: true
+                type: choice
+                default: latest
+                options:
+                    - latest
+                    - beta
+
+permissions:
+    id-token: write # Required for OIDC
+    contents: write # Required to push changelog/lock file updates
+
+jobs:
+    publish_to_npm:
+        name: Publish to NPM
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v6
+              with:
+                  ref: ${{ inputs.ref }}
+                  token: ${{ secrets.APIFY_SERVICE_ACCOUNT_GITHUB_TOKEN }}
+
+            - name: Use Node.js 24
+              uses: actions/setup-node@v6
+              with:
+                  node-version: 24
+                  registry-url: 'https://registry.npmjs.org'
+                  cache: 'npm'
+                  cache-dependency-path: 'package-lock.json'
+
+            - name: Turbo cache
+              id: turbo-cache
+              uses: actions/cache@v5
+              with:
+                  path: .turbo
+                  key: turbo-${{ github.job }}-${{ github.ref_name }}-${{ github.sha }}
+                  restore-keys: |
+                      turbo-${{ github.job }}-${{ github.ref_name }}-
+
+            - name: Update NPM
+              run: npm install -g npm@latest
+
+            - name: Install dependencies
+              run: npm ci --force
+
+            - name: Build module
+              run: npm run build
+
+            - name: Publish package (latest)
+              if: ${{ inputs.tag == 'latest' }}
+              run: |
+                  npx lerna publish from-package --contents dist --yes
+
+            - name: Publish package (beta)
+              if: ${{ inputs.tag == 'beta' }}
+              run: |
+                  npx lerna publish --canary --preid beta --dist-tag next --yes

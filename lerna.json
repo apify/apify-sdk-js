@@ -3,9 +3,7 @@
     "packages": ["packages/*"],
     "command": {
         "version": {
-            "conventionalCommits": true,
-            "createRelease": "github",
-            "message": "chore(release): release packages [skip ci]"
+            "conventionalCommits": true
         },
         "publish": {
             "assets": []
