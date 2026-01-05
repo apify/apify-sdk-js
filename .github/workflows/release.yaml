@@ -134,12 +134,9 @@ jobs:
               id: changelog
               run: |
                   RELEASE_NOTES="$(awk 'BEGIN{found=0} /^## /{if(found){exit} found=1} found{print}' CHANGELOG.md)"
-                  printf '%s\n' "$RELEASE_NOTES"
-                  {
-                      echo "release_notes<<'EOF'"
-                      printf '%s\n' "$RELEASE_NOTES"
-                      echo "EOF"
-                  } >> "$GITHUB_OUTPUT"
+                  echo 'release_notes<<EOF' >> $GITHUB_OUTPUT
+                  printf '%s\n' "$RELEASE_NOTES" | tee -a $GITHUB_OUTPUT
+                  echo 'EOF' >> $GITHUB_OUTPUT
 
             - name: Add changes to the release commit and push
               id: commit
