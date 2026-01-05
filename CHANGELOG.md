@@ -3,6 +3,19 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [3.5.3](https://github.com/apify/apify-sdk-js/compare/apify@3.5.2...apify@3.5.3) (2026-01-05)
+
+### Bug Fixes
+
+- correctly make use of apiPublicBaseUrl from config ([#521](https://github.com/apify/apify-sdk-js/issues/521)) ([6bb337b](https://github.com/apify/apify-sdk-js/commit/6bb337bd4aa0dce0d4ebcfe9bf93e68188f4d067))
+- Fix type used for `options` argument of `Actor.start` ([#524](https://github.com/apify/apify-sdk-js/issues/524)) ([84b1ce8](https://github.com/apify/apify-sdk-js/commit/84b1ce80c4422126256f88616bb8b774a1ede87f))
+- gracefully handle charging for unknown events on Platform ([#527](https://github.com/apify/apify-sdk-js/issues/527)) ([a64ccae](https://github.com/apify/apify-sdk-js/commit/a64ccae35ab9aecf3b257bba13722f7833c67574))
+
+### Features
+
+- add `ACTOR_PERMISSION_LEVEL` to env var interface ([#516](https://github.com/apify/apify-sdk-js/issues/516)) ([ca3a4df](https://github.com/apify/apify-sdk-js/commit/ca3a4df990ed15f896b59d5018e5ded955d6f9b6))
+- Add `inherit` timeout option for `Actor.call` and `Actor.start` ([#518](https://github.com/apify/apify-sdk-js/issues/518)) ([4bf3c0e](https://github.com/apify/apify-sdk-js/commit/4bf3c0e030e6bacd4a67db25266afafa06f0d4c7))
+
 ## [3.5.2](https://github.com/apify/apify-sdk-js/compare/apify@3.5.1...apify@3.5.2) (2025-11-12)
 
 ### Bug Fixes
