@@ -48,7 +48,11 @@ export function createPatchedApifyClient(
                 });
 
             if (limitedItems.length > 0) {
-                await super.pushItems(limitedItems as string[] | Data[]);
+                await super.pushItems(
+                    Array.isArray(items)
+                        ? (limitedItems as string[] | Data[])
+                        : limitedItems[0],
+                );
             }
 
             if (
