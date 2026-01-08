@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, test } from 'vitest';
 
 import log from '@apify/log';
 
-import { Actor } from '../../packages/apify/src/index.js';
+import { Actor } from '../../src/index.js';
 import { MemoryStorageEmulator } from '../MemoryStorageEmulator.js';
 
 describe('ChargingManager', () => {

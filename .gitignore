@@ -26,6 +26,5 @@ tsconfig.tsbuildinfo
 apify_storage
 crawlee_storage
 storage
-.turbo
 *.tgz
 mise.toml
