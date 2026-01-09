@@ -60,9 +60,9 @@ jobs:
             - name: Publish package (latest)
               if: ${{ inputs.tag == 'latest' }}
               run: |
-                  npm publish --provenance
+                  npm publish
 
             - name: Publish package (beta -> dist-tag next)
               if: ${{ inputs.tag == 'beta' }}
               run: |
-                  npm publish --tag next --provenance
+                  npm publish --tag next
