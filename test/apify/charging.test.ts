@@ -1,9 +1,9 @@
+import { Actor } from 'apify';
 import type { MockInstance } from 'vitest';
 import { afterEach, beforeEach, describe, expect, test } from 'vitest';
 
 import log from '@apify/log';
 
-import { Actor } from '../../src/index.js';
 import { MemoryStorageEmulator } from '../MemoryStorageEmulator.js';
 
 describe('ChargingManager', () => {
