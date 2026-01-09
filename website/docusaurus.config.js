@@ -134,7 +134,7 @@ module.exports = {
                     );
                 },
                 packages: packages.map((name) => ({
-                    path: `packages/${name}`,
+                    path: `.`,
                 })),
                 typedocOptions: {
                     excludeExternals: false,

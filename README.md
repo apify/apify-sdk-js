@@ -12,9 +12,9 @@ This monorepo also used to hold the source code of generic scraper Actors. These
 
 > Would you like to work with us on Crawlee, Apify SDK or similar projects? [We are hiring!](https://apify.com/jobs#senior-node.js-engineer)
 
-| package                               | version                                                                                       |
-| ------------------------------------- | --------------------------------------------------------------------------------------------- |
-| [`apify`](./packages/apify/README.md) | [![NPM version](https://img.shields.io/npm/v/apify.svg)](https://www.npmjs.com/package/apify) |
+| package                                                                | version                                                                                       |
+| ---------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| [`apify`](https://github.com/apify/apify-sdk-js/blob/master/README.md) | [![NPM version](https://img.shields.io/npm/v/apify.svg)](https://www.npmjs.com/package/apify) |
 
 ## Apify SDK
 
