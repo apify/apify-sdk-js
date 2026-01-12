@@ -49,20 +49,9 @@ jobs:
             - name: Build module
               run: npm run build
 
-            - name: Set beta version
+            - name: Check version consistency and bump pre-release version (beta only)
               if: ${{ inputs.tag == 'beta' }}
-              run: |
-                  BASE_VERSION=$(node -p "require('./package.json').version")
-                  BETA_VERSION="${BASE_VERSION}-beta.${GITHUB_RUN_NUMBER}"
-                  npm version "$BETA_VERSION" --no-git-tag-version
-                  node -p "require('./package.json').version"
+              run: node ./.github/scripts/before-beta-release.js
 
-            - name: Publish package (latest)
-              if: ${{ inputs.tag == 'latest' }}
-              run: |
-                  npm publish
-
-            - name: Publish package (beta -> dist-tag next)
-              if: ${{ inputs.tag == 'beta' }}
-              run: |
-                  npm publish --tag next
+            - name: Publish to NPM
+              run: npm publish --tag ${{ inputs.tag }}
