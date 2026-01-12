@@ -21,8 +21,6 @@ Apify SDK requires [Node.js](https://nodejs.org/en/) 16 or later. Add Apify SDK 
 npm install apify crawlee playwright
 ```
 
-> For this example, we'll also install the [`crawlee`](https://npmjs.org/crawlee) module, as it now provides the crawlers that were previously exported by Apify SDK. If you don't plan to use crawlers in your Actors, then you don't need to install it. Keep in mind that neither `playwright` nor `puppeteer` are bundled with `crawlee` in order to reduce install size and allow greater flexibility. That's why we manually install it with NPM. You can choose one, both, or neither.
-
 To initialize your Actor and to stop it use the `Actor.init()` and `Actor.exit()` functions. You also may use `Actor.main()` function for cases with multiple crawlers in one context.
 
 ### Using `Actor.init()` and `Actor.exit()`
