@@ -39,21 +39,6 @@ await Actor.setValue('OUTPUT', {
 await Actor.exit();
 ```
 
-### Using `Actor.main()`
-
-```typescript
-import { Actor } from 'apify';
-
-await Actor.main(async () => {
-    const output = {
-        message: 'Hello from Apify SDK!',
-        input,
-    };
-
-    await Actor.setValue('OUTPUT', output);
-});
-```
-
 > You can also install the [`crawlee`](https://npmjs.org/crawlee) module, as it now provides the crawlers that were previously exported by Apify SDK. If you don't plan to use crawlers in your Actors, then you don't need to install it. Keep in mind that neither `playwright` nor `puppeteer` are bundled with `crawlee` in order to reduce install size and allow greater flexibility. That's why we manually install it with NPM. You can choose one, both, or neither. For more information and example please check [`documentation.`](https://docs.apify.com/sdk/js/docs/guides/apify-platform#running-crawlee-code-as-an-actor)
 
 ## Support
