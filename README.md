@@ -7,7 +7,7 @@
 
 ## Upgrading from v2
 
-A lot of things have changed since version 2 of the Apify SDK, including the split of the crawlers to the new [`crawlee`](https://npmjs.org/crawlee) module. We've written a guide to help you easily migrate from v2 to v3. Visit the [Upgrading Guide](https://docs.apify.com/sdk/js/docs/upgrading/upgrading-to-v3) to find out what changes you need to make (especially the section related to this very [Apify SDK](https://docs.apify.com/sdk/js/docs/upgrading/upgrading-to-v3#apify-sdk)), and, if you encounter any issues, join our [Discord server](https://discord.gg/jyEM2PRvMU) for help!
+Visit the [Upgrading Guide](https://docs.apify.com/sdk/js/docs/upgrading/upgrading-to-v3) to find out what changes you need to make (especially the section related to this very [Apify SDK](https://docs.apify.com/sdk/js/docs/upgrading/upgrading-to-v3#apify-sdk)), and, if you encounter any issues, join our [Discord server](https://discord.gg/jyEM2PRvMU) for help!
 
 ## Quick Start
 
@@ -16,10 +16,6 @@ If you want to learn more, proceed to the [Apify Platform](https://docs.apify.co
 guide that will take you step by step through running your Actor on Apify's platform.
 
 Apify SDK requires [Node.js](https://nodejs.org/en/) 16 or later. Add Apify SDK to any Node.js project by running:
-
-```bash
-npm install apify crawlee playwright
-```
 
 To initialize your Actor and to stop it use the `Actor.init()` and `Actor.exit()` functions. You also may use `Actor.main()` function for cases with multiple crawlers in one context.
 
