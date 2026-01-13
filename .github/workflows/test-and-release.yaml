@@ -122,3 +122,13 @@ jobs:
 
             - name: Install Dependencies
               run: npm ci --force
+
+            - name: Publish beta to npm
+              uses: apify/workflows/execute-workflow@main
+              with:
+                  workflow: publish-to-npm.yaml
+                  inputs: >
+                      {
+                          "ref": "${{ github.sha }}",
+                          "tag": "beta"
+                      }
