@@ -17,6 +17,10 @@ guide that will take you step by step through running your Actor on Apify's plat
 
 Apify SDK requires [Node.js](https://nodejs.org/en/) 16 or later. Add Apify SDK to any Node.js project by running:
 
+```bash
+npm install apify
+```
+
 To initialize your Actor and to stop it use the `Actor.init()` and `Actor.exit()` functions. You also may use `Actor.main()` function for cases with multiple crawlers in one context.
 
 ### Using `Actor.init()` and `Actor.exit()`
