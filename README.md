@@ -23,8 +23,6 @@ npm install apify
 
 To initialize your Actor and to stop it use the `Actor.init()` and `Actor.exit()` functions. You also may use `Actor.main()` function for cases with multiple crawlers in one context.
 
-### Using `Actor.init()` and `Actor.exit()`
-
 ```typescript
 import { Actor } from 'apify';
 
