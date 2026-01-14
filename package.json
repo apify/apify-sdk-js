@@ -1,5 +1,5 @@
 {
-    "name": "apify-sdk-js",
+    "name": "apify",
     "version": "3.5.3",
     "description": "The scalable web crawling and scraping library for JavaScript/Node.js. Enables development of data extraction and web automation jobs (not only) with headless Chrome and Puppeteer.",
     "engines": {
@@ -43,9 +43,6 @@
         "url": "https://github.com/apify/apify-sdk-js/issues"
     },
     "homepage": "https://docs.apify.com/sdk/js",
-    "publishConfig": {
-        "access": "public"
-    },
     "scripts": {
         "prepare": "husky",
         "clean": "rimraf ./dist",
