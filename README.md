@@ -5,10 +5,6 @@
 [![Chat on discord](https://img.shields.io/discord/801163717915574323?label=discord)](https://discord.gg/jyEM2PRvMU)
 [![Build Status](https://github.com/apify/apify-sdk-js/actions/workflows/test-and-release.yaml/badge.svg?branch=master)](https://github.com/apify/apify-sdk-js/actions/workflows/test-and-release.yaml)
 
-## Upgrading from v2
-
-Visit the [Upgrading Guide](https://docs.apify.com/sdk/js/docs/upgrading/upgrading-to-v3) to find out what changes you need to make (especially the section related to this very [Apify SDK](https://docs.apify.com/sdk/js/docs/upgrading/upgrading-to-v3#apify-sdk)), and, if you encounter any issues, join our [Discord server](https://discord.gg/jyEM2PRvMU) for help!
-
 ## Quick Start
 
 This short tutorial will set you up to start using Apify SDK in a minute or two.
@@ -43,6 +39,10 @@ await Actor.exit();
 
 If you find any bug or issue with the Apify SDK, please [submit an issue on GitHub](https://github.com/apify/apify-sdk-js/issues).
 For questions, you can ask on [Stack Overflow](https://stackoverflow.com/questions/tagged/apify) or contact support@apify.com
+
+## Upgrading
+
+Visit the [Upgrading Guide](https://docs.apify.com/sdk/js/docs/upgrading) to find out what changes you might want to make, and, if you encounter any issues, join our [Discord server](https://discord.gg/jyEM2PRvMU) for help!
 
 ## Contributing
 
