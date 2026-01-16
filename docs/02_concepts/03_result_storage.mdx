@@ -6,7 +6,7 @@ title: Result Storage
 import ApiLink from '@site/src/components/ApiLink';
 
 The Apify SDK has several result storage types that are useful for specific tasks. The data is stored either on local disk to a directory defined by the
-`APIFY_LOCAL_STORAGE_DIR` environment variable, or on the [Apify platform](../guides/apify-platform) under the user account
+`APIFY_LOCAL_STORAGE_DIR` environment variable, or on the [Apify platform](./01_actor_lifecycle) under the user account
 identified by the API token defined by the `APIFY_TOKEN` environment variable. If neither of these variables is defined, by default Apify SDK sets
 `APIFY_LOCAL_STORAGE_DIR` to `./storage` in the current working directory and prints a warning.
 
@@ -67,7 +67,7 @@ const value = await store.getValue('some-key');
 await store.setValue('some-key', null);
 ```
 
-To see a real-world example of how to get the input from the key-value store, see the [Screenshots](../examples/capture-screenshot) example.
+To see a real-world example of how to get the input from the key-value store, see the [Screenshots](../03_guides/puppeteer_capture_screenshot) example.
 
 ## Dataset
 
@@ -75,7 +75,7 @@ Datasets are used to store structured data where each object stored has the same
 can imagine a dataset as a table, where each object is a row and its attributes are columns. Dataset is an append-only storage - you can only add new
 records to it but you cannot modify or remove existing records.
 
-When the dataset is stored on the [Apify platform](../guides/apify-platform), you can export its data to the following formats: HTML,
+When the dataset is stored on the [Apify platform](./01_actor_lifecycle), you can export its data to the following formats: HTML,
 JSON, CSV, Excel, XML and RSS. The datasets are displayed on the actor run details page and in the
 [Storage](https://console.apify.com/storage) section in the Apify Console. The actual data is exported using the
 [Get dataset items](https://apify.com/docs/api/v2#/reference/datasets/item-collection/get-items) Apify API endpoint. This
@@ -113,4 +113,4 @@ await dataset.pushData({ foo: 'bar' });
 await dataset.pushData([{ foo: 'bar2', col2: 'val2' }, { col3: 123 }]);
 ```
 
-To see how to use the dataset to store crawler results, see the [Cheerio Crawler](../examples/cheerio-crawler) example.
+To see how to use the dataset to store crawler results, see the [Cheerio Crawler](../03_guides/cheerio_crawler) example.
