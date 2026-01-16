@@ -4,8 +4,7 @@ const versions = require('./versions.json');
 
 const { absoluteUrl } = config;
 
-const packages = ['apify'];
-const packagesOrder = ['apify'];
+const packagePath = '.';
 
 /** @type {Partial<import('@docusaurus/types').DocusaurusConfig>} */
 module.exports = {
@@ -127,15 +126,7 @@ module.exports = {
                 projectRoot: `${__dirname}/..`,
                 changelogs: true,
                 readmes: true,
-                sortPackages: (a, b) => {
-                    return (
-                        packagesOrder.indexOf(a.packageName) -
-                        packagesOrder.indexOf(b.packageName)
-                    );
-                },
-                packages: packages.map((name) => ({
-                    path: `packages/${name}`,
-                })),
+                packages: [{ path: packagePath }],
                 typedocOptions: {
                     excludeExternals: false,
                     externalSymbolLinkMappings: {

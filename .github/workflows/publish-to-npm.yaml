@@ -40,15 +40,6 @@ jobs:
                   cache: 'npm'
                   cache-dependency-path: 'package-lock.json'
 
-            - name: Turbo cache
-              id: turbo-cache
-              uses: actions/cache@v5
-              with:
-                  path: .turbo
-                  key: turbo-${{ github.job }}-${{ github.ref_name }}-${{ github.sha }}
-                  restore-keys: |
-                      turbo-${{ github.job }}-${{ github.ref_name }}-
-
             - name: Update NPM
               run: npm install -g npm@latest
 
@@ -58,12 +49,9 @@ jobs:
             - name: Build module
               run: npm run build
 
-            - name: Publish package (latest)
-              if: ${{ inputs.tag == 'latest' }}
-              run: |
-                  npx lerna publish from-package --contents dist --yes
-
-            - name: Publish package (beta)
+            - name: Check version consistency and bump pre-release version (beta only)
               if: ${{ inputs.tag == 'beta' }}
-              run: |
-                  npx lerna publish --canary --preid beta --dist-tag next --yes
+              run: node ./.github/scripts/before-beta-release.js
+
+            - name: Publish to NPM
+              run: npm publish --tag ${{ inputs.tag }}

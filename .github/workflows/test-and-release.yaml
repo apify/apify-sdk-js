@@ -42,15 +42,6 @@ jobs:
                   cache: 'npm'
                   cache-dependency-path: 'package-lock.json'
 
-            - name: Turbo cache
-              id: turbo-cache
-              uses: actions/cache@v5
-              with:
-                  path: .turbo
-                  key: turbo-${{ github.job }}-${{ github.ref_name }}-${{ github.sha }}
-                  restore-keys: |
-                      turbo-${{ github.job }}-${{ github.ref_name }}-
-
             - name: Install Dependencies
               run: |
                   npm ci --force
@@ -77,15 +68,6 @@ jobs:
                   cache: 'npm'
                   cache-dependency-path: 'package-lock.json'
 
-            - name: Turbo cache
-              id: turbo-cache
-              uses: actions/cache@v5
-              with:
-                  path: .turbo
-                  key: turbo-${{ github.job }}-${{ github.ref_name }}-${{ github.sha }}
-                  restore-keys: |
-                      turbo-${{ github.job }}-${{ github.ref_name }}-
-
             - name: Install Dependencies
               run: npm ci --force
 
@@ -99,7 +81,6 @@ jobs:
     lint:
         name: Lint
         runs-on: ubuntu-22.04
-
         steps:
             - name: Checkout repository
               uses: actions/checkout@v6
@@ -110,15 +91,6 @@ jobs:
                   node-version: 24
                   cache: 'npm'
                   cache-dependency-path: 'package-lock.json'
-
-            - name: Turbo cache
-              id: turbo-cache
-              uses: actions/cache@v5
-              with:
-                  path: .turbo
-                  key: turbo-${{ github.job }}-${{ github.ref_name }}-${{ github.sha }}
-                  restore-keys: |
-                      turbo-${{ github.job }}-${{ github.ref_name }}-
 
             - name: Install Dependencies
               run: npm ci --force
@@ -148,31 +120,11 @@ jobs:
                   cache: 'npm'
                   cache-dependency-path: 'package-lock.json'
 
-            - name: Turbo cache
-              id: turbo-cache
-              uses: actions/cache@v5
-              with:
-                  path: .turbo
-                  key: turbo-${{ github.job }}-${{ github.ref_name }}-${{ github.sha }}
-                  restore-keys: |
-                      turbo-${{ github.job }}-${{ github.ref_name }}-
-
             - name: Install Dependencies
               run: npm ci --force
 
-            - name: Check for changes
-              id: changed_packages
-              run: |
-                  echo "changed_packages=$(npx lerna changed -p | wc -l | xargs)" >> "$GITHUB_OUTPUT"
-
-            - name: Check for changes 2
-              if: steps.changed_packages.outputs.changed_packages == '0'
-              run: |
-                  echo "no changes detected by lerna"
-
             - name: Publish beta to npm
               uses: apify/workflows/execute-workflow@main
-              if: steps.changed_packages.outputs.changed_packages != '0'
               with:
                   workflow: publish-to-npm.yaml
                   inputs: >

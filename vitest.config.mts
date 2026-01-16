@@ -23,11 +23,7 @@ export default defineConfig({
         alias: [
             {
                 find: 'apify',
-                replacement: resolve(__dirname, './packages/apify/src'),
-            },
-            {
-                find: '@apify/scraper-tools',
-                replacement: resolve(__dirname, './packages/scraper-tools/src'),
+                replacement: resolve(__dirname, './src'),
             },
         ],
     },

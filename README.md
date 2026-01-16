@@ -1,30 +1,48 @@
-# Apify SDK monorepo
+# Apify SDK
 
 [![npm version](https://badge.fury.io/js/apify.svg)](https://www.npmjs.com/package/apify)
 [![Downloads](https://img.shields.io/npm/dm/apify.svg)](https://www.npmjs.com/package/apify)
 [![Chat on discord](https://img.shields.io/discord/801163717915574323?label=discord)](https://discord.gg/jyEM2PRvMU)
 [![Build Status](https://github.com/apify/apify-sdk-js/actions/workflows/test-and-release.yaml/badge.svg?branch=master)](https://github.com/apify/apify-sdk-js/actions/workflows/test-and-release.yaml)
 
-Apify SDK is the core set of tools and utilities that we've built to help make your interaction with the [Apify Platform](https://apify.com) easier.
-This monorepo holds all the components and tools that we've created for it!
+## Quick Start
 
-This monorepo also used to hold the source code of generic scraper Actors. These have been moved to a separate repository - [apify/actor-scraper](https://github.com/apify/actor-scraper).
+This short tutorial will set you up to start using Apify SDK in a minute or two.
+If you want to learn more, proceed to the [Apify Platform](https://docs.apify.com/sdk/js/docs/guides/apify-platform)
+guide that will take you step by step through running your Actor on Apify's platform.
 
-> Would you like to work with us on Crawlee, Apify SDK or similar projects? [We are hiring!](https://apify.com/jobs#senior-node.js-engineer)
+Apify SDK requires [Node.js](https://nodejs.org/en/) 16 or later. Add Apify SDK to any Node.js project by running:
 
-| package                               | version                                                                                       |
-| ------------------------------------- | --------------------------------------------------------------------------------------------- |
-| [`apify`](./packages/apify/README.md) | [![NPM version](https://img.shields.io/npm/v/apify.svg)](https://www.npmjs.com/package/apify) |
+```bash
+npm install apify
+```
 
-## Apify SDK
+To initialize your Actor and to stop it use the `Actor.init()` and `Actor.exit()` functions. You also may use `Actor.main()` function for cases with multiple crawlers in one context.
 
-Apify SDK provides the tools required to run your own Apify Actors! The crawlers and scraping related tools, previously included in Apify SDK (v2), have been split into
-a brand-new module - [`crawlee`](https://npmjs.org/crawlee) (which you can use outside Apify too!), while keeping the Apify specific parts in this module!
+```typescript
+import { Actor } from 'apify';
+
+await Actor.init();
+
+const input = (await Actor.getInput()) ?? {};
+await Actor.setValue('OUTPUT', {
+    message: 'Hello from Apify SDK!',
+    input,
+});
+
+await Actor.exit();
+```
+
+> You can also install the [`crawlee`](https://npmjs.org/crawlee) module, as it now provides the crawlers that were previously exported by Apify SDK. If you don't plan to use crawlers in your Actors, then you don't need to install it. Keep in mind that neither `playwright` nor `puppeteer` are bundled with `crawlee` in order to reduce install size and allow greater flexibility. That's why we manually install it with NPM. You can choose one, both, or neither. For more information and example please check [`documentation.`](https://docs.apify.com/sdk/js/docs/guides/apify-platform#running-crawlee-code-as-an-actor)
 
 ## Support
 
 If you find any bug or issue with the Apify SDK, please [submit an issue on GitHub](https://github.com/apify/apify-sdk-js/issues).
 For questions, you can ask on [Stack Overflow](https://stackoverflow.com/questions/tagged/apify) or contact support@apify.com
+
+## Upgrading
+
+Visit the [Upgrading Guide](https://docs.apify.com/sdk/js/docs/upgrading) to find out what changes you might want to make, and, if you encounter any issues, join our [Discord server](https://discord.gg/jyEM2PRvMU) for help!
 
 ## Contributing
 
@@ -37,3 +55,8 @@ see [CONTRIBUTING.md](https://github.com/apify/apify-sdk-js/blob/master/CONTRIBU
 
 This project is licensed under the Apache License 2.0 -
 see the [LICENSE.md](https://github.com/apify/apify-sdk-js/blob/master/LICENSE.md) file for details.
+
+## Acknowledgments
+
+Many thanks to [Chema Balsas](https://www.npmjs.com/~jbalsas) for giving up the `apify` package name
+on NPM and renaming his project to [jsdocify](https://www.npmjs.com/package/jsdocify).
