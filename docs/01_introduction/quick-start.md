@@ -74,7 +74,7 @@ await Actor.exit();
 - **`Actor.setValue()`** - Stores data in the default key-value store
 - **`Actor.exit()`** - Gracefully shuts down the Actor and saves its state
 
-## Step 4: Next steps
+## Next steps
 
 ### Guides
 
