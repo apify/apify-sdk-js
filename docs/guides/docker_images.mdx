@@ -107,7 +107,9 @@ FROM apify/actor-node-playwright-chrome:24-1.52.0
 ```
 
 :::warning Version matching is important
+
 The version in `package.json` **must match** the version in the Docker image tag. If they don't match, npm will attempt to install a different version, which can cause compatibility issues with the pre-installed browser binaries.
+
 :::
 
 ### Alternative approach (using `*`)
