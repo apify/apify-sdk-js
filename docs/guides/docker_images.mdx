@@ -54,6 +54,23 @@ Similarly `apify/actor-node-playwright-firefox:24-1.54.1` runs on Node.js 24 and
 
 Installing `apify/actor-node-puppeteer-chrome` (without a tag) will install the latest available version of Node.js and `puppeteer`.
 
+### Finding available tags
+
+To see all available tags for an image, you can browse Docker Hub directly:
+
+- [actor-node-playwright-chrome tags](https://hub.docker.com/r/apify/actor-node-playwright-chrome/tags)
+- [actor-node-playwright tags](https://hub.docker.com/r/apify/actor-node-playwright/tags)
+- [actor-node-playwright-firefox tags](https://hub.docker.com/r/apify/actor-node-playwright-firefox/tags)
+- [actor-node-playwright-webkit tags](https://hub.docker.com/r/apify/actor-node-playwright-webkit/tags)
+- [actor-node-puppeteer-chrome tags](https://hub.docker.com/r/apify/actor-node-puppeteer-chrome/tags)
+- [actor-node tags](https://hub.docker.com/r/apify/actor-node/tags)
+
+You can also query available tags programmatically using the Docker Hub API:
+
+```bash
+curl -s "https://registry.hub.docker.com/v2/repositories/apify/actor-node-playwright-chrome/tags?page_size=50" | jq '.results[].name'
+```
+
 ### Pre-release tags
 
 We also build pre-release versions of the images to test the changes we make. Those are typically denoted by a `beta` suffix, but it can vary depending on our needs. If you need to try a pre-release version, you can do it like this:
@@ -70,11 +87,32 @@ FROM apify/actor-node-puppeteer-chrome:24-24.14.0-beta
 
 ## Best practices
 
-- Node.js version tag should **always** be used.
-- The automation library version tag should be used for **added security**.
-- Asterisk `*` should be used as the automation library version in our `package.json` files.
+For production Actors, we recommend pinning both the Node.js version and the automation library version in your Dockerfile, and matching the library version in your `package.json`. This ensures reproducible builds across environments.
 
-It makes sure the pre-installed version of Puppeteer or Playwright is not re-installed on build. This is important, because those libraries are only guaranteed to work with specific versions of browsers, and those browsers come pre-installed in the image.
+### Recommended approach (pinned versions)
+
+Pin the automation library version in both your Dockerfile tag and `package.json`:
+
+```dockerfile
+FROM apify/actor-node-playwright-chrome:24-1.52.0
+```
+
+```json
+{
+    "dependencies": {
+        "crawlee": "^3.0.0",
+        "playwright": "1.52.0"
+    }
+}
+```
+
+:::warning Version matching is important
+The version in `package.json` **must match** the version in the Docker image tag. If they don't match, npm will attempt to install a different version, which can cause compatibility issues with the pre-installed browser binaries.
+:::
+
+### Alternative approach (using `*`)
+
+You can use `*` as the automation library version in `package.json` to automatically use whatever version is pre-installed in the Docker image:
 
 ```dockerfile
 FROM apify/actor-node-playwright-chrome:24
@@ -88,6 +126,8 @@ FROM apify/actor-node-playwright-chrome:24
     }
 }
 ```
+
+This approach prevents the library from being re-installed on build, which is useful because the pre-installed libraries are only guaranteed to work with the specific browser versions bundled in the image. However, it provides less control over exactly which version you're running, since the Docker image tag without a library version may be updated over time.
 
 ### Warning about image size
 
