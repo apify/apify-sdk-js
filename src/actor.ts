@@ -1051,11 +1051,17 @@ export class Actor<Data extends Dictionary = Dictionary> {
         if (eventName?.startsWith('apify-')) {
             throw new Error(
                 `Cannot charge for synthetic event '${eventName}' manually`,
-            ); // TODO this should be handled on charging manager level, too (but we also need to track dataset pushes manually 🙈)
+            );
         }
 
         const dataset = await this.openDataset();
 
+        // Two code paths for charging:
+        // 1. Intercepted client: PatchedDatasetClient intercepts pushItems() calls, handling charging
+        //    internally. This is needed because Crawlee's Dataset may call pushItems() directly,
+        //    bypassing Actor.pushData(). We propagate eventName via AsyncLocalStorage context.
+        // 2. Direct charging: When using a non-patched client (e.g., forceCloud option or custom client),
+        //    we handle charging here before delegating to the dataset.
         if (this.usesPushDataInterception(dataset)) {
             return await this.pushDataViaInterceptedClient(
                 dataset,
@@ -1064,7 +1070,11 @@ export class Actor<Data extends Dictionary = Dictionary> {
             );
         }
 
-        return await this.pushDataViaDirectCharging(dataset, item, eventName);
+        return await this.pushDataWithExplicitCharging(
+            dataset,
+            item,
+            eventName,
+        );
     }
 
     /**
@@ -2291,7 +2301,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
         );
     }
 
-    private async pushDataViaDirectCharging(
+    private async pushDataWithExplicitCharging(
         dataset: Dataset,
         items: Data | Data[],
         explicitEventName: string | undefined,

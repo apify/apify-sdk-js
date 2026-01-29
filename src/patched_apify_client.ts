@@ -16,12 +16,21 @@ export const USES_PUSH_DATA_INTERCEPTION = Symbol(
     'apify:uses-push-data-interception',
 );
 
+/**
+ * Context of a single Actor.pushData() call that is shared with the PatchedDatasetClient.pushItems() method calls.
+ *
+ * Purpose:
+ * 1. Propagate eventName: When Actor.pushData() is called with an eventName,
+ *    this context allows the intercepted pushItems() to know which event to charge.
+ * 2. Aggregate ChargeResults: A single Actor.pushData() call may trigger multiple
+ *    DatasetClient.pushItems() calls (due to batching in Crawlee). This context
+ *    aggregates the ChargeResult from all those calls into a single result.
+ */
 export interface PpeAwarePushDataContext {
     eventName: string | undefined;
     chargeResult?: ChargeResult;
 }
 
-// Shared context used by Actor.pushData() and PatchedDatasetClient.pushItems().
 export const pushDataChargingContext =
     new AsyncLocalStorage<PpeAwarePushDataContext>();
 
