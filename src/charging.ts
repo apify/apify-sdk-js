@@ -356,7 +356,10 @@ export class ChargingManager {
         /* END OF CRITICAL SECTION */
 
         if (this.isAtHome) {
-            if (this.pricingInfo[eventName] !== undefined) {
+            if (eventName.startsWith('apify-')) {
+                // Synthetic events (e.g. apify-default-dataset-item) are tracked locally only,
+                // the platform handles them automatically based on dataset writes.
+            } else if (this.pricingInfo[eventName] !== undefined) {
                 await this.apifyClient
                     .run(this.actorRunId!)
                     .charge({ eventName, count: chargedCount });
