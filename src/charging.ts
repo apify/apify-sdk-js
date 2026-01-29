@@ -565,14 +565,9 @@ export async function pushDataAndCharge<T>({
             }),
         );
 
-        if (eventName !== undefined) {
-            return results[eventName];
-        }
-
-        // Return synthetic event result when pushing to default dataset without explicit eventName.
-        if (isDefaultDataset && results[DEFAULT_DATASET_ITEM_EVENT]) {
-            return results[DEFAULT_DATASET_ITEM_EVENT];
-        }
+        // Merge all charge results so that eventChargeLimitReached reflects
+        // whether ANY of the charged events hit their limit.
+        return Object.values(results).reduce(mergeChargeResults);
     }
 
     return {
