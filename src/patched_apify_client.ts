@@ -8,6 +8,7 @@ import {
     type ChargeResult,
     type ChargingManager,
     mergeChargeResults,
+    pushDataAndCharge,
 } from './charging.js';
 import type { Configuration } from './configuration.js';
 
@@ -39,57 +40,26 @@ export function createPatchedApifyClient(
         ): Promise<void> {
             const context = pushDataChargingContext.getStore();
 
-            const { limitedItems, eventsToCharge } = actor
-                .getChargingManager()
-                .calculatePushDataLimits({
-                    items,
-                    eventName: context?.eventName,
-                    isDefaultDataset: true,
-                });
-
-            if (limitedItems.length > 0) {
-                await super.pushItems(
-                    Array.isArray(items)
-                        ? (limitedItems as string[] | Data[])
-                        : limitedItems[0],
-                );
-            }
-
-            if (
-                Object.values(eventsToCharge).length === 0 ||
-                Object.values(eventsToCharge).reduce((acc, val) => acc + val) <=
-                    0
-            ) {
-                return;
-            }
-
-            const results: Record<string, ChargeResult> = {};
-            await Promise.all(
-                Object.entries(eventsToCharge).map(
-                    async ([eventName, count]) => {
-                        results[eventName] = await actor
-                            .getChargingManager()
-                            .charge({
-                                eventName,
-                                count,
-                            });
-                    },
-                ),
-            );
+            const result = await pushDataAndCharge({
+                chargingManager: actor.getChargingManager(),
+                items,
+                eventName: context?.eventName,
+                isDefaultDataset: true,
+                pushFn: async (limitedItems) =>
+                    super.pushItems(limitedItems as typeof items),
+            });
 
             if (!context) return;
 
             // For a single invocation of Dataset.pushData, there may be more than one call to DatasetClient.pushItems.
             // Aggregate `ChargeResult` objects across such calls.
-            if (context.eventName !== undefined) {
-                if (context.chargeResult === undefined) {
-                    context.chargeResult = results[context.eventName];
-                } else {
-                    context.chargeResult = mergeChargeResults(
-                        context.chargeResult,
-                        results[context.eventName],
-                    );
-                }
+            if (context.chargeResult === undefined) {
+                context.chargeResult = result;
+            } else {
+                context.chargeResult = mergeChargeResults(
+                    context.chargeResult,
+                    result,
+                );
             }
         }
     }

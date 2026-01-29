@@ -48,7 +48,7 @@ import log from '@apify/log';
 import { addTimeoutToPromise } from '@apify/timeout';
 
 import type { ChargeOptions, ChargeResult } from './charging.js';
-import { ChargingManager, DEFAULT_DATASET_ITEM_EVENT } from './charging.js';
+import { ChargingManager, pushDataAndCharge } from './charging.js';
 import { Configuration } from './configuration.js';
 import {
     getDefaultsFromInputSchema,
@@ -2310,52 +2310,13 @@ export class Actor<Data extends Dictionary = Dictionary> {
         const isDefaultDataset =
             dataset.id === this.config.get('defaultDatasetId');
 
-        const { limitedItems, eventsToCharge } =
-            this.chargingManager.calculatePushDataLimits({
-                items,
-                eventName: explicitEventName,
-                isDefaultDataset,
-            });
-
-        if (limitedItems.length > 0) {
-            // Preserve original `Dataset.pushData()` call shape for single items.
-            await dataset.pushData(
-                Array.isArray(items) ? limitedItems : limitedItems[0],
-            );
-        }
-
-        // Always return `ChargeResult` when user explicitly asked to charge for an event.
-        // This includes the case where the count is 0 (e.g. budget exhausted), because
-        // `ChargingManager.charge({ count: 0 })` is a cheap no-op and does not call the API.
-        if (Object.keys(eventsToCharge).length > 0) {
-            const results: Record<string, ChargeResult> = {};
-            await Promise.all(
-                Object.entries(eventsToCharge).map(
-                    async ([eventName, count]) => {
-                        results[eventName] = await this.chargingManager.charge({
-                            eventName,
-                            count,
-                        });
-                    },
-                ),
-            );
-
-            if (explicitEventName !== undefined) {
-                return results[explicitEventName];
-            }
-
-            // Return synthetic event result when pushing to default dataset without explicit eventName.
-            // This allows developers to detect when budget is exhausted.
-            if (isDefaultDataset && results[DEFAULT_DATASET_ITEM_EVENT]) {
-                return results[DEFAULT_DATASET_ITEM_EVENT];
-            }
-        }
-
-        return {
-            eventChargeLimitReached: false,
-            chargedCount: 0,
-            chargeableWithinLimit: {},
-        };
+        return pushDataAndCharge({
+            chargingManager: this.chargingManager,
+            items,
+            eventName: explicitEventName,
+            isDefaultDataset,
+            pushFn: async (limitedItems) => dataset.pushData(limitedItems),
+        });
     }
 
     private async _openStorage<T extends IStorage>(

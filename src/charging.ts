@@ -517,3 +517,67 @@ export class ChargingManager {
         };
     }
 }
+
+/**
+ * Helper for PPE-aware pushing of data to the dataset.
+ *
+ * 1. Calculate limits based on budget
+ * 2. Push limited items via the provided callback
+ * 3. Charge for the events
+ *
+ * @internal
+ */
+export async function pushDataAndCharge<T>({
+    chargingManager,
+    items,
+    eventName,
+    isDefaultDataset,
+    pushFn,
+}: {
+    chargingManager: ChargingManager;
+    items: T | T[];
+    eventName: string | undefined;
+    isDefaultDataset: boolean;
+    pushFn: (limitedItems: T | T[]) => Promise<void>;
+}): Promise<ChargeResult> {
+    const { limitedItems, eventsToCharge } =
+        chargingManager.calculatePushDataLimits({
+            items,
+            eventName,
+            isDefaultDataset,
+        });
+
+    if (limitedItems.length > 0) {
+        // Preserve original call shape for single items
+        await pushFn(
+            Array.isArray(items) ? limitedItems : (limitedItems[0] as T | T[]),
+        );
+    }
+
+    if (Object.keys(eventsToCharge).length > 0) {
+        const results: Record<string, ChargeResult> = {};
+        await Promise.all(
+            Object.entries(eventsToCharge).map(async ([name, count]) => {
+                results[name] = await chargingManager.charge({
+                    eventName: name,
+                    count,
+                });
+            }),
+        );
+
+        if (eventName !== undefined) {
+            return results[eventName];
+        }
+
+        // Return synthetic event result when pushing to default dataset without explicit eventName.
+        if (isDefaultDataset && results[DEFAULT_DATASET_ITEM_EVENT]) {
+            return results[DEFAULT_DATASET_ITEM_EVENT];
+        }
+    }
+
+    return {
+        eventChargeLimitReached: false,
+        chargedCount: 0,
+        chargeableWithinLimit: {},
+    };
+}
