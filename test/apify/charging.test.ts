@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, expect, test } from 'vitest';
 
 import log from '@apify/log';
 
-import { mergeChargeResults } from '../../src/index.js';
+import { mergeChargeResults } from '../../src/charging.js';
 import { MemoryStorageEmulator } from '../MemoryStorageEmulator.js';
 
 /**

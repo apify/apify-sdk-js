@@ -4,7 +4,6 @@ export {
     ChargeResult,
     ActorPricingInfo,
     ChargingManager,
-    mergeChargeResults,
 } from './charging.js';
 export * from './configuration.js';
 export * from './proxy_configuration.js';
