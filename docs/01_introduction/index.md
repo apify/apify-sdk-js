@@ -10,7 +10,7 @@ The Apify SDK for JavaScript is the official library for creating [Apify Actors]
 
 Apify SDK simplifies the development of web crawlers, scrapers, data extractors and web automation jobs. It provides tools to manage and automatically scale a pool of headless browsers, to maintain queues of URLs to crawl, store crawling results to a local filesystem or into the cloud, rotate proxies and much more.
 
-The SDK is available as the [`apify`](https://www.npmjs.com/package/apify) NPM package. It can be used either stand-alone in your own applications or in [actors](https://docs.apify.com/actor) running on the [Apify Cloud](https://apify.com/).
+The SDK is available as the [`apify`](https://www.npmjs.com/package/apify) NPM package. It can be used either stand-alone in your own applications or in [Actors](https://docs.apify.com/actor) running on the [Apify Cloud](https://apify.com/).
 
 ## What are Actors
 
