@@ -4,7 +4,164 @@ import { afterEach, beforeEach, describe, expect, test } from 'vitest';
 
 import log from '@apify/log';
 
+import { mergeChargeResults } from '../../src/charging.js';
 import { MemoryStorageEmulator } from '../MemoryStorageEmulator.js';
+
+/**
+ * Sets up environment variables to simulate running on the Apify platform.
+ * Use this when you need to test behavior that depends on actual pricing info.
+ */
+function setUpPlatformEnv(
+    options: {
+        maxTotalChargeUsd?: string;
+        pricingInfo?: Record<
+            string,
+            {
+                eventTitle: string;
+                eventPriceUsd: number;
+                eventDescription?: string;
+            }
+        >;
+        chargedEventCounts?: Record<string, number>;
+    } = {},
+) {
+    delete process.env.ACTOR_TEST_PAY_PER_EVENT;
+
+    process.env.APIFY_IS_AT_HOME = '1';
+    process.env.APIFY_TOKEN = 'test-token';
+    process.env.ACTOR_RUN_ID = 'test-run-id';
+
+    if (options.maxTotalChargeUsd !== undefined) {
+        process.env.ACTOR_MAX_TOTAL_CHARGE_USD = options.maxTotalChargeUsd;
+    }
+
+    if (options.pricingInfo !== undefined) {
+        process.env.APIFY_ACTOR_PRICING_INFO = JSON.stringify({
+            pricingModel: 'PAY_PER_EVENT',
+            pricingPerEvent: {
+                actorChargeEvents: options.pricingInfo,
+            },
+        });
+    }
+
+    process.env.APIFY_CHARGED_ACTOR_EVENT_COUNTS = JSON.stringify(
+        options.chargedEventCounts ?? {},
+    );
+}
+
+/**
+ * Sets up environment variables for local pay-per-event testing.
+ * In local mode, all events cost 1 USD regardless of pricing info.
+ */
+function setUpLocalTestEnv(options: { maxTotalChargeUsd?: string } = {}) {
+    process.env.ACTOR_TEST_PAY_PER_EVENT = '1';
+
+    if (options.maxTotalChargeUsd !== undefined) {
+        process.env.ACTOR_MAX_TOTAL_CHARGE_USD = options.maxTotalChargeUsd;
+    }
+}
+
+describe('mergeChargeResults()', () => {
+    test('should sum chargedCount values', () => {
+        const a = {
+            eventChargeLimitReached: false,
+            chargedCount: 3,
+            chargeableWithinLimit: {},
+        };
+        const b = {
+            eventChargeLimitReached: false,
+            chargedCount: 5,
+            chargeableWithinLimit: {},
+        };
+        expect(mergeChargeResults(a, b).chargedCount).toBe(8);
+    });
+
+    test('should return false when both eventChargeLimitReached are false', () => {
+        const a = {
+            eventChargeLimitReached: false,
+            chargedCount: 1,
+            chargeableWithinLimit: {},
+        };
+        const b = {
+            eventChargeLimitReached: false,
+            chargedCount: 1,
+            chargeableWithinLimit: {},
+        };
+        expect(mergeChargeResults(a, b).eventChargeLimitReached).toBe(false);
+    });
+
+    test('should return true when first eventChargeLimitReached is true', () => {
+        const a = {
+            eventChargeLimitReached: true,
+            chargedCount: 1,
+            chargeableWithinLimit: {},
+        };
+        const b = {
+            eventChargeLimitReached: false,
+            chargedCount: 1,
+            chargeableWithinLimit: {},
+        };
+        expect(mergeChargeResults(a, b).eventChargeLimitReached).toBe(true);
+    });
+
+    test('should return true when second eventChargeLimitReached is true', () => {
+        const a = {
+            eventChargeLimitReached: false,
+            chargedCount: 1,
+            chargeableWithinLimit: {},
+        };
+        const b = {
+            eventChargeLimitReached: true,
+            chargedCount: 1,
+            chargeableWithinLimit: {},
+        };
+        expect(mergeChargeResults(a, b).eventChargeLimitReached).toBe(true);
+    });
+
+    test('should return true when both eventChargeLimitReached are true', () => {
+        const a = {
+            eventChargeLimitReached: true,
+            chargedCount: 1,
+            chargeableWithinLimit: {},
+        };
+        const b = {
+            eventChargeLimitReached: true,
+            chargedCount: 1,
+            chargeableWithinLimit: {},
+        };
+        expect(mergeChargeResults(a, b).eventChargeLimitReached).toBe(true);
+    });
+
+    test('should take minimum of chargeableWithinLimit for each key', () => {
+        const a = {
+            eventChargeLimitReached: false,
+            chargedCount: 1,
+            chargeableWithinLimit: { event1: 10, event2: 5 },
+        };
+        const b = {
+            eventChargeLimitReached: false,
+            chargedCount: 1,
+            chargeableWithinLimit: { event1: 3, event2: 8 },
+        };
+        const result = mergeChargeResults(a, b);
+        expect(result.chargeableWithinLimit).toEqual({ event1: 3, event2: 5 });
+    });
+
+    test('should handle empty chargeableWithinLimit objects', () => {
+        const a = {
+            eventChargeLimitReached: false,
+            chargedCount: 2,
+            chargeableWithinLimit: {},
+        };
+        const b = {
+            eventChargeLimitReached: false,
+            chargedCount: 3,
+            chargeableWithinLimit: {},
+        };
+        const result = mergeChargeResults(a, b);
+        expect(result.chargeableWithinLimit).toEqual({});
+    });
+});
 
 describe('ChargingManager', () => {
     const localStorageEmulator = new MemoryStorageEmulator();
@@ -12,9 +169,8 @@ describe('ChargingManager', () => {
     beforeEach(async () => {
         await localStorageEmulator.init();
 
-        // Set up environment for pay-per-event testing
-        process.env.ACTOR_TEST_PAY_PER_EVENT = '1';
-        process.env.ACTOR_MAX_TOTAL_CHARGE_USD = '10';
+        // Default to local test mode - individual tests can switch to platform mode
+        setUpLocalTestEnv({ maxTotalChargeUsd: '10' });
     });
 
     afterEach(async () => {
@@ -25,6 +181,7 @@ describe('ChargingManager', () => {
 
         await localStorageEmulator.destroy();
 
+        // Clean up all charging-related env vars
         delete process.env.ACTOR_TEST_PAY_PER_EVENT;
         delete process.env.ACTOR_MAX_TOTAL_CHARGE_USD;
         delete process.env.APIFY_ACTOR_PRICING_INFO;
@@ -86,31 +243,19 @@ describe('ChargingManager', () => {
         });
 
         test('should not call API when budget is exhausted during pushData', async () => {
-            // Don't use ACTOR_TEST_PAY_PER_EVENT when simulating Apify platform
-            delete process.env.ACTOR_TEST_PAY_PER_EVENT;
-
-            process.env.ACTOR_MAX_TOTAL_CHARGE_USD = '1.5';
-            process.env.APIFY_IS_AT_HOME = '1';
-            process.env.APIFY_TOKEN = 'this-wont-work';
-            process.env.ACTOR_RUN_ID = 'test-run-id';
-
-            // Set pricing info via env vars (as if coming from platform)
-            process.env.APIFY_ACTOR_PRICING_INFO = JSON.stringify({
-                pricingModel: 'PAY_PER_EVENT',
-                pricingPerEvent: {
-                    actorChargeEvents: {
-                        'some-event': {
-                            eventTitle: 'Some Event',
-                            eventPriceUsd: 1.0,
-                        },
-                        'another-event': {
-                            eventTitle: 'Another Event',
-                            eventPriceUsd: 1.0,
-                        },
+            setUpPlatformEnv({
+                maxTotalChargeUsd: '1.5',
+                pricingInfo: {
+                    'some-event': {
+                        eventTitle: 'Some Event',
+                        eventPriceUsd: 1.0,
+                    },
+                    'another-event': {
+                        eventTitle: 'Another Event',
+                        eventPriceUsd: 1.0,
                     },
                 },
             });
-            process.env.APIFY_CHARGED_ACTOR_EVENT_COUNTS = JSON.stringify({});
 
             await Actor.init();
             localStorageEmulator.reapplyStorageClient();
@@ -155,33 +300,18 @@ describe('ChargingManager', () => {
             const dataset = await Actor.openDataset();
             const items = await dataset.getData();
             expect(items.items).toHaveLength(0);
-
-            delete process.env.APIFY_IS_AT_HOME;
-            delete process.env.ACTOR_RUN_ID;
         });
 
         test('should verify charge API call with count=0 vs count>0', async () => {
-            // Don't use ACTOR_TEST_PAY_PER_EVENT when simulating Apify platform
-            delete process.env.ACTOR_TEST_PAY_PER_EVENT;
-
-            process.env.ACTOR_MAX_TOTAL_CHARGE_USD = '10.0';
-            process.env.APIFY_IS_AT_HOME = '1';
-            process.env.APIFY_TOKEN = 'this-wont-work';
-            process.env.ACTOR_RUN_ID = 'test-run-id';
-
-            // Set pricing info via env vars
-            process.env.APIFY_ACTOR_PRICING_INFO = JSON.stringify({
-                pricingModel: 'PAY_PER_EVENT',
-                pricingPerEvent: {
-                    actorChargeEvents: {
-                        'test-event': {
-                            eventTitle: 'Test Event',
-                            eventPriceUsd: 1.0,
-                        },
+            setUpPlatformEnv({
+                maxTotalChargeUsd: '10.0',
+                pricingInfo: {
+                    'test-event': {
+                        eventTitle: 'Test Event',
+                        eventPriceUsd: 1.0,
                     },
                 },
             });
-            process.env.APIFY_CHARGED_ACTOR_EVENT_COUNTS = JSON.stringify({});
 
             await Actor.init();
             localStorageEmulator.reapplyStorageClient();
@@ -223,34 +353,19 @@ describe('ChargingManager', () => {
             });
 
             test('when on the platform should ignore it and log a warning', async () => {
-                // Arrange
-
-                // Don't use ACTOR_TEST_PAY_PER_EVENT when simulating Apify platform
-                delete process.env.ACTOR_TEST_PAY_PER_EVENT;
-
-                process.env.ACTOR_MAX_TOTAL_CHARGE_USD = '10.0';
-                process.env.APIFY_IS_AT_HOME = '1';
-                process.env.APIFY_TOKEN = 'this-wont-work';
-                process.env.ACTOR_RUN_ID = 'test-run-id';
-
-                process.env.APIFY_ACTOR_PRICING_INFO = JSON.stringify({
-                    pricingModel: 'PAY_PER_EVENT',
-                    pricingPerEvent: { actorChargeEvents: {} },
+                setUpPlatformEnv({
+                    maxTotalChargeUsd: '10.0',
+                    pricingInfo: {},
                 });
-                process.env.APIFY_CHARGED_ACTOR_EVENT_COUNTS = JSON.stringify(
-                    {},
-                );
 
                 await Actor.init();
                 const chargingManager = Actor.getChargingManager();
 
-                // Act
                 const chargeResult = await chargingManager.charge({
                     eventName: 'unknown-event',
                     count: 5,
                 });
 
-                // Assert
                 expect(chargeResult).toStrictEqual({
                     chargedCount: 5,
                     eventChargeLimitReached: false,
@@ -262,7 +377,7 @@ describe('ChargingManager', () => {
             });
 
             test('when running locally should pretend to charge it', async () => {
-                process.env.ACTOR_TEST_PAY_PER_EVENT = '1';
+                setUpLocalTestEnv({ maxTotalChargeUsd: '10' });
 
                 await Actor.init();
                 const chargingManager = Actor.getChargingManager();
@@ -284,31 +399,23 @@ describe('ChargingManager', () => {
 
     describe('calculateMaxEventChargeCountWithinLimit()', () => {
         test('should not return negative values when budget is overdrawn', async () => {
-            // Don't use ACTOR_TEST_PAY_PER_EVENT when simulating Apify platform
-            delete process.env.ACTOR_TEST_PAY_PER_EVENT;
-
-            process.env.ACTOR_MAX_TOTAL_CHARGE_USD = '0.00025';
-
-            // Set pricing info and already charged events that overdraw the budget
-            process.env.APIFY_ACTOR_PRICING_INFO = JSON.stringify({
-                pricingModel: 'PAY_PER_EVENT',
-                pricingPerEvent: {
-                    actorChargeEvents: {
-                        event: {
-                            eventTitle: 'Event',
-                            eventPriceUsd: 0.0003,
-                        },
-                        'apify-actor-start': {
-                            eventTitle: 'Actor start',
-                            eventPriceUsd: 0.00005,
-                        },
+            setUpPlatformEnv({
+                maxTotalChargeUsd: '0.00025',
+                pricingInfo: {
+                    event: {
+                        eventTitle: 'Event',
+                        eventPriceUsd: 0.0003,
+                    },
+                    'apify-actor-start': {
+                        eventTitle: 'Actor start',
+                        eventPriceUsd: 0.00005,
                     },
                 },
-            });
-            // Already charged 2 events worth $0.00035, which exceeds the $0.00025 budget
-            process.env.APIFY_CHARGED_ACTOR_EVENT_COUNTS = JSON.stringify({
-                event: 1,
-                'apify-actor-start': 1,
+                // Already charged 2 events worth $0.00035, which exceeds the $0.00025 budget
+                chargedEventCounts: {
+                    event: 1,
+                    'apify-actor-start': 1,
+                },
             });
 
             await Actor.init();
@@ -323,66 +430,182 @@ describe('ChargingManager', () => {
         });
 
         test('should fallback to infinity for unknown event on the platform', async () => {
-            // Arrange
-
-            // Don't use ACTOR_TEST_PAY_PER_EVENT when simulating Apify platform
-            delete process.env.ACTOR_TEST_PAY_PER_EVENT;
-
-            process.env.ACTOR_MAX_TOTAL_CHARGE_USD = '0.00025';
-            process.env.APIFY_IS_AT_HOME = '1';
-            process.env.APIFY_TOKEN = 'this-wont-work';
-            process.env.ACTOR_RUN_ID = 'test-run-id';
-
-            process.env.APIFY_ACTOR_PRICING_INFO = JSON.stringify({
-                pricingModel: 'PAY_PER_EVENT',
-                pricingPerEvent: { actorChargeEvents: {} },
+            setUpPlatformEnv({
+                maxTotalChargeUsd: '0.00025',
+                pricingInfo: {},
             });
-            process.env.APIFY_CHARGED_ACTOR_EVENT_COUNTS = JSON.stringify({});
 
             await Actor.init();
             const chargingManager = Actor.getChargingManager();
 
-            // Act
             const maxCount =
                 chargingManager.calculateMaxEventChargeCountWithinLimit(
                     'unknown-event',
                 );
 
-            // Assert
             expect(maxCount).toBe(Infinity);
+        });
+    });
+
+    describe('calculatePushDataLimits()', () => {
+        test('should return all items when budget allows', async () => {
+            setUpLocalTestEnv({ maxTotalChargeUsd: '10' });
+
+            await Actor.init();
+
+            const chargingManager = Actor.getChargingManager();
+            const result = chargingManager.calculatePushDataLimits({
+                items: [{ a: 1 }, { b: 2 }, { c: 3 }],
+                eventName: 'test-event',
+                isDefaultDataset: false,
+            });
+
+            expect(result.limitedItems).toHaveLength(3);
+            expect(result.eventsToCharge).toEqual({ 'test-event': 3 });
+        });
+
+        test('should limit items when budget is insufficient', async () => {
+            setUpPlatformEnv({
+                maxTotalChargeUsd: '0.15',
+                pricingInfo: {
+                    'expensive-event': {
+                        eventTitle: 'Expensive',
+                        eventPriceUsd: 0.1,
+                    },
+                },
+            });
+
+            await Actor.init();
+
+            const chargingManager = Actor.getChargingManager();
+            const result = chargingManager.calculatePushDataLimits({
+                items: [{ a: 1 }, { b: 2 }, { c: 3 }, { d: 4 }, { e: 5 }],
+                eventName: 'expensive-event',
+                isDefaultDataset: false,
+            });
+
+            expect(result.limitedItems).toHaveLength(1); // Only $0.15 budget, $0.1 per item
+            expect(result.eventsToCharge).toEqual({ 'expensive-event': 1 });
+        });
+
+        test('should include synthetic event for default dataset', async () => {
+            setUpPlatformEnv({
+                maxTotalChargeUsd: '10',
+                pricingInfo: {
+                    'apify-default-dataset-item': {
+                        eventTitle: 'Dataset Item',
+                        eventPriceUsd: 0.01,
+                    },
+                },
+            });
+
+            await Actor.init();
+
+            const chargingManager = Actor.getChargingManager();
+            const result = chargingManager.calculatePushDataLimits({
+                items: [{ a: 1 }, { b: 2 }],
+                eventName: undefined,
+                isDefaultDataset: true,
+            });
+
+            expect(result.limitedItems).toHaveLength(2);
+            expect(result.eventsToCharge).toEqual({
+                'apify-default-dataset-item': 2,
+            });
+        });
+
+        test('should include both events when pushing to default dataset with explicit eventName', async () => {
+            setUpPlatformEnv({
+                maxTotalChargeUsd: '10',
+                pricingInfo: {
+                    'apify-default-dataset-item': {
+                        eventTitle: 'Dataset Item',
+                        eventPriceUsd: 0.01,
+                    },
+                    'custom-event': {
+                        eventTitle: 'Custom',
+                        eventPriceUsd: 0.05,
+                    },
+                },
+            });
+
+            await Actor.init();
+
+            const chargingManager = Actor.getChargingManager();
+            const result = chargingManager.calculatePushDataLimits({
+                items: [{ a: 1 }, { b: 2 }],
+                eventName: 'custom-event',
+                isDefaultDataset: true,
+            });
+
+            expect(result.limitedItems).toHaveLength(2);
+            expect(result.eventsToCharge).toEqual({
+                'apify-default-dataset-item': 2,
+                'custom-event': 2,
+            });
+        });
+
+        test('should handle single item (non-array) input', async () => {
+            setUpLocalTestEnv({ maxTotalChargeUsd: '10' });
+
+            await Actor.init();
+
+            const chargingManager = Actor.getChargingManager();
+            const result = chargingManager.calculatePushDataLimits({
+                items: { single: 'item' },
+                eventName: 'test-event',
+                isDefaultDataset: false,
+            });
+
+            expect(result.limitedItems).toHaveLength(1);
+            expect(result.limitedItems[0]).toEqual({ single: 'item' });
+            expect(result.eventsToCharge).toEqual({ 'test-event': 1 });
+        });
+
+        test('should return empty array when budget is exhausted', async () => {
+            setUpPlatformEnv({
+                maxTotalChargeUsd: '0.05',
+                pricingInfo: {
+                    'expensive-event': {
+                        eventTitle: 'Expensive',
+                        eventPriceUsd: 0.1,
+                    },
+                },
+            });
+
+            await Actor.init();
+
+            const chargingManager = Actor.getChargingManager();
+            const result = chargingManager.calculatePushDataLimits({
+                items: [{ a: 1 }, { b: 2 }],
+                eventName: 'expensive-event',
+                isDefaultDataset: false,
+            });
+
+            expect(result.limitedItems).toHaveLength(0);
+            expect(result.eventsToCharge).toEqual({ 'expensive-event': 0 });
         });
     });
 
     describe('charge() with overdrawn budget', () => {
         test('should handle charging when budget is already overdrawn', async () => {
-            // Don't use ACTOR_TEST_PAY_PER_EVENT when simulating Apify platform
-            delete process.env.ACTOR_TEST_PAY_PER_EVENT;
-
-            process.env.ACTOR_MAX_TOTAL_CHARGE_USD = '0.00025';
-            process.env.APIFY_IS_AT_HOME = '1';
-            process.env.APIFY_TOKEN = 'this-wont-work';
-            process.env.ACTOR_RUN_ID = 'test-run-id';
-
-            // Set pricing info
-            process.env.APIFY_ACTOR_PRICING_INFO = JSON.stringify({
-                pricingModel: 'PAY_PER_EVENT',
-                pricingPerEvent: {
-                    actorChargeEvents: {
-                        event: {
-                            eventTitle: 'Event',
-                            eventPriceUsd: 0.0003,
-                        },
-                        'apify-actor-start': {
-                            eventTitle: 'Actor start',
-                            eventPriceUsd: 0.00005,
-                        },
+            setUpPlatformEnv({
+                maxTotalChargeUsd: '0.00025',
+                pricingInfo: {
+                    event: {
+                        eventTitle: 'Event',
+                        eventPriceUsd: 0.0003,
+                    },
+                    'apify-actor-start': {
+                        eventTitle: 'Actor start',
+                        eventPriceUsd: 0.00005,
                     },
                 },
-            });
-            // Already charged actor-start, leaving only $0.0002 which is less than the event cost
-            process.env.APIFY_CHARGED_ACTOR_EVENT_COUNTS = JSON.stringify({
-                event: 0,
-                'apify-actor-start': 1,
+                // Already charged actor-start, leaving only $0.0002 which is less than the event cost
+                chargedEventCounts: {
+                    event: 0,
+                    'apify-actor-start': 1,
+                },
             });
 
             await Actor.init();

@@ -27,13 +27,14 @@ import { sleep, snakeCaseToCamelCase } from '@crawlee/utils';
 import type {
     ActorCallOptions,
     ActorStartOptions,
+    ApifyClient,
     ApifyClientOptions,
     RunAbortOptions,
     TaskCallOptions,
     Webhook,
     WebhookEventType,
 } from 'apify-client';
-import { ActorRun as ClientActorRun, ApifyClient } from 'apify-client';
+import { ActorRun as ClientActorRun } from 'apify-client';
 import ow from 'ow';
 
 import {
@@ -47,7 +48,7 @@ import log from '@apify/log';
 import { addTimeoutToPromise } from '@apify/timeout';
 
 import type { ChargeOptions, ChargeResult } from './charging.js';
-import { ChargingManager } from './charging.js';
+import { ChargingManager, pushDataAndCharge } from './charging.js';
 import { Configuration } from './configuration.js';
 import {
     getDefaultsFromInputSchema,
@@ -55,6 +56,12 @@ import {
     readInputSchema,
 } from './input-schemas.js';
 import { KeyValueStore } from './key_value_store.js';
+import {
+    createPatchedApifyClient,
+    type PpeAwarePushDataContext,
+    pushDataChargingContext,
+    USES_PUSH_DATA_INTERCEPTION,
+} from './patched_apify_client.js';
 import { PlatformEventManager } from './platform_event_manager.js';
 import type { ProxyConfigurationOptions } from './proxy_configuration.js';
 import { ProxyConfiguration } from './proxy_configuration.js';
@@ -1032,95 +1039,42 @@ export class Actor<Data extends Dictionary = Dictionary> {
      *
      * @param item Object or array of objects containing data to be stored in the default dataset.
      * The objects must be serializable to JSON and the JSON representation of each object must be smaller than 9MB.
-     * @ignore
-     */
-    async pushData(item: Data | Data[]): Promise<void>;
-    /**
-     * Stores an object or an array of objects to the default {@apilink Dataset} of the current Actor run.
-     *
-     * This is just a convenient shortcut for {@apilink Dataset.pushData}.
-     * For example, calling the following code:
-     * ```js
-     * await Actor.pushData({ myValue: 123 });
-     * ```
-     *
-     * is equivalent to:
-     * ```js
-     * const dataset = await Actor.openDataset();
-     * await dataset.pushData({ myValue: 123 });
-     * ```
-     *
-     * For more information, see {@apilink Actor.openDataset} and {@apilink Dataset.pushData}
-     *
-     * **IMPORTANT**: Make sure to use the `await` keyword when calling `pushData()`,
-     * otherwise the Actor process might finish before the data are stored!
-     *
-     * @param item Object or array of objects containing data to be stored in the default dataset.
-     * The objects must be serializable to JSON and the JSON representation of each object must be smaller than 9MB.
      * @param eventName If provided, the method will attempt to charge for the event for each pushed item.
      * @ignore
      */
-    async pushData(
-        item: Data | Data[],
-        eventName: string,
-    ): Promise<ChargeResult>;
-
-    /**
-     * Stores an object or an array of objects to the default {@apilink Dataset} of the current Actor run.
-     *
-     * This is just a convenient shortcut for {@apilink Dataset.pushData}.
-     * For example, calling the following code:
-     * ```js
-     * await Actor.pushData({ myValue: 123 });
-     * ```
-     *
-     * is equivalent to:
-     * ```js
-     * const dataset = await Actor.openDataset();
-     * await dataset.pushData({ myValue: 123 });
-     * ```
-     *
-     * For more information, see {@apilink Actor.openDataset} and {@apilink Dataset.pushData}
-     *
-     * **IMPORTANT**: Make sure to use the `await` keyword when calling `pushData()`,
-     * otherwise the Actor process might finish before the data are stored!
-     *
-     * @param item Object or array of objects containing data to be stored in the default dataset.
-     * The objects must be serializable to JSON and the JSON representation of each object must be smaller than 9MB.
-     * @param eventName If provided, the method will attempt to charge for the event for each pushed item.
-     * @ignore
-     */
-    // eslint-disable-next-line consistent-return -- The `return` is inconsistent by design here (`ChargeResult` with `eventName` parameter)
     async pushData(
         item: Data | Data[],
         eventName?: string | undefined,
-    ): Promise<ChargeResult | void> {
+    ): Promise<ChargeResult> {
         this._ensureActorInit('pushData');
+
+        if (eventName?.startsWith('apify-')) {
+            throw new Error(
+                `Cannot charge for synthetic event '${eventName}' manually`,
+            );
+        }
 
         const dataset = await this.openDataset();
 
-        const maxChargedCount =
-            eventName !== undefined
-                ? this.chargingManager.calculateMaxEventChargeCountWithinLimit(
-                      eventName,
-                  )
-                : Infinity;
-        const toCharge = Array.isArray(item) ? item.length : 1;
-
-        if (toCharge > maxChargedCount) {
-            // Push as many items as we can charge for
-            const items = Array.isArray(item) ? item : [item];
-            await dataset.pushData(items.slice(0, maxChargedCount));
-        } else {
-            await dataset.pushData(item);
-        }
-
-        if (eventName) {
-            return await this.chargingManager.charge({
+        // Two code paths for charging:
+        // 1. Intercepted client: PatchedDatasetClient intercepts pushItems() calls, handling charging
+        //    internally. This is needed because Crawlee's Dataset may call pushItems() directly,
+        //    bypassing Actor.pushData(). We propagate eventName via AsyncLocalStorage context.
+        // 2. Direct charging: When using a non-patched client (e.g., forceCloud option or custom client),
+        //    we handle charging here before delegating to the dataset.
+        if (this.usesPushDataInterception(dataset)) {
+            return await this.pushDataViaInterceptedClient(
+                dataset,
+                item,
                 eventName,
-                count: Math.min(toCharge, maxChargedCount),
-            });
+            );
         }
+
+        return await this.pushDataWithExplicitCharging(
+            dataset,
+            item,
+            eventName,
+        );
     }
 
     /**
@@ -1549,17 +1503,21 @@ export class Actor<Data extends Dictionary = Dictionary> {
             'storageClientOptions',
         ) as Dictionary;
         const { apifyVersion, crawleeVersion } = getSystemInfo();
-        return new ApifyClient({
-            baseUrl: this.config.get('apiBaseUrl'),
-            publicBaseUrl: this.config.get('apiPublicBaseUrl'),
-            token: this.config.get('token'),
-            userAgentSuffix: [
-                `SDK/${apifyVersion}`,
-                `Crawlee/${crawleeVersion}`,
-            ],
-            ...storageClientOptions,
-            ...options, // allow overriding the instance configuration
-        });
+
+        return createPatchedApifyClient(
+            {
+                baseUrl: this.config.get('apiBaseUrl'),
+                publicBaseUrl: this.config.get('apiPublicBaseUrl'),
+                token: this.config.get('token'),
+                userAgentSuffix: [
+                    `SDK/${apifyVersion}`,
+                    `Crawlee/${crawleeVersion}`,
+                ],
+                ...storageClientOptions,
+                ...options, // allow overriding the instance configuration
+            },
+            this,
+        );
     }
 
     /**
@@ -2313,6 +2271,62 @@ export class Actor<Data extends Dictionary = Dictionary> {
     static getDefaultInstance(): Actor {
         this._instance ??= new Actor();
         return this._instance;
+    }
+
+    private usesPushDataInterception(dataset: Dataset): boolean {
+        return Boolean((dataset.client as any)[USES_PUSH_DATA_INTERCEPTION]);
+    }
+
+    private async pushDataViaInterceptedClient(
+        dataset: Dataset,
+        item: Data | Data[],
+        eventName: string | undefined,
+    ): Promise<ChargeResult> {
+        // PatchedDatasetClient will handle charging and item limiting.
+        // We only need to propagate `eventName` and (optionally) return aggregated charge info.
+        const context: PpeAwarePushDataContext = {
+            eventName,
+        };
+
+        await pushDataChargingContext.run(context, async () => {
+            await dataset.pushData(item);
+        });
+
+        return (
+            context.chargeResult ?? {
+                eventChargeLimitReached: false,
+                chargedCount: 0,
+                chargeableWithinLimit: {},
+            }
+        );
+    }
+
+    private async pushDataWithExplicitCharging(
+        dataset: Dataset,
+        items: Data | Data[],
+        explicitEventName: string | undefined,
+    ): Promise<ChargeResult> {
+        // `Actor.pushData()` historically worked even without calling `Actor.init()`.
+        // In that case, charging isn't configured, so just push the data through.
+        if (!this.initialized && explicitEventName === undefined) {
+            await dataset.pushData(items);
+            return {
+                eventChargeLimitReached: false,
+                chargedCount: 0,
+                chargeableWithinLimit: {},
+            };
+        }
+
+        const isDefaultDataset =
+            dataset.id === this.config.get('defaultDatasetId');
+
+        return pushDataAndCharge({
+            chargingManager: this.chargingManager,
+            items,
+            eventName: explicitEventName,
+            isDefaultDataset,
+            pushFn: async (limitedItems) => dataset.pushData(limitedItems),
+        });
     }
 
     private async _openStorage<T extends IStorage>(
