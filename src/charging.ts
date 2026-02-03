@@ -10,6 +10,8 @@ interface ChargingStateItem {
     totalChargedAmount: number;
 }
 
+export const DEFAULT_DATASET_ITEM_EVENT = 'apify-default-dataset-item';
+
 export interface ChargeOptions {
     /**
      * The name of the event type to charge for.
@@ -62,6 +64,23 @@ export interface ActorPricingInfo {
     maxTotalChargeUsd: number;
     isPayPerEvent: boolean;
     perEventPrices: Record<string, number>;
+}
+
+export function mergeChargeResults(
+    a: ChargeResult,
+    b: ChargeResult,
+): ChargeResult {
+    return {
+        eventChargeLimitReached:
+            a.eventChargeLimitReached || b.eventChargeLimitReached,
+        chargedCount: a.chargedCount + b.chargedCount,
+        chargeableWithinLimit: Object.fromEntries(
+            Object.entries(a.chargeableWithinLimit).map(([key, oldValue]) => [
+                key,
+                Math.min(oldValue, b.chargeableWithinLimit[key]),
+            ]),
+        ),
+    };
 }
 
 /**
@@ -419,12 +438,20 @@ export class ChargingManager {
             throw new Error('ChargingManager is not initialized');
         }
 
-        const price = this.isAtHome ? this.pricingInfo[eventName]?.price : 1; // Use a nonzero price for local development so that the maximum budget can be reached
+        const price = this.calculateEventPrice(eventName);
 
         if (!price) {
             return Infinity;
         }
 
+        return this.calculateMaxChargesByPrice(price);
+    }
+
+    private calculateEventPrice(eventName: string): number | undefined {
+        return this.isAtHome ? this.pricingInfo[eventName]?.price : 1; // Use a nonzero price for local development so that the maximum budget can be reached
+    }
+
+    private calculateMaxChargesByPrice(price: number): number {
         // The raw number of events allowed by the budget
         const unroundedResult =
             (this.maxTotalChargeUsd - this.calculateTotalChargedAmount()) /
@@ -434,5 +461,56 @@ export class ChargingManager {
         const roundedResult = Math.floor(Number(unroundedResult.toFixed(4)));
 
         return Math.max(0, roundedResult);
+    }
+
+    /**
+     * Helper to calculate how many items can be pushed within charging limits.
+     * Returns the limited items and count to charge.
+     */
+    calculatePushDataLimits<T>({
+        items,
+        eventName,
+        isDefaultDataset,
+    }: {
+        items: T | T[];
+        eventName: string | undefined;
+        isDefaultDataset: boolean;
+    }): { limitedItems: T[]; eventsToCharge: Record<string, number> } {
+        if (this.chargingState === undefined) {
+            throw new Error('ChargingManager is not initialized');
+        }
+
+        const itemsArray = Array.isArray(items) ? items : [items];
+
+        const itemPrice =
+            ((eventName !== undefined
+                ? this.calculateEventPrice(eventName)
+                : undefined) ?? 0) +
+            ((isDefaultDataset
+                ? this.calculateEventPrice(DEFAULT_DATASET_ITEM_EVENT)
+                : undefined) ?? 0);
+
+        const maxChargedCount =
+            itemPrice > 0
+                ? this.calculateMaxChargesByPrice(itemPrice)
+                : Infinity;
+
+        const itemsToKeep = Math.min(itemsArray.length, maxChargedCount);
+
+        const eventsToCharge: Record<string, number> = {};
+        if (eventName !== undefined) {
+            eventsToCharge[eventName] = itemsToKeep;
+        }
+        if (isDefaultDataset) {
+            eventsToCharge[DEFAULT_DATASET_ITEM_EVENT] = itemsToKeep;
+        }
+
+        return {
+            limitedItems:
+                itemsToKeep >= itemsArray.length
+                    ? itemsArray
+                    : itemsArray.slice(0, itemsToKeep),
+            eventsToCharge,
+        };
     }
 }
