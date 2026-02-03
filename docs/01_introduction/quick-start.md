@@ -34,7 +34,6 @@ This command:
 
 - Starts the Actor with the appropriate environment variables for local running
 - Configures it to use local storages from the `storage` folder
-- Automatically watches for file changes and restarts the Actor when needed
 
 The Actor input, for example, will be in `storage/key_value_stores/default/INPUT.json`.
 
