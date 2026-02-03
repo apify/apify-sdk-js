@@ -13,15 +13,13 @@ Learn how to create and run Actors using the Apify SDK for JavaScript.
 
 To create and run Actors in Apify Console, refer to the [Console documentation](/platform/actors/development/quick-start/web-ide).
 
-To create a new Apify Actor on your computer, you can use the [Apify CLI](/cli), and select one of the [JavaScript Actor templates](https://apify.com/templates?category=javascript).
-
-For example, to create an Actor from the "Getting started with JavaScript" template, you can use the [`apify create` command](/cli/docs/reference#apify-create-actorname).
+To create an Actor on your computer, use the [Apify CLI](/cli):
 
 ```bash
 apify create my-first-actor
 ```
 
-This will create a new folder called `my-first-actor`, download and extract the Actor template there, install the dependencies using npm, and set up the project structure.
+The CLI will prompt you to select a template. After you choose a template, the CLI creates a new folder called `my-first-actor`, downloads and extracts the selected template, and installs dependencies using npm.
 
 ## Step 2: Running the Actor
 
@@ -51,17 +49,17 @@ The Actor's runtime dependencies are specified in the `package.json` file.
 The Actor's source code is typically in the `src` folder (or root for simple Actors). The main entry point is usually `src/main.js` or `src/main.ts`:
 
 ```js
-import { Actor } from 'apify';
+import { Actor, log } from 'apify';
 
 // Initialize the Actor
 await Actor.init();
 
 // Get input from the Actor
 const input = await Actor.getInput();
-Actor.log.info('Actor input:', input);
+log.info('Actor input:', input);
 
 // Your Actor logic goes here
-await Actor.setValue('OUTPUT', { message: 'Hello, world!' });
+await Actor.pushData({ message: 'Hello, world!' });
 
 // Gracefully exit the Actor
 await Actor.exit();
@@ -71,7 +69,7 @@ await Actor.exit();
 
 - **`Actor.init()`** - Initializes the Actor runtime, sets up storage, and prepares the environment
 - **`Actor.getInput()`** - Retrieves input data passed to the Actor
-- **`Actor.setValue()`** - Stores data in the default key-value store
+- **`Actor.pushData()`** - Stores data in the default dataset
 - **`Actor.exit()`** - Gracefully shuts down the Actor and saves its state
 
 ## Next steps
@@ -83,14 +81,12 @@ To see how you can integrate the Apify SDK with some of the most popular web scr
 - [CheerioCrawler](../guides/cheerio-crawler)
 - [PuppeteerCrawler](../guides/puppeteer-crawler)
 - [PlaywrightCrawler](../guides/playwright-crawler)
-- [Request storage](../guides/request-storage)
-- [Result storage](../guides/result-storage)
 
 ### Concepts
 
-To learn more about the features of the Apify SDK and how to use them, check out the Concepts section in the sidebar, especially the guides for:
+To learn more about the features of the Apify SDK and how to use them, check out the Concepts section in the sidebar, especially:
 
 - [Actor lifecycle](../concepts/actor-lifecycle)
-- [Working with storages](../concepts/storages)
-- [Handling Actor events](../concepts/actor-events)
-- [How to use proxies](../concepts/proxy-management)
+- [Request storage](../concepts/request-storage)
+- [Result storage](../concepts/result-storage)
+- [Proxy management](../concepts/proxy-management)

@@ -6,8 +6,6 @@ slug: /
 description: 'The official library for creating Apify Actors in JavaScript, providing tools for web crawling, scraping, and automation at scale.'
 ---
 
-[![npm version](https://badge.fury.io/js/apify.svg)](https://www.npmjs.com/package/apify)
-
 The Apify SDK for JavaScript is the official library for creating [Apify Actors](https://docs.apify.com/platform/actors) using JavaScript or TypeScript. It provides useful features like Actor lifecycle management, local storage emulation, and Actor event handling.
 
 Apify SDK simplifies the development of web crawlers, scrapers, data extractors and web automation jobs. It provides tools to manage and automatically scale a pool of headless browsers, to maintain queues of URLs to crawl, store crawling results to a local filesystem or into the cloud, rotate proxies and much more.
