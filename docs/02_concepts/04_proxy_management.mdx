@@ -21,7 +21,7 @@ for your scraping needs.
 If you already subscribed to Apify Proxy or have proxy URLs of your own, you can start using
 them immediately in only a few lines of code.
 
-> If you want to use Apify Proxy, make sure that your [scraper is logged in](./01_actor_lifecycle).
+> If you want to use Apify Proxy, make sure that your [scraper is logged in](./actor-lifecycle).
 
 <!--DOCUSAURUS_CODE_TABS-->
 
@@ -90,7 +90,7 @@ allows you to pass a `sessionId` parameter. It will then be used to create a
 `sessionId`-`proxyUrl` pair, and subsequent `newUrl()` calls with the same
 `sessionId` will always return the same `proxyUrl`. This is extremely useful in
 scraping, because you want to create the impression of a real user. See the
-[session management guide](./05_session_management) and
+[session management guide](./session-management) and
 <CrawleeApiLink to="core/class/SessionPool">`SessionPool`</CrawleeApiLink> class
 for more information on how keeping a real session helps you avoid blocking.
 
