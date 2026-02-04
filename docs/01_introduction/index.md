@@ -2,7 +2,6 @@
 id: introduction
 title: Apify SDK for JavaScript
 sidebar_label: Overview
-slug: /
 description: 'The official library for creating Apify Actors in JavaScript, providing tools for web crawling, scraping, and automation at scale.'
 ---
 
@@ -20,7 +19,7 @@ Actors can be executed locally or on the [Apify platform](https://docs.apify.com
 
 ## Quick start
 
-To create and run Actors using Apify Console, check out [Apify Console documentation](https://docs.apify.com/platform/console). For creating and running JavaScript Actors locally, refer to the [Apify platform guide](../guides/apify-platform).
+To create and run Actors using Apify Console, check out [Apify Console documentation](https://docs.apify.com/platform/console). For creating and running JavaScript Actors locally, refer to the [Actor lifecycle guide](concepts/actor-lifecycle).
 
 ```js
 import { Actor } from 'apify';
@@ -33,7 +32,7 @@ console.log(input);
 await Actor.exit();
 ```
 
-Explore the [Examples](../examples) section to see more of the SDK in action, and refer to the [Guides](../guides) section for a deeper understanding of the SDK's features and best practices.
+Explore the Guides section (see sidebar) to see more of the SDK in action and for a deeper understanding of the SDK's features and best practices.
 
 ## Core Features
 
@@ -59,8 +58,6 @@ Additionally, the package provides various helper functions to simplify running 
 
 ## Next steps
 
-- [Installation](./installation) - Learn how to install the Apify SDK
-- [Quick Start Guide](./quick-start) - Get started with your first Actor
-- [Concepts](../concepts) - Understand key concepts and how the SDK works
-- [Guides](../guides) - Step-by-step guides for common tasks
-- [Examples](../examples) - Browse practical code examples
+- [Installation](introduction/installation) - Learn how to install the Apify SDK
+- [Quick Start Guide](introduction/quick-start) - Get started with your first Actor
+- [Actor lifecycle](concepts/actor-lifecycle) - Understand key concepts and how the SDK works
