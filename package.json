@@ -46,7 +46,8 @@
     "files": [
         "dist",
         "!dist/README.md",
-        "!dist/package.json"
+        "!dist/package.json",
+        "!dist/LICENSE.md"
     ],
     "scripts": {
         "prepare": "husky",
