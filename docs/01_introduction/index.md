@@ -19,7 +19,7 @@ Actors can be executed locally or on the [Apify platform](https://docs.apify.com
 
 ## Quick start
 
-To create and run Actors using Apify Console, check out [Apify Console documentation](https://docs.apify.com/platform/console). For creating and running JavaScript Actors locally, refer to the [Actor lifecycle guide](02_concepts/actor-lifecycle).
+To create and run Actors using Apify Console, check out [Apify Console documentation](https://docs.apify.com/platform/console). For creating and running JavaScript Actors locally, refer to the [Actor lifecycle guide](concepts/actor-lifecycle).
 
 ```js
 import { Actor } from 'apify';
@@ -60,4 +60,4 @@ Additionally, the package provides various helper functions to simplify running 
 
 - [Installation](introduction/installation) - Learn how to install the Apify SDK
 - [Quick Start Guide](introduction/quick-start) - Get started with your first Actor
-- [Actor lifecycle](02_concepts/actor-lifecycle) - Understand key concepts and how the SDK works
+- [Actor lifecycle](concepts/actor-lifecycle) - Understand key concepts and how the SDK works

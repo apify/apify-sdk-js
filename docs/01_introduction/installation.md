@@ -74,4 +74,4 @@ npm install apify-client
 ## Next steps
 
 - [Quick Start Guide](./quick-start) - Get started with your first Actor
-- [Apify Platform Guide](../02_concepts/actor-lifecycle) - Learn about Actor lifecycle and platform integration
+- [Apify Platform Guide](../concepts/actor-lifecycle) - Learn about Actor lifecycle and platform integration

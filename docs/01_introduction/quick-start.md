@@ -77,15 +77,15 @@ await Actor.exit();
 
 To see how you can integrate the Apify SDK with some of the most popular web scraping libraries, check out our guides for working with:
 
-- [CheerioCrawler](../03_guides/cheerio_crawler)
-- [PuppeteerCrawler](../03_guides/puppeteer_crawler)
-- [PlaywrightCrawler](../03_guides/playwright_crawler)
+- [CheerioCrawler](../guides/cheerio-crawler)
+- [PuppeteerCrawler](../guides/puppeteer-crawler)
+- [PlaywrightCrawler](../guides/playwright-crawler)
 
 ### Concepts
 
 To learn more about the features of the Apify SDK and how to use them, check out the Concepts section in the sidebar, especially:
 
-- [Actor lifecycle](../02_concepts/actor-lifecycle)
-- [Request storage](../02_concepts/request-storage)
-- [Result storage](../02_concepts/result-storage)
-- [Proxy management](../02_concepts/proxy-management)
+- [Actor lifecycle](../concepts/actor-lifecycle)
+- [Request storage](../concepts/request-storage)
+- [Result storage](../concepts/result-storage)
+- [Proxy management](../concepts/proxy-management)
