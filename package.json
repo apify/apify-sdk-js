@@ -43,13 +43,16 @@
         "url": "https://github.com/apify/apify-sdk-js/issues"
     },
     "homepage": "https://docs.apify.com/sdk/js",
+    "files": [
+        "dist",
+        "!dist/tsconfig.build.tsbuildinfo"
+    ],
     "scripts": {
         "prepare": "husky",
         "clean": "rimraf ./dist",
         "compile": "tsc -p tsconfig.build.json && gen-esm-wrapper ./dist/index.js ./dist/index.mjs",
-        "copy": "tsx ./scripts/copy.ts --readme=local",
         "fixApifyExport": "node ./scripts/temp_fix_apify_exports.mjs",
-        "build": "npm run clean && npm run compile && npm run copy && npm run fixApifyExport",
+        "build": "npm run clean && npm run compile && npm run fixApifyExport",
         "prepublishOnly": "npm run build",
         "ci:build": "npm run build",
         "test": "vitest run --silent",
