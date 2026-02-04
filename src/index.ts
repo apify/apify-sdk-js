@@ -1,5 +1,10 @@
 export * from './actor.js';
-export * from './charging.js';
+export {
+    ChargeOptions,
+    ChargeResult,
+    ActorPricingInfo,
+    ChargingManager,
+} from './charging.js';
 export * from './configuration.js';
 export * from './proxy_configuration.js';
 export * from './platform_event_manager.js';
