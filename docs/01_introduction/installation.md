@@ -4,30 +4,47 @@ title: Installation
 description: 'Learn how to install the Apify SDK for JavaScript using npm, yarn, or the Apify CLI to start building Actors.'
 ---
 
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 The Apify SDK for JavaScript is available as the [`apify`](https://www.npmjs.com/package/apify) NPM package.
 
 ## Installation
 
 To install the Apify SDK in your project, use:
 
+<Tabs groupId="package-manager">
+<TabItem value="npm" label="npm" default>
+
 ```bash
 npm install apify
 ```
 
-Or with other package managers:
+</TabItem>
+<TabItem value="yarn" label="Yarn">
 
 ```bash
-# Yarn
 yarn add apify
+```
 
-# pnpm
+</TabItem>
+<TabItem value="pnpm" label="pnpm">
+
+```bash
 pnpm add apify
+```
 
-# Bun
+</TabItem>
+<TabItem value="bun" label="Bun">
+
+```bash
 bun add apify
 ```
 
-## Creating a new Actor project
+</TabItem>
+</Tabs>
+
+## Create a new Actor project
 
 To quickly scaffold a new Actor project with the SDK already configured, use the [Apify CLI](https://docs.apify.com/cli):
 
@@ -57,4 +74,4 @@ npm install apify-client
 ## Next steps
 
 - [Quick Start Guide](./quick-start) - Get started with your first Actor
-- [Apify Platform Guide](../concepts/actor-lifecycle) - Learn about Actor lifecycle and platform integration
+- [Apify Platform Guide](../02_concepts/actor-lifecycle) - Learn about Actor lifecycle and platform integration

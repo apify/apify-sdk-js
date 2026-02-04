@@ -9,7 +9,7 @@ The Apify SDK for JavaScript is the official library for creating [Apify Actors]
 
 Apify SDK simplifies the development of web crawlers, scrapers, data extractors and web automation jobs. It provides tools to manage and automatically scale a pool of headless browsers, to maintain queues of URLs to crawl, store crawling results to a local filesystem or into the cloud, rotate proxies and much more.
 
-The SDK is available as the [`apify`](https://www.npmjs.com/package/apify) NPM package. It can be used either stand-alone in your own applications or in [Actors](https://docs.apify.com/actor) running on the [Apify Cloud](https://apify.com/).
+The SDK is available as the [`apify`](https://www.npmjs.com/package/apify) NPM package. It can be used either stand-alone in your own applications or in [actors](https://docs.apify.com/actor) running on the [Apify platform](https://apify.com/).
 
 ## What are Actors
 
@@ -19,7 +19,7 @@ Actors can be executed locally or on the [Apify platform](https://docs.apify.com
 
 ## Quick start
 
-To create and run Actors using Apify Console, check out [Apify Console documentation](https://docs.apify.com/platform/console). For creating and running JavaScript Actors locally, refer to the [Actor lifecycle guide](concepts/actor-lifecycle).
+To create and run Actors using Apify Console, check out [Apify Console documentation](https://docs.apify.com/platform/console). For creating and running JavaScript Actors locally, refer to the [Actor lifecycle guide](02_concepts/actor-lifecycle).
 
 ```js
 import { Actor } from 'apify';
@@ -48,11 +48,11 @@ The Apify SDK provides the following key tools:
 
 - [`ProxyConfiguration`](https://sdk.apify.com/api/apify/class/ProxyConfiguration) - Configures connection to a proxy server with the provided options. Setting proxy configuration in your crawlers automatically configures them to use the selected proxies for all connections. The proxy servers are managed by Apify Proxy.
 
-- [`RequestQueue`](https://sdk.apify.com/api/apify/class/RequestQueue) - Represents a queue of URLs to crawl, which is stored either on a local filesystem or in the [Apify Cloud](https://apify.com). The queue is used for deep crawling of websites, where you start with several URLs and then recursively follow links to other pages. The data structure supports both breadth-first and depth-first crawling orders.
+- [`RequestQueue`](https://sdk.apify.com/api/apify/class/RequestQueue) - Represents a queue of URLs to crawl, which is stored either on a local filesystem or in the Apify platform. The queue is used for deep crawling of websites, where you start with several URLs and then recursively follow links to other pages. The data structure supports both breadth-first and depth-first crawling orders.
 
-- [`Dataset`](https://sdk.apify.com/api/apify/class/Dataset) - Provides a store for structured data and enables their export to formats like JSON, JSONL, CSV, XML, Excel or HTML. The data is stored on a local filesystem or in the Apify Cloud. Datasets are useful for storing and sharing large tabular crawling results, such as a list of products or real estate offers.
+- [`Dataset`](https://sdk.apify.com/api/apify/class/Dataset) - Provides a store for structured data and enables their export to formats like JSON, JSONL, CSV, XML, Excel or HTML. The data is stored on a local filesystem or in the Apify platform. Datasets are useful for storing and sharing large tabular crawling results, such as a list of products or real estate offers.
 
-- [`KeyValueStore`](https://sdk.apify.com/api/apify/class/KeyValueStore) - A simple key-value store for arbitrary data records or files, along with their MIME content type. It is ideal for saving screenshots of web pages, PDFs or to persist the state of your crawlers. The data is stored on a local filesystem or in the Apify Cloud.
+- [`KeyValueStore`](https://sdk.apify.com/api/apify/class/KeyValueStore) - A simple key-value store for arbitrary data records or files, along with their MIME content type. It is ideal for saving screenshots of web pages, PDFs or to persist the state of your crawlers. The data is stored on a local filesystem or in the Apify platform.
 
 Additionally, the package provides various helper functions to simplify running your code on the Apify Cloud and thus take advantage of its pool of proxies, job scheduler, data storage, etc. For more information, see the [Apify SDK Programmer's Reference](https://sdk.apify.com).
 
@@ -60,4 +60,4 @@ Additionally, the package provides various helper functions to simplify running 
 
 - [Installation](introduction/installation) - Learn how to install the Apify SDK
 - [Quick Start Guide](introduction/quick-start) - Get started with your first Actor
-- [Actor lifecycle](concepts/actor-lifecycle) - Understand key concepts and how the SDK works
+- [Actor lifecycle](02_concepts/actor-lifecycle) - Understand key concepts and how the SDK works
