@@ -11,7 +11,7 @@ Learn how to create and run Actors using the Apify SDK for JavaScript.
 
 ## Step 1: Creating Actors
 
-To create and run Actors in Apify Console, refer to the [Console documentation](/platform/actors/development/quick-start/web-ide).
+To create and run Actors in Apify Console, refer to the [Console documentation](https://docs.apify.com/platform/actors/development/quick-start/web-ide).
 
 To create an Actor on your computer, use the [Apify CLI](/cli):
 
@@ -41,7 +41,7 @@ The Actor input, for example, will be in `storage/key_value_stores/default/INPUT
 
 All JavaScript Actor templates follow the same structure.
 
-The `.actor` directory contains the [Actor configuration](/platform/actors/development/actor-config), such as the Actor's definition and input schema, and the Dockerfile necessary to run the Actor on the Apify platform.
+The `.actor` directory contains the [Actor configuration](https://docs.apify.com/platform/actors/development/actor-config), such as the Actor's definition and input schema, and the Dockerfile necessary to run the Actor on the Apify platform.
 
 The Actor's runtime dependencies are specified in the `package.json` file.
 

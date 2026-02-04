@@ -1,7 +1,7 @@
 ---
 id: introduction
 title: Apify SDK for JavaScript
-sidebar_label: Introduction
+sidebar_label: Overview
 slug: /
 description: 'The official library for creating Apify Actors in JavaScript, providing tools for web crawling, scraping, and automation at scale.'
 ---
