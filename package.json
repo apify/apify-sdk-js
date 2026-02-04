@@ -43,6 +43,11 @@
         "url": "https://github.com/apify/apify-sdk-js/issues"
     },
     "homepage": "https://docs.apify.com/sdk/js",
+    "files": [
+        "dist",
+        "!dist/README.md",
+        "!dist/package.json"
+    ],
     "scripts": {
         "prepare": "husky",
         "clean": "rimraf ./dist",
