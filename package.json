@@ -44,10 +44,7 @@
     },
     "homepage": "https://docs.apify.com/sdk/js",
     "files": [
-        "dist",
-        "!dist/README.md",
-        "!dist/package.json",
-        "!dist/LICENSE.md"
+        "dist"
     ],
     "scripts": {
         "prepare": "husky",

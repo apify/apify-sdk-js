@@ -27,21 +27,6 @@ function rewrite(path: string, replacer: (from: string) => string): void {
 const root = resolve(__dirname, '..');
 const target = resolve(process.cwd(), 'dist');
 
-switch (options.readme) {
-    case 'false': {
-        break;
-    }
-    case 'local': {
-        copy('README.md', resolve(process.cwd()), target);
-        break;
-    }
-    default: {
-        copy('README.md', root, target);
-    }
-}
-
-copy('LICENSE.md', root, target);
-copy('package.json', process.cwd(), target);
 rewrite(resolve(target, 'package.json'), (pkg) => {
     return pkg.replace(/dist\//g, '').replace(/src\/(.*)\.ts/g, '$1.js');
 });
