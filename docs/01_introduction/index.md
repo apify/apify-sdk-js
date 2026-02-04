@@ -54,7 +54,7 @@ The Apify SDK provides the following key tools:
 
 - [`KeyValueStore`](https://sdk.apify.com/api/apify/class/KeyValueStore) - A simple key-value store for arbitrary data records or files, along with their MIME content type. It is ideal for saving screenshots of web pages, PDFs or to persist the state of your crawlers. The data is stored on a local filesystem or in the Apify platform.
 
-Additionally, the package provides various helper functions to simplify running your code on the Apify Cloud and thus take advantage of its pool of proxies, job scheduler, data storage, etc. For more information, see the [Apify SDK Programmer's Reference](https://sdk.apify.com).
+Additionally, the package provides various helper functions to simplify running your code on the Apify platform and thus take advantage of its pool of proxies, job scheduler, data storage, etc. For more information, see the [Apify SDK Programmer's Reference](https://sdk.apify.com).
 
 ## Next steps
 
