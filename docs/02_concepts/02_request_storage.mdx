@@ -57,7 +57,7 @@ To see more detailed example of how to use the request queue with a crawler, see
 
 ## Request list
 
-The request list is not a storage per se - it represents the list of URLs to crawl that is stored in a run memory (or optionally in default [Key-Value Store](./result-storage#key-value-store) associated with the run, if specified). The list is used for the crawling of a large number of URLs, when you know all the URLs which should be visited by the crawler and no URLs would be added during the run. The URLs can be provided either in code or parsed from a text file hosted on the web.
+The request list is not a storage per se - it represents the list of URLs to crawl that is stored in a run memory (or optionally in default [Key-value Store](./result-storage#key-value-store) associated with the run, if specified). The list is used for the crawling of a large number of URLs, when you know all the URLs which should be visited by the crawler and no URLs would be added during the run. The URLs can be provided either in code or parsed from a text file hosted on the web.
 
 Request list is created exclusively for the actor run and only if its usage is explicitly specified in the code. Its usage is optional.
 
