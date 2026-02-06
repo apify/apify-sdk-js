@@ -2,6 +2,7 @@ import {
     coerceBoolean,
     Configuration as CrawleeConfiguration,
     crawleeConfigFields,
+    extendField,
     field,
     type FieldDefinitions,
     type InferInputOptions,
@@ -18,82 +19,89 @@ import type { META_ORIGINS } from '@apify/consts';
 /**
  * Field definitions for Apify SDK Configuration.
  * Extends Crawlee's configuration with Apify-specific fields.
+ *
+ * Uses `extendField` to add ACTOR_* and APIFY_* env var aliases
+ * while preserving the base CRAWLEE_* env vars from crawleeConfigFields.
  */
 export const apifyConfigFields = {
     ...crawleeConfigFields,
 
     // Override storage IDs to also check ACTOR_* and APIFY_* env vars
-    defaultDatasetId: field(z.string().default('default'), {
-        env: [
-            'ACTOR_DEFAULT_DATASET_ID',
-            'APIFY_DEFAULT_DATASET_ID',
-            'CRAWLEE_DEFAULT_DATASET_ID',
-        ],
+    defaultDatasetId: extendField(crawleeConfigFields.defaultDatasetId, {
+        env: ['ACTOR_DEFAULT_DATASET_ID', 'APIFY_DEFAULT_DATASET_ID'],
     }),
-    defaultKeyValueStoreId: field(z.string().default('default'), {
-        env: [
-            'ACTOR_DEFAULT_KEY_VALUE_STORE_ID',
-            'APIFY_DEFAULT_KEY_VALUE_STORE_ID',
-            'CRAWLEE_DEFAULT_KEY_VALUE_STORE_ID',
-        ],
-    }),
-    defaultRequestQueueId: field(z.string().default('default'), {
-        env: [
-            'ACTOR_DEFAULT_REQUEST_QUEUE_ID',
-            'APIFY_DEFAULT_REQUEST_QUEUE_ID',
-            'CRAWLEE_DEFAULT_REQUEST_QUEUE_ID',
-        ],
+    defaultKeyValueStoreId: extendField(
+        crawleeConfigFields.defaultKeyValueStoreId,
+        {
+            env: [
+                'ACTOR_DEFAULT_KEY_VALUE_STORE_ID',
+                'APIFY_DEFAULT_KEY_VALUE_STORE_ID',
+            ],
+        },
+    ),
+    defaultRequestQueueId: extendField(
+        crawleeConfigFields.defaultRequestQueueId,
+        {
+            env: [
+                'ACTOR_DEFAULT_REQUEST_QUEUE_ID',
+                'APIFY_DEFAULT_REQUEST_QUEUE_ID',
+            ],
+        },
+    ),
+
+    // Override inputKey to also check ACTOR_INPUT_KEY and APIFY_INPUT_KEY
+    inputKey: extendField(crawleeConfigFields.inputKey, {
+        env: ['ACTOR_INPUT_KEY', 'APIFY_INPUT_KEY'],
     }),
 
-    // Override inputKey to also check ACTOR_INPUT_KEY
-    inputKey: field(z.string().default('INPUT'), {
-        env: ['ACTOR_INPUT_KEY', 'APIFY_INPUT_KEY', 'CRAWLEE_INPUT_KEY'],
+    // Override memoryMbytes to also check ACTOR_MEMORY_MBYTES and APIFY_MEMORY_MBYTES
+    memoryMbytes: extendField(crawleeConfigFields.memoryMbytes, {
+        env: ['ACTOR_MEMORY_MBYTES', 'APIFY_MEMORY_MBYTES'],
     }),
 
-    // Override memoryMbytes to also check ACTOR_MEMORY_MBYTES
-    memoryMbytes: field(z.coerce.number().optional(), {
-        env: [
-            'ACTOR_MEMORY_MBYTES',
-            'APIFY_MEMORY_MBYTES',
-            'CRAWLEE_MEMORY_MBYTES',
-        ],
-    }),
-
-    // Override persistStateIntervalMillis
-    persistStateIntervalMillis: field(z.coerce.number().default(60_000), {
-        env: [
-            'APIFY_PERSIST_STATE_INTERVAL_MILLIS',
-            'APIFY_TEST_PERSIST_INTERVAL_MILLIS',
-            'CRAWLEE_PERSIST_STATE_INTERVAL_MILLIS',
-        ],
-    }),
+    // Override persistStateIntervalMillis with APIFY_* aliases
+    persistStateIntervalMillis: extendField(
+        crawleeConfigFields.persistStateIntervalMillis,
+        {
+            env: [
+                'APIFY_PERSIST_STATE_INTERVAL_MILLIS',
+                'APIFY_TEST_PERSIST_INTERVAL_MILLIS',
+            ],
+        },
+    ),
 
     // Override browser-related fields to also check APIFY_* env vars
-    headless: field(coerceBoolean.default(true), {
-        env: ['APIFY_HEADLESS', 'CRAWLEE_HEADLESS'],
+    headless: extendField(crawleeConfigFields.headless, {
+        env: 'APIFY_HEADLESS',
     }),
-    xvfb: field(coerceBoolean.default(false), {
-        env: ['APIFY_XVFB', 'CRAWLEE_XVFB'],
+    xvfb: extendField(crawleeConfigFields.xvfb, {
+        env: 'APIFY_XVFB',
     }),
-    chromeExecutablePath: field(z.string().optional(), {
-        env: ['APIFY_CHROME_EXECUTABLE_PATH', 'CRAWLEE_CHROME_EXECUTABLE_PATH'],
+    chromeExecutablePath: extendField(
+        crawleeConfigFields.chromeExecutablePath,
+        {
+            env: 'APIFY_CHROME_EXECUTABLE_PATH',
+        },
+    ),
+    defaultBrowserPath: extendField(crawleeConfigFields.defaultBrowserPath, {
+        env: 'APIFY_DEFAULT_BROWSER_PATH',
     }),
-    defaultBrowserPath: field(z.string().optional(), {
-        env: ['APIFY_DEFAULT_BROWSER_PATH', 'CRAWLEE_DEFAULT_BROWSER_PATH'],
-    }),
-    disableBrowserSandbox: field(coerceBoolean.optional(), {
-        env: [
-            'APIFY_DISABLE_BROWSER_SANDBOX',
-            'CRAWLEE_DISABLE_BROWSER_SANDBOX',
-        ],
-    }),
+    disableBrowserSandbox: extendField(
+        crawleeConfigFields.disableBrowserSandbox,
+        {
+            env: 'APIFY_DISABLE_BROWSER_SANDBOX',
+        },
+    ),
 
     // Override other crawlee fields with APIFY_* aliases
-    availableMemoryRatio: field(z.coerce.number().default(0.25), {
-        env: ['APIFY_AVAILABLE_MEMORY_RATIO', 'CRAWLEE_AVAILABLE_MEMORY_RATIO'],
-    }),
-    purgeOnStart: field(coerceBoolean.default(true), {
-        env: ['APIFY_PURGE_ON_START', 'CRAWLEE_PURGE_ON_START'],
+    availableMemoryRatio: extendField(
+        crawleeConfigFields.availableMemoryRatio,
+        {
+            env: 'APIFY_AVAILABLE_MEMORY_RATIO',
+        },
+    ),
+    purgeOnStart: extendField(crawleeConfigFields.purgeOnStart, {
+        env: 'APIFY_PURGE_ON_START',
     }),
 
     // =========================================================================
@@ -309,7 +317,6 @@ export class Configuration extends CrawleeConfiguration<
             return CrawleeConfiguration.storage.getStore() as Configuration;
         }
 
-         
         Configuration.globalConfig ??= new Configuration();
         return Configuration.globalConfig;
     }
