@@ -32,7 +32,7 @@ export const apifyConfigFields = {
             env: ['ACTOR_DEFAULT_DATASET_ID', 'APIFY_DEFAULT_DATASET_ID'],
         },
     ),
-    defaultKeyValueStoreId: extendField(
+    defaultKeyValueStoreId: CrawleeConfiguration.extendField(
         crawleeConfigFields.defaultKeyValueStoreId,
         {
             env: [
@@ -41,7 +41,7 @@ export const apifyConfigFields = {
             ],
         },
     ),
-    defaultRequestQueueId: extendField(
+    defaultRequestQueueId: CrawleeConfiguration.extendField(
         crawleeConfigFields.defaultRequestQueueId,
         {
             env: [
@@ -65,7 +65,7 @@ export const apifyConfigFields = {
     ),
 
     // Override persistStateIntervalMillis with APIFY_* aliases
-    persistStateIntervalMillis: extendField(
+    persistStateIntervalMillis: CrawleeConfiguration.extendField(
         crawleeConfigFields.persistStateIntervalMillis,
         {
             env: [
@@ -82,7 +82,7 @@ export const apifyConfigFields = {
     xvfb: CrawleeConfiguration.extendField(crawleeConfigFields.xvfb, {
         env: 'APIFY_XVFB',
     }),
-    chromeExecutablePath: extendField(
+    chromeExecutablePath: CrawleeConfiguration.extendField(
         crawleeConfigFields.chromeExecutablePath,
         {
             env: 'APIFY_CHROME_EXECUTABLE_PATH',
@@ -94,7 +94,7 @@ export const apifyConfigFields = {
             env: 'APIFY_DEFAULT_BROWSER_PATH',
         },
     ),
-    disableBrowserSandbox: extendField(
+    disableBrowserSandbox: CrawleeConfiguration.extendField(
         crawleeConfigFields.disableBrowserSandbox,
         {
             env: 'APIFY_DISABLE_BROWSER_SANDBOX',
@@ -102,7 +102,7 @@ export const apifyConfigFields = {
     ),
 
     // Override other crawlee fields with APIFY_* aliases
-    availableMemoryRatio: extendField(
+    availableMemoryRatio: CrawleeConfiguration.extendField(
         crawleeConfigFields.availableMemoryRatio,
         {
             env: 'APIFY_AVAILABLE_MEMORY_RATIO',
