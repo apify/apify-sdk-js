@@ -1,3 +1,5 @@
+const { resolve } = require('node:path');
+
 const { config } = require('@apify/docs-theme');
 const { externalLinkProcessor } = require('./tools/utils/externalLink');
 const versions = require('./versions.json');
@@ -171,6 +173,13 @@ module.exports = {
                     },
                 },
                 routeBasePath: 'reference',
+            },
+        ],
+        [
+            resolve(__dirname, 'src/plugins/docusaurus-plugin-segment'),
+            {
+                writeKey: process.env.SEGMENT_TOKEN,
+                allowedInDev: false,
             },
         ],
         [
