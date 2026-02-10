@@ -301,9 +301,12 @@ export interface WebhookOptions {
     idempotencyKey?: string;
 
     /**
-     * A template for HTTP headers sent with the webhook request.
+     * Headers template is a JSON-like string that describes the HTTP headers to be sent with the webhook POST request.
      * It uses JSON syntax, extended with a double curly braces syntax for injecting variables `{{variable}}`.
-     * Those variables are resolved at the time of the webhook's dispatch.
+     * Those variables are resolved at the time of the webhook's dispatch, and a list of available variables with their descriptions
+     * is available in the [Apify webhook documentation](https://docs.apify.com/webhooks).
+     * If `headersTemplate` is omitted, no extra headers are added
+     * ([view docs](https://docs.apify.com/platform/integrations/webhooks/actions#headers-template)).
      */
     headersTemplate?: string;
 

@@ -1249,10 +1249,11 @@ describe('Actor', () => {
                 isApifyIntegration: false,
             };
 
+            const createMock = vitest.fn(async () => webhookWithAllFields);
             const clientMock = vitest
                 .spyOn(Actor.apifyClient, 'webhooks')
                 .mockReturnValueOnce({
-                    create: async () => webhookWithAllFields,
+                    create: createMock,
                 } as any);
 
             await Actor.addWebhook({
@@ -1272,6 +1273,22 @@ describe('Actor', () => {
             delete process.env[APIFY_ENV_VARS.IS_AT_HOME];
 
             expect(clientMock).toBeCalledTimes(1);
+            expect(createMock).toBeCalledWith({
+                isAdHoc: true,
+                eventTypes: expectedEventTypes,
+                condition: {
+                    actorRunId: runId,
+                },
+                requestUrl: expectedRequestUrl,
+                payloadTemplate: expectedPayloadTemplate,
+                idempotencyKey: expectedIdempotencyKey,
+                headersTemplate: expectedHeadersTemplate,
+                description: expectedDescription,
+                ignoreSslErrors: true,
+                doNotRetry: false,
+                shouldInterpolateStrings: true,
+                isApifyIntegration: false,
+            });
         });
 
         test('on local logs warning and does nothing', async () => {
