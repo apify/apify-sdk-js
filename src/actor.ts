@@ -299,6 +299,18 @@ export interface WebhookOptions {
      * {@apilink Actor.getEnv} function.
      */
     idempotencyKey?: string;
+
+    /**
+     * A template for HTTP headers sent with the webhook request.
+     * It uses JSON syntax, extended with a double curly braces syntax for injecting variables `{{variable}}`.
+     * Those variables are resolved at the time of the webhook's dispatch.
+     */
+    headersTemplate?: string;
+
+    /**
+     * A description of the webhook.
+     */
+    description?: string;
 }
 
 export interface MetamorphOptions {
@@ -920,11 +932,19 @@ export class Actor<Data extends Dictionary = Dictionary> {
                 requestUrl: ow.string,
                 payloadTemplate: ow.optional.string,
                 idempotencyKey: ow.optional.string,
+                headersTemplate: ow.optional.string,
+                description: ow.optional.string,
             }),
         );
 
-        const { eventTypes, requestUrl, payloadTemplate, idempotencyKey } =
-            options;
+        const {
+            eventTypes,
+            requestUrl,
+            payloadTemplate,
+            idempotencyKey,
+            headersTemplate,
+            description,
+        } = options;
 
         if (!this.isAtHome()) {
             log.warning(
@@ -949,6 +969,8 @@ export class Actor<Data extends Dictionary = Dictionary> {
             requestUrl,
             payloadTemplate,
             idempotencyKey,
+            headersTemplate,
+            description,
         });
     }
 
