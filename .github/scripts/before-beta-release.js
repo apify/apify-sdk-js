@@ -24,14 +24,15 @@ function addBetaSuffixToVersion(version) {
     const versions = JSON.parse(versionString);
 
     if (versions.some((v) => v === version)) {
-        console.error(
-            `before-deploy: A release with version ${version} already exists. Please increment version accordingly.`,
+        const [major, minor, patch] = version.split('.').map(Number);
+        version = `${major}.${minor}.${patch + 1}`;
+        console.log(
+            `before-deploy: Version ${pkgJson.version} already exists on npm, bumping to ${version}`,
         );
-        process.exit(1);
     }
 
     const prereleaseNumbers = versions
-        .filter((v) => v.startsWith(version) && v.includes('-'))
+        .filter((v) => v.startsWith(`${version}-`) && v.includes('-'))
         .map((v) => Number(v.match(/\.(\d+)$/)[1]));
     const lastPrereleaseNumber = Math.max(-1, ...prereleaseNumbers);
     return `${version}-beta.${lastPrereleaseNumber + 1}`;
