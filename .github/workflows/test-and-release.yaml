@@ -130,5 +130,5 @@ jobs:
                   inputs: >
                       {
                           "ref": "${{ github.sha }}",
-                          "tag": "beta"
+                          "tag": "next"
                       }

@@ -7,11 +7,11 @@ After creating a release there, Actions will automatically produce a latest vers
 ## TLDR;
 
 - To **NOT** release anything on a push to `master`, add `[skip ci]` to your commit message.
-- To release `beta`, just push to `master`. If it breaks with a `Version already exists error` increment version
+- To release `next`, just push to `master`. If it breaks with a `Version already exists error` increment version
   in `package.json` and push again.
 - To release `latest`, go to releases on GitHub, draft and publish a release. If you don't know how, read below.
 
-## Prerelease (beta) versions
+## Prerelease (next) versions
 
 On each push to the `master` branch, a new prerelease version is automatically built and published
 by GitHub Actions. To skip the process, add `[skip ci]` to your commit message.
@@ -23,8 +23,8 @@ by GitHub Actions. To skip the process, add `[skip ci]` to your commit message.
 3. If all is well, a new prerelease version is published to NPM (`${VERSION}-beta.${COUNTER}`),
    where `VERSION` is the version in package.json and `COUNTER` is a zero based index of existing prereleases.
    Example: `0.15.1-beta.3`.
-4. The package is tagged with the `beta` NPM tag and a Git tag is associated with the triggering commit.
-5. A build of Apify docker images is triggered that updates the `beta` packages to use the newly published package.
+4. The package is tagged with the `next` NPM tag and a Git tag is associated with the triggering commit.
+5. A build of Apify docker images is triggered that updates the `next` packages to use the newly published package.
 6. All done and ready to use.
 
 ### Updating a release version
