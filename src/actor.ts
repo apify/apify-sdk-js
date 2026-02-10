@@ -964,19 +964,6 @@ export class Actor<Data extends Dictionary = Dictionary> {
             }),
         );
 
-        const {
-            eventTypes,
-            requestUrl,
-            payloadTemplate,
-            idempotencyKey,
-            headersTemplate,
-            description,
-            ignoreSslErrors,
-            doNotRetry,
-            shouldInterpolateStrings,
-            isApifyIntegration,
-        } = options;
-
         if (!this.isAtHome()) {
             log.warning(
                 'Actor.addWebhook() is only supported when running on the Apify platform. The webhook will not be invoked.',
@@ -992,20 +979,11 @@ export class Actor<Data extends Dictionary = Dictionary> {
         }
 
         return this.apifyClient.webhooks().create({
+            ...options,
             isAdHoc: true,
-            eventTypes,
             condition: {
                 actorRunId: runId,
             },
-            requestUrl,
-            payloadTemplate,
-            idempotencyKey,
-            headersTemplate,
-            description,
-            ignoreSslErrors,
-            doNotRetry,
-            shouldInterpolateStrings,
-            isApifyIntegration,
         });
     }
 
