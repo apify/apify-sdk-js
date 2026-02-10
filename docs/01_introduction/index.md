@@ -2,24 +2,11 @@
 id: introduction
 title: Apify SDK for JavaScript
 sidebar_label: Overview
+slug: /overview
 description: 'The official library for creating Apify Actors in JavaScript, providing tools for web crawling, scraping, and automation at scale.'
 ---
 
 The Apify SDK for JavaScript is the official library for creating [Apify Actors](https://docs.apify.com/platform/actors) using JavaScript or TypeScript. It provides useful features like Actor lifecycle management, local storage emulation, and Actor event handling.
-
-Apify SDK simplifies the development of web crawlers, scrapers, data extractors and web automation jobs. It provides tools to manage and automatically scale a pool of headless browsers, to maintain queues of URLs to crawl, store crawling results to a local filesystem or into the cloud, rotate proxies and much more.
-
-The SDK is available as the [`apify`](https://www.npmjs.com/package/apify) NPM package. It can be used either stand-alone in your own applications or in [actors](https://docs.apify.com/actor) running on the [Apify platform](https://apify.com/).
-
-## What are Actors
-
-Actors are serverless cloud programs capable of performing tasks in a web browser, similar to what a human can do. These tasks can range from simple operations, such as filling out forms or unsubscribing from services, to complex jobs like scraping and processing large numbers of web pages.
-
-Actors can be executed locally or on the [Apify platform](https://docs.apify.com/platform). The Apify platform lets you run Actors at scale and provides features for monitoring, scheduling, publishing, and monetizing them.
-
-## Quick start
-
-To create and run Actors using Apify Console, check out [Apify Console documentation](https://docs.apify.com/platform/console). For creating and running JavaScript Actors locally, refer to the [Actor lifecycle guide](concepts/actor-lifecycle).
 
 ```js
 import { Actor } from 'apify';
@@ -32,32 +19,28 @@ console.log(input);
 await Actor.exit();
 ```
 
-Explore the Guides section (see sidebar) to see more of the SDK in action and for a deeper understanding of the SDK's features and best practices.
+## What are Actors
 
-## Core Features
+Actors are serverless cloud programs capable of performing tasks in a web browser, similar to what a human can do. These tasks can range from simple operations, such as filling out forms or unsubscribing from services, to complex jobs like scraping and processing large numbers of web pages.
 
-The Apify SDK provides the following key tools:
+Actors can be executed locally or on the [Apify platform](https://docs.apify.com/platform). The Apify platform lets you run Actors at scale and provides features for monitoring, scheduling, publishing, and monetizing them.
 
-- [`Actor`](https://sdk.apify.com/api/apify/class/Actor) - Serves as an alternative approach to the static helpers exported from the package. This class can be used to control the current actor run and to interact with the actor's environment.
+## Quick start
 
-- [`ApifyClient`](https://sdk.apify.com/api/apify/class/ApifyClient) - Allows user to interact with the Apify platform from code, control and schedule actors on the platform and access the result data stores.
+To create and run Actors using Apify Console, check out [Apify Console documentation](https://docs.apify.com/platform/console). For creating and running JavaScript Actors locally, refer to the [Actor lifecycle guide](concepts/actor-lifecycle).
 
-- [`Configuration`](https://sdk.apify.com/api/apify/class/Configuration) - Helper class encapsulating the configuration of the current actor run.
+Explore the [Guides](guides) section to see more of the SDK in action and for a deeper understanding of the SDK's features and best practices.
 
-- [`PlatformEventManager`](https://sdk.apify.com/api/apify/class/PlatformEventManager) - Event emitter for the platform and SDK events. Can be used to track actor run performance or serverless container migration.
+## Installation
 
-- [`ProxyConfiguration`](https://sdk.apify.com/api/apify/class/ProxyConfiguration) - Configures connection to a proxy server with the provided options. Setting proxy configuration in your crawlers automatically configures them to use the selected proxies for all connections. The proxy servers are managed by Apify Proxy.
+The Apify SDK for JavaScript is typically installed when you create a new Actor project using the [Apify CLI](https://docs.apify.com/cli). To install it manually in an existing project, use:
 
-- [`RequestQueue`](https://sdk.apify.com/api/apify/class/RequestQueue) - Represents a queue of URLs to crawl, which is stored either on a local filesystem or in the Apify platform. The queue is used for deep crawling of websites, where you start with several URLs and then recursively follow links to other pages. The data structure supports both breadth-first and depth-first crawling orders.
+```bash
+npm install apify
+```
 
-- [`Dataset`](https://sdk.apify.com/api/apify/class/Dataset) - Provides a store for structured data and enables their export to formats like JSON, JSONL, CSV, XML, Excel or HTML. The data is stored on a local filesystem or in the Apify platform. Datasets are useful for storing and sharing large tabular crawling results, such as a list of products or real estate offers.
+:::note API client alternative
 
-- [`KeyValueStore`](https://sdk.apify.com/api/apify/class/KeyValueStore) - A simple key-value store for arbitrary data records or files, along with their MIME content type. It is ideal for saving screenshots of web pages, PDFs or to persist the state of your crawlers. The data is stored on a local filesystem or in the Apify platform.
+If you need to interact with the Apify API programmatically without creating Actors, use the [Apify API client for JavaScript](https://docs.apify.com/api/client/js) instead.
 
-Additionally, the package provides various helper functions to simplify running your code on the Apify platform and thus take advantage of its pool of proxies, job scheduler, data storage, etc. For more information, see the [Apify SDK Programmer's Reference](https://sdk.apify.com).
-
-## Next steps
-
-- [Installation](introduction/installation) - Learn how to install the Apify SDK
-- [Quick Start Guide](introduction/quick-start) - Get started with your first Actor
-- [Actor lifecycle](concepts/actor-lifecycle) - Understand key concepts and how the SDK works
+:::
