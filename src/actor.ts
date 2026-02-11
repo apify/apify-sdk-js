@@ -299,6 +299,41 @@ export interface WebhookOptions {
      * {@apilink Actor.getEnv} function.
      */
     idempotencyKey?: string;
+
+    /**
+     * Headers template is a JSON-like string that describes the HTTP headers to be sent with the webhook POST request.
+     * It uses JSON syntax, extended with a double curly braces syntax for injecting variables `{{variable}}`.
+     * Those variables are resolved at the time of the webhook's dispatch, and a list of available variables with their descriptions
+     * is available in the [Apify webhook documentation](https://docs.apify.com/webhooks).
+     * If `headersTemplate` is omitted, no extra headers are added
+     * ([view docs](https://docs.apify.com/platform/integrations/webhooks/actions#headers-template)).
+     */
+    headersTemplate?: string;
+
+    /**
+     * A description of the webhook.
+     */
+    description?: string;
+
+    /**
+     * If true, the webhook will ignore SSL errors when sending the request.
+     */
+    ignoreSslErrors?: boolean;
+
+    /**
+     * If true, the webhook will not retry on failure.
+     */
+    doNotRetry?: boolean;
+
+    /**
+     * If true, the webhook will interpolate strings in the payloadTemplate and headersTemplate.
+     */
+    shouldInterpolateStrings?: boolean;
+
+    /**
+     * If true, indicates the webhook is an Apify integration.
+     */
+    isApifyIntegration?: boolean;
 }
 
 export interface MetamorphOptions {
@@ -920,11 +955,14 @@ export class Actor<Data extends Dictionary = Dictionary> {
                 requestUrl: ow.string,
                 payloadTemplate: ow.optional.string,
                 idempotencyKey: ow.optional.string,
+                headersTemplate: ow.optional.string,
+                description: ow.optional.string,
+                ignoreSslErrors: ow.optional.boolean,
+                doNotRetry: ow.optional.boolean,
+                shouldInterpolateStrings: ow.optional.boolean,
+                isApifyIntegration: ow.optional.boolean,
             }),
         );
-
-        const { eventTypes, requestUrl, payloadTemplate, idempotencyKey } =
-            options;
 
         if (!this.isAtHome()) {
             log.warning(
@@ -941,14 +979,11 @@ export class Actor<Data extends Dictionary = Dictionary> {
         }
 
         return this.apifyClient.webhooks().create({
+            ...options,
             isAdHoc: true,
-            eventTypes,
             condition: {
                 actorRunId: runId,
             },
-            requestUrl,
-            payloadTemplate,
-            idempotencyKey,
         });
     }
 

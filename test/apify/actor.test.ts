@@ -1198,6 +1198,99 @@ describe('Actor', () => {
             expect(clientMock).toBeCalledTimes(1);
         });
 
+        test('works with headersTemplate and description', async () => {
+            process.env[ACTOR_ENV_VARS.RUN_ID] = runId;
+            process.env[APIFY_ENV_VARS.IS_AT_HOME] = '1';
+
+            const expectedHeadersTemplate =
+                '{"Authorization":"Bearer {{token}}"}';
+            const expectedDescription = 'Test webhook';
+            const webhookWithHeaders = {
+                ...webhook,
+                headersTemplate: expectedHeadersTemplate,
+                description: expectedDescription,
+            };
+
+            const clientMock = vitest
+                .spyOn(Actor.apifyClient, 'webhooks')
+                .mockReturnValueOnce({
+                    create: async () => webhookWithHeaders,
+                } as any);
+
+            await Actor.addWebhook({
+                eventTypes: expectedEventTypes,
+                requestUrl: expectedRequestUrl,
+                payloadTemplate: expectedPayloadTemplate,
+                idempotencyKey: expectedIdempotencyKey,
+                headersTemplate: expectedHeadersTemplate,
+                description: expectedDescription,
+            });
+
+            delete process.env[ACTOR_ENV_VARS.RUN_ID];
+            delete process.env[APIFY_ENV_VARS.IS_AT_HOME];
+
+            expect(clientMock).toBeCalledTimes(1);
+        });
+
+        test('works with all optional fields', async () => {
+            process.env[ACTOR_ENV_VARS.RUN_ID] = runId;
+            process.env[APIFY_ENV_VARS.IS_AT_HOME] = '1';
+
+            const expectedHeadersTemplate =
+                '{"Authorization":"Bearer {{token}}"}';
+            const expectedDescription = 'Test webhook';
+            const webhookWithAllFields = {
+                ...webhook,
+                headersTemplate: expectedHeadersTemplate,
+                description: expectedDescription,
+                ignoreSslErrors: true,
+                doNotRetry: false,
+                shouldInterpolateStrings: true,
+                isApifyIntegration: false,
+            };
+
+            const createMock = vitest.fn(async () => webhookWithAllFields);
+            const clientMock = vitest
+                .spyOn(Actor.apifyClient, 'webhooks')
+                .mockReturnValueOnce({
+                    create: createMock,
+                } as any);
+
+            await Actor.addWebhook({
+                eventTypes: expectedEventTypes,
+                requestUrl: expectedRequestUrl,
+                payloadTemplate: expectedPayloadTemplate,
+                idempotencyKey: expectedIdempotencyKey,
+                headersTemplate: expectedHeadersTemplate,
+                description: expectedDescription,
+                ignoreSslErrors: true,
+                doNotRetry: false,
+                shouldInterpolateStrings: true,
+                isApifyIntegration: false,
+            });
+
+            delete process.env[ACTOR_ENV_VARS.RUN_ID];
+            delete process.env[APIFY_ENV_VARS.IS_AT_HOME];
+
+            expect(clientMock).toBeCalledTimes(1);
+            expect(createMock).toBeCalledWith({
+                isAdHoc: true,
+                eventTypes: expectedEventTypes,
+                condition: {
+                    actorRunId: runId,
+                },
+                requestUrl: expectedRequestUrl,
+                payloadTemplate: expectedPayloadTemplate,
+                idempotencyKey: expectedIdempotencyKey,
+                headersTemplate: expectedHeadersTemplate,
+                description: expectedDescription,
+                ignoreSslErrors: true,
+                doNotRetry: false,
+                shouldInterpolateStrings: true,
+                isApifyIntegration: false,
+            });
+        });
+
         test('on local logs warning and does nothing', async () => {
             const clientMock = vitest
                 .spyOn(Actor.apifyClient, 'webhooks')
