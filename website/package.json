@@ -19,7 +19,7 @@
     "devDependencies": {
         "@apify/tsconfig": "^0.1.0",
         "@types/react": "^19.0.0",
-        "eslint": "^9.24.0",
+        "eslint": "^10.0.0",
         "eslint-plugin-react": "^7.32.2",
         "eslint-plugin-react-hooks": "^7.0.0",
         "fs-extra": "^11.1.1",
