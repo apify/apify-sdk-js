@@ -9,7 +9,7 @@ Learn how to create and run Actors using the Apify SDK for JavaScript.
 
 ---
 
-## Step 1: Creating Actors
+## Step 1: Create Actors
 
 To create and run Actors in Apify Console, refer to the [Console documentation](https://docs.apify.com/platform/actors/development/quick-start/web-ide).
 
@@ -21,7 +21,7 @@ apify create my-first-actor
 
 The CLI will prompt you to select a template. After you choose a template, the CLI creates a new folder called `my-first-actor`, downloads and extracts the selected template, and installs dependencies using npm.
 
-## Step 2: Running the Actor
+## Step 2: Run Actors
 
 To run the Actor, you can use the [`apify run` command](/cli/docs/reference#apify-run):
 
@@ -37,7 +37,7 @@ This command:
 
 The Actor input, for example, will be in `storage/key_value_stores/default/INPUT.json`.
 
-## Step 3: Understanding Actor structure
+## Step 3: Understand Actor structure
 
 All JavaScript Actor templates follow the same structure.
 
