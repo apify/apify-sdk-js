@@ -14,7 +14,7 @@ on:
                 default: latest
                 options:
                     - latest
-                    - beta
+                    - next
 
 permissions:
     id-token: write # Required for OIDC
@@ -49,8 +49,8 @@ jobs:
             - name: Build module
               run: npm run build
 
-            - name: Check version consistency and bump pre-release version (beta only)
-              if: ${{ inputs.tag == 'beta' }}
+            - name: Check version consistency and bump pre-release version (next only)
+              if: ${{ inputs.tag == 'next' }}
               run: node ./.github/scripts/before-beta-release.js
 
             - name: Publish to NPM
