@@ -70,6 +70,17 @@ import { checkCrawleeVersion, getSystemInfo } from './utils.js';
 
 export interface InitOptions {
     storage?: StorageClient;
+    /**
+     * Whether to automatically call `Actor.exit()` when the platform sends an `aborting` or `migrating` event.
+     * @default true
+     */
+    gracefulShutdown?: boolean;
+    /**
+     * Delay in milliseconds before calling `Actor.exit()` on `aborting`/`migrating` events.
+     * Since `Actor.exit()` already waits for all event handlers to complete, this delay is usually unnecessary.
+     * @default 0
+     */
+    gracefulShutdownDelayMillis?: number;
 }
 
 export interface ExitOptions {
@@ -578,14 +589,23 @@ export class Actor<Data extends Dictionary = Dictionary> {
 
         // Register handlers for aborting and migrating events to automatically call Actor.exit()
         // This ensures graceful shutdown when the platform signals abort or migration
-        // The 1 second delay allows other event handlers (like Crawlee's state persistence) to be triggered first
-        const gracefulExitHandler = async () => {
-            await sleep(1000);
-            await this.exit();
-        };
+        // Using setTimeout to avoid deadlock with waitForAllListenersToComplete() in exit()
+        if (options.gracefulShutdown !== false) {
+            const delay = options.gracefulShutdownDelayMillis ?? 0;
+            const gracefulExitHandler = () => {
+                setTimeout(() => {
+                    this.exit().catch((err) => {
+                        log.exception(
+                            err as Error,
+                            'Failed to exit gracefully',
+                        );
+                    });
+                }, delay);
+            };
 
-        this.on(ACTOR_EVENT_NAMES.ABORTING, gracefulExitHandler);
-        this.on(ACTOR_EVENT_NAMES.MIGRATING, gracefulExitHandler);
+            this.on(ACTOR_EVENT_NAMES.ABORTING, gracefulExitHandler);
+            this.on(ACTOR_EVENT_NAMES.MIGRATING, gracefulExitHandler);
+        }
 
         await purgeDefaultStorages({
             config: this.config,
@@ -685,6 +705,10 @@ export class Actor<Data extends Dictionary = Dictionary> {
                 process.exit(options.exitCode);
             }
         });
+
+        // Reset the flag so the instance can be reused (e.g., in tests or when exit is false).
+        // When process.exit() actually terminates the process, this line is never reached - which is fine.
+        this.isExiting = false;
 
         if (!options.exit) {
             return;
