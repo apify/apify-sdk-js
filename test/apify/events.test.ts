@@ -4,7 +4,11 @@ import { sleep } from '@crawlee/utils';
 import { Actor, Configuration, PlatformEventManager } from 'apify';
 import { WebSocketServer } from 'ws';
 
-import { ACTOR_ENV_VARS, APIFY_ENV_VARS } from '@apify/consts';
+import {
+    ACTOR_ENV_VARS,
+    ACTOR_EVENT_NAMES,
+    APIFY_ENV_VARS,
+} from '@apify/consts';
 
 describe('events', () => {
     let wss: WebSocketServer = null!;
@@ -140,4 +144,70 @@ describe('events', () => {
         await events.close();
         expect(eventsReceived.length).toBe(5);
     });
+});
+
+describe('graceful exit handlers', () => {
+    let wss: WebSocketServer = null!;
+    let processExitSpy: ReturnType<typeof vitest.spyOn>;
+    let testPort = 9098;
+
+    beforeEach(() => {
+        // Use incrementing port to avoid port reuse issues between tests
+        testPort++;
+        wss = new WebSocketServer({ port: testPort });
+        process.env[ACTOR_ENV_VARS.EVENTS_WEBSOCKET_URL] =
+            `ws://localhost:${testPort}/someRunId`;
+        process.env[APIFY_ENV_VARS.TOKEN] = 'dummy';
+        // Mock process.exit to prevent actual exit during tests
+        processExitSpy = vitest
+            .spyOn(process, 'exit')
+            .mockImplementation((() => {}) as never);
+    });
+
+    afterEach(async () => {
+        delete process.env[ACTOR_ENV_VARS.EVENTS_WEBSOCKET_URL];
+        delete process.env[APIFY_ENV_VARS.TOKEN];
+        processExitSpy.mockRestore();
+        // Close the WebSocket server - terminate all connections first
+        for (const client of wss.clients) {
+            client.terminate();
+        }
+        await new Promise<void>((resolve) => {
+            wss.close(() => resolve());
+        });
+    });
+
+    test('should automatically call Actor.exit() on aborting event', async () => {
+        const actor = new Actor();
+        let exitCalled = false;
+
+        const eventReceived = new Promise<void>((resolve) => {
+            wss.on('connection', (ws) => {
+                // Send aborting event after connection
+                ws.send(
+                    JSON.stringify({
+                        name: ACTOR_EVENT_NAMES.ABORTING,
+                        data: {},
+                    }),
+                );
+                resolve();
+            });
+        });
+
+        // Spy on exit method before init (so the handler uses our spy)
+        const exitSpy = vitest
+            .spyOn(actor, 'exit')
+            .mockImplementation(async () => {
+                exitCalled = true;
+            });
+
+        await actor.init();
+        await eventReceived;
+
+        // Wait for the 1 second delay in the handler plus some buffer
+        await sleep(1500);
+
+        expect(exitCalled).toBe(true);
+        exitSpy.mockRestore();
+    }, 10e3);
 });

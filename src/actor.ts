@@ -39,6 +39,7 @@ import ow from 'ow';
 
 import {
     ACTOR_ENV_VARS,
+    ACTOR_EVENT_NAMES,
     type ACTOR_PERMISSION_LEVEL,
     APIFY_ENV_VARS,
     INTEGER_ENV_VARS,
@@ -427,6 +428,11 @@ export class Actor<Data extends Dictionary = Dictionary> {
      */
     private isRebooting = false;
 
+    /**
+     * Set if the Actor is currently exiting. Prevents double-exit from graceful shutdown handlers.
+     */
+    private isExiting = false;
+
     private chargingManager: ChargingManager;
 
     constructor(options: ConfigurationOptions = {}) {
@@ -570,6 +576,17 @@ export class Actor<Data extends Dictionary = Dictionary> {
         await this.config.getEventManager().init();
         log.debug(`Events initialized`);
 
+        // Register handlers for aborting and migrating events to automatically call Actor.exit()
+        // This ensures graceful shutdown when the platform signals abort or migration
+        // The 1 second delay allows other event handlers (like Crawlee's state persistence) to be triggered first
+        const gracefulExitHandler = async () => {
+            await sleep(1000);
+            await this.exit();
+        };
+
+        this.on(ACTOR_EVENT_NAMES.ABORTING, gracefulExitHandler);
+        this.on(ACTOR_EVENT_NAMES.MIGRATING, gracefulExitHandler);
+
         await purgeDefaultStorages({
             config: this.config,
             onlyPurgeOnce: true,
@@ -592,6 +609,13 @@ export class Actor<Data extends Dictionary = Dictionary> {
         messageOrOptions?: string | ExitOptions,
         options: ExitOptions = {},
     ): Promise<void> {
+        // Prevent double-exit from graceful shutdown handlers
+        if (this.isExiting) {
+            log.debug('Actor.exit() called while already exiting, skipping');
+            return;
+        }
+        this.isExiting = true;
+
         options =
             typeof messageOrOptions === 'string'
                 ? { ...options, statusMessage: messageOrOptions }
