@@ -72,7 +72,7 @@ export interface InitOptions {
     storage?: StorageClient;
     /**
      * Whether to automatically call `Actor.exit()` when the platform sends an `aborting` or `migrating` event.
-     * @default true
+     * @default false
      */
     gracefulShutdown?: boolean;
     /**
@@ -590,7 +590,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
         // Register handlers for aborting and migrating events to automatically call Actor.exit()
         // This ensures graceful shutdown when the platform signals abort or migration
         // Using setTimeout to avoid deadlock with waitForAllListenersToComplete() in exit()
-        if (options.gracefulShutdown !== false) {
+        if (options.gracefulShutdown === true) {
             const delay = options.gracefulShutdownDelayMillis ?? 0;
             const gracefulExitHandler = () => {
                 setTimeout(() => {
