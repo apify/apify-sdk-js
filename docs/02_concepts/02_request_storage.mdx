@@ -7,7 +7,7 @@ import ApiLink from '@site/src/components/ApiLink';
 import { CrawleeApiLink } from '@site/src/components/CrawleeLinks';
 
 The Apify SDK has several request storage types that are useful for specific tasks. The requests are stored either on local disk to a directory defined by the
-`APIFY_LOCAL_STORAGE_DIR` environment variable, or on the [Apify platform](/docs/guides/apify-platform) under the user account identified by the API token defined by the `APIFY_TOKEN` environment variable. If neither of these variables is defined, by default Apify SDK sets `APIFY_LOCAL_STORAGE_DIR` to `./storage` in the current working directory and prints a warning.
+`APIFY_LOCAL_STORAGE_DIR` environment variable, or on the [Apify platform](./actor-lifecycle) under the user account identified by the API token defined by the `APIFY_TOKEN` environment variable. If neither of these variables is defined, by default Apify SDK sets `APIFY_LOCAL_STORAGE_DIR` to `./storage` in the current working directory and prints a warning.
 
 Typically, you will be developing the code on your local computer and thus set the `APIFY_LOCAL_STORAGE_DIR` environment variable. Once the code is ready, you will deploy it to the Apify platform, where it will automatically set the `APIFY_TOKEN` environment variable and thus use cloud storage. No code changes are needed.
 
@@ -57,7 +57,7 @@ To see more detailed example of how to use the request queue with a crawler, see
 
 ## Request list
 
-The request list is not a storage per se - it represents the list of URLs to crawl that is stored in a run memory (or optionally in default [Key-Value Store](../guides/result-storage#key-value-store) associated with the run, if specified). The list is used for the crawling of a large number of URLs, when you know all the URLs which should be visited by the crawler and no URLs would be added during the run. The URLs can be provided either in code or parsed from a text file hosted on the web.
+The request list is not a storage per se - it represents the list of URLs to crawl that is stored in a run memory (or optionally in default [Key-value Store](./result-storage#key-value-store) associated with the run, if specified). The list is used for the crawling of a large number of URLs, when you know all the URLs which should be visited by the crawler and no URLs would be added during the run. The URLs can be provided either in code or parsed from a text file hosted on the web.
 
 Request list is created exclusively for the actor run and only if its usage is explicitly specified in the code. Its usage is optional.
 
