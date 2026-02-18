@@ -32,10 +32,14 @@ import { Configuration } from './configuration.js';
  *   You can use it to persist the state of the Actor and gracefully stop your in-progress tasks,
  *   so that they are not interrupted by the migration.
  *   For example, this is used by the {@apilink RequestList} class.
+ *   If you pass `gracefulShutdown: true` to {@apilink Actor.init}, the SDK will automatically call
+ *   {@apilink Actor.exit} when this event is received.
  * - `aborting`: `void`
  *   When a user aborts an Actor run on the Apify platform, they can choose to abort gracefully to allow
  *   the Actor some time before getting killed. This graceful abort emits the `aborting` event which the SDK
  *   uses to gracefully stop running crawls and you can use it to do your own cleanup as well.
+ *   If you pass `gracefulShutdown: true` to {@apilink Actor.init}, the SDK will automatically call
+ *   {@apilink Actor.exit} when this event is received.
  * - `persistState`: `{ "isMigrating": Boolean }`
  *   Emitted in regular intervals (by default 60 seconds) to notify all components of Apify SDK that it is time to persist
  *   their state, in order to avoid repeating all work when the Actor restarts.

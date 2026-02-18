@@ -152,6 +152,57 @@ Your script will be uploaded to and built on the Apify platform so that it can b
 
 You can also develop your Actor in an online code editor directly on the platform (you'll need an Apify account). Let's go to the [Actors](https://console.apify.com/actors) page in the app, click **Develop new**, choose a template, go to the **Source** tab and start writing the code or paste one of the examples from the Examples section in the sidebar.
 
+## Graceful shutdown
+
+When running on the Apify platform, your Actor may receive signals to shut down gracefully. This happens when:
+
+- A user aborts the Actor run with the "abort gracefully" option (`aborting` event)
+- The platform needs to migrate your Actor to a different server (`migrating` event)
+
+### With Crawlee crawlers
+
+If you're using Crawlee crawlers (like `CheerioCrawler`, `PlaywrightCrawler`, etc.), graceful shutdown is handled automatically. The crawler listens for these events and stops accepting new requests while finishing the ones in progress.
+
+### Without Crawlee crawlers
+
+If your Actor doesn't use Crawlee crawlers but still needs to respond to platform shutdown signals, you can enable automatic graceful shutdown by passing `gracefulShutdown: true` to `Actor.init()`:
+
+```js
+import { Actor } from 'apify';
+
+await Actor.init({ gracefulShutdown: true });
+
+// Your Actor logic here - when the platform signals abort or migration,
+// Actor.exit() will be called automatically
+
+await Actor.exit();
+```
+
+When `gracefulShutdown` is enabled, the SDK will automatically call `Actor.exit()` when an `aborting` or `migrating` event is received. Since `Actor.exit()` waits for all event handlers to complete, you can use event handlers to perform cleanup:
+
+```js
+import { Actor } from 'apify';
+
+await Actor.init({ gracefulShutdown: true });
+
+// Register cleanup handler
+Actor.on('exit', async () => {
+    console.log('Saving state before exit...');
+    await Actor.setValue('STATE', myState);
+});
+
+// Your Actor logic here
+```
+
+You can also add a delay before `Actor.exit()` is called using `gracefulShutdownDelayMillis`:
+
+```js
+await Actor.init({
+    gracefulShutdown: true,
+    gracefulShutdownDelayMillis: 5000, // Wait 5 seconds before exiting
+});
+```
+
 ## Storages
 
 There are several things worth mentioning here.

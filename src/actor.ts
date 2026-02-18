@@ -1735,6 +1735,11 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * Calling `Actor.exit()` is required if you use the `Actor.init()` method, since it opens websocket connection
      * (see {@apilink Actor.events} for details), which needs to be terminated for the code to finish.
      *
+     * **Graceful shutdown:** When running on the Apify platform, the Actor may receive `aborting` or `migrating`
+     * events that signal it should shut down. By setting `options.gracefulShutdown` to `true`, the SDK will
+     * automatically call `Actor.exit()` when these events occur. This is useful for Actors that don't use
+     * Crawlee crawlers (which handle this internally) but still need to respond to platform shutdown signals.
+     *
      * ```js
      * import { gotScraping } from 'got-scraping';
      *
