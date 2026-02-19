@@ -1,6 +1,6 @@
 {
     "overrides": {
-        "@rspack/core": "1.5.8"
+        "@rspack/core": "1.7.6"
     },
     "scripts": {
         "examples": "docusaurus-examples",
