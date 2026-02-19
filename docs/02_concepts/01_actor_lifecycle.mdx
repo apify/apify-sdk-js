@@ -152,6 +152,57 @@ Your script will be uploaded to and built on the Apify platform so that it can b
 
 You can also develop your Actor in an online code editor directly on the platform (you'll need an Apify account). Let's go to the [Actors](https://console.apify.com/actors) page in the app, click **Develop new**, choose a template, go to the **Source** tab and start writing the code or paste one of the examples from the Examples section in the sidebar.
 
+## Graceful shutdown
+
+When running on the Apify platform, your Actor may receive signals to shut down gracefully. This happens when:
+
+- A user aborts the Actor run with the "abort gracefully" option (`aborting` event) — the Actor should save its state and exit
+- The platform needs to migrate your Actor to a different server (`migrating` event) — the Actor should save its state and reboot so the run continues on a new worker
+
+You can enable automatic handling of these events by passing `gracefulShutdown: true` to `Actor.init()`:
+
+```js
+import { Actor } from 'apify';
+
+await Actor.init({ gracefulShutdown: true });
+
+// Your Actor logic here
+// - on 'aborting' event: Actor.exit() is called to terminate the run
+// - on 'migrating' event: Actor.reboot() is called to continue on a new worker
+
+await Actor.exit();
+```
+
+When `gracefulShutdown` is enabled:
+
+- On `aborting`, the SDK calls `Actor.exit()`, which waits for all event handlers to complete before exiting.
+- On `migrating`, the SDK calls `Actor.reboot()`, which also waits for all event handlers to complete, then restarts the Actor on a new worker so the run can continue.
+
+You can register cleanup handlers via the `persistState` event to save state before shutdown:
+
+```js
+import { Actor } from 'apify';
+
+await Actor.init({ gracefulShutdown: true });
+
+// Register cleanup handler — runs on both exit and reboot
+Actor.on('persistState', async () => {
+    console.log('Saving state...');
+    await Actor.setValue('STATE', myState);
+});
+
+// Your Actor logic here
+```
+
+You can also add a delay before the shutdown action is triggered using `gracefulShutdownDelayMillis`:
+
+```js
+await Actor.init({
+    gracefulShutdown: true,
+    gracefulShutdownDelayMillis: 5000, // Wait 5 seconds before exiting/rebooting
+});
+```
+
 ## Storages
 
 There are several things worth mentioning here.

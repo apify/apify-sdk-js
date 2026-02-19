@@ -39,6 +39,7 @@ import ow from 'ow';
 
 import {
     ACTOR_ENV_VARS,
+    ACTOR_EVENT_NAMES,
     type ACTOR_PERMISSION_LEVEL,
     APIFY_ENV_VARS,
     INTEGER_ENV_VARS,
@@ -69,6 +70,18 @@ import { checkCrawleeVersion, getSystemInfo } from './utils.js';
 
 export interface InitOptions {
     storage?: StorageClient;
+    /**
+     * Whether to automatically handle platform shutdown signals.
+     * When enabled, `Actor.exit()` is called on `aborting` events and `Actor.reboot()` on `migrating` events.
+     * @default false
+     */
+    gracefulShutdown?: boolean;
+    /**
+     * Delay in milliseconds before calling `Actor.exit()`/`Actor.reboot()` on `aborting`/`migrating` events.
+     * Since both methods already wait for all event handlers to complete, this delay is usually unnecessary.
+     * @default 0
+     */
+    gracefulShutdownDelayMillis?: number;
 }
 
 export interface ExitOptions {
@@ -427,6 +440,11 @@ export class Actor<Data extends Dictionary = Dictionary> {
      */
     private isRebooting = false;
 
+    /**
+     * Set if the Actor is currently exiting. Prevents double-exit from graceful shutdown handlers.
+     */
+    private isExiting = false;
+
     private chargingManager: ChargingManager;
 
     constructor(options: ConfigurationOptions = {}) {
@@ -570,6 +588,36 @@ export class Actor<Data extends Dictionary = Dictionary> {
         await this.config.getEventManager().init();
         log.debug(`Events initialized`);
 
+        // Register handlers for aborting and migrating events for automatic graceful shutdown.
+        // - aborting: calls Actor.exit() to terminate the run gracefully
+        // - migrating: calls Actor.reboot() to speed up migration (the run continues on a new worker)
+        // Using setTimeout to avoid deadlock with waitForAllListenersToComplete() in exit()/reboot()
+        if (options.gracefulShutdown === true) {
+            const delay = options.gracefulShutdownDelayMillis ?? 0;
+
+            this.on(ACTOR_EVENT_NAMES.ABORTING, () => {
+                setTimeout(() => {
+                    this.exit().catch((err) => {
+                        log.exception(
+                            err as Error,
+                            'Failed to exit gracefully',
+                        );
+                    });
+                }, delay);
+            });
+
+            this.on(ACTOR_EVENT_NAMES.MIGRATING, () => {
+                setTimeout(() => {
+                    this.reboot().catch((err) => {
+                        log.exception(
+                            err as Error,
+                            'Failed to reboot on migration',
+                        );
+                    });
+                }, delay);
+            });
+        }
+
         await purgeDefaultStorages({
             config: this.config,
             onlyPurgeOnce: true,
@@ -592,6 +640,13 @@ export class Actor<Data extends Dictionary = Dictionary> {
         messageOrOptions?: string | ExitOptions,
         options: ExitOptions = {},
     ): Promise<void> {
+        // Prevent double-exit from graceful shutdown handlers
+        if (this.isExiting) {
+            log.debug('Actor.exit() called while already exiting, skipping');
+            return;
+        }
+        this.isExiting = true;
+
         options =
             typeof messageOrOptions === 'string'
                 ? { ...options, statusMessage: messageOrOptions }
@@ -661,6 +716,10 @@ export class Actor<Data extends Dictionary = Dictionary> {
                 process.exit(options.exitCode);
             }
         });
+
+        // Reset the flag so the instance can be reused (e.g., in tests or when exit is false).
+        // When process.exit() actually terminates the process, this line is never reached - which is fine.
+        this.isExiting = false;
 
         if (!options.exit) {
             return;
@@ -1686,6 +1745,11 @@ export class Actor<Data extends Dictionary = Dictionary> {
      *
      * Calling `Actor.exit()` is required if you use the `Actor.init()` method, since it opens websocket connection
      * (see {@apilink Actor.events} for details), which needs to be terminated for the code to finish.
+     *
+     * **Graceful shutdown:** When running on the Apify platform, the Actor may receive `aborting` or `migrating`
+     * events. By setting `options.gracefulShutdown` to `true`, the SDK will automatically call `Actor.exit()`
+     * on `aborting` events and `Actor.reboot()` on `migrating` events (to speed up the migration and continue the
+     * run on a new worker).
      *
      * ```js
      * import { gotScraping } from 'got-scraping';
