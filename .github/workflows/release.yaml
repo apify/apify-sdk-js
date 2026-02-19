@@ -3,12 +3,13 @@ name: Release @latest
 on:
     workflow_dispatch:
         inputs:
-            version:
+            release_type:
                 description: The version to bump (if you choose custom, please include it under custom version)
                 required: true
                 default: 'patch'
                 type: choice
                 options:
+                    - 'auto'
                     - 'patch'
                     - 'minor'
                     - 'major'
@@ -77,14 +78,14 @@ jobs:
                   existing_changelog_path: CHANGELOG.md
 
     update_changelog:
-        name: "Bump apify: ${{ inputs.version }} version (${{ inputs.custom_version || 'n/a' }} custom version)"
+        name: Update changelog
         if: (!contains(github.event.head_commit.message, '[skip ci]') && !contains(github.event.head_commit.message, 'docs:'))
         needs: [release_metadata, build_and_test]
         runs-on: ubuntu-22.04
         outputs:
             changelog_commitish: ${{ steps.commit.outputs.commit_long_sha || github.sha }}
-            version: ${{ steps.updated-version.outputs.result }}
-            release_notes: ${{ steps.changelog.outputs.release_notes }}
+            version: ${{ needs.release_metadata.outputs.version_number }}
+            release_notes: ${{ needs.release_metadata.outputs.release_notes }}
 
         steps:
             - name: Checkout repository
@@ -120,7 +121,7 @@ jobs:
               with:
                   author_name: Apify Release Bot
                   author_email: noreply@apify.com
-                  message: 'chore(release): set package version to ${{ steps.updated-version.outputs.result }} and update changelog [skip ci]'
+                  message: 'chore(release): set package version to ${{ needs.release_metadata.outputs.version_number }} and update changelog [skip ci]'
 
     create_github_release:
         name: Create github release
