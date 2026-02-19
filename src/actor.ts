@@ -1749,8 +1749,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * **Graceful shutdown:** When running on the Apify platform, the Actor may receive `aborting` or `migrating`
      * events. By setting `options.gracefulShutdown` to `true`, the SDK will automatically call `Actor.exit()`
      * on `aborting` events and `Actor.reboot()` on `migrating` events (to speed up the migration and continue the
-     * run on a new worker). This is useful for Actors that don't use Crawlee crawlers (which handle this internally)
-     * but still need to respond to platform shutdown signals.
+     * run on a new worker).
      *
      * ```js
      * import { gotScraping } from 'got-scraping';
