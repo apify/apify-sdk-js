@@ -84,7 +84,8 @@ jobs:
         runs-on: ubuntu-22.04
         outputs:
             changelog_commitish: ${{ steps.commit.outputs.commit_long_sha || github.sha }}
-            version: ${{ needs.release_metadata.outputs.version_number }}
+            version_number: ${{ needs.release_metadata.outputs.version_number }}
+            tag_name: ${{ needs.release_metadata.outputs.tag_name }}
             release_notes: ${{ needs.release_metadata.outputs.release_notes }}
 
         steps:
@@ -133,8 +134,8 @@ jobs:
             - name: Create release
               uses: softprops/action-gh-release@v2
               with:
-                  tag_name: apify@${{ needs.update_changelog.outputs.version }}
-                  name: apify@${{ needs.update_changelog.outputs.version }}
+                  tag_name: v${{ needs.update_changelog.outputs.tag_name }}
+                  name: v${{ needs.update_changelog.outputs.version_number }}
                   target_commitish: ${{ needs.update_changelog.outputs.changelog_commitish }}
                   body: ${{ needs.update_changelog.outputs.release_notes }}
 
