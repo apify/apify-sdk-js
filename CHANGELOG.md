@@ -1,3 +1,17 @@
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+## [3.6.0](https://github.com/apify/apify-sdk-js/releases/tag/v3.6.0) (2026-02-19)
+
+### 🚀 Features
+
+- Support all available options in `Actor.addWebhook()` ([#555](https://github.com/apify/apify-sdk-js/pull/555)) ([847f6d2](https://github.com/apify/apify-sdk-js/commit/847f6d2afc959598d21e3702739c076ca4ae344b)) by [@Copilot](https://github.com/Copilot), closes [#275](https://github.com/apify/apify-sdk-js/issues/275)
+
+### 🐛 Bug Fixes
+
+- Keep track of synthetic apify-default-dataset-item events ([#528](https://github.com/apify/apify-sdk-js/pull/528)) ([d69f727](https://github.com/apify/apify-sdk-js/commit/d69f7274e6b4fa2e4e121593ff1938676fb5a8d6)) by [@janbuchar](https://github.com/janbuchar), closes [#523](https://github.com/apify/apify-sdk-js/issues/523)
+
 # Change Log
 
 All notable changes to this project will be documented in this file.
