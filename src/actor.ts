@@ -71,13 +71,14 @@ import { checkCrawleeVersion, getSystemInfo } from './utils.js';
 export interface InitOptions {
     storage?: StorageClient;
     /**
-     * Whether to automatically call `Actor.exit()` when the platform sends an `aborting` or `migrating` event.
+     * Whether to automatically handle platform shutdown signals.
+     * When enabled, `Actor.exit()` is called on `aborting` events and `Actor.reboot()` on `migrating` events.
      * @default false
      */
     gracefulShutdown?: boolean;
     /**
-     * Delay in milliseconds before calling `Actor.exit()` on `aborting`/`migrating` events.
-     * Since `Actor.exit()` already waits for all event handlers to complete, this delay is usually unnecessary.
+     * Delay in milliseconds before calling `Actor.exit()`/`Actor.reboot()` on `aborting`/`migrating` events.
+     * Since both methods already wait for all event handlers to complete, this delay is usually unnecessary.
      * @default 0
      */
     gracefulShutdownDelayMillis?: number;
@@ -587,12 +588,14 @@ export class Actor<Data extends Dictionary = Dictionary> {
         await this.config.getEventManager().init();
         log.debug(`Events initialized`);
 
-        // Register handlers for aborting and migrating events to automatically call Actor.exit()
-        // This ensures graceful shutdown when the platform signals abort or migration
-        // Using setTimeout to avoid deadlock with waitForAllListenersToComplete() in exit()
+        // Register handlers for aborting and migrating events for automatic graceful shutdown.
+        // - aborting: calls Actor.exit() to terminate the run gracefully
+        // - migrating: calls Actor.reboot() to speed up migration (the run continues on a new worker)
+        // Using setTimeout to avoid deadlock with waitForAllListenersToComplete() in exit()/reboot()
         if (options.gracefulShutdown === true) {
             const delay = options.gracefulShutdownDelayMillis ?? 0;
-            const gracefulExitHandler = () => {
+
+            this.on(ACTOR_EVENT_NAMES.ABORTING, () => {
                 setTimeout(() => {
                     this.exit().catch((err) => {
                         log.exception(
@@ -601,10 +604,18 @@ export class Actor<Data extends Dictionary = Dictionary> {
                         );
                     });
                 }, delay);
-            };
+            });
 
-            this.on(ACTOR_EVENT_NAMES.ABORTING, gracefulExitHandler);
-            this.on(ACTOR_EVENT_NAMES.MIGRATING, gracefulExitHandler);
+            this.on(ACTOR_EVENT_NAMES.MIGRATING, () => {
+                setTimeout(() => {
+                    this.reboot().catch((err) => {
+                        log.exception(
+                            err as Error,
+                            'Failed to reboot on migration',
+                        );
+                    });
+                }, delay);
+            });
         }
 
         await purgeDefaultStorages({
@@ -1736,9 +1747,10 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * (see {@apilink Actor.events} for details), which needs to be terminated for the code to finish.
      *
      * **Graceful shutdown:** When running on the Apify platform, the Actor may receive `aborting` or `migrating`
-     * events that signal it should shut down. By setting `options.gracefulShutdown` to `true`, the SDK will
-     * automatically call `Actor.exit()` when these events occur. This is useful for Actors that don't use
-     * Crawlee crawlers (which handle this internally) but still need to respond to platform shutdown signals.
+     * events. By setting `options.gracefulShutdown` to `true`, the SDK will automatically call `Actor.exit()`
+     * on `aborting` events and `Actor.reboot()` on `migrating` events (to speed up the migration and continue the
+     * run on a new worker). This is useful for Actors that don't use Crawlee crawlers (which handle this internally)
+     * but still need to respond to platform shutdown signals.
      *
      * ```js
      * import { gotScraping } from 'got-scraping';

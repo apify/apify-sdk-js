@@ -216,9 +216,9 @@ describe('graceful exit handlers', () => {
         exitSpy.mockRestore();
     }, 10e3);
 
-    test('should automatically call Actor.exit() on migrating event when gracefulShutdown is true', async () => {
+    test('should automatically call Actor.reboot() on migrating event when gracefulShutdown is true', async () => {
         const actor = new Actor();
-        let exitCalled = false;
+        let rebootCalled = false;
 
         const eventReceived = new Promise<void>((resolve) => {
             wss.on('connection', (ws) => {
@@ -232,10 +232,10 @@ describe('graceful exit handlers', () => {
             });
         });
 
-        const exitSpy = vitest
-            .spyOn(actor, 'exit')
+        const rebootSpy = vitest
+            .spyOn(actor, 'reboot')
             .mockImplementation(async () => {
-                exitCalled = true;
+                rebootCalled = true;
             });
 
         await actor.init({ gracefulShutdown: true });
@@ -244,8 +244,8 @@ describe('graceful exit handlers', () => {
         // Wait for setTimeout(0) in the handler to fire
         await sleep(50);
 
-        expect(exitCalled).toBe(true);
-        exitSpy.mockRestore();
+        expect(rebootCalled).toBe(true);
+        rebootSpy.mockRestore();
     }, 10e3);
 
     test('should not register handlers by default (opt-in behavior)', async () => {

@@ -156,8 +156,8 @@ You can also develop your Actor in an online code editor directly on the platfor
 
 When running on the Apify platform, your Actor may receive signals to shut down gracefully. This happens when:
 
-- A user aborts the Actor run with the "abort gracefully" option (`aborting` event)
-- The platform needs to migrate your Actor to a different server (`migrating` event)
+- A user aborts the Actor run with the "abort gracefully" option (`aborting` event) — the Actor should save its state and exit
+- The platform needs to migrate your Actor to a different server (`migrating` event) — the Actor should save its state and reboot so the run continues on a new worker
 
 ### With Crawlee crawlers
 
@@ -172,34 +172,38 @@ import { Actor } from 'apify';
 
 await Actor.init({ gracefulShutdown: true });
 
-// Your Actor logic here - when the platform signals abort or migration,
-// Actor.exit() will be called automatically
+// Your Actor logic here
+// - on 'aborting' event: Actor.exit() is called to terminate the run
+// - on 'migrating' event: Actor.reboot() is called to continue on a new worker
 
 await Actor.exit();
 ```
 
-When `gracefulShutdown` is enabled, the SDK will automatically call `Actor.exit()` when an `aborting` or `migrating` event is received. Since `Actor.exit()` waits for all event handlers to complete, you can use event handlers to perform cleanup:
+When `gracefulShutdown` is enabled:
+
+- On `aborting`, the SDK calls `Actor.exit()`, which waits for all event handlers to complete before exiting. You can register cleanup handlers via the `exit` event.
+- On `migrating`, the SDK calls `Actor.reboot()`, which also waits for all event handlers to complete, then restarts the Actor on a new worker so the run can continue.
 
 ```js
 import { Actor } from 'apify';
 
 await Actor.init({ gracefulShutdown: true });
 
-// Register cleanup handler
-Actor.on('exit', async () => {
-    console.log('Saving state before exit...');
+// Register cleanup handler — runs on both exit and reboot
+Actor.on('persistState', async () => {
+    console.log('Saving state...');
     await Actor.setValue('STATE', myState);
 });
 
 // Your Actor logic here
 ```
 
-You can also add a delay before `Actor.exit()` is called using `gracefulShutdownDelayMillis`:
+You can also add a delay before the shutdown action is triggered using `gracefulShutdownDelayMillis`:
 
 ```js
 await Actor.init({
     gracefulShutdown: true,
-    gracefulShutdownDelayMillis: 5000, // Wait 5 seconds before exiting
+    gracefulShutdownDelayMillis: 5000, // Wait 5 seconds before exiting/rebooting
 });
 ```
 

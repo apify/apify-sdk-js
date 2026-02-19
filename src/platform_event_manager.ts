@@ -33,7 +33,8 @@ import { Configuration } from './configuration.js';
  *   so that they are not interrupted by the migration.
  *   For example, this is used by the {@apilink RequestList} class.
  *   If you pass `gracefulShutdown: true` to {@apilink Actor.init}, the SDK will automatically call
- *   {@apilink Actor.exit} when this event is received.
+ *   {@apilink Actor.reboot} when this event is received, which speeds up the migration and lets the
+ *   run continue on a new worker.
  * - `aborting`: `void`
  *   When a user aborts an Actor run on the Apify platform, they can choose to abort gracefully to allow
  *   the Actor some time before getting killed. This graceful abort emits the `aborting` event which the SDK
