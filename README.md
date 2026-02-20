@@ -8,7 +8,7 @@
 ## Quick Start
 
 This short tutorial will set you up to start using Apify SDK in a minute or two.
-If you want to learn more, proceed to the [Apify Platform](https://docs.apify.com/sdk/js/docs/guides/apify-platform)
+If you want to learn more, proceed to the [Apify Platform](https://docs.apify.com/sdk/js/docs/concepts/actor-lifecycle)
 guide that will take you step by step through running your Actor on Apify's platform.
 
 Apify SDK requires [Node.js](https://nodejs.org/en/) 16 or later. Add Apify SDK to any Node.js project by running:
@@ -33,7 +33,7 @@ await Actor.setValue('OUTPUT', {
 await Actor.exit();
 ```
 
-> You can also install the [`crawlee`](https://npmjs.org/crawlee) module, as it now provides the crawlers that were previously exported by Apify SDK. If you don't plan to use crawlers in your Actors, then you don't need to install it. Keep in mind that neither `playwright` nor `puppeteer` are bundled with `crawlee` in order to reduce install size and allow greater flexibility. That's why we manually install it with NPM. You can choose one, both, or neither. For more information and example please check [`documentation.`](https://docs.apify.com/sdk/js/docs/guides/apify-platform#running-crawlee-code-as-an-actor)
+> You can also install the [`crawlee`](https://npmjs.org/crawlee) module, as it now provides the crawlers that were previously exported by Apify SDK. If you don't plan to use crawlers in your Actors, then you don't need to install it. Keep in mind that neither `playwright` nor `puppeteer` are bundled with `crawlee` in order to reduce install size and allow greater flexibility. That's why we manually install it with NPM. You can choose one, both, or neither. For more information and example please check [`documentation.`](https://docs.apify.com/sdk/js/docs/concepts/actor-lifecycle#running-crawlee-code-as-an-actor)
 
 ## Support
 
@@ -42,7 +42,7 @@ For questions, you can ask on [Stack Overflow](https://stackoverflow.com/questio
 
 ## Upgrading
 
-Visit the [Upgrading Guide](https://docs.apify.com/sdk/js/docs/upgrading) to find out what changes you might want to make, and, if you encounter any issues, join our [Discord server](https://discord.gg/jyEM2PRvMU) for help!
+Visit the [Upgrading Guide](https://docs.apify.com/sdk/js/docs/upgrading/upgrading-to-v3) to find out what changes you might want to make, and, if you encounter any issues, join our [Discord server](https://discord.gg/jyEM2PRvMU) for help!
 
 ## Contributing
 
