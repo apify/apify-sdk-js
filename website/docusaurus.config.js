@@ -47,17 +47,10 @@ module.exports = {
                     items: [
                         {
                             type: 'doc',
-                            docId: 'overview',
+                            docId: 'introduction/introduction',
                             label: 'Docs',
                             position: 'left',
-                            activeBaseRegex: 'guides|overview',
-                        },
-                        {
-                            type: 'doc',
-                            docId: '/examples',
-                            label: 'Examples',
-                            position: 'left',
-                            activeBaseRegex: 'examples',
+                            activeBaseRegex: 'guides|overview|introduction',
                         },
                         {
                             to: 'reference',

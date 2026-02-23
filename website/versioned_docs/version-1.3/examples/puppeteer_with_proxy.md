@@ -5,7 +5,7 @@ id: puppeteer-with-proxy
 ---
 
 This example demonstrates how to load pages in headless Chrome / Puppeteer over [Apify Proxy](https://docs.apify.com/proxy). To make it work, you'll
-need an Apify account with access to the proxy. Visit the [Apify platform introduction](/docs/guides/apify-platform) to find how to log into your
+need an Apify account with access to the proxy. Visit the [Apify platform introduction](/docs/concepts/actor-lifecycle) to find how to log into your
 account from the SDK.
 
 > To run this example on the Apify Platform, select the `apify/actor-node-puppeteer-chrome` image for your Dockerfile.

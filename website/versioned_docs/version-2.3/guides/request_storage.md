@@ -4,7 +4,7 @@ title: Request Storage
 ---
 
 The Apify SDK has several request storage types that are useful for specific tasks. The requests are stored either on local disk to a directory defined by the
-`APIFY_LOCAL_STORAGE_DIR` environment variable, or on the [Apify platform](/docs/guides/apify-platform) under the user account identified by the API token defined by the `APIFY_TOKEN` environment variable. If neither of these variables is defined, by default Apify SDK sets `APIFY_LOCAL_STORAGE_DIR` to `./apify_storage` in the current working directory and prints a warning.
+`APIFY_LOCAL_STORAGE_DIR` environment variable, or on the [Apify platform](/docs/concepts/actor-lifecycle) under the user account identified by the API token defined by the `APIFY_TOKEN` environment variable. If neither of these variables is defined, by default Apify SDK sets `APIFY_LOCAL_STORAGE_DIR` to `./apify_storage` in the current working directory and prints a warning.
 
 Typically, you will be developing the code on your local computer and thus set the `APIFY_LOCAL_STORAGE_DIR` environment variable. Once the code is ready, you will deploy it to the Apify platform, where it will automatically set the `APIFY_TOKEN` environment variable and thus use cloud storage. No code changes are needed.
 
@@ -50,7 +50,7 @@ const crawler = new Apify.CheerioCrawler({
 });
 ```
 
-To see more detailed example of how to use the request queue with a crawler, see the [Puppeteer Crawler](/docs/examples/puppeteer-crawler) example.
+To see more detailed example of how to use the request queue with a crawler, see the [Puppeteer Crawler](/docs/guides/puppeteer-crawler) example.
 
 ## Request list
 
@@ -83,7 +83,7 @@ const crawler = new Apify.PuppeteerCrawler({
 });
 ```
 
-To see more detailed example of how to use the request list with a crawler, see the [Puppeteer with proxy](/docs/examples/puppeteer-with-proxy) example.
+To see more detailed example of how to use the request list with a crawler, see the [Puppeteer with proxy](/docs/guides/puppeteer-with-proxy) example.
 
 ## Which one to choose?
 

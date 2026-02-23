@@ -37657,7 +37657,7 @@
                         "summary": [
                             {
                                 "kind": "text",
-                                "text": "Defines the path to a local directory where KeyValueStore, Dataset, and RequestQueue\nstore their data. Typically, it is set to ./storage. If omitted, you should define the\nAPIFY_TOKEN environment variable instead. See more info on combination of this and\nAPIFY_TOKEN [here](https://docs.apify.com/sdk/js/docs/guides/environment-variables#combinations-of-apify_local_storage_dir-and-apify_token)(CRAWLEE_STORAGE_DIR)"
+                                "text": "Defines the path to a local directory where KeyValueStore, Dataset, and RequestQueue\nstore their data. Typically, it is set to ./storage. If omitted, you should define the\nAPIFY_TOKEN environment variable instead. See more info on combination of this and\nAPIFY_TOKEN [here](https://docs.apify.com/sdk/js/docs/concepts/environment-variables#combinations-of-apify_local_storage_dir-and-apify_token)(CRAWLEE_STORAGE_DIR)"
                             }
                         ]
                     },
@@ -45881,7 +45881,7 @@
         },
         {
             "kind": "text",
-            "text": "](https://npmjs.org/crawlee) module. We've written a guide to help you easily migrate from v2 to v3. Visit the [Upgrading Guide](https://docs.apify.com/sdk/js/docs/upgrading/upgrading-to-v3) to find out what changes you need to make (especially the section related to this very [Apify SDK](https://docs.apify.com/sdk/js/docs/upgrading/upgrading-to-v3#apify-sdk)), and, if you encounter any issues, join our [Discord server](https://discord.gg/jyEM2PRvMU) for help!\n\n## Quick Start\n\nThis short tutorial will set you up to start using Apify SDK in a minute or two.\nIf you want to learn more, proceed to the [Apify Platform](https://docs.apify.com/sdk/js/docs/guides/apify-platform)\nguide that will take you step by step through running your Actor on Apify's platform.\n\nApify SDK requires [Node.js](https://nodejs.org/en/) 16 or later. Add Apify SDK to any Node.js project by running:\n\n"
+            "text": "](https://npmjs.org/crawlee) module. We've written a guide to help you easily migrate from v2 to v3. Visit the [Upgrading Guide](https://docs.apify.com/sdk/js/docs/upgrading/upgrading-to-v3/upgrading-to-v3) to find out what changes you need to make (especially the section related to this very [Apify SDK](https://docs.apify.com/sdk/js/docs/upgrading/upgrading-to-v3/upgrading-to-v3#apify-sdk)), and, if you encounter any issues, join our [Discord server](https://discord.gg/jyEM2PRvMU) for help!\n\n## Quick Start\n\nThis short tutorial will set you up to start using Apify SDK in a minute or two.\nIf you want to learn more, proceed to the [Apify Platform](https://docs.apify.com/sdk/js/docs/concepts/actor-lifecycle)\nguide that will take you step by step through running your Actor on Apify's platform.\n\nApify SDK requires [Node.js](https://nodejs.org/en/) 16 or later. Add Apify SDK to any Node.js project by running:\n\n"
         },
         {
             "kind": "code",

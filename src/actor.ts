@@ -201,7 +201,7 @@ export interface ApifyEnv {
      * Defines the path to a local directory where KeyValueStore, Dataset, and RequestQueue
      * store their data. Typically, it is set to ./storage. If omitted, you should define the
      * APIFY_TOKEN environment variable instead. See more info on combination of this and
-     * APIFY_TOKEN [here](https://docs.apify.com/sdk/js/docs/guides/environment-variables#combinations-of-apify_local_storage_dir-and-apify_token)(CRAWLEE_STORAGE_DIR)
+     * APIFY_TOKEN [here](https://docs.apify.com/sdk/js/docs/concepts/environment-variables#combinations-of-apify_local_storage_dir-and-apify_token)(CRAWLEE_STORAGE_DIR)
      */
     localStorageDir: string | null;
 

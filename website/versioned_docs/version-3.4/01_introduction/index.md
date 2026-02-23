@@ -1,7 +1,9 @@
 ---
-id: overview
+id: introduction
 title: Apify SDK for JavaScript
 sidebar_label: Overview
+slug: /overview
+description: 'The official library for creating Apify Actors in JavaScript, providing tools for web crawling, scraping, and automation at scale.'
 ---
 
 The Apify SDK for JavaScript is the official library for creating [Apify Actors](https://docs.apify.com/platform/actors) using JavaScript or TypeScript. It provides useful features like Actor lifecycle management, local storage emulation, and Actor event handling.
@@ -25,9 +27,9 @@ Actors can be executed locally or on the [Apify platform](https://docs.apify.com
 
 ## Quick start
 
-To create and run Actors using Apify Console, check out [Apify Console documentation](https://docs.apify.com/platform/console). For creating and running JavaScript Actors locally, refer to the [Apify platform guide](./guides/apify-platform).
+To create and run Actors using Apify Console, check out [Apify Console documentation](https://docs.apify.com/platform/console). For creating and running JavaScript Actors locally, refer to the [Actor lifecycle guide](concepts/actor-lifecycle).
 
-Explore the [Examples](./examples) section to see the SDK in action, and refer to the [Guides](./guides) section for a deeper understanding of the SDK's features and best practices.
+Explore the Guides section in the sidebar for a deeper understanding of the SDK's features and best practices.
 
 ## Installation
 
