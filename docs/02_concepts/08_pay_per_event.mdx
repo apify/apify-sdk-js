@@ -34,7 +34,7 @@ If you need finer control over charging, you can access call <ApiLink to="class/
 
 While the SDK automatically prevents overcharging by limiting how many events are charged and how many items are pushed, **it does not stop your Actor from running**. When the charge limit is reached, `Actor.charge` and `Actor.pushData` will silently stop charging and pushing data, but your Actor will keep running — potentially doing expensive work (scraping pages, calling APIs) for no purpose. This means your Actor may never terminate on its own if you don't check the charge limit yourself.
 
-To avoid this, you should check the `eventChargeLimitReached` field in the result returned by `Actor.charge` or `Actor.pushData` and stop your Actor when the limit is reached:
+To avoid this, you should check the `eventChargeLimitReached` field in the result returned by <ApiLink to="class/Actor#charge">`Actor.charge`</ApiLink> or `Actor.pushData` and stop your Actor when the limit is reached. You can also use the `chargeableWithinLimit` field from the result to plan ahead — it tells you how many events of each type can still be charged within the remaining budget.
 
 <CodeBlock language="typescript">{ChargeLimitCheckSource}</CodeBlock>
 
