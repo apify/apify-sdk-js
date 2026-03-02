@@ -185,7 +185,7 @@ import { Actor } from 'apify';
 
 await Actor.init({ gracefulShutdown: true });
 
-// Register cleanup handler — runs on both exit and reboot
+// Register cleanup handler — runs on both exit and reboot (or just use `Actor.useState`)
 Actor.on('persistState', async () => {
     console.log('Saving state...');
     await Actor.setValue('STATE', myState);
