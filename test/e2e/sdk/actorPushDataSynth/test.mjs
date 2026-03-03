@@ -40,7 +40,7 @@ await actor.update({
 const runActor = async (input, options) => {
     const { id: runId } = await actor.call(input, options);
     await client.run(runId).waitForFinish();
-    await sleep(6000); // wait for updates to propagate to MongoDB
+    await sleep(9000); // wait for updates to propagate to MongoDB
     return await client.run(runId).get();
 };
 
