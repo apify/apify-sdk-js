@@ -1,0 +1,27 @@
+{
+    "actorSpecification": 1,
+    "name": "apify-sdk-js-test-multi-storage",
+    "version": "0.0",
+    "storages": {
+        "datasets": {
+            "default": {
+                "actorSpecification": 1,
+                "fields": {
+                    "properties": {
+                        "url": { "type": "string" },
+                        "title": { "type": "string" }
+                    }
+                }
+            },
+            "results": {
+                "actorSpecification": 1,
+                "fields": {
+                    "properties": {
+                        "url": { "type": "string" },
+                        "title": { "type": "string" }
+                    }
+                }
+            }
+        }
+    }
+}

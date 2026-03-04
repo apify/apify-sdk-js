@@ -1,6 +1,7 @@
 import type { IStorage } from '@crawlee/core';
 import { StorageManager } from '@crawlee/core';
 import type { Constructor, StorageClient } from '@crawlee/types';
+import { ApifyClient } from 'apify-client';
 
 import type { Configuration } from './configuration.js';
 
@@ -87,7 +88,7 @@ function resolveStorageIdentifier(
 
     // { alias: string }
     const storagesJson = config.get('actorStoragesJson');
-    if (storagesJson) {
+    if (usesPlatformStorage && storagesJson) {
         let storages: ActorStorages;
         try {
             storages = JSON.parse(storagesJson);
@@ -110,7 +111,7 @@ function resolveStorageIdentifier(
         );
     }
 
-    // When using local storage without ACTOR_STORAGES_JSON, use the alias as a name.
+    // When using local storage, just use the alias as a name.
     // When using platform storage, we can't just make up a name — the alias must be
     // in ACTOR_STORAGES_JSON.
     if (usesPlatformStorage) {
@@ -144,21 +145,24 @@ export async function openStorage<T extends IStorage>(
         typeof identifier === 'object' &&
         'alias' in identifier;
 
-    const usesPlatformStorage =
-        context.isAtHome || context.client !== undefined;
+    if (isAlias && !context.isAtHome && context.client instanceof ApifyClient) {
+        throw new Error(
+            'The `alias` option is not allowed for Apify-based storages running outside of Apify',
+        );
+    }
 
     const resolvedIdOrName = resolveStorageIdentifier(
         storageClass.name as 'Dataset' | 'KeyValueStore' | 'RequestQueue',
         identifier,
         context.config,
-        usesPlatformStorage,
+        context.isAtHome,
     );
 
     // When running locally, purge aliased storages on first open
     // (similar to how Crawlee purges default storages on start)
     if (
         isAlias &&
-        !usesPlatformStorage &&
+        !context.isAtHome &&
         context.config.get('purgeOnStart') &&
         !context.purgedStorageAliases.has(identifier.alias)
     ) {
