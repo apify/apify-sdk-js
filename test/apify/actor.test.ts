@@ -819,43 +819,6 @@ describe('Actor', () => {
                     delete process.env[APIFY_ENV_VARS.IS_AT_HOME];
                 });
 
-                test('openKeyValueStore with { alias } resolves from ACTOR_STORAGES_JSON', async () => {
-                    sdk.config.set('actorStoragesJson', STORAGES_JSON);
-                    process.env[APIFY_ENV_VARS.IS_AT_HOME] = '1';
-                    const mockOpenStorage = vitest.spyOn(
-                        StorageManager.prototype,
-                        'openStorage',
-                    );
-                    mockOpenStorage.mockResolvedValueOnce(vitest.fn());
-                    await sdk.openKeyValueStore({ alias: 'custom' });
-                    expect(mockOpenStorage).toBeCalledTimes(1);
-                    expect(mockOpenStorage).toBeCalledWith(
-                        'kvs-id-456',
-                        undefined,
-                    );
-                    delete process.env[APIFY_ENV_VARS.IS_AT_HOME];
-                });
-
-                test('openRequestQueue with { alias } resolves from ACTOR_STORAGES_JSON', async () => {
-                    sdk.config.set('actorStoragesJson', STORAGES_JSON);
-                    process.env[APIFY_ENV_VARS.IS_AT_HOME] = '1';
-                    const mockOpenStorage = vitest.spyOn(
-                        StorageManager.prototype,
-                        'openStorage',
-                    );
-                    const mockRQ = {
-                        client: { get: () => ({ totalRequestCount: 0 }) },
-                    };
-                    mockOpenStorage.mockResolvedValueOnce(mockRQ);
-                    await sdk.openRequestQueue({ alias: 'custom' });
-                    expect(mockOpenStorage).toBeCalledTimes(1);
-                    expect(mockOpenStorage).toBeCalledWith(
-                        'rq-id-789',
-                        undefined,
-                    );
-                    delete process.env[APIFY_ENV_VARS.IS_AT_HOME];
-                });
-
                 test('openDataset with { alias } throws when alias not found in ACTOR_STORAGES_JSON', async () => {
                     sdk.config.set('actorStoragesJson', STORAGES_JSON);
                     process.env[APIFY_ENV_VARS.IS_AT_HOME] = '1';

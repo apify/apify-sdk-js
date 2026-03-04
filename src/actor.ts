@@ -64,7 +64,11 @@ import {
 import { PlatformEventManager } from './platform_event_manager.js';
 import type { ProxyConfigurationOptions } from './proxy_configuration.js';
 import { ProxyConfiguration } from './proxy_configuration.js';
-import type { OpenStorageOptions, StorageIdentifier } from './storage.js';
+import type {
+    OpenStorageOptions,
+    StorageIdentifier,
+    StorageIdentifierWithoutAlias,
+} from './storage.js';
 import { openStorage } from './storage.js';
 import { checkCrawleeVersion, getSystemInfo } from './utils.js';
 
@@ -1311,15 +1315,14 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * For more details and code examples, see the {@apilink KeyValueStore} class.
      *
      * @param [storeIdOrName]
-     *   ID, name, or alias of the key-value store to be opened. If `null` or `undefined`,
+     *   ID or name of the key-value store to be opened. If `null` or `undefined`,
      *   the function returns the default key-value store associated with the Actor run.
-     *   You can also pass `{ alias: 'name' }` to open a store defined in the Actor's schema storages,
-     *   `{ id: 'abc' }` to open by explicit ID, or `{ name: 'abc' }` to open by explicit name.
+     *   You can also pass `{ id: 'abc' }` to open by explicit ID, or `{ name: 'abc' }` to open by explicit name.
      * @param [options]
      * @ignore
      */
     async openKeyValueStore(
-        storeIdOrName?: StorageIdentifier | null,
+        storeIdOrName?: StorageIdentifierWithoutAlias | null,
         options: OpenStorageOptions = {},
     ): Promise<KeyValueStore> {
         ow(
@@ -1346,15 +1349,14 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * For more details and code examples, see the {@apilink RequestQueue} class.
      *
      * @param [queueIdOrName]
-     *   ID, name, or alias of the request queue to be opened. If `null` or `undefined`,
+     *   ID or name of the request queue to be opened. If `null` or `undefined`,
      *   the function returns the default request queue associated with the Actor run.
-     *   You can also pass `{ alias: 'name' }` to open a queue defined in the Actor's schema storages,
-     *   `{ id: 'abc' }` to open by explicit ID, or `{ name: 'abc' }` to open by explicit name.
+     *   You can also pass `{ id: 'abc' }` to open by explicit ID, or `{ name: 'abc' }` to open by explicit name.
      * @param [options]
      * @ignore
      */
     async openRequestQueue(
-        queueIdOrName?: StorageIdentifier | null,
+        queueIdOrName?: StorageIdentifierWithoutAlias | null,
         options: OpenStorageOptions = {},
     ): Promise<RequestQueue> {
         ow(
@@ -2160,14 +2162,13 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * For more details and code examples, see the {@apilink KeyValueStore} class.
      *
      * @param [storeIdOrName]
-     *   ID, name, or alias of the key-value store to be opened. If `null` or `undefined`,
+     *   ID or name of the key-value store to be opened. If `null` or `undefined`,
      *   the function returns the default key-value store associated with the Actor run.
-     *   You can also pass `{ alias: 'name' }` to open a store defined in the Actor's schema storages,
-     *   `{ id: 'abc' }` to open by explicit ID, or `{ name: 'abc' }` to open by explicit name.
+     *   You can also pass `{ id: 'abc' }` to open by explicit ID, or `{ name: 'abc' }` to open by explicit name.
      * @param [options]
      */
     static async openKeyValueStore(
-        storeIdOrName?: StorageIdentifier | null,
+        storeIdOrName?: StorageIdentifierWithoutAlias | null,
         options: OpenStorageOptions = {},
     ): Promise<KeyValueStore> {
         return Actor.getDefaultInstance().openKeyValueStore(
@@ -2188,14 +2189,13 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * For more details and code examples, see the {@apilink RequestQueue} class.
      *
      * @param [queueIdOrName]
-     *   ID, name, or alias of the request queue to be opened. If `null` or `undefined`,
+     *   ID or name of the request queue to be opened. If `null` or `undefined`,
      *   the function returns the default request queue associated with the Actor run.
-     *   You can also pass `{ alias: 'name' }` to open a queue defined in the Actor's schema storages,
-     *   `{ id: 'abc' }` to open by explicit ID, or `{ name: 'abc' }` to open by explicit name.
+     *   You can also pass `{ id: 'abc' }` to open by explicit ID, or `{ name: 'abc' }` to open by explicit name.
      * @param [options]
      */
     static async openRequestQueue(
-        queueIdOrName?: StorageIdentifier | null,
+        queueIdOrName?: StorageIdentifierWithoutAlias | null,
         options: OpenStorageOptions = {},
     ): Promise<RequestQueue> {
         return Actor.getDefaultInstance().openRequestQueue(

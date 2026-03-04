@@ -5,6 +5,7 @@ export type {
     StorageId,
     StorageName,
     StorageIdentifier,
+    StorageIdentifierWithoutAlias,
 } from './storage.js';
 export {
     ChargeOptions,

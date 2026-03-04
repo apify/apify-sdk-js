@@ -46,6 +46,16 @@ export interface StorageName {
 export type StorageIdentifier = string | StorageAlias | StorageId | StorageName;
 
 /**
+ * Identifies a storage to open, without alias support.
+ * Used for key-value stores and request queues, which do not support aliases.
+ * Can be:
+ * - A plain `string` for backward compatibility (treated as ID or name)
+ * - `{ id: string }` to open by explicit platform ID
+ * - `{ name: string }` to open by explicit name
+ */
+export type StorageIdentifierWithoutAlias = string | StorageId | StorageName;
+
+/**
  * The parsed shape of the `ACTOR_STORAGES_JSON` environment variable.
  */
 interface ActorStorages {
