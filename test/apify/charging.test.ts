@@ -585,6 +585,22 @@ describe('ChargingManager', () => {
             expect(result.limitedItems).toHaveLength(0);
             expect(result.eventsToCharge).toEqual({ 'expensive-event': 0 });
         });
+
+        test('should not charge for events when actor is not PPE', async () => {
+            delete process.env.ACTOR_TEST_PAY_PER_EVENT;
+
+            await Actor.init();
+
+            const chargingManager = Actor.getChargingManager();
+            const result = chargingManager.calculatePushDataLimits({
+                items: [{ a: 1 }, { b: 2 }, { c: 3 }],
+                eventName: undefined,
+                isDefaultDataset: true,
+            });
+
+            expect(result.limitedItems).toHaveLength(3);
+            expect(result.eventsToCharge).toEqual({});
+        });
     });
 
     describe('charge() with overdrawn budget', () => {

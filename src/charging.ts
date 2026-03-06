@@ -485,6 +485,13 @@ export class ChargingManager {
 
         const itemsArray = Array.isArray(items) ? items : [items];
 
+        if (!this.isPayPerEvent) {
+            return {
+                limitedItems: itemsArray,
+                eventsToCharge: {},
+            };
+        }
+
         const itemPrice =
             ((eventName !== undefined
                 ? this.calculateEventPrice(eventName)
