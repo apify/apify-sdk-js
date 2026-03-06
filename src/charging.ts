@@ -327,10 +327,14 @@ export class ChargingManager {
         }
 
         /* START OF CRITICAL SECTION - no awaits here */
-        const chargedCount = Math.min(
-            count,
-            this.calculateMaxEventChargeCountWithinLimit(eventName),
-        );
+        const maxEventChargeCount =
+            this.calculateMaxEventChargeCountWithinLimit(eventName);
+
+        const chargedCount =
+            count > maxEventChargeCount
+                ? // If the caller tries to charge more than the budget allows, overcharge by one event so that the Actor is detected by the platform and terminated
+                  maxEventChargeCount + 1
+                : count;
 
         if (chargedCount === 0) {
             return {
@@ -498,7 +502,11 @@ export class ChargingManager {
                 ? this.calculateMaxChargesByPrice(itemPrice)
                 : Infinity;
 
-        const itemsToKeep = Math.min(itemsArray.length, maxChargedCount);
+        const itemsToKeep =
+            itemsArray.length > 0 && maxChargedCount === 0
+                ? // If the caller tries to push items even though the limit is depleted, overcharge by one so that the Platform terminates the run
+                  1
+                : Math.min(itemsArray.length, maxChargedCount);
 
         const eventsToCharge: Record<string, number> = {};
         if (eventName !== undefined) {

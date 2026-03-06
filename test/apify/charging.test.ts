@@ -242,7 +242,7 @@ describe('ChargingManager', () => {
             expect(chargeResult.eventChargeLimitReached).toBe(false);
         });
 
-        test('should not call API when budget is exhausted during pushData', async () => {
+        test('should overcharge by one item via pushData when budget is exhausted', async () => {
             setUpPlatformEnv({
                 maxTotalChargeUsd: '1.5',
                 pricingInfo: {
@@ -280,26 +280,70 @@ describe('ChargingManager', () => {
 
             chargeSpy.mockClear();
 
-            // Now try to push data - we can't afford even 1 more event
+            // Now try to push 10 items - budget only allows 0 more events at $1 each
+            // pushData should overcharge by 1 item so the platform detects the overspend
             const result = await Actor.pushData(
                 Array(10).fill({ hello: 'world' }),
                 'another-event',
             );
 
-            // The API should NOT be called when count=0
-            expect(chargeSpy).not.toHaveBeenCalled();
+            // The API should be called with the overcharge of 1 event
+            expect(chargeSpy).toHaveBeenCalledTimes(1);
+            expect(chargeSpy).toHaveBeenCalledWith({
+                eventName: 'another-event',
+                count: 1,
+            });
 
-            // Correctly returns result with chargedCount=0
             expect(result).toBeDefined();
-            expect(result!.chargedCount).toBe(0);
-            // Note: eventChargeLimitReached is false because count=0 was passed to charge()
-            // This is by design - see charging.ts line 318
-            expect(result!.eventChargeLimitReached).toBe(false);
+            expect(result!.chargedCount).toBe(1);
+            expect(result!.eventChargeLimitReached).toBe(true);
 
-            // Verify no items were pushed (the important part)
+            // Verify exactly 1 item was pushed (the overcharge item)
             const dataset = await Actor.openDataset();
             const items = await dataset.getData();
-            expect(items.items).toHaveLength(0);
+            expect(items.items).toHaveLength(1);
+        });
+
+        test('should overcharge by one item via pushData when budget starts fully depleted', async () => {
+            setUpPlatformEnv({
+                maxTotalChargeUsd: '0.10',
+                pricingInfo: {
+                    'my-event': {
+                        eventTitle: 'My Event',
+                        eventPriceUsd: 0.1,
+                    },
+                },
+                // Budget is already fully used up
+                chargedEventCounts: { 'my-event': 1 },
+            });
+
+            await Actor.init();
+            localStorageEmulator.reapplyStorageClient();
+
+            const chargeSpy = vitest.fn().mockResolvedValue(undefined);
+            vitest.spyOn(Actor.apifyClient, 'run').mockReturnValue({
+                charge: chargeSpy,
+            } as any);
+
+            const result = await Actor.pushData(
+                [{ a: 1 }, { b: 2 }, { c: 3 }],
+                'my-event',
+            );
+
+            // Budget is fully depleted → pushData overcharges by 1 item
+            expect(result).toBeDefined();
+            expect(result!.chargedCount).toBe(1);
+            expect(result!.eventChargeLimitReached).toBe(true);
+
+            expect(chargeSpy).toHaveBeenCalledTimes(1);
+            expect(chargeSpy).toHaveBeenCalledWith({
+                eventName: 'my-event',
+                count: 1,
+            });
+
+            const dataset = await Actor.openDataset();
+            const items = await dataset.getData();
+            expect(items.items).toHaveLength(1);
         });
 
         test('should verify charge API call with count=0 vs count>0', async () => {
@@ -484,7 +528,8 @@ describe('ChargingManager', () => {
                 isDefaultDataset: false,
             });
 
-            expect(result.limitedItems).toHaveLength(1); // Only $0.15 budget, $0.1 per item
+            // Budget allows 1 item ($0.15 / $0.1 = 1), 5 are requested → caps to 1 (no overcharge since budget is not fully depleted)
+            expect(result.limitedItems).toHaveLength(1);
             expect(result.eventsToCharge).toEqual({ 'expensive-event': 1 });
         });
 
@@ -562,7 +607,7 @@ describe('ChargingManager', () => {
             expect(result.eventsToCharge).toEqual({ 'test-event': 1 });
         });
 
-        test('should return empty array when budget is exhausted', async () => {
+        test('should overcharge by one item when budget is exhausted', async () => {
             setUpPlatformEnv({
                 maxTotalChargeUsd: '0.05',
                 pricingInfo: {
@@ -582,13 +627,14 @@ describe('ChargingManager', () => {
                 isDefaultDataset: false,
             });
 
-            expect(result.limitedItems).toHaveLength(0);
-            expect(result.eventsToCharge).toEqual({ 'expensive-event': 0 });
+            // Budget allows 0 items ($0.05 / $0.1 = 0), but 2 are requested → overcharge by 1
+            expect(result.limitedItems).toHaveLength(1);
+            expect(result.eventsToCharge).toEqual({ 'expensive-event': 1 });
         });
     });
 
     describe('charge() with overdrawn budget', () => {
-        test('should handle charging when budget is already overdrawn', async () => {
+        test('should overcharge by one event when budget cannot cover the charge', async () => {
             setUpPlatformEnv({
                 maxTotalChargeUsd: '0.00025',
                 pricingInfo: {
@@ -617,22 +663,136 @@ describe('ChargingManager', () => {
                 charge: chargeSpy,
             } as any);
 
-            // Try to charge - the budget doesn't allow another event
+            // Try to charge - the budget doesn't allow another event,
+            // but we deliberately overcharge by 1 so that the platform detects the overspend and terminates the run
             const chargeResult = await Actor.charge({
                 eventName: 'event',
                 count: 1,
             });
-            expect(chargeResult.chargedCount).toBe(0);
+            expect(chargeResult.chargedCount).toBe(1);
+            expect(chargeResult.eventChargeLimitReached).toBe(true);
+            expect(chargeSpy).toHaveBeenCalledWith({
+                eventName: 'event',
+                count: 1,
+            });
 
-            // Try to push data - the budget doesn't allow this either
+            chargeSpy.mockClear();
+
+            // After the overcharge, pushData also overcharges by 1 item (budget is deeply overdrawn but we still push 1)
             const pushResult = await Actor.pushData(
                 [{ hello: 'world' }],
                 'event',
             );
-            expect(pushResult!.chargedCount).toBe(0);
+            expect(pushResult!.chargedCount).toBe(1);
+            expect(pushResult!.eventChargeLimitReached).toBe(true);
+            expect(chargeSpy).toHaveBeenCalledWith({
+                eventName: 'event',
+                count: 1,
+            });
+        });
+    });
 
-            // The API should NOT have been called in either case
-            expect(chargeSpy).not.toHaveBeenCalled();
+    describe('charge() overcharge behavior', () => {
+        test('should overcharge by exactly 1 event when count exceeds remaining budget', async () => {
+            setUpLocalTestEnv({ maxTotalChargeUsd: '3' });
+
+            await Actor.init();
+
+            // Budget is $3, events cost $1 each locally → max 3 events
+            // Charge 2 events first to leave room for only 1 more
+            const result1 = await Actor.charge({
+                eventName: 'test-event',
+                count: 2,
+            });
+            expect(result1.chargedCount).toBe(2);
+
+            // Now only 1 event fits in the budget, but we ask for 5
+            // Should overcharge to maxEventChargeCount + 1 = 1 + 1 = 2
+            const result2 = await Actor.charge({
+                eventName: 'test-event',
+                count: 5,
+            });
+            expect(result2.chargedCount).toBe(2);
+            expect(result2.eventChargeLimitReached).toBe(true);
+        });
+
+        test('should not overcharge when the requested count fits within budget', async () => {
+            setUpLocalTestEnv({ maxTotalChargeUsd: '5' });
+
+            await Actor.init();
+
+            // Budget is $5, events cost $1 each locally → max 5 events
+            const result = await Actor.charge({
+                eventName: 'test-event',
+                count: 3,
+            });
+            expect(result.chargedCount).toBe(3);
+            expect(result.eventChargeLimitReached).toBe(false);
+        });
+
+        test('should overcharge by 1 when budget allows zero events', async () => {
+            // In local test mode, all events cost $1 each, so a $0.5 budget means 0 events fit
+            setUpLocalTestEnv({ maxTotalChargeUsd: '0.5' });
+
+            await Actor.init();
+
+            // Budget is $0.5, events cost $1 each → maxEventChargeCount = 0
+            // Requesting count=1 exceeds the limit, so we overcharge: 0 + 1 = 1
+            const result = await Actor.charge({
+                eventName: 'test-event',
+                count: 1,
+            });
+            expect(result.chargedCount).toBe(1);
+            expect(result.eventChargeLimitReached).toBe(true);
+        });
+
+        test('should not overcharge when count exactly equals remaining budget', async () => {
+            setUpLocalTestEnv({ maxTotalChargeUsd: '3' });
+
+            await Actor.init();
+
+            // Budget is $3, events cost $1 each → exactly 3 events fit
+            const result = await Actor.charge({
+                eventName: 'test-event',
+                count: 3,
+            });
+            expect(result.chargedCount).toBe(3);
+            expect(result.eventChargeLimitReached).toBe(true); // limit is now reached
+        });
+
+        test('should overcharge on the platform so the run gets terminated', async () => {
+            setUpPlatformEnv({
+                maxTotalChargeUsd: '0.20',
+                pricingInfo: {
+                    task: {
+                        eventTitle: 'Task',
+                        eventPriceUsd: 0.1,
+                    },
+                },
+                // Already charged 2 tasks = $0.20, budget fully used
+                chargedEventCounts: { task: 2 },
+            });
+
+            await Actor.init();
+            localStorageEmulator.reapplyStorageClient();
+
+            const chargeSpy = vitest.fn().mockResolvedValue(undefined);
+            vitest.spyOn(Actor.apifyClient, 'run').mockReturnValue({
+                charge: chargeSpy,
+            } as any);
+
+            // Budget is fully exhausted, but we try to charge 1 more
+            // Should overcharge: 0 + 1 = 1 event charged
+            const result = await Actor.charge({
+                eventName: 'task',
+                count: 1,
+            });
+            expect(result.chargedCount).toBe(1);
+            expect(result.eventChargeLimitReached).toBe(true);
+            expect(chargeSpy).toHaveBeenCalledWith({
+                eventName: 'task',
+                count: 1,
+            });
         });
     });
 });
