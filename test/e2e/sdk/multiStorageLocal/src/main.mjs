@@ -1,50 +1,23 @@
-import { Actor, ApifyClient, Dataset } from 'apify';
+import { execFileSync } from 'node:child_process';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const client = new ApifyClient({
-    token: process.env.APIFY_TOKEN,
-});
+import { log } from '@apify/log';
 
-// Simulate local environment by removing platform env vars
-delete process.env.APIFY_IS_AT_HOME;
-delete process.env.ACTOR_STORAGES_JSON;
+const dir = dirname(fileURLToPath(import.meta.url));
+const lifecyclePath = join(dir, 'lifecycle.mjs');
 
-const actor = new Actor({
-    isAtHome: false,
-    logLevel: 'DEBUG',
-});
+// Run two separate "lifecycle" processes that share the same filesystem.
+// The second process should purge the aliased dataset on first open,
+// proving that purge-on-first-open works across Actor restarts.
+for (const phase of ['first', 'second']) {
+    log.info(`--- Running ${phase} lifecycle ---`);
+    execFileSync('node', [lifecyclePath], {
+        stdio: 'inherit',
+        env: process.env,
+    });
+}
 
-await actor.init();
-
-// Open storages by alias — locally, this should use the alias as the storage name
-const resultsDataset = await actor.openDataset({ alias: 'results' });
-
-// Write data to the aliased storages
-await resultsDataset.pushData([
-    { url: 'https://example.com', title: 'Example' },
-    { url: 'https://example.org', title: 'Example Org' },
-]);
-
-// Verify purge-on-first-open: open the same alias again and write more data.
-// The previously written data should still be there (no second purge).
-const resultsDatasetAgain = await actor.openDataset({ alias: 'results' });
-await resultsDatasetAgain.pushData([
-    { url: 'https://example.net', title: 'Example Net' },
-]);
-
-// Read back all data from the aliased dataset
-const allData = await resultsDatasetAgain.getData();
-
-// Transfer results to the platform's default dataset so the test script can verify
-const run = await client.run(process.env.ACTOR_RUN_ID).get();
-const platformDataset = await Dataset.open(run.defaultDatasetId, {
-    storageClient: client,
-});
-
-await platformDataset.pushData([
-    {
-        datasetItemCount: allData.count,
-        datasetItems: allData.items,
-    },
-]);
-
-await actor.exit();
+// Both lifecycle processes pushed a summary to the platform default dataset.
+// The test script will verify both summaries.
+log.info('Both lifecycles completed successfully');

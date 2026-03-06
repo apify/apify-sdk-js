@@ -17,7 +17,11 @@ const runActor = async (input = {}, options = {}) => {
     return await client.run(runId).get();
 };
 
-test('aliased storages work locally with alias as name', async () => {
+test('aliased storages work locally with purge-on-first-open across restarts', async () => {
+    // The actor runs two lifecycle processes in sequence, sharing the same filesystem.
+    // Each lifecycle creates a fresh Actor instance (resetting purgedStorageAliases),
+    // opens the aliased dataset (triggering purge on first open), writes data, and
+    // pushes a summary to the platform default dataset.
     const run = await runActor();
 
     assert.strictEqual(run.status, 'SUCCEEDED');
@@ -29,53 +33,31 @@ test('aliased storages work locally with alias as name', async () => {
 
     assert.strictEqual(
         data.count,
-        1,
-        'There must be exactly one summary item in the dataset',
+        2,
+        'There must be exactly two summary items (one per lifecycle)',
     );
 
-    const summary = data.items[0];
-
-    // The dataset should have 3 items total (2 from first open + 1 from second open),
-    // proving that the second open did NOT purge the data
+    // First lifecycle: fresh local storage, writes 3 items total (2 + 1 from second open)
+    const firstSummary = data.items[0];
     assert.strictEqual(
-        summary.datasetItemCount,
+        firstSummary.datasetItemCount,
         3,
-        'Aliased dataset should have 3 items (purge only happened on first open)',
+        'First lifecycle: aliased dataset should have 3 items (purge only happened on first open)',
     );
+    assert.strictEqual(firstSummary.datasetItems[0].url, 'https://example.com');
+    assert.strictEqual(firstSummary.datasetItems[0].title, 'Example');
+    assert.strictEqual(firstSummary.datasetItems[1].url, 'https://example.org');
+    assert.strictEqual(firstSummary.datasetItems[1].title, 'Example Org');
+    assert.strictEqual(firstSummary.datasetItems[2].url, 'https://example.net');
+    assert.strictEqual(firstSummary.datasetItems[2].title, 'Example Net');
 
-    // Verify the actual items
-    assert.strictEqual(summary.datasetItems[0].url, 'https://example.com');
-    assert.strictEqual(summary.datasetItems[0].title, 'Example');
-    assert.strictEqual(summary.datasetItems[1].url, 'https://example.org');
-    assert.strictEqual(summary.datasetItems[1].title, 'Example Org');
-    assert.strictEqual(summary.datasetItems[2].url, 'https://example.net');
-    assert.strictEqual(summary.datasetItems[2].title, 'Example Net');
-});
-
-test('purge-on-first-open works across runs', async () => {
-    // Run the actor a second time — the aliased storages should be purged again
-    // at the start of this new run (since purgedStorageAliases resets per Actor instance)
-    const run = await runActor();
-
-    assert.strictEqual(run.status, 'SUCCEEDED');
-
-    const dataset = await Dataset.open(run.defaultDatasetId, {
-        storageClient: client,
-    });
-    const data = await dataset.getData();
-
+    // Second lifecycle: the aliased dataset from the first lifecycle is still on disk.
+    // The second lifecycle's first openDataset({ alias: 'results' }) should purge it,
+    // then write 3 fresh items. If purge didn't work, there would be 6 items.
+    const secondSummary = data.items[1];
     assert.strictEqual(
-        data.count,
-        1,
-        'There must be exactly one summary item in the dataset',
-    );
-
-    const summary = data.items[0];
-
-    // Should again be 3 items, not 6 — because the first open purged the stale data from the previous run
-    assert.strictEqual(
-        summary.datasetItemCount,
+        secondSummary.datasetItemCount,
         3,
-        'Aliased dataset should have 3 items (previous run data was purged)',
+        'Second lifecycle: aliased dataset should have 3 items (stale data from first lifecycle was purged)',
     );
 });
