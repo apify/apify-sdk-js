@@ -2380,7 +2380,6 @@ export class Actor<Data extends Dictionary = Dictionary> {
         return openStorage<T>(storageClass, identifier, {
             config: this.config,
             client: options.forceCloud ? this.apifyClient : undefined,
-            isAtHome: this.isAtHome(),
             purgedStorageAliases: this.purgedStorageAliases,
         });
     }
