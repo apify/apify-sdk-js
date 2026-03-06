@@ -70,6 +70,8 @@ const STORAGE_TYPE_KEYS: Record<string, keyof ActorStorages> = {
     RequestQueue: 'requestQueues',
 };
 
+const parsedStoragesJson = new Map<string, ActorStorages>();
+
 /**
  * Resolves a {@link StorageIdentifier} to a plain string ID or name
  * that can be passed to Crawlee's `StorageManager.openStorage()`.
@@ -100,7 +102,10 @@ function resolveStorageIdentifier(
     if (config.get('isAtHome') && storagesJson) {
         let storages: ActorStorages;
         try {
-            storages = JSON.parse(storagesJson);
+            if (!parsedStoragesJson.has(storagesJson)) {
+                parsedStoragesJson.set(storagesJson, JSON.parse(storagesJson));
+            }
+            storages = parsedStoragesJson.get(storagesJson)!;
         } catch {
             throw new Error(
                 `Failed to parse ACTOR_STORAGES_JSON environment variable: ${storagesJson}`,
