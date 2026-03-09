@@ -7,6 +7,7 @@ import { ApifyClient, DatasetClient } from 'apify-client';
 import {
     type ChargeResult,
     type ChargingManager,
+    DEFAULT_DATASET_ITEM_EVENT,
     mergeChargeResults,
     pushDataAndCharge,
 } from './charging.js';
@@ -44,18 +45,42 @@ export function createPatchedApifyClient(
             unknown
         >,
     > extends DatasetClient<Data> {
+        private normalizeItems(
+            items: string | Data | string[] | Data[],
+        ): Data[] {
+            if (typeof items === 'string') {
+                const parsed = JSON.parse(items);
+                return Array.isArray(parsed) ? parsed : [parsed];
+            }
+
+            if (Array.isArray(items)) {
+                return items.flatMap((item) =>
+                    typeof item === 'string'
+                        ? (JSON.parse(item) as Data | Data[])
+                        : item,
+                ) as Data[];
+            }
+
+            return [items];
+        }
+
         override async pushItems(
             items: string | Data | string[] | Data[],
         ): Promise<void> {
             const context = pushDataChargingContext.getStore();
 
+            // Normalize string inputs: a single JSON string may encode multiple items
+            // (e.g. '[{"a":1},{"b":2}]'), which would be miscounted by the charging logic.
+            // Parse strings into arrays so each logical item is counted individually.
+            const normalizedItems = this.normalizeItems(items);
+
             const result = await pushDataAndCharge({
                 chargingManager: actor.getChargingManager(),
-                items,
+                items: normalizedItems,
                 eventName: context?.eventName,
                 isDefaultDataset: true,
                 pushFn: async (limitedItems) =>
-                    super.pushItems(limitedItems as typeof items),
+                    super.pushItems(JSON.stringify(limitedItems)), // stringify the items for faster validation in Apify client
             });
 
             if (!context) return;
@@ -91,7 +116,11 @@ export function createPatchedApifyClient(
                 httpClient: this.httpClient,
             };
 
-            if (!isDefaultDataset) {
+            const hasDefaultDatasetItemEvent =
+                DEFAULT_DATASET_ITEM_EVENT in
+                actor.getChargingManager().getPricingInfo().perEventPrices;
+
+            if (!isDefaultDataset || !hasDefaultDatasetItemEvent) {
                 return new DatasetClient(datasetOptions);
             }
 
