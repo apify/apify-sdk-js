@@ -184,7 +184,7 @@ describe('graceful exit handlers', () => {
         });
     });
 
-    test('should automatically call Actor.exit() on aborting event when gracefulShutdown is true', async () => {
+    test('should automatically call Actor.exit() on aborting event by default', async () => {
         const actor = new Actor();
         let exitCalled = false;
 
@@ -206,7 +206,8 @@ describe('graceful exit handlers', () => {
                 exitCalled = true;
             });
 
-        await actor.init({ gracefulShutdown: true });
+        // Default behavior should register handlers
+        await actor.init();
         await eventReceived;
 
         // Wait for setTimeout(0) in the handler to fire
@@ -216,7 +217,7 @@ describe('graceful exit handlers', () => {
         exitSpy.mockRestore();
     }, 10e3);
 
-    test('should automatically call Actor.reboot() on migrating event when gracefulShutdown is true', async () => {
+    test('should automatically call Actor.reboot() on migrating event by default', async () => {
         const actor = new Actor();
         let rebootCalled = false;
 
@@ -238,7 +239,8 @@ describe('graceful exit handlers', () => {
                 rebootCalled = true;
             });
 
-        await actor.init({ gracefulShutdown: true });
+        // Default behavior should register handlers
+        await actor.init();
         await eventReceived;
 
         // Wait for setTimeout(0) in the handler to fire
@@ -248,7 +250,7 @@ describe('graceful exit handlers', () => {
         rebootSpy.mockRestore();
     }, 10e3);
 
-    test('should not register handlers by default (opt-in behavior)', async () => {
+    test('should not register handlers when gracefulShutdown is false (opt-out)', async () => {
         const actor = new Actor();
         let exitCalled = false;
 
@@ -270,8 +272,8 @@ describe('graceful exit handlers', () => {
                 exitCalled = true;
             });
 
-        // Default behavior (no gracefulShutdown option) should NOT register handlers
-        await actor.init();
+        // Opt-out behavior (gracefulShutdown: false) should NOT register handlers
+        await actor.init({ gracefulShutdown: false });
         await eventReceived;
 
         await sleep(50);

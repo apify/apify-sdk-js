@@ -73,7 +73,7 @@ export interface InitOptions {
     /**
      * Whether to automatically handle platform shutdown signals.
      * When enabled, `Actor.exit()` is called on `aborting` events and `Actor.reboot()` on `migrating` events.
-     * @default false
+     * @default true
      */
     gracefulShutdown?: boolean;
     /**
@@ -592,7 +592,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
         // - aborting: calls Actor.exit() to terminate the run gracefully
         // - migrating: calls Actor.reboot() to speed up migration (the run continues on a new worker)
         // Using setTimeout to avoid deadlock with waitForAllListenersToComplete() in exit()/reboot()
-        if (options.gracefulShutdown === true) {
+        if (options.gracefulShutdown !== false) {
             const delay = options.gracefulShutdownDelayMillis ?? 0;
 
             this.on(ACTOR_EVENT_NAMES.ABORTING, () => {
@@ -1747,9 +1747,9 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * (see {@apilink Actor.events} for details), which needs to be terminated for the code to finish.
      *
      * **Graceful shutdown:** When running on the Apify platform, the Actor may receive `aborting` or `migrating`
-     * events. By setting `options.gracefulShutdown` to `true`, the SDK will automatically call `Actor.exit()`
-     * on `aborting` events and `Actor.reboot()` on `migrating` events (to speed up the migration and continue the
-     * run on a new worker).
+     * events. By default, the SDK will automatically call `Actor.exit()` on `aborting` events and `Actor.reboot()`
+     * on `migrating` events (to speed up the migration and continue the run on a new worker). You can disable this
+     * behavior by setting `options.gracefulShutdown` to `false`.
      *
      * ```js
      * import { gotScraping } from 'got-scraping';
