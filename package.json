@@ -76,7 +76,7 @@
         "*": "prettier --write --ignore-unknown"
     },
     "dependencies": {
-        "@apify/consts": "^2.47.1",
+        "@apify/consts": "^2.51.0",
         "@apify/input_secrets": "^1.2.0",
         "@apify/log": "^2.4.3",
         "@apify/timeout": "^0.3.0",

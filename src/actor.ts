@@ -14,7 +14,6 @@ import {
     EventType,
     purgeDefaultStorages,
     RequestQueue,
-    StorageManager,
 } from '@crawlee/core';
 import type {
     Awaitable,
@@ -65,6 +64,12 @@ import {
 import { PlatformEventManager } from './platform_event_manager.js';
 import type { ProxyConfigurationOptions } from './proxy_configuration.js';
 import { ProxyConfiguration } from './proxy_configuration.js';
+import type {
+    OpenStorageOptions,
+    StorageIdentifier,
+    StorageIdentifierWithoutAlias,
+} from './storage.js';
+import { openStorage } from './storage.js';
 import { checkCrawleeVersion, getSystemInfo } from './utils.js';
 
 export interface InitOptions {
@@ -360,15 +365,6 @@ export interface RebootOptions {
     customAfterSleepMillis?: number;
 }
 
-export interface OpenStorageOptions {
-    /**
-     * If set to `true` then the cloud storage is used even if the `CRAWLEE_STORAGE_DIR`
-     * environment variable is set. This way it is possible to combine local and cloud storage.
-     * @default false
-     */
-    forceCloud?: boolean;
-}
-
 export { ClientActorRun as ActorRun };
 
 /**
@@ -428,6 +424,13 @@ export class Actor<Data extends Dictionary = Dictionary> {
     private isRebooting = false;
 
     private chargingManager: ChargingManager;
+
+    /**
+     * Tracks which aliased storages have been purged during this session,
+     * so we only purge them once (on first open) when running locally.
+     * @internal
+     */
+    purgedStorageAliases = new Set<string>();
 
     constructor(options: ConfigurationOptions = {}) {
         // use default configuration object if nothing overridden (it fallbacks to env vars)
@@ -1122,16 +1125,17 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * For more details and code examples, see the {@apilink Dataset} class.
      *
      * @param [datasetIdOrName]
-     *   ID or name of the dataset to be opened. If `null` or `undefined`,
+     *   ID, name, or alias of the dataset to be opened. If `null` or `undefined`,
      *   the function returns the default dataset associated with the Actor run.
+     *   You can also pass `{ alias: 'name' }` to open a dataset defined in the Actor's schema storages,
+     *   `{ id: 'abc' }` to open by explicit ID, or `{ name: 'abc' }` to open by explicit name.
      * @param [options]
      * @ignore
      */
     async openDataset(
-        datasetIdOrName?: string | null,
+        datasetIdOrName?: StorageIdentifier | null,
         options: OpenStorageOptions = {},
     ): Promise<Dataset<Data>> {
-        ow(datasetIdOrName, ow.optional.string);
         ow(
             options,
             ow.object.exactShape({
@@ -1313,14 +1317,14 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @param [storeIdOrName]
      *   ID or name of the key-value store to be opened. If `null` or `undefined`,
      *   the function returns the default key-value store associated with the Actor run.
+     *   You can also pass `{ id: 'abc' }` to open by explicit ID, or `{ name: 'abc' }` to open by explicit name.
      * @param [options]
      * @ignore
      */
     async openKeyValueStore(
-        storeIdOrName?: string | null,
+        storeIdOrName?: StorageIdentifierWithoutAlias | null,
         options: OpenStorageOptions = {},
     ): Promise<KeyValueStore> {
-        ow(storeIdOrName, ow.optional.string);
         ow(
             options,
             ow.object.exactShape({
@@ -1347,14 +1351,14 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @param [queueIdOrName]
      *   ID or name of the request queue to be opened. If `null` or `undefined`,
      *   the function returns the default request queue associated with the Actor run.
+     *   You can also pass `{ id: 'abc' }` to open by explicit ID, or `{ name: 'abc' }` to open by explicit name.
      * @param [options]
      * @ignore
      */
     async openRequestQueue(
-        queueIdOrName?: string | null,
+        queueIdOrName?: StorageIdentifierWithoutAlias | null,
         options: OpenStorageOptions = {},
     ): Promise<RequestQueue> {
-        ow(queueIdOrName, ow.optional.string);
         ow(
             options,
             ow.object.exactShape({
@@ -2023,12 +2027,14 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * For more details and code examples, see the {@apilink Dataset} class.
      *
      * @param [datasetIdOrName]
-     *   ID or name of the dataset to be opened. If `null` or `undefined`,
+     *   ID, name, or alias of the dataset to be opened. If `null` or `undefined`,
      *   the function returns the default dataset associated with the Actor run.
+     *   You can also pass `{ alias: 'name' }` to open a dataset defined in the Actor's schema storages,
+     *   `{ id: 'abc' }` to open by explicit ID, or `{ name: 'abc' }` to open by explicit name.
      * @param [options]
      */
     static async openDataset<Data extends Dictionary = Dictionary>(
-        datasetIdOrName?: string | null,
+        datasetIdOrName?: StorageIdentifier | null,
         options: OpenStorageOptions = {},
     ): Promise<Dataset<Data>> {
         return Actor.getDefaultInstance().openDataset(datasetIdOrName, options);
@@ -2158,10 +2164,11 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @param [storeIdOrName]
      *   ID or name of the key-value store to be opened. If `null` or `undefined`,
      *   the function returns the default key-value store associated with the Actor run.
+     *   You can also pass `{ id: 'abc' }` to open by explicit ID, or `{ name: 'abc' }` to open by explicit name.
      * @param [options]
      */
     static async openKeyValueStore(
-        storeIdOrName?: string | null,
+        storeIdOrName?: StorageIdentifierWithoutAlias | null,
         options: OpenStorageOptions = {},
     ): Promise<KeyValueStore> {
         return Actor.getDefaultInstance().openKeyValueStore(
@@ -2184,10 +2191,11 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @param [queueIdOrName]
      *   ID or name of the request queue to be opened. If `null` or `undefined`,
      *   the function returns the default request queue associated with the Actor run.
+     *   You can also pass `{ id: 'abc' }` to open by explicit ID, or `{ name: 'abc' }` to open by explicit name.
      * @param [options]
      */
     static async openRequestQueue(
-        queueIdOrName?: string | null,
+        queueIdOrName?: StorageIdentifierWithoutAlias | null,
         options: OpenStorageOptions = {},
     ): Promise<RequestQueue> {
         return Actor.getDefaultInstance().openRequestQueue(
@@ -2366,16 +2374,14 @@ export class Actor<Data extends Dictionary = Dictionary> {
 
     private async _openStorage<T extends IStorage>(
         storageClass: Constructor<T>,
-        id?: string,
+        identifier?: StorageIdentifier | null,
         options: OpenStorageOptions = {},
     ) {
-        const client = options.forceCloud ? this.apifyClient : undefined;
-        return StorageManager.openStorage<T>(
-            storageClass,
-            id,
-            client,
-            this.config,
-        );
+        return openStorage<T>(storageClass, identifier, {
+            config: this.config,
+            client: options.forceCloud ? this.apifyClient : undefined,
+            purgedStorageAliases: this.purgedStorageAliases,
+        });
     }
 
     private _ensureActorInit(methodCalled: string) {

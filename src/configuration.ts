@@ -41,6 +41,7 @@ export interface ConfigurationOptions extends CoreConfigurationOptions {
     useChargingLogDataset?: boolean;
     actorPricingInfo?: string;
     chargedEventCounts?: string;
+    actorStoragesJson?: string;
 }
 
 /**
@@ -185,6 +186,7 @@ export class Configuration extends CoreConfiguration {
         ACTOR_USE_CHARGING_LOG_DATASET: 'useChargingLogDataset',
         APIFY_ACTOR_PRICING_INFO: 'actorPricingInfo',
         APIFY_CHARGED_ACTOR_EVENT_COUNTS: 'chargedEventCounts',
+        ACTOR_STORAGES_JSON: 'actorStoragesJson',
     };
 
     protected static override INTEGER_VARS = [

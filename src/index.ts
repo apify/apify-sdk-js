@@ -1,4 +1,12 @@
 export * from './actor.js';
+export type {
+    OpenStorageOptions,
+    StorageAlias,
+    StorageId,
+    StorageName,
+    StorageIdentifier,
+    StorageIdentifierWithoutAlias,
+} from './storage.js';
 export {
     ChargeOptions,
     ChargeResult,

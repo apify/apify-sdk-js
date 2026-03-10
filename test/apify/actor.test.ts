@@ -785,6 +785,156 @@ describe('Actor', () => {
                     sdk.apifyClient,
                 );
             });
+
+            describe('StorageIdentifier support', () => {
+                const STORAGES_JSON = JSON.stringify({
+                    datasets: {
+                        custom: 'dataset-id-123',
+                        default: 'default-ds-id',
+                    },
+                    keyValueStores: {
+                        custom: 'kvs-id-456',
+                        default: 'default-kvs-id',
+                    },
+                    requestQueues: {
+                        custom: 'rq-id-789',
+                        default: 'default-rq-id',
+                    },
+                });
+
+                test('openDataset with { alias } resolves from ACTOR_STORAGES_JSON', async () => {
+                    sdk.config.set('actorStoragesJson', STORAGES_JSON);
+                    process.env[APIFY_ENV_VARS.IS_AT_HOME] = '1';
+                    const mockOpenStorage = vitest.spyOn(
+                        StorageManager.prototype,
+                        'openStorage',
+                    );
+                    mockOpenStorage.mockResolvedValueOnce(vitest.fn());
+                    await sdk.openDataset({ alias: 'custom' });
+                    expect(mockOpenStorage).toBeCalledTimes(1);
+                    expect(mockOpenStorage).toBeCalledWith(
+                        'dataset-id-123',
+                        undefined,
+                    );
+                    delete process.env[APIFY_ENV_VARS.IS_AT_HOME];
+                });
+
+                test('openDataset with { alias } throws when alias not found in ACTOR_STORAGES_JSON', async () => {
+                    sdk.config.set('actorStoragesJson', STORAGES_JSON);
+                    process.env[APIFY_ENV_VARS.IS_AT_HOME] = '1';
+                    await expect(
+                        sdk.openDataset({ alias: 'nonexistent' }),
+                    ).rejects.toThrow(
+                        /Storage alias "nonexistent" not found in ACTOR_STORAGES_JSON/,
+                    );
+                    delete process.env[APIFY_ENV_VARS.IS_AT_HOME];
+                });
+
+                test('openDataset with { alias } uses alias as name when ACTOR_STORAGES_JSON not set', async () => {
+                    // No actorStoragesJson set — should use alias as a name for local storage
+                    const mockOpenStorage = vitest.spyOn(
+                        StorageManager.prototype,
+                        'openStorage',
+                    );
+                    // First call is for the purge (drop), second for re-open
+                    const mockStorage = { drop: vitest.fn() };
+                    mockOpenStorage.mockResolvedValueOnce(mockStorage);
+                    mockOpenStorage.mockResolvedValueOnce(vitest.fn());
+                    await sdk.openDataset({ alias: 'my-local-ds' });
+                    // First open + drop, then re-open
+                    expect(mockOpenStorage).toBeCalledTimes(2);
+                    expect(mockOpenStorage).toBeCalledWith(
+                        'my-local-ds',
+                        undefined,
+                    );
+                    expect(mockStorage.drop).toBeCalledTimes(1);
+                });
+
+                test('openDataset with { alias } locally only purges once per alias', async () => {
+                    const mockOpenStorage = vitest.spyOn(
+                        StorageManager.prototype,
+                        'openStorage',
+                    );
+                    const mockStorage = { drop: vitest.fn() };
+                    // First call: purge open, second: re-open after drop, third: second open (no purge)
+                    mockOpenStorage.mockResolvedValue(mockStorage);
+                    await sdk.openDataset({ alias: 'once-only' });
+                    expect(mockStorage.drop).toBeCalledTimes(1);
+                    expect(mockOpenStorage).toBeCalledTimes(2);
+
+                    mockOpenStorage.mockClear();
+                    mockStorage.drop.mockClear();
+                    await sdk.openDataset({ alias: 'once-only' });
+                    // Second time: no purge, just one open call
+                    expect(mockStorage.drop).not.toBeCalled();
+                    expect(mockOpenStorage).toBeCalledTimes(1);
+                });
+
+                test('openDataset with { id } passes ID directly', async () => {
+                    const mockOpenStorage = vitest.spyOn(
+                        StorageManager.prototype,
+                        'openStorage',
+                    );
+                    mockOpenStorage.mockResolvedValueOnce(vitest.fn());
+                    await sdk.openDataset({ id: 'explicit-id' });
+                    expect(mockOpenStorage).toBeCalledTimes(1);
+                    expect(mockOpenStorage).toBeCalledWith(
+                        'explicit-id',
+                        undefined,
+                    );
+                });
+
+                test('openDataset with { name } passes name directly', async () => {
+                    const mockOpenStorage = vitest.spyOn(
+                        StorageManager.prototype,
+                        'openStorage',
+                    );
+                    mockOpenStorage.mockResolvedValueOnce(vitest.fn());
+                    await sdk.openDataset({ name: 'explicit-name' });
+                    expect(mockOpenStorage).toBeCalledTimes(1);
+                    expect(mockOpenStorage).toBeCalledWith(
+                        'explicit-name',
+                        undefined,
+                    );
+                });
+
+                test('openDataset with plain string (backward compat) passes through', async () => {
+                    const mockOpenStorage = vitest.spyOn(
+                        StorageManager.prototype,
+                        'openStorage',
+                    );
+                    mockOpenStorage.mockResolvedValueOnce(vitest.fn());
+                    await sdk.openDataset('my-dataset');
+                    expect(mockOpenStorage).toBeCalledTimes(1);
+                    expect(mockOpenStorage).toBeCalledWith(
+                        'my-dataset',
+                        undefined,
+                    );
+                });
+
+                test('openDataset with no argument opens default storage', async () => {
+                    const mockOpenStorage = vitest.spyOn(
+                        StorageManager.prototype,
+                        'openStorage',
+                    );
+                    mockOpenStorage.mockResolvedValueOnce(vitest.fn());
+                    await sdk.openDataset();
+                    expect(mockOpenStorage).toBeCalledTimes(1);
+                    expect(mockOpenStorage).toBeCalledWith(
+                        undefined,
+                        undefined,
+                    );
+                });
+
+                test('throws on malformed ACTOR_STORAGES_JSON', async () => {
+                    sdk.config.set('actorStoragesJson', '{not valid json');
+                    process.env[APIFY_ENV_VARS.IS_AT_HOME] = '1';
+                    await expect(
+                        sdk.openDataset({ alias: 'custom' }),
+                    ).rejects.toThrow(/Failed to parse ACTOR_STORAGES_JSON/);
+                    delete process.env[APIFY_ENV_VARS.IS_AT_HOME];
+                });
+            });
         });
     });
 
