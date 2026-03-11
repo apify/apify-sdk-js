@@ -519,17 +519,30 @@ export class ChargingManager {
                 ? this.calculateMaxChargesByPrice(itemPrice)
                 : Infinity;
 
-        const itemsToKeep =
-            itemsArray.length > 0 && maxChargedCount === 0
-                ? // If the caller tries to push items even though the limit is depleted, overcharge by one so that the Platform terminates the run
-                  1
-                : Math.min(itemsArray.length, maxChargedCount);
+        const itemsToKeep = (() => {
+            if (maxChargedCount >= itemsArray.length) {
+                return itemsArray.length;
+            }
+
+            // If the caller tries to push items even though the limit is depleted, overcharge by one
+            // so that the Platform terminates the run.
+            // But don't do this if already strictly over the budget - no point piling on charges.
+            if (
+                itemsArray.length > 0 &&
+                maxChargedCount === 0 &&
+                this.calculateTotalChargedAmount() <= this.maxTotalChargeUsd
+            ) {
+                return 1;
+            }
+
+            return maxChargedCount;
+        })();
 
         const eventsToCharge: Record<string, number> = {};
-        if (eventName !== undefined) {
+        if (eventName !== undefined && itemsToKeep > 0) {
             eventsToCharge[eventName] = itemsToKeep;
         }
-        if (isDefaultDataset) {
+        if (isDefaultDataset && itemsToKeep > 0) {
             eventsToCharge[DEFAULT_DATASET_ITEM_EVENT] = itemsToKeep;
         }
 
@@ -595,8 +608,11 @@ export async function pushDataAndCharge<T>({
         return Object.values(results).reduce(mergeChargeResults);
     }
 
+    const itemsArray = Array.isArray(items) ? items : [items];
+    const allItemsTrimmed = itemsArray.length > 0 && limitedItems.length === 0;
+
     return {
-        eventChargeLimitReached: false,
+        eventChargeLimitReached: allItemsTrimmed,
         chargedCount: 0,
         chargeableWithinLimit: {},
     };
