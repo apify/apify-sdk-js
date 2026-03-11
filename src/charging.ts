@@ -330,11 +330,20 @@ export class ChargingManager {
         const maxEventChargeCount =
             this.calculateMaxEventChargeCountWithinLimit(eventName);
 
-        const chargedCount =
-            count > maxEventChargeCount
-                ? // If the caller tries to charge more than the budget allows, overcharge by one event so that the Actor is detected by the platform and terminated
-                  maxEventChargeCount + 1
-                : count;
+        const chargedCount = (() => {
+            if (count <= maxEventChargeCount) {
+                return count;
+            }
+
+            // If the caller tries to charge more than the budget allows, overcharge by one event
+            // so that the Actor is detected by the platform and terminated.
+            // But don't do this if already strictly over the budget - no point piling on charges.
+            if (this.calculateTotalChargedAmount() <= this.maxTotalChargeUsd) {
+                return maxEventChargeCount + 1;
+            }
+
+            return 0;
+        })();
 
         if (chargedCount === 0) {
             return {

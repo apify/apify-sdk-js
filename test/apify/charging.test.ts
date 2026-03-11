@@ -678,17 +678,14 @@ describe('ChargingManager', () => {
 
             chargeSpy.mockClear();
 
-            // After the overcharge, pushData also overcharges by 1 item (budget is deeply overdrawn but we still push 1)
+            // After the overcharge, we're already strictly over budget - subsequent charges should not pile on
             const pushResult = await Actor.pushData(
                 [{ hello: 'world' }],
                 'event',
             );
-            expect(pushResult!.chargedCount).toBe(1);
+            expect(pushResult!.chargedCount).toBe(0);
             expect(pushResult!.eventChargeLimitReached).toBe(true);
-            expect(chargeSpy).toHaveBeenCalledWith({
-                eventName: 'event',
-                count: 1,
-            });
+            expect(chargeSpy).not.toHaveBeenCalled();
         });
     });
 
