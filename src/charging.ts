@@ -293,6 +293,14 @@ export class ChargingManager {
      * This method attempts to charge for the specified number of events, but may charge fewer
      * if doing so would exceed the total budget limit (`maxTotalChargeUsd`).
      *
+     * **Important:** When using the `count` parameter to charge for multiple events at once,
+     * be aware that the charge may be partially fulfilled, i.e. `chargedCount` can be less
+     * than the requested `count`. Always check the returned `chargedCount` to know how many
+     * events were actually charged, and only perform that much work. If your work is
+     * meaningfully divisible into individual units, prefer calling `charge()` once per unit
+     * rather than batching via `count` — this gives finer control over budget consumption
+     * and avoids situations where more work is requested than the budget allows.
+     *
      * @param options The name of the event to charge for and the number of events to be charged.
      */
     async charge({
@@ -327,10 +335,23 @@ export class ChargingManager {
         }
 
         /* START OF CRITICAL SECTION - no awaits here */
-        const chargedCount = Math.min(
-            count,
-            this.calculateMaxEventChargeCountWithinLimit(eventName),
-        );
+        const maxEventChargeCount =
+            this.calculateMaxEventChargeCountWithinLimit(eventName);
+
+        const chargedCount = (() => {
+            if (count <= maxEventChargeCount) {
+                return count;
+            }
+
+            // If the caller tries to charge more than the budget allows, overcharge by one event
+            // so that the Actor is detected by the platform and terminated.
+            // But don't do this if already strictly over the budget - no point piling on charges.
+            if (this.calculateTotalChargedAmount() <= this.maxTotalChargeUsd) {
+                return maxEventChargeCount + 1;
+            }
+
+            return 0;
+        })();
 
         if (chargedCount === 0) {
             return {
@@ -505,13 +526,30 @@ export class ChargingManager {
                 ? this.calculateMaxChargesByPrice(itemPrice)
                 : Infinity;
 
-        const itemsToKeep = Math.min(itemsArray.length, maxChargedCount);
+        const itemsToKeep = (() => {
+            if (maxChargedCount >= itemsArray.length) {
+                return itemsArray.length;
+            }
+
+            // If the caller tries to push items even though the limit is depleted, overcharge by one
+            // so that the Platform terminates the run.
+            // But don't do this if already strictly over the budget - no point piling on charges.
+            if (
+                itemsArray.length > 0 &&
+                maxChargedCount === 0 &&
+                this.calculateTotalChargedAmount() <= this.maxTotalChargeUsd
+            ) {
+                return 1;
+            }
+
+            return maxChargedCount;
+        })();
 
         const eventsToCharge: Record<string, number> = {};
-        if (eventName !== undefined) {
+        if (eventName !== undefined && itemsToKeep > 0) {
             eventsToCharge[eventName] = itemsToKeep;
         }
-        if (isDefaultDataset) {
+        if (isDefaultDataset && itemsToKeep > 0) {
             eventsToCharge[DEFAULT_DATASET_ITEM_EVENT] = itemsToKeep;
         }
 
@@ -577,8 +615,11 @@ export async function pushDataAndCharge<T>({
         return Object.values(results).reduce(mergeChargeResults);
     }
 
+    const itemsArray = Array.isArray(items) ? items : [items];
+    const allItemsTrimmed = itemsArray.length > 0 && limitedItems.length === 0;
+
     return {
-        eventChargeLimitReached: false,
+        eventChargeLimitReached: allItemsTrimmed,
         chargedCount: 0,
         chargeableWithinLimit: {},
     };

@@ -7,6 +7,7 @@ description: Monetize your Actors using the pay-per-event pricing model
 import ActorChargeSource from '!!raw-loader!./code/actor_charge.ts';
 import ConditionalActorChargeSource from '!!raw-loader!./code/conditional_actor_charge.ts';
 import ChargeLimitCheckSource from '!!raw-loader!./code/charge_limit_check.ts';
+import PerUnitChargingSource from '!!raw-loader!./code/per_unit_charging.ts';
 import ApiLink from '@site/src/components/ApiLink';
 import CodeBlock from '@theme/CodeBlock';
 
@@ -43,6 +44,20 @@ Alternatively, you can periodically check the remaining budget via <ApiLink to="
 :::caution
 Always check the charge limit in your Actor, whether through `ChargeResult` return values or the `ChargingManager`. Without this check, your Actor will continue running and consuming platform resources after the budget is exhausted, producing no output.
 :::
+
+## Best practices for charging
+
+### Prefer per-unit charging over batching
+
+When your work can be split into individual units (e.g. scraping one page, calling one API endpoint), prefer issuing one `Actor.charge()` call per unit rather than batching multiple events into a single call via the `count` parameter. This gives you finer control over budget consumption:
+
+<CodeBlock language="typescript">{PerUnitChargingSource}</CodeBlock>
+
+If you do use the `count` parameter, always check the returned `chargedCount` — it tells you how many events were actually charged, which may be less than what you requested.
+
+### Always check the charge limit
+
+Both `Actor.charge` and `Actor.pushData` return a `ChargeResult` object. Always inspect `eventChargeLimitReached` or `chargedCount` and stop doing work when the budget is exhausted. Without this check, your Actor will continue consuming platform resources without producing value for the user.
 
 ## Transitioning from a different pricing model
 

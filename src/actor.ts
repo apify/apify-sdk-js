@@ -1452,6 +1452,14 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * This method attempts to charge for the specified number of events, but may charge fewer
      * if doing so would exceed the total budget limit (`maxTotalChargeUsd`).
      *
+     * **Important:** When using the `count` parameter to charge for multiple events at once,
+     * be aware that the charge may be partially fulfilled — i.e. `chargedCount` can be less
+     * than the requested `count`. Always check the returned `chargedCount` to know how many
+     * events were actually charged, and only perform that much work. If your work is
+     * meaningfully divisible into individual units, prefer calling `charge()` once per unit
+     * rather than batching via `count` — this gives finer control over budget consumption
+     * and avoids situations where more work is requested than the budget allows.
+     *
      * @param options The name of the event to charge for and the number of events to be charged.
      * @ignore
      */
@@ -2257,6 +2265,14 @@ export class Actor<Data extends Dictionary = Dictionary> {
      *
      * This method attempts to charge for the specified number of events, but may charge fewer
      * if doing so would exceed the total budget limit (`maxTotalChargeUsd`).
+     *
+     * **Important:** When using the `count` parameter to charge for multiple events at once,
+     * be aware that the charge may be partially fulfilled — i.e. `chargedCount` can be less
+     * than the requested `count`. Always check the returned `chargedCount` to know how many
+     * events were actually charged, and only perform that much work. If your work is
+     * meaningfully divisible into individual units, prefer calling `charge()` once per unit
+     * rather than batching via `count` — this gives finer control over budget consumption
+     * and avoids situations where more work is requested than the budget allows.
      *
      * @param options The name of the event to charge for and the number of events to be charged.
      */
