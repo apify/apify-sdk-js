@@ -445,6 +445,14 @@ export class Actor<Data extends Dictionary = Dictionary> {
      */
     private isExiting = false;
 
+    /**
+     * References to graceful shutdown handlers so they can be removed during cleanup.
+     */
+    private gracefulShutdownHandlers: {
+        aborting?: () => void;
+        migrating?: () => void;
+    } = {};
+
     private chargingManager: ChargingManager;
 
     constructor(options: ConfigurationOptions = {}) {
@@ -595,7 +603,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
         if (options.gracefulShutdown !== false) {
             const delay = options.gracefulShutdownDelayMillis ?? 0;
 
-            this.on(ACTOR_EVENT_NAMES.ABORTING, () => {
+            this.gracefulShutdownHandlers.aborting = () => {
                 setTimeout(() => {
                     this.exit().catch((err) => {
                         log.exception(
@@ -604,9 +612,13 @@ export class Actor<Data extends Dictionary = Dictionary> {
                         );
                     });
                 }, delay);
-            });
+            };
+            this.on(
+                ACTOR_EVENT_NAMES.ABORTING,
+                this.gracefulShutdownHandlers.aborting,
+            );
 
-            this.on(ACTOR_EVENT_NAMES.MIGRATING, () => {
+            this.gracefulShutdownHandlers.migrating = () => {
                 setTimeout(() => {
                     this.reboot().catch((err) => {
                         log.exception(
@@ -615,7 +627,11 @@ export class Actor<Data extends Dictionary = Dictionary> {
                         );
                     });
                 }, delay);
-            });
+            };
+            this.on(
+                ACTOR_EVENT_NAMES.MIGRATING,
+                this.gracefulShutdownHandlers.migrating,
+            );
         }
 
         await purgeDefaultStorages({
@@ -659,6 +675,20 @@ export class Actor<Data extends Dictionary = Dictionary> {
 
         const client = this.config.getStorageClient();
         const events = this.config.getEventManager();
+
+        // Remove graceful shutdown handlers to prevent them from interfering with exit
+        if (this.gracefulShutdownHandlers.aborting) {
+            this.off(
+                ACTOR_EVENT_NAMES.ABORTING,
+                this.gracefulShutdownHandlers.aborting,
+            );
+        }
+        if (this.gracefulShutdownHandlers.migrating) {
+            this.off(
+                ACTOR_EVENT_NAMES.MIGRATING,
+                this.gracefulShutdownHandlers.migrating,
+            );
+        }
 
         // Close the event manager and emit the final PERSIST_STATE event
         await events.close();
