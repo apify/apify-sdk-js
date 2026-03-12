@@ -55,7 +55,9 @@ test('charge limit', async () => {
     const run = await runActor({}, { maxTotalChargeUsd: 0.2 });
 
     assert.strictEqual(run.status, 'SUCCEEDED');
-    assert.deepEqual(run.chargedEventCounts, { foobar: 2 });
+
+    // The Actor tries to charge 4 events, the limit allows 2, but the SDK intentionally overcharges by 1 so that the Actor doesn't get stuck
+    assert.deepEqual(run.chargedEventCounts, { foobar: 3 });
 });
 
 test('default options start cost-unlimited runs', async () => {
