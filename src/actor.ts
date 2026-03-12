@@ -271,17 +271,14 @@ export interface Timeout {
 }
 
 export interface CallOptions
-    extends Omit<ActorCallOptions, 'timeout'>,
-        Token,
-        Timeout {}
+    extends Omit<ActorCallOptions, 'timeout'>, Token, Timeout {}
 export interface StartOptions
-    extends Omit<ActorStartOptions, 'waitForFinish' | 'timeout'>,
+    extends
+        Omit<ActorStartOptions, 'waitForFinish' | 'timeout'>,
         Token,
         Timeout {}
 export interface CallTaskOptions
-    extends Omit<TaskCallOptions, 'timeout'>,
-        Token,
-        Timeout {}
+    extends Omit<TaskCallOptions, 'timeout'>, Token, Timeout {}
 
 export interface AbortOptions extends RunAbortOptions, Token {
     /** Exit with given status message */
