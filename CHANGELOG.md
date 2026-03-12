@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [3.6.1](https://github.com/apify/apify-sdk-js/releases/tag/v3.6.1) (2026-03-12)
+
+### 🚀 Features
+
+- Support for Apify &quot;multiple datasets&quot; feature ([#571](https://github.com/apify/apify-sdk-js/pull/571)) ([0809bd3](https://github.com/apify/apify-sdk-js/commit/0809bd30b905042804aaa5234b2ff25f77eaf5d1)) by [@janbuchar](https://github.com/janbuchar), closes [#552](https://github.com/apify/apify-sdk-js/issues/552)
+- Add automatic graceful exit handlers for `abort` and `migrating` events ([#561](https://github.com/apify/apify-sdk-js/pull/561)) ([5f6a1fc](https://github.com/apify/apify-sdk-js/commit/5f6a1fcbdb81b7261bf990cf17e267a6de723c8d)) by [@B4nan](https://github.com/B4nan)
+
+### 🐛 Bug Fixes
+
+- Remove unnecessary warning about not using PPE ([#573](https://github.com/apify/apify-sdk-js/pull/573)) ([4fba830](https://github.com/apify/apify-sdk-js/commit/4fba830bb94a218cb112959ced05e982b3294015)) by [@janbuchar](https://github.com/janbuchar), closes [#569](https://github.com/apify/apify-sdk-js/issues/569)
+- Correctly limit pushed dataset items in PPE-aware mode ([#570](https://github.com/apify/apify-sdk-js/pull/570)) ([47c58d9](https://github.com/apify/apify-sdk-js/commit/47c58d9bfc90100ccdf62015a470e3a868c2782d)) by [@janbuchar](https://github.com/janbuchar)
+- Fix PPE Actors termination on budget exhaustion ([#574](https://github.com/apify/apify-sdk-js/pull/574)) ([1288353](https://github.com/apify/apify-sdk-js/commit/1288353b866e508716233b38991cef56fdce1f93)) by [@janbuchar](https://github.com/janbuchar), closes [#572](https://github.com/apify/apify-sdk-js/issues/572)
+
 ## [3.6.0](https://github.com/apify/apify-sdk-js/releases/tag/v3.6.0) (2026-02-19)
 
 ### 🚀 Features
