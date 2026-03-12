@@ -18,8 +18,7 @@ const CHECK_ACCESS_REQUEST_TIMEOUT_MILLIS = 4_000;
 const CHECK_ACCESS_MAX_ATTEMPTS = 2;
 const COUNTRY_CODE_REGEX = /^[A-Z]{2}$/;
 
-export interface ProxyConfigurationOptions
-    extends CoreProxyConfigurationOptions {
+export interface ProxyConfigurationOptions extends CoreProxyConfigurationOptions {
     /**
      * User's password for the proxy. By default, it is taken from the `APIFY_PROXY_PASSWORD`
      * environment variable, which is automatically set by the system when running the Actors.
