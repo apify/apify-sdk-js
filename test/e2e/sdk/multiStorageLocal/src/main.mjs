@@ -2,7 +2,7 @@ import { execFileSync } from 'node:child_process';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { log } from '@apify/log';
+import log from '@apify/log';
 
 const dir = dirname(fileURLToPath(import.meta.url));
 const lifecyclePath = join(dir, 'lifecycle.mjs');
