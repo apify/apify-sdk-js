@@ -11,6 +11,10 @@ on:
     pull_request:
         branches: [master]
 
+concurrency:
+    group: ${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
+
 jobs:
     # NPM install is done in a separate job and cached to speed up the following jobs.
     build_and_test:
@@ -27,11 +31,6 @@ jobs:
                 node-version: [18, 20, 22, 24]
 
         steps:
-            - name: Cancel Workflow Action
-              uses: styfle/cancel-workflow-action@0.13.0
-              with:
-                  access_token: ${{ github.token }}
-
             - name: Checkout repository
               uses: actions/checkout@v6
 

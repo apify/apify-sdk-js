@@ -9,6 +9,10 @@ on:
         # Runs at 2 am every day
         - cron: '0 2 * * *'
 
+concurrency:
+    group: ${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
+
 jobs:
     # NPM install is done in a separate job and cached to speed up the following jobs.
     build_and_test:
@@ -16,11 +20,6 @@ jobs:
         runs-on: ubuntu-22.04
 
         steps:
-            - name: Cancel Workflow Action
-              uses: styfle/cancel-workflow-action@0.13.0
-              with:
-                  access_token: ${{ github.token }}
-
             - name: Checkout repository
               uses: actions/checkout@v6
 
