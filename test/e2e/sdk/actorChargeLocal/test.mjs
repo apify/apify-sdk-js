@@ -53,6 +53,7 @@ test('charge limit', async () => {
         1,
         `There must be exactly one item in the charging dataset (ID ${chargingDataset.id})`,
     );
-    assert.strictEqual(chargingRecords.items[0].chargedCount, 2);
+    // The Actor tries to charge 4 events, the limit allows 2, but the SDK intentionally overcharges by 1 so that the Actor doesn't get stuck
+    assert.strictEqual(chargingRecords.items[0].chargedCount, 3);
     assert.strictEqual(chargingRecords.items[0].eventName, 'foobar');
 });
