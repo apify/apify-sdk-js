@@ -1,7 +1,16 @@
-import type { ConfigurationOptions as CoreConfigurationOptions } from '@crawlee/core';
-import { Configuration as CoreConfiguration } from '@crawlee/core';
+/* eslint-disable no-use-before-define */
+import { AsyncLocalStorage } from 'node:async_hooks';
 
-import type { META_ORIGINS } from '@apify/consts';
+import type { ConfigField, FieldsInput, FieldsOutput } from '@crawlee/core';
+import {
+    coerceBoolean,
+    coerceNumber,
+    Configuration as CoreConfiguration,
+    crawleeConfigFields,
+    field,
+    z,
+} from '@crawlee/core';
+
 import {
     ACTOR_ENV_VARS,
     APIFY_ENV_VARS,
@@ -9,37 +18,189 @@ import {
     LOCAL_APIFY_ENV_VARS,
 } from '@apify/consts';
 
-export interface ConfigurationOptions extends CoreConfigurationOptions {
-    metamorphAfterSleepMillis?: number;
-    actorEventsWsUrl?: string;
-    token?: string;
-    actorId?: string;
-    actorRunId?: string;
-    actorTaskId?: string;
-    apiBaseUrl?: string;
-    // apiBaseUrl is the internal API URL, accessible only within the platform(private network),
-    // while apiPublicBaseUrl is the public API URL, available externally(through internet).
-    apiPublicBaseUrl?: string;
-    containerPort?: number;
-    containerUrl?: string;
-    proxyHostname?: string;
-    proxyPassword?: string;
-    proxyPort?: number;
-    proxyStatusUrl?: string;
-    /**
-     * @deprecated use `containerPort` instead
-     */
-    standbyPort?: number;
-    standbyUrl?: string;
-    isAtHome?: boolean;
-    userId?: string;
-    inputSecretsPrivateKeyPassphrase?: string;
-    inputSecretsPrivateKeyFile?: string;
-    maxTotalChargeUsd?: number;
-    metaOrigin?: (typeof META_ORIGINS)[keyof typeof META_ORIGINS];
-    testPayPerEvent?: boolean;
-    useChargingLogDataset?: boolean;
-}
+// --- isAtHome check (simple env var presence) ---
+const isAtHome = !!process.env[APIFY_ENV_VARS.IS_AT_HOME];
+
+// --- Apify config field definitions ---
+
+export const apifyConfigFields = {
+    // Inherit all crawlee fields, overriding env vars where the SDK supports ACTOR_/APIFY_ aliases
+    ...crawleeConfigFields,
+
+    // Override crawlee fields with ACTOR_/APIFY_ env var aliases
+    defaultDatasetId: field(
+        z
+            .string()
+            .default(LOCAL_ACTOR_ENV_VARS[ACTOR_ENV_VARS.DEFAULT_DATASET_ID]),
+        [
+            ACTOR_ENV_VARS.DEFAULT_DATASET_ID,
+            'APIFY_DEFAULT_DATASET_ID',
+            'CRAWLEE_DEFAULT_DATASET_ID',
+        ],
+    ),
+    defaultKeyValueStoreId: field(
+        z
+            .string()
+            .default(
+                LOCAL_ACTOR_ENV_VARS[ACTOR_ENV_VARS.DEFAULT_KEY_VALUE_STORE_ID],
+            ),
+        [
+            ACTOR_ENV_VARS.DEFAULT_KEY_VALUE_STORE_ID,
+            'APIFY_DEFAULT_KEY_VALUE_STORE_ID',
+            'CRAWLEE_DEFAULT_KEY_VALUE_STORE_ID',
+        ],
+    ),
+    defaultRequestQueueId: field(
+        z
+            .string()
+            .default(
+                LOCAL_ACTOR_ENV_VARS[ACTOR_ENV_VARS.DEFAULT_REQUEST_QUEUE_ID],
+            ),
+        [
+            ACTOR_ENV_VARS.DEFAULT_REQUEST_QUEUE_ID,
+            'APIFY_DEFAULT_REQUEST_QUEUE_ID',
+            'CRAWLEE_DEFAULT_REQUEST_QUEUE_ID',
+        ],
+    ),
+    inputKey: field(z.string().default('INPUT'), [
+        ACTOR_ENV_VARS.INPUT_KEY,
+        'APIFY_INPUT_KEY',
+        'CRAWLEE_INPUT_KEY',
+    ]),
+    memoryMbytes: field(coerceNumber.optional(), [
+        ACTOR_ENV_VARS.MEMORY_MBYTES,
+        'APIFY_MEMORY_MBYTES',
+        'CRAWLEE_MEMORY_MBYTES',
+    ]),
+    availableMemoryRatio: field(coerceNumber.default(isAtHome ? 1 : 0.25), [
+        'CRAWLEE_AVAILABLE_MEMORY_RATIO',
+        'APIFY_AVAILABLE_MEMORY_RATIO',
+    ]),
+    disableBrowserSandbox: field(
+        isAtHome ? coerceBoolean.default(true) : coerceBoolean.optional(),
+        ['CRAWLEE_DISABLE_BROWSER_SANDBOX', 'APIFY_DISABLE_BROWSER_SANDBOX'],
+    ),
+    persistStateIntervalMillis: field(coerceNumber.default(60_000), [
+        'CRAWLEE_PERSIST_STATE_INTERVAL_MILLIS',
+        'APIFY_PERSIST_STATE_INTERVAL_MILLIS',
+        'APIFY_TEST_PERSIST_INTERVAL_MILLIS',
+    ]),
+    headless: field(coerceBoolean.default(true), [
+        'CRAWLEE_HEADLESS',
+        'APIFY_HEADLESS',
+    ]),
+    xvfb: field(coerceBoolean.default(false), ['CRAWLEE_XVFB', 'APIFY_XVFB']),
+    chromeExecutablePath: field(z.string().optional(), [
+        'CRAWLEE_CHROME_EXECUTABLE_PATH',
+        'APIFY_CHROME_EXECUTABLE_PATH',
+    ]),
+    defaultBrowserPath: field(z.string().optional(), [
+        'CRAWLEE_DEFAULT_BROWSER_PATH',
+        'APIFY_DEFAULT_BROWSER_PATH',
+    ]),
+    purgeOnStart: field(coerceBoolean.default(true), [
+        'CRAWLEE_PURGE_ON_START',
+        'APIFY_PURGE_ON_START',
+    ]),
+
+    // Apify-specific fields
+    metamorphAfterSleepMillis: field(
+        coerceNumber.default(300_000),
+        'APIFY_METAMORPH_AFTER_SLEEP_MILLIS',
+    ),
+    actorEventsWsUrl: field(z.string().optional(), [
+        ACTOR_ENV_VARS.EVENTS_WEBSOCKET_URL,
+        'APIFY_ACTOR_EVENTS_WS_URL',
+    ]),
+    token: field(z.string().optional(), 'APIFY_TOKEN'),
+    actorId: field(z.string().optional(), [
+        ACTOR_ENV_VARS.ID,
+        'APIFY_ACTOR_ID',
+    ]),
+    actorRunId: field(z.string().optional(), [
+        ACTOR_ENV_VARS.RUN_ID,
+        'APIFY_ACTOR_RUN_ID',
+    ]),
+    actorTaskId: field(z.string().optional(), [
+        ACTOR_ENV_VARS.TASK_ID,
+        'APIFY_ACTOR_TASK_ID',
+    ]),
+    apiBaseUrl: field(
+        z.string().default('https://api.apify.com'),
+        'APIFY_API_BASE_URL',
+    ),
+    apiPublicBaseUrl: field(
+        z.string().default('https://api.apify.com'),
+        'APIFY_API_PUBLIC_BASE_URL',
+    ),
+    containerPort: field(
+        coerceNumber.default(
+            +LOCAL_ACTOR_ENV_VARS[ACTOR_ENV_VARS.WEB_SERVER_PORT],
+        ),
+        [ACTOR_ENV_VARS.WEB_SERVER_PORT, 'APIFY_CONTAINER_PORT'],
+    ),
+    containerUrl: field(
+        z.string().default(LOCAL_ACTOR_ENV_VARS[ACTOR_ENV_VARS.WEB_SERVER_URL]),
+        [ACTOR_ENV_VARS.WEB_SERVER_URL, 'APIFY_CONTAINER_URL'],
+    ),
+    proxyHostname: field(
+        z.string().default(LOCAL_APIFY_ENV_VARS[APIFY_ENV_VARS.PROXY_HOSTNAME]),
+        'APIFY_PROXY_HOSTNAME',
+    ),
+    proxyPassword: field(z.string().optional(), 'APIFY_PROXY_PASSWORD'),
+    proxyPort: field(
+        coerceNumber.default(+LOCAL_APIFY_ENV_VARS[APIFY_ENV_VARS.PROXY_PORT]),
+        'APIFY_PROXY_PORT',
+    ),
+    proxyStatusUrl: field(
+        z.string().default('http://proxy.apify.com'),
+        'APIFY_PROXY_STATUS_URL',
+    ),
+    /** @deprecated use `containerPort` instead */
+    standbyPort: field(
+        coerceNumber.default(
+            +LOCAL_ACTOR_ENV_VARS[ACTOR_ENV_VARS.STANDBY_PORT],
+        ),
+        ACTOR_ENV_VARS.STANDBY_PORT,
+    ),
+    standbyUrl: field(z.string().optional(), ACTOR_ENV_VARS.STANDBY_URL),
+    isAtHome: field(coerceBoolean.optional(), 'APIFY_IS_AT_HOME'),
+    userId: field(z.string().optional(), 'APIFY_USER_ID'),
+    inputSecretsPrivateKeyPassphrase: field(
+        z.string().optional(),
+        'APIFY_INPUT_SECRETS_PRIVATE_KEY_PASSPHRASE',
+    ),
+    inputSecretsPrivateKeyFile: field(
+        z.string().optional(),
+        'APIFY_INPUT_SECRETS_PRIVATE_KEY_FILE',
+    ),
+    maxTotalChargeUsd: field(
+        coerceNumber.optional(),
+        ACTOR_ENV_VARS.MAX_TOTAL_CHARGE_USD,
+    ),
+    metaOrigin: field(z.string().optional(), 'APIFY_META_ORIGIN'),
+    testPayPerEvent: field(
+        coerceBoolean.default(false),
+        'ACTOR_TEST_PAY_PER_EVENT',
+    ),
+    useChargingLogDataset: field(
+        coerceBoolean.default(false),
+        'ACTOR_USE_CHARGING_LOG_DATASET',
+    ),
+};
+
+// --- Type utilities ---
+
+export type ApifyConfigurationInput = FieldsInput<typeof apifyConfigFields>;
+export type ApifyResolvedConfigValues = FieldsOutput<typeof apifyConfigFields>;
+
+/** @deprecated Use {@link ApifyConfigurationInput} instead. */
+export type ConfigurationOptions = ApifyConfigurationInput;
+
+// --- Configuration class ---
+
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type, @typescript-eslint/no-unsafe-declaration-merging
+export interface Configuration extends ApifyResolvedConfigValues {}
 
 /**
  * `Configuration` is a value object holding the SDK configuration. We can use it in two ways:
@@ -48,38 +209,34 @@ export interface ConfigurationOptions extends CoreConfigurationOptions {
  *
  *    ```javascript
  *    import { Actor } from 'apify';
- *    import { BasicCrawler } from 'crawlee';
  *
  *    const sdk = new Actor({ token: '123' });
- *    console.log(sdk.config.get('token')); // '123'
- *
- *    const crawler = new BasicCrawler({
- *        // ... crawler options
- *    }, sdk.config);
+ *    console.log(sdk.config.token); // '123'
  *    ```
  *
  * 2. To get the global configuration (singleton instance). It will respect the environment variables.
  *
  *    ```javascript
- *    import { BasicCrawler, Configuration } from 'crawlee';
+ *    import { Configuration } from 'apify';
  *
- *    // Get the global configuration
  *    const config = Configuration.getGlobalConfig();
- *    // Set the 'persistStateIntervalMillis' option
- *    // of global configuration to 30 seconds
- *    config.set('persistStateIntervalMillis', 30_000);
- *
- *    // No need to pass the configuration to the crawler,
- *    // as it's using the global configuration by default
- *    const crawler = new BasicCrawler();
+ *    console.log(config.headless);
+ *    console.log(config.persistStateIntervalMillis);
  *    ```
+ *
+ * Configuration is immutable — values are set via the constructor and cannot be changed afterwards.
+ * The priority order for resolving values is (highest to lowest):
+ *
+ * ```text
+ * constructor options > environment variables > crawlee.json > schema defaults
+ * ```
  *
  * ## Supported Configuration Options
  *
  * Key | Environment Variable | Default Value
  * ---|---|---
  * `memoryMbytes` | `ACTOR_MEMORY_MBYTES` | -
- * `headless` | `APIFY_HEADLESS` | -
+ * `headless` | `APIFY_HEADLESS` | `true`
  * `persistStateIntervalMillis` | `APIFY_PERSIST_STATE_INTERVAL_MILLIS` | `60e3`
  * `token` | `APIFY_TOKEN` | -
  * `isAtHome` | `APIFY_IS_AT_HOME` | -
@@ -112,127 +269,16 @@ export interface ConfigurationOptions extends CoreConfigurationOptions {
  * `chromeExecutablePath` | `APIFY_CHROME_EXECUTABLE_PATH` | -
  * `defaultBrowserPath` | `APIFY_DEFAULT_BROWSER_PATH` | -
  */
+// eslint-disable-next-line @typescript-eslint/no-unsafe-declaration-merging
 export class Configuration extends CoreConfiguration {
-    /** @inheritDoc */
-    // eslint-disable-next-line no-use-before-define -- Self-reference
-    static override globalConfig?: Configuration;
+    /** @internal */
+    static storage = new AsyncLocalStorage<Configuration>();
 
-    // maps environment variables to config keys (e.g. `APIFY_MEMORY_MBYTES` to `memoryMbytes`)
-    protected static override ENV_MAP = {
-        // regular crawlee env vars are also supported
-        ...CoreConfiguration.ENV_MAP,
+    /** @internal */
+    static globalConfig?: Configuration;
 
-        // support crawlee env vars prefixed with `APIFY_` too
-        APIFY_AVAILABLE_MEMORY_RATIO: 'availableMemoryRatio',
-        APIFY_PURGE_ON_START: 'purgeOnStart',
-        APIFY_MEMORY_MBYTES: 'memoryMbytes',
-        APIFY_DEFAULT_DATASET_ID: 'defaultDatasetId',
-        APIFY_DEFAULT_KEY_VALUE_STORE_ID: 'defaultKeyValueStoreId',
-        APIFY_DEFAULT_REQUEST_QUEUE_ID: 'defaultRequestQueueId',
-        APIFY_INPUT_KEY: 'inputKey',
-        APIFY_PERSIST_STATE_INTERVAL_MILLIS: 'persistStateIntervalMillis',
-        APIFY_HEADLESS: 'headless',
-        APIFY_XVFB: 'xvfb',
-        APIFY_CHROME_EXECUTABLE_PATH: 'chromeExecutablePath',
-        APIFY_DEFAULT_BROWSER_PATH: 'defaultBrowserPath',
-        APIFY_DISABLE_BROWSER_SANDBOX: 'disableBrowserSandbox',
-
-        // as well as apify specific ones
-        APIFY_TOKEN: 'token',
-        APIFY_METAMORPH_AFTER_SLEEP_MILLIS: 'metamorphAfterSleepMillis',
-        APIFY_TEST_PERSIST_INTERVAL_MILLIS: 'persistStateIntervalMillis', // for BC, seems to be unused
-        APIFY_ACTOR_EVENTS_WS_URL: 'actorEventsWsUrl',
-        APIFY_ACTOR_ID: 'actorId',
-        APIFY_API_BASE_URL: 'apiBaseUrl',
-        APIFY_API_PUBLIC_BASE_URL: 'apiPublicBaseUrl',
-        APIFY_IS_AT_HOME: 'isAtHome',
-        APIFY_ACTOR_RUN_ID: 'actorRunId',
-        APIFY_ACTOR_TASK_ID: 'actorTaskId',
-        APIFY_CONTAINER_PORT: 'containerPort',
-        APIFY_CONTAINER_URL: 'containerUrl',
-        APIFY_USER_ID: 'userId',
-        APIFY_PROXY_HOSTNAME: 'proxyHostname',
-        APIFY_PROXY_PASSWORD: 'proxyPassword',
-        APIFY_PROXY_STATUS_URL: 'proxyStatusUrl',
-        APIFY_PROXY_PORT: 'proxyPort',
-        APIFY_INPUT_SECRETS_PRIVATE_KEY_FILE: 'inputSecretsPrivateKeyFile',
-        APIFY_INPUT_SECRETS_PRIVATE_KEY_PASSPHRASE:
-            'inputSecretsPrivateKeyPassphrase',
-        APIFY_META_ORIGIN: 'metaOrigin',
-
-        // Actor env vars
-        ACTOR_DEFAULT_DATASET_ID: 'defaultDatasetId',
-        ACTOR_DEFAULT_KEY_VALUE_STORE_ID: 'defaultKeyValueStoreId',
-        ACTOR_DEFAULT_REQUEST_QUEUE_ID: 'defaultRequestQueueId',
-        ACTOR_EVENTS_WEBSOCKET_URL: 'actorEventsWsUrl',
-        ACTOR_ID: 'actorId',
-        ACTOR_INPUT_KEY: 'inputKey',
-        ACTOR_MEMORY_MBYTES: 'memoryMbytes',
-        ACTOR_RUN_ID: 'actorRunId',
-        ACTOR_STANDBY_PORT: 'standbyPort',
-        ACTOR_STANDBY_URL: 'standbyUrl',
-        ACTOR_TASK_ID: 'actorTaskId',
-        ACTOR_WEB_SERVER_PORT: 'containerPort',
-        ACTOR_WEB_SERVER_URL: 'containerUrl',
-        ACTOR_MAX_TOTAL_CHARGE_USD: 'maxTotalChargeUsd',
-        ACTOR_TEST_PAY_PER_EVENT: 'testPayPerEvent',
-        ACTOR_USE_CHARGING_LOG_DATASET: 'useChargingLogDataset',
-    };
-
-    protected static override INTEGER_VARS = [
-        ...CoreConfiguration.INTEGER_VARS,
-        'proxyPort',
-        'containerPort',
-        'metamorphAfterSleepMillis',
-        'maxTotalChargeUsd',
-    ];
-
-    protected static override BOOLEAN_VARS = [
-        ...CoreConfiguration.BOOLEAN_VARS,
-        'isAtHome',
-        'testPayPerEvent',
-        'useChargingLogDataset',
-    ];
-
-    protected static override DEFAULTS = {
-        ...CoreConfiguration.DEFAULTS,
-        defaultKeyValueStoreId:
-            LOCAL_ACTOR_ENV_VARS[ACTOR_ENV_VARS.DEFAULT_KEY_VALUE_STORE_ID],
-        defaultDatasetId:
-            LOCAL_ACTOR_ENV_VARS[ACTOR_ENV_VARS.DEFAULT_DATASET_ID],
-        defaultRequestQueueId:
-            LOCAL_ACTOR_ENV_VARS[ACTOR_ENV_VARS.DEFAULT_REQUEST_QUEUE_ID],
-        inputKey: 'INPUT',
-        apiBaseUrl: 'https://api.apify.com',
-        apiPublicBaseUrl: 'https://api.apify.com',
-        proxyStatusUrl: 'http://proxy.apify.com',
-        proxyHostname: LOCAL_APIFY_ENV_VARS[APIFY_ENV_VARS.PROXY_HOSTNAME],
-        proxyPort: +LOCAL_APIFY_ENV_VARS[APIFY_ENV_VARS.PROXY_PORT],
-        containerPort: +LOCAL_ACTOR_ENV_VARS[ACTOR_ENV_VARS.WEB_SERVER_PORT],
-        containerUrl: LOCAL_ACTOR_ENV_VARS[ACTOR_ENV_VARS.WEB_SERVER_URL],
-        standbyPort: +LOCAL_ACTOR_ENV_VARS[ACTOR_ENV_VARS.STANDBY_PORT],
-        metamorphAfterSleepMillis: 300e3,
-        persistStateIntervalMillis: 60e3, // This value is mentioned in jsdoc in `events.js`, if you update it here, update it there too.
-        testPayPerEvent: false,
-        useChargingLogDataset: false,
-    };
-
-    /**
-     * @inheritDoc
-     */
-    override get<
-        T extends keyof ConfigurationOptions,
-        U extends ConfigurationOptions[T],
-    >(key: T, defaultValue?: U): U {
-        return super.get(key as keyof CoreConfigurationOptions, defaultValue);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    override set(key: keyof ConfigurationOptions, value?: any) {
-        super.set(key as keyof CoreConfigurationOptions, value);
-    }
+    protected static override fields: Record<string, ConfigField> =
+        apifyConfigFields;
 
     /**
      * @inheritDoc
@@ -250,18 +296,7 @@ export class Configuration extends CoreConfiguration {
      * Resets global configuration instance. The default instance holds configuration based on env vars,
      * if we want to change them, we need to first reset the global state. Used mainly for testing purposes.
      */
-    static override resetGlobalState(): void {
+    static resetGlobalState(): void {
         delete this.globalConfig;
     }
 }
-
-// monkey patch the core class so it respects the new options too
-CoreConfiguration.getGlobalConfig = Configuration.getGlobalConfig;
-// @ts-expect-error protected property
-CoreConfiguration.ENV_MAP = Configuration.ENV_MAP;
-// @ts-expect-error protected property
-CoreConfiguration.INTEGER_VARS = Configuration.INTEGER_VARS;
-// @ts-expect-error protected property
-CoreConfiguration.BOOLEAN_VARS = Configuration.BOOLEAN_VARS;
-// @ts-expect-error protected property
-CoreConfiguration.DEFAULTS = Configuration.DEFAULTS;

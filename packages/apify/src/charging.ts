@@ -87,12 +87,11 @@ export class ChargingManager {
     private apifyClient: ApifyClient;
 
     constructor(configuration: Configuration, apifyClient: ApifyClient) {
-        this.maxTotalChargeUsd =
-            configuration.get('maxTotalChargeUsd') || Infinity; // convert `0` to `Infinity` in case the value is an empty string
-        this.isAtHome = configuration.get('isAtHome');
-        this.actorRunId = configuration.get('actorRunId');
-        this.purgeChargingLogDataset = configuration.get('purgeOnStart');
-        this.useChargingLogDataset = configuration.get('useChargingLogDataset');
+        this.maxTotalChargeUsd = configuration.maxTotalChargeUsd || Infinity; // convert `0` to `Infinity` in case the value is an empty string
+        this.isAtHome = !!configuration.isAtHome;
+        this.actorRunId = configuration.actorRunId;
+        this.purgeChargingLogDataset = configuration.purgeOnStart;
+        this.useChargingLogDataset = configuration.useChargingLogDataset;
 
         if (this.useChargingLogDataset && this.isAtHome) {
             throw new Error(
@@ -100,7 +99,7 @@ export class ChargingManager {
             );
         }
 
-        if (configuration.get('testPayPerEvent')) {
+        if (configuration.testPayPerEvent) {
             if (this.isAtHome) {
                 throw new Error(
                     'Using the ACTOR_TEST_PAY_PER_EVENT environment variable is only supported in a local development environment',

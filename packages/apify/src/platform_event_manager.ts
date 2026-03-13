@@ -62,7 +62,7 @@ export class PlatformEventManager extends EventManager {
         }
 
         await super.init();
-        const eventsWsUrl = this.config.get('actorEventsWsUrl');
+        const eventsWsUrl = (this.config as Configuration).actorEventsWsUrl;
 
         // Locally there is no web socket to connect, so just print a log message.
         if (!eventsWsUrl) {

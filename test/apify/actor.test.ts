@@ -705,13 +705,14 @@ describe('Actor', () => {
                 expect(getValueSpy).toBeCalledWith(KEY_VALUE_STORE_KEYS.INPUT);
                 expect(val1).toBe(123);
 
-                // Uses value from config
-                sdk.config.set('inputKey', 'some-value');
-                const val2 = await sdk.getInput();
-                expect(getValueSpy).toBeCalledTimes(2);
-                expect(getValueSpy).toBeCalledWith('some-value');
+                // Uses value from config - create a new Actor with custom inputKey
+                const sdk2 = new Actor({ inputKey: 'some-value' });
+                const getValueSpy2 = vitest.spyOn(sdk2 as any, 'getValue');
+                getValueSpy2.mockImplementation(async () => 123);
+                const val2 = await sdk2.getInput();
+                expect(getValueSpy2).toBeCalledTimes(1);
+                expect(getValueSpy2).toBeCalledWith('some-value');
                 expect(val2).toBe(123);
-                sdk.config.set('inputKey', undefined); // restore defaults
             });
 
             test('setValue()', async () => {
@@ -1285,14 +1286,14 @@ describe('Actor', () => {
         test('should work', async () => {
             await Actor.init();
             process.env.ACTOR_MAX_TOTAL_CHARGE_USD = '';
-            expect(Actor.config.get('maxTotalChargeUsd')).toBe(0);
+            expect(Actor.config.maxTotalChargeUsd).toBe(0);
             expect(Actor.getChargingManager().getMaxTotalChargeUsd()).toBe(
                 Infinity,
             );
 
             // the value in charging manager is cached, so we cant test that here
             process.env.ACTOR_MAX_TOTAL_CHARGE_USD = '123';
-            expect(Actor.config.get('maxTotalChargeUsd')).toBe(123);
+            expect(Actor.config.maxTotalChargeUsd).toBe(123);
             await Actor.exit({ exit: false });
         });
     });
