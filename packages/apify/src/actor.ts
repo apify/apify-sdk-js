@@ -1,7 +1,6 @@
 import { createPrivateKey } from 'node:crypto';
 
 import type {
-    ConfigurationOptions,
     EventManager,
     EventTypeName,
     IStorage,
@@ -46,6 +45,7 @@ import { addTimeoutToPromise } from '@apify/timeout';
 
 import type { ChargeOptions, ChargeResult } from './charging.js';
 import { ChargingManager } from './charging.js';
+import type { ConfigurationOptions } from './configuration.js';
 import { Configuration } from './configuration.js';
 import { KeyValueStore } from './key_value_store.js';
 import { PlatformEventManager } from './platform_event_manager.js';
@@ -1208,8 +1208,8 @@ export class Actor<Data extends Dictionary = Dictionary> {
     async getInput<T = Dictionary | string | Buffer>(): Promise<T | null> {
         this._ensureActorInit('getInput');
 
-        const {inputSecretsPrivateKeyFile} = this.config;
-        const {inputSecretsPrivateKeyPassphrase} = this.config;
+        const { inputSecretsPrivateKeyFile } = this.config;
+        const { inputSecretsPrivateKeyPassphrase } = this.config;
         const input = await this.getValue<T>(this.config.inputKey);
         if (
             ow.isValid(input, ow.object.nonEmpty) &&

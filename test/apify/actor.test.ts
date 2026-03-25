@@ -1283,18 +1283,19 @@ describe('Actor', () => {
     });
 
     describe('Actor.config and PPE', () => {
-        test('should work', async () => {
-            await Actor.init();
+        test('empty string maxTotalChargeUsd coerces to 0, charging manager treats as Infinity', async () => {
             process.env.ACTOR_MAX_TOTAL_CHARGE_USD = '';
+            await Actor.init();
             expect(Actor.config.maxTotalChargeUsd).toBe(0);
             expect(Actor.getChargingManager().getMaxTotalChargeUsd()).toBe(
                 Infinity,
             );
-
-            // the value in charging manager is cached, so we cant test that here
-            process.env.ACTOR_MAX_TOTAL_CHARGE_USD = '123';
-            expect(Actor.config.maxTotalChargeUsd).toBe(123);
             await Actor.exit({ exit: false });
+        });
+
+        test('numeric maxTotalChargeUsd is correctly resolved from constructor options', () => {
+            const sdk = new Actor({ maxTotalChargeUsd: 123 });
+            expect(sdk.config.maxTotalChargeUsd).toBe(123);
         });
     });
 });

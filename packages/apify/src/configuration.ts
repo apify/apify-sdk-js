@@ -4,12 +4,11 @@ import { AsyncLocalStorage } from 'node:async_hooks';
 import type { ConfigField, FieldsInput, FieldsOutput } from '@crawlee/core';
 import {
     coerceBoolean,
-    coerceNumber,
     Configuration as CoreConfiguration,
     crawleeConfigFields,
     field,
-    z,
 } from '@crawlee/core';
+import { z } from 'zod';
 
 import {
     ACTOR_ENV_VARS,
@@ -17,6 +16,11 @@ import {
     LOCAL_ACTOR_ENV_VARS,
     LOCAL_APIFY_ENV_VARS,
 } from '@apify/consts';
+
+const coerceNumber = z.preprocess((val) => {
+    if (typeof val === 'string') return Number(val);
+    return val;
+}, z.number());
 
 // --- isAtHome check (simple env var presence) ---
 const isAtHome = !!process.env[APIFY_ENV_VARS.IS_AT_HOME];
@@ -279,6 +283,10 @@ export class Configuration extends CoreConfiguration {
 
     protected static override fields: Record<string, ConfigField> =
         apifyConfigFields;
+
+    constructor(options: ApifyConfigurationInput = {}) {
+        super(options as any);
+    }
 
     /**
      * @inheritDoc
