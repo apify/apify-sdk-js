@@ -205,7 +205,7 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
             apifyProxyGroups = [],
             countryCode,
             apifyProxyCountry,
-            password = config.get('proxyPassword'),
+            password = config.proxyPassword,
             tieredProxyConfig,
             tieredProxyUrls,
         } = options;
@@ -221,8 +221,8 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
 
         const groupsToUse = groups.length ? groups : apifyProxyGroups;
         const countryCodeToUse = countryCode || apifyProxyCountry;
-        const hostname = config.get('proxyHostname');
-        const port = config.get('proxyPort');
+        const hostname = config.proxyHostname;
+        const port = config.proxyPort;
 
         // Validation
         if (
@@ -438,7 +438,7 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
      */
     // TODO: Make this private
     protected async _setPasswordIfToken(): Promise<void> {
-        const token = this.config.get('token');
+        const {token} = (this.config as Configuration);
 
         if (!token) return;
         try {
@@ -500,10 +500,7 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
           }
         | undefined
     > {
-        const proxyStatusUrl = this.config.get(
-            'proxyStatusUrl',
-            'http://proxy.apify.com',
-        );
+        const {proxyStatusUrl} = (this.config as Configuration);
         const requestOpts = {
             url: `${proxyStatusUrl}/?format=json`,
             proxyUrl: await this.newUrl(),
