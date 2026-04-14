@@ -37,21 +37,16 @@ jobs:
               with:
                   node-version: 24
                   registry-url: 'https://registry.npmjs.org'
-                  cache: 'npm'
-                  cache-dependency-path: 'package-lock.json'
 
-            - name: Update NPM
-              run: npm install -g npm@latest
-
-            - name: Install dependencies
-              run: npm ci --force
+            - name: Install pnpm and dependencies
+              uses: ./.github/actions/pnpm-install
 
             - name: Build module
-              run: npm run build
+              run: pnpm build
 
             - name: Check version consistency and bump pre-release version (next only)
               if: ${{ inputs.tag == 'next' }}
               run: node ./.github/scripts/before-beta-release.js
 
             - name: Publish to NPM
-              run: npm publish --tag ${{ inputs.tag }}
+              run: pnpm publish --tag ${{ inputs.tag }} --no-git-checks

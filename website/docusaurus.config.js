@@ -11,7 +11,7 @@ const packagePath = '.';
 /** @type {Partial<import('@docusaurus/types').DocusaurusConfig>} */
 module.exports = {
     future: {
-        experimental_faster: {
+        faster: {
             swcJsLoader: true,
             swcJsMinimizer: true,
             swcHtmlMinimizer: true,

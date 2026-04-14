@@ -46,19 +46,18 @@ jobs:
               uses: actions/setup-node@v6
               with:
                   node-version: ${{ matrix.node-version }}
-                  cache: 'npm'
-                  cache-dependency-path: 'package-lock.json'
 
-            - name: Install Dependencies
-              run: |
-                  npm ci
-                  npx playwright install --with-deps
+            - name: Install pnpm and dependencies
+              uses: ./.github/actions/pnpm-install
+
+            - name: Install Playwright browsers
+              run: pnpm exec playwright install --with-deps
 
             - name: Build
-              run: npm run ci:build
+              run: pnpm ci:build
 
             - name: Tests
-              run: npm test
+              run: pnpm test
     release_metadata:
         name: Prepare release metadata
         runs-on: ubuntu-latest
@@ -99,14 +98,12 @@ jobs:
               with:
                   node-version: 24
                   registry-url: 'https://registry.npmjs.org'
-                  cache: 'npm'
-                  cache-dependency-path: 'package-lock.json'
 
-            - name: Install Dependencies
-              run: npm ci
+            - name: Install pnpm and dependencies
+              uses: ./.github/actions/pnpm-install
 
             - name: Update package version in package.json
-              run: npm version --no-git-tag-version --allow-same-version ${{ needs.release_metadata.outputs.version_number }}
+              run: pnpm version --no-git-tag-version --allow-same-version ${{ needs.release_metadata.outputs.version_number }}
 
             - name: Update CHANGELOG.md
               uses: DamianReeves/write-file-action@master

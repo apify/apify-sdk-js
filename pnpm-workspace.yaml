@@ -1,0 +1,7 @@
+packages:
+    - website
+
+minimumReleaseAge: 1440
+minimumReleaseAgeExclude:
+    - '@apify/*'
+    - '@crawlee/*'
