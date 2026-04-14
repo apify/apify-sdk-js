@@ -201,15 +201,15 @@ When the <ApiLink to="apify/class/Dataset">`Dataset`</ApiLink> is stored on the 
 
 ## Status messages
 
-Status messages are human-readable messages that provide information about an Actor's progress. Unlike logs, status messages are visible at a glance in the Apify Console on the Actor run details page, making them useful for monitoring long-running Actors without digging through logs.
+[Status messages](/platform/actors/development/programming-interface/status-messages) are lightweight, human-readable progress indicators displayed with the Actor run in the Apify Console (separate from logs). Use them to communicate high-level phases or milestones, such as "Fetching list", "Processed 120/500 pages", or "Uploading results".
 
-Use [`Actor.setStatusMessage()`](https://sdk.apify.com/api/apify/class/Actor#setStatusMessage) to update the status message at meaningful milestones during your Actor's execution. Avoid updating it on every single item — focus on key transitions like starting a new phase, reaching a progress milestone, or completing the run.
+Update the status only when the user's understanding of progress changes - avoid frequent updates for every processed item. Detailed information should go to logs or storages (Dataset, Key-value store) instead.
+
+Use <ApiLink to="class/Actor#setStatusMessage">`Actor.setStatusMessage()`</ApiLink> to set the message:
 
 <CodeBlock language="js">{StatusMessageSource}</CodeBlock>
 
-The SDK only sends an API request when the status message actually changes, so you don't need to worry about duplicate updates.
-
-When your Actor finishes, you can mark the final status message as **terminal** using the `isStatusMessageTerminal` option. A terminal status message persists after the run completes, so users can see the final result at a glance.
+The SDK only sends an API request when the message text changes, so repeating the same message incurs no additional cost.
 
 ## Environment variables
 
