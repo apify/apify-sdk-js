@@ -13,6 +13,7 @@ import CodeBlock from '@theme/CodeBlock';
 
 import MainSource from '!!raw-loader!./apify_platform_main.ts';
 import InitExitSource from '!!raw-loader!./apify_platform_init_exit.ts';
+import StatusMessageSource from '!!raw-loader!./code/status_message.ts';
 
 [Apify](https://apify.com) is a platform built to serve large-scale and high-performance web scraping
 and automation needs. It provides easy access to compute instances (_Actors_),
@@ -197,6 +198,18 @@ When the <ApiLink to="apify/class/Dataset">`Dataset`</ApiLink> is stored on the 
 - [Key-value stores API reference](https://apify.com/docs/api/v2#/reference/key-value-stores)
 - [Datasets API reference](https://docs.apify.com/api/v2#/reference/datasets)
 - [Request queues API reference](https://docs.apify.com/api/v2#/reference/request-queues)
+
+## Status messages
+
+Status messages are human-readable messages that provide information about an Actor's progress. Unlike logs, status messages are visible at a glance in the Apify Console on the Actor run details page, making them useful for monitoring long-running Actors without digging through logs.
+
+Use [`Actor.setStatusMessage()`](https://sdk.apify.com/api/apify/class/Actor#setStatusMessage) to update the status message at meaningful milestones during your Actor's execution. Avoid updating it on every single item — focus on key transitions like starting a new phase, reaching a progress milestone, or completing the run.
+
+<CodeBlock language="js">{StatusMessageSource}</CodeBlock>
+
+The SDK only sends an API request when the status message actually changes, so you don't need to worry about duplicate updates.
+
+When your Actor finishes, you can mark the final status message as **terminal** using the `isStatusMessageTerminal` option. A terminal status message persists after the run completes, so users can see the final result at a glance.
 
 ## Environment variables
 
