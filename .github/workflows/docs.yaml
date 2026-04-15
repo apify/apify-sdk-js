@@ -27,7 +27,7 @@ jobs:
                   node-version: 24
 
             - name: Install pnpm and dependencies
-              uses: ./.github/actions/pnpm-install
+              uses: apify/workflows/pnpm-install@main
 
             - name: Update docs theme
               run: pnpm --filter apify-sdk-website update @apify/docs-theme
