@@ -56,11 +56,6 @@
                     "dirName": "upgrading"
                 }
             ]
-        },
-        {
-            "type": "doc",
-            "label": "Changelog",
-            "id": "changelog"
         }
     ]
 }

@@ -184,11 +184,6 @@
                     ]
                 }
             ]
-        },
-        {
-            "type": "doc",
-            "id": "changelog",
-            "label": "Changelog"
         }
     ]
 }

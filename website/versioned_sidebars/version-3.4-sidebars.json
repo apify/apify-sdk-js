@@ -40,10 +40,6 @@
                     "dirName": "04_upgrading"
                 }
             ]
-        },
-        {
-            "type": "doc",
-            "id": "changelog"
         }
     ]
 }
