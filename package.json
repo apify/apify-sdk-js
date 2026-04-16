@@ -5,13 +5,6 @@
     "engines": {
         "node": ">=16.0.0"
     },
-    "devEngines": {
-        "packageManager": {
-            "name": "pnpm",
-            "version": "10.x",
-            "onFail": "error"
-        }
-    },
     "main": "./dist/index.js",
     "module": "./dist/index.mjs",
     "types": "./dist/index.d.ts",
@@ -71,7 +64,8 @@
         "lint": "eslint",
         "lint:fix": "eslint --fix",
         "format": "prettier --write .",
-        "format:check": "prettier --check ."
+        "format:check": "prettier --check .",
+        "preinstall": "npx only-allow pnpm"
     },
     "lint-staged": {
         "src/**/*": [
