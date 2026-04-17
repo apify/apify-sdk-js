@@ -140,16 +140,15 @@ jobs:
 
     version_docs:
         name: Version docs
-        if: ${{ github.event.inputs.release_type == 'minor' || github.event.inputs.release_type == 'major' }}
+        if: ${{ inputs.release_type == 'minor' || inputs.release_type == 'major' }}
         needs: [update_changelog]
-        runs-on: ubuntu-latest
+        runs-on: ubuntu-22.04
         steps:
             - name: Checkout repository
               uses: actions/checkout@v6
               with:
                   ref: ${{ needs.update_changelog.outputs.changelog_commitish }}
                   token: ${{ secrets.APIFY_SERVICE_ACCOUNT_GITHUB_TOKEN }}
-                  fetch-depth: 0
 
             - name: Use Node.js 24
               uses: actions/setup-node@v6
@@ -160,17 +159,16 @@ jobs:
 
             - name: Install Dependencies
               run: |
-                  npm ci --force
+                  npm ci
                   cd website
                   npm ci
 
-            - name: Version docs
+            - name: Run docusaurus versioning
               run: |
-                  VERSION=$(jq -r '.version' package.json)
-                  MAJOR_MINOR=$(echo $VERSION | cut -d. -f1,2)
+                  MAJOR_MINOR=$(echo "${{ needs.update_changelog.outputs.version_number }}" | cut -d. -f1,2)
                   cd website
-                  npx docusaurus docs:version $MAJOR_MINOR
-                  npx docusaurus api:version $MAJOR_MINOR
+                  npx docusaurus docs:version "$MAJOR_MINOR"
+                  npx docusaurus api:version "$MAJOR_MINOR"
 
             - name: Commit versioned docs
               uses: EndBug/add-and-commit@v10
