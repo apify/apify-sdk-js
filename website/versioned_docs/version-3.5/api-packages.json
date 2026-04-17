@@ -1,0 +1,12 @@
+[
+    {
+        "entryPoints": {
+            "index": { "label": "Index", "path": "src/index.ts" }
+        },
+        "packageRoot": "../packages/apify",
+        "packagePath": "packages/apify",
+        "packageSlug": "apify",
+        "packageName": "apify",
+        "packageVersion": "3.5.3"
+    }
+]

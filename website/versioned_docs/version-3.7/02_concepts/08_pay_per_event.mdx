@@ -1,0 +1,78 @@
+---
+id: pay-per-event
+title: Pay-per-event Monetization
+description: Monetize your Actors using the pay-per-event pricing model
+---
+
+import ActorChargeSource from '!!raw-loader!./code/actor_charge.ts';
+import ConditionalActorChargeSource from '!!raw-loader!./code/conditional_actor_charge.ts';
+import ChargeLimitCheckSource from '!!raw-loader!./code/charge_limit_check.ts';
+import PerUnitChargingSource from '!!raw-loader!./code/per_unit_charging.ts';
+import ApiLink from '@site/src/components/ApiLink';
+import CodeBlock from '@theme/CodeBlock';
+
+Apify provides several [pricing models](https://docs.apify.com/platform/actors/publishing/monetize) for monetizing your Actors. The most recent and most flexible one is [pay-per-event](https://docs.apify.com/platform/actors/running/actors-in-store#pay-per-event), which lets you charge your users programmatically directly from your Actor. As the name suggests, you may charge the users each time a specific event occurs, for example a call to an external API or when you return a result.
+
+To use the pay-per-event pricing model, you first need to [set it up](https://docs.apify.com/platform/actors/running/actors-in-store#pay-per-event) for your Actor in the Apify console. After that, you're free to start charging for events.
+
+:::info How pay-per-event pricing works
+
+If you want more details about PPE pricing, please refer to our [PPE documentation](https://docs.apify.com/platform/actors/publishing/monetize/pay-per-event).
+
+:::
+
+## Charging for events
+
+After monetization is set in the Apify console, you can add <ApiLink to="class/Actor#charge">`Actor.charge`</ApiLink> calls to your code and start monetizing!
+
+<CodeBlock language="typescript">{ActorChargeSource}</CodeBlock>
+
+Then you just push your code to Apify and that's it! The SDK will even keep track of the max total charge setting for you, so you will not provide more value than what the user chose to pay for.
+
+If you need finer control over charging, you can access call <ApiLink to="class/Actor#getChargingManager">`Actor.getChargingManager()`</ApiLink> to access the <ApiLink to="class/ChargingManager">`ChargingManager`</ApiLink>, which can provide more detailed information - for example how many events of each type can be charged before reaching the configured limit.
+
+### Handling the charge limit
+
+While the SDK automatically prevents overcharging by limiting how many events are charged and how many items are pushed, **it does not stop your Actor from running**. When the charge limit is reached, `Actor.charge` and `Actor.pushData` will silently stop charging and pushing data, but your Actor will keep running — potentially doing expensive work (scraping pages, calling APIs) for no purpose. This means your Actor may never terminate on its own if you don't check the charge limit yourself.
+
+To avoid this, you should check the `eventChargeLimitReached` field in the result returned by <ApiLink to="class/Actor#charge">`Actor.charge`</ApiLink> or `Actor.pushData` and stop your Actor when the limit is reached. You can also use the `chargeableWithinLimit` field from the result to plan ahead — it tells you how many events of each type can still be charged within the remaining budget.
+
+<CodeBlock language="typescript">{ChargeLimitCheckSource}</CodeBlock>
+
+Alternatively, you can periodically check the remaining budget via <ApiLink to="class/Actor#getChargingManager">`Actor.getChargingManager()`</ApiLink> instead of inspecting every `ChargeResult`. This can be useful when charging happens in multiple places across your code, or when using a crawler where you don't directly control the main loop.
+
+:::caution
+Always check the charge limit in your Actor, whether through `ChargeResult` return values or the `ChargingManager`. Without this check, your Actor will continue running and consuming platform resources after the budget is exhausted, producing no output.
+:::
+
+## Best practices for charging
+
+### Prefer per-unit charging over batching
+
+When your work can be split into individual units (e.g. scraping one page, calling one API endpoint), prefer issuing one `Actor.charge()` call per unit rather than batching multiple events into a single call via the `count` parameter. This gives you finer control over budget consumption:
+
+<CodeBlock language="typescript">{PerUnitChargingSource}</CodeBlock>
+
+If you do use the `count` parameter, always check the returned `chargedCount` — it tells you how many events were actually charged, which may be less than what you requested.
+
+### Always check the charge limit
+
+Both `Actor.charge` and `Actor.pushData` return a `ChargeResult` object. Always inspect `eventChargeLimitReached` or `chargedCount` and stop doing work when the budget is exhausted. Without this check, your Actor will continue consuming platform resources without producing value for the user.
+
+## Transitioning from a different pricing model
+
+When you plan to start using the pay-per-event pricing model for an Actor that is already monetized with a different pricing model, your source code will need support both pricing models during the transition period enforced by the Apify platform. Arguably the most frequent case is the transition from the pay-per-result model which utilizes the `ACTOR_MAX_PAID_DATASET_ITEMS` environment variable to prevent returning unpaid dataset items. The following is an example how to handle such scenarios. The key part is the <ApiLink to="class/ChargingManager#getPricingInfo">`ChargingManager.getPricingInfo`</ApiLink> method which returns information about the current pricing model.
+
+<CodeBlock language="typescript">{ConditionalActorChargeSource}</CodeBlock>
+
+## Local development
+
+It is encouraged to test your monetization code on your machine before releasing it to the public. To tell your Actor that it should work in pay-per-event mode, pass it the `ACTOR_TEST_PAY_PER_EVENT` environment variable:
+
+```shell
+ACTOR_TEST_PAY_PER_EVENT=true npm start
+```
+
+If you also wish to see a log of all the events charged throughout the run, you also need to pass the `ACTOR_USE_CHARGING_LOG_DATASET` environment variable. Your charging dataset will then be available under the `charging_log` name (unless you change your storage settings, this dataset is stored in `storage/datasets/charging_log/`). Please note that this log is not available when running the Actor in production on the Apify platform.
+
+Because pricing configuration is stored by the Apify platform, all events will have a default price of $1.
