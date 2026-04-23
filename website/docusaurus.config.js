@@ -42,6 +42,7 @@ module.exports = {
             '@apify/docs-theme',
             {
                 changelogFromRoot: true,
+                changelogDisplayedSidebar: 'sidebar',
                 subNavbar: {
                     title: 'SDK for JavaScript',
                     items: [

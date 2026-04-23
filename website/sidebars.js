@@ -41,9 +41,5 @@ module.exports = {
                 },
             ],
         },
-        {
-            type: 'doc',
-            id: 'changelog',
-        },
     ],
 };

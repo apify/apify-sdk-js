@@ -1,5 +1,5 @@
 {
-    "docs": [
+    "sidebar": [
         {
             "type": "doc",
             "label": "Overview",
@@ -56,11 +56,6 @@
                     "dirName": "upgrading"
                 }
             ]
-        },
-        {
-            "type": "doc",
-            "id": "changelog",
-            "label": "Changelog"
         }
     ]
 }

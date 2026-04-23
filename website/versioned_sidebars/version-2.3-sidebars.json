@@ -1,5 +1,5 @@
 {
-    "docs": [
+    "sidebar": [
         {
             "type": "doc",
             "label": "Overview",
@@ -184,11 +184,6 @@
                     ]
                 }
             ]
-        },
-        {
-            "type": "doc",
-            "id": "changelog",
-            "label": "Changelog"
         }
     ]
 }
