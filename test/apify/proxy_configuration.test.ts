@@ -120,7 +120,7 @@ describe('ProxyConfiguration', () => {
         expect(proxyConfiguration.countryCode).toStrictEqual(apifyProxyCountry);
     });
 
-    test('subdivisionCode should produce country-US-XX in proxy URL', async () => {
+    test('subdivisionCode should produce country-US_XX in proxy URL', async () => {
         const proxyConfiguration = new ProxyConfiguration({
             groups,
             countryCode: 'US',
@@ -129,7 +129,7 @@ describe('ProxyConfiguration', () => {
         });
 
         expect(await proxyConfiguration.newUrl(sessionId)).toBe(
-            'http://groups-GROUP1+GROUP2,session-538909250932,country-US-CA:test12345@proxy.apify.com:8000',
+            'http://groups-GROUP1+GROUP2,session-538909250932,country-US_CA:test12345@proxy.apify.com:8000',
         );
     });
 
@@ -142,7 +142,7 @@ describe('ProxyConfiguration', () => {
         });
 
         expect(await proxyConfiguration.newUrl()).toBe(
-            'http://groups-GROUP1+GROUP2,country-US-NY:test12345@proxy.apify.com:8000',
+            'http://groups-GROUP1+GROUP2,country-US_NY:test12345@proxy.apify.com:8000',
         );
     });
 
@@ -157,7 +157,7 @@ describe('ProxyConfiguration', () => {
         // @ts-expect-error private property
         expect(proxyConfiguration.subdivisionCode).toBe('TX');
         expect(await proxyConfiguration.newUrl()).toBe(
-            'http://groups-GROUP1+GROUP2,country-US-TX:test12345@proxy.apify.com:8000',
+            'http://groups-GROUP1+GROUP2,country-US_TX:test12345@proxy.apify.com:8000',
         );
     });
 
@@ -172,6 +172,25 @@ describe('ProxyConfiguration', () => {
                     password,
                 }),
         ).toThrow('"subdivisionCode" requires "countryCode" to be set.');
+    });
+
+    test('should throw on invalid subdivisionCode', () => {
+        expect(
+            () =>
+                new ProxyConfiguration({
+                    countryCode: 'US',
+                    subdivisionCode: 'ca',
+                    password,
+                }),
+        ).toThrow();
+        expect(
+            () =>
+                new ProxyConfiguration({
+                    countryCode: 'US',
+                    subdivisionCode: 'California',
+                    password,
+                }),
+        ).toThrow();
     });
 
     test('should throw on invalid arguments structure', () => {

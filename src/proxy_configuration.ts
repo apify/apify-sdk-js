@@ -17,6 +17,7 @@ const MAX_SESSION_ID_LENGTH = 50;
 const CHECK_ACCESS_REQUEST_TIMEOUT_MILLIS = 4_000;
 const CHECK_ACCESS_MAX_ATTEMPTS = 2;
 const COUNTRY_CODE_REGEX = /^[A-Z]{2}$/;
+const SUBDIVISION_CODE_REGEX = /^[A-Z0-9]{2}$/;
 
 export interface ProxyConfigurationOptions extends CoreProxyConfigurationOptions {
     /**
@@ -217,8 +218,12 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
                 countryCode: ow.optional.string.matches(COUNTRY_CODE_REGEX),
                 apifyProxyCountry:
                     ow.optional.string.matches(COUNTRY_CODE_REGEX),
-                subdivisionCode: ow.optional.string,
-                apifyProxySubdivision: ow.optional.string,
+                subdivisionCode: ow.optional.string.matches(
+                    SUBDIVISION_CODE_REGEX,
+                ),
+                apifyProxySubdivision: ow.optional.string.matches(
+                    SUBDIVISION_CODE_REGEX,
+                ),
                 password: ow.optional.string,
                 tieredProxyUrls: ow.optional.array.ofType(
                     ow.array.ofType(ow.string),
@@ -463,7 +468,7 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
             parts.push(`session-${sessionId}`);
         }
         if (subdivisionCode) {
-            parts.push(`country-${countryCode}-${subdivisionCode}`);
+            parts.push(`country-${countryCode}_${subdivisionCode}`);
         } else if (countryCode) {
             parts.push(`country-${countryCode}`);
         }
