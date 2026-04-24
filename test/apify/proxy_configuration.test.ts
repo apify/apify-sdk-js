@@ -120,6 +120,60 @@ describe('ProxyConfiguration', () => {
         expect(proxyConfiguration.countryCode).toStrictEqual(apifyProxyCountry);
     });
 
+    test('subdivisionCode should produce country-US-XX in proxy URL', async () => {
+        const proxyConfiguration = new ProxyConfiguration({
+            groups,
+            countryCode: 'US',
+            subdivisionCode: 'CA',
+            password,
+        });
+
+        expect(await proxyConfiguration.newUrl(sessionId)).toBe(
+            'http://groups-GROUP1+GROUP2,session-538909250932,country-US-CA:test12345@proxy.apify.com:8000',
+        );
+    });
+
+    test('subdivisionCode without session should produce correct URL', async () => {
+        const proxyConfiguration = new ProxyConfiguration({
+            groups,
+            countryCode: 'US',
+            subdivisionCode: 'NY',
+            password,
+        });
+
+        expect(await proxyConfiguration.newUrl()).toBe(
+            'http://groups-GROUP1+GROUP2,country-US-NY:test12345@proxy.apify.com:8000',
+        );
+    });
+
+    test('apifyProxySubdivision UI input schema should work', async () => {
+        const proxyConfiguration = new ProxyConfiguration({
+            apifyProxyGroups: groups,
+            apifyProxyCountry: 'US',
+            apifyProxySubdivision: 'TX',
+            password,
+        });
+
+        // @ts-expect-error private property
+        expect(proxyConfiguration.subdivisionCode).toBe('TX');
+        expect(await proxyConfiguration.newUrl()).toBe(
+            'http://groups-GROUP1+GROUP2,country-US-TX:test12345@proxy.apify.com:8000',
+        );
+    });
+
+    test('subdivisionCode without countryCode should throw', () => {
+        expect(
+            () => new ProxyConfiguration({ subdivisionCode: 'CA', password }),
+        ).toThrow('"subdivisionCode" requires "countryCode" to be set.');
+        expect(
+            () =>
+                new ProxyConfiguration({
+                    apifyProxySubdivision: 'CA',
+                    password,
+                }),
+        ).toThrow('"subdivisionCode" requires "countryCode" to be set.');
+    });
+
     test('should throw on invalid arguments structure', () => {
         // Group value
         const invalidGroups = ['GROUP1*'];
