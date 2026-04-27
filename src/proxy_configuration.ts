@@ -47,13 +47,13 @@ export interface ProxyConfigurationOptions extends CoreProxyConfigurationOptions
 
     /**
      * Same option as `groups` which can be used to
-     * configurate the proxy by UI input schema. You should use the `groups` option in your crawler code.
+     * configure the proxy by UI input schema. You should use the `groups` option in your crawler code.
      */
     apifyProxyGroups?: string[];
 
     /**
      * Same option as `countryCode` which can be used to
-     * configurate the proxy by UI input schema. You should use the `countryCode` option in your crawler code.
+     * configure the proxy by UI input schema. You should use the `countryCode` option in your crawler code.
      */
     apifyProxyCountry?: string;
 
@@ -66,7 +66,7 @@ export interface ProxyConfigurationOptions extends CoreProxyConfigurationOptions
 
     /**
      * Same option as `subdivisionCode` which can be used to
-     * configurate the proxy by UI input schema. You should use the `subdivisionCode` option in your crawler code.
+     * configure the proxy by UI input schema. You should use the `subdivisionCode` option in your crawler code.
      */
     apifyProxySubdivision?: string;
 
