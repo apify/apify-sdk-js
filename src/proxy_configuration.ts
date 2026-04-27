@@ -17,7 +17,7 @@ const MAX_SESSION_ID_LENGTH = 50;
 const CHECK_ACCESS_REQUEST_TIMEOUT_MILLIS = 4_000;
 const CHECK_ACCESS_MAX_ATTEMPTS = 2;
 const COUNTRY_CODE_REGEX = /^[A-Z]{2}$/;
-const SUBDIVISION_CODE_REGEX = /^[A-Z0-9]{2}$/;
+const SUBDIVISION_CODE_REGEX = /^[A-Z0-9]{1,3}$/;
 
 export interface ProxyConfigurationOptions extends CoreProxyConfigurationOptions {
     /**
@@ -261,7 +261,7 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
 
         if (subdivisionCodeToUse && !countryCodeToUse) {
             throw new Error(
-                '"subdivisionCode" requires "countryCode" to be set.',
+                'ProxyConfiguration: "subdivisionCode" requires "countryCode" to be set.',
             );
         }
 

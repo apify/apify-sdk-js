@@ -164,14 +164,18 @@ describe('ProxyConfiguration', () => {
     test('subdivisionCode without countryCode should throw', () => {
         expect(
             () => new ProxyConfiguration({ subdivisionCode: 'CA', password }),
-        ).toThrow('"subdivisionCode" requires "countryCode" to be set.');
+        ).toThrow(
+            'ProxyConfiguration: "subdivisionCode" requires "countryCode" to be set.',
+        );
         expect(
             () =>
                 new ProxyConfiguration({
                     apifyProxySubdivision: 'CA',
                     password,
                 }),
-        ).toThrow('"subdivisionCode" requires "countryCode" to be set.');
+        ).toThrow(
+            'ProxyConfiguration: "subdivisionCode" requires "countryCode" to be set.',
+        );
     });
 
     test('should throw on invalid subdivisionCode', () => {
