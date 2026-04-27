@@ -157,6 +157,21 @@ Now your crawlers will use only Residential proxies from the US. Note that you m
 to a proxy group before you are able to use it. You can find your available proxy groups
 in the [proxy dashboard](https://console.apify.com/proxy).
 
+### Subdivision-level geotargeting
+
+For even more precise geotargeting, you can specify a US state using the `subdivisionCode` option alongside `countryCode`. This feature is currently only supported for the United States (`countryCode: 'US'`). The value must be the two-letter [ISO 3166-2](https://en.wikipedia.org/wiki/ISO_3166-2) subdivision code — for example `'CA'` for California or `'NY'` for New York.
+
+```javascript
+const proxyConfiguration = await Actor.createProxyConfiguration({
+    groups: ['RESIDENTIAL'],
+    countryCode: 'US',
+    subdivisionCode: 'CA',
+});
+const proxyUrl = proxyConfiguration.newUrl();
+```
+
+`subdivisionCode` requires `countryCode` to be set.
+
 ## Inspecting current proxy in Crawlers
 
 `CheerioCrawler` and `PuppeteerCrawler` grant access to information about the currently used proxy
