@@ -17,6 +17,8 @@ const MAX_SESSION_ID_LENGTH = 50;
 const CHECK_ACCESS_REQUEST_TIMEOUT_MILLIS = 4_000;
 const CHECK_ACCESS_MAX_ATTEMPTS = 2;
 const COUNTRY_CODE_REGEX = /^[A-Z]{2}$/;
+// ISO 3166-2 subdivision codes are 1–3 uppercase alphanumeric characters, e.g. 'CA' (California), 'NSW' (New South Wales), '9' (Wien, AT-9)
+const SUBDIVISION_CODE_REGEX = /^[A-Z0-9]{1,3}$/;
 
 export interface ProxyConfigurationOptions extends CoreProxyConfigurationOptions {
     /**
@@ -46,15 +48,28 @@ export interface ProxyConfigurationOptions extends CoreProxyConfigurationOptions
 
     /**
      * Same option as `groups` which can be used to
-     * configurate the proxy by UI input schema. You should use the `groups` option in your crawler code.
+     * configure the proxy by UI input schema. You should use the `groups` option in your crawler code.
      */
     apifyProxyGroups?: string[];
 
     /**
      * Same option as `countryCode` which can be used to
-     * configurate the proxy by UI input schema. You should use the `countryCode` option in your crawler code.
+     * configure the proxy by UI input schema. You should use the `countryCode` option in your crawler code.
      */
     apifyProxyCountry?: string;
+
+    /**
+     * If set, all proxied requests will use IP addresses geolocated to the specified subdivision (e.g. US state).
+     * Requires `countryCode` to be set. The value must follow the ISO 3166-2 subdivision code format,
+     * e.g. `'CA'` for California when `countryCode` is `'US'`.
+     */
+    subdivisionCode?: string;
+
+    /**
+     * Same option as `subdivisionCode` which can be used to
+     * configure the proxy by UI input schema. You should use the `subdivisionCode` option in your crawler code.
+     */
+    apifyProxySubdivision?: string;
 
     /**
      * Multiple different ProxyConfigurationOptions stratified into tiers. Crawlee crawlers will switch between those tiers
@@ -124,6 +139,12 @@ export interface ProxyInfo extends CoreProxyInfo {
     countryCode?: string;
 
     /**
+     * If set, all proxied requests use IP addresses geolocated to the specified subdivision (e.g. US state).
+     * ISO 3166-2 subdivision code, e.g. `'CA'` when `countryCode` is `'US'`.
+     */
+    subdivisionCode?: string;
+
+    /**
      * User's password for the proxy. By default, it is taken from the `APIFY_PROXY_PASSWORD`
      * environment variable, which is automatically set by the system when running the Actors
      * on the Apify cloud, or when using the [Apify CLI](https://github.com/apify/apify-cli).
@@ -167,6 +188,7 @@ export interface ProxyInfo extends CoreProxyInfo {
 export class ProxyConfiguration extends CoreProxyConfiguration {
     private groups: string[];
     private countryCode?: string;
+    private subdivisionCode?: string;
     private password?: string;
     private hostname: string;
     private port?: number;
@@ -187,7 +209,7 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
         });
         ow(
             rest,
-            ow.object.exactShape({
+            ow.object.partialShape({
                 groups: ow.optional.array.ofType(
                     ow.string.matches(APIFY_PROXY_VALUE_REGEX),
                 ),
@@ -197,6 +219,12 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
                 countryCode: ow.optional.string.matches(COUNTRY_CODE_REGEX),
                 apifyProxyCountry:
                     ow.optional.string.matches(COUNTRY_CODE_REGEX),
+                subdivisionCode: ow.optional.string.matches(
+                    SUBDIVISION_CODE_REGEX,
+                ),
+                apifyProxySubdivision: ow.optional.string.matches(
+                    SUBDIVISION_CODE_REGEX,
+                ),
                 password: ow.optional.string,
                 tieredProxyUrls: ow.optional.array.ofType(
                     ow.array.ofType(ow.string),
@@ -210,6 +238,8 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
             apifyProxyGroups = [],
             countryCode,
             apifyProxyCountry,
+            subdivisionCode,
+            apifyProxySubdivision,
             password = config.get('proxyPassword'),
             tieredProxyConfig,
             tieredProxyUrls,
@@ -226,13 +256,20 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
 
         const groupsToUse = groups.length ? groups : apifyProxyGroups;
         const countryCodeToUse = countryCode || apifyProxyCountry;
+        const subdivisionCodeToUse = subdivisionCode || apifyProxySubdivision;
         const hostname = config.get('proxyHostname');
         const port = config.get('proxyPort');
+
+        if (subdivisionCodeToUse && !countryCodeToUse) {
+            throw new Error(
+                'ProxyConfiguration: "subdivisionCode" requires "countryCode" to be set.',
+            );
+        }
 
         // Validation
         if (
             (proxyUrls || newUrlFunction) &&
-            (groupsToUse.length || countryCodeToUse)
+            (groupsToUse.length || countryCodeToUse || subdivisionCodeToUse)
         ) {
             this._throwCannotCombineCustomWithApify();
         }
@@ -241,6 +278,7 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
 
         this.groups = groupsToUse;
         this.countryCode = countryCodeToUse;
+        this.subdivisionCode = subdivisionCodeToUse;
         this.password = password;
         this.hostname = hostname!;
         this.port = port;
@@ -328,7 +366,14 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
         const proxyInfo = await super.newProxyInfo(sessionId, options);
         if (!proxyInfo) return proxyInfo;
 
-        const { groups, countryCode, password, port, hostname } = (
+        const {
+            groups,
+            countryCode,
+            subdivisionCode,
+            password,
+            port,
+            hostname,
+        } = (
             this.usesApifyProxy ? this : new URL(proxyInfo.url)
         ) as ProxyConfiguration;
 
@@ -337,6 +382,7 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
             sessionId,
             groups,
             countryCode,
+            subdivisionCode,
             // this.password is not encoded, but the password from the URL will be, we need to normalize
             password: this.usesApifyProxy
                 ? (password ?? '')
@@ -413,7 +459,7 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
      */
     protected _getUsername(sessionId?: string): string {
         let username;
-        const { groups, countryCode } = this;
+        const { groups, countryCode, subdivisionCode } = this;
         const parts: string[] = [];
 
         if (groups && groups.length) {
@@ -422,7 +468,9 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
         if (sessionId) {
             parts.push(`session-${sessionId}`);
         }
-        if (countryCode) {
+        if (subdivisionCode) {
+            parts.push(`country-${countryCode}_${subdivisionCode}`);
+        } else if (countryCode) {
             parts.push(`country-${countryCode}`);
         }
 
@@ -545,7 +593,8 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
         throw new Error(
             'Cannot combine custom proxies with Apify Proxy! ' +
                 'It is not allowed to set "options.proxyUrls" or "options.newUrlFunction" combined with ' +
-                '"options.groups" or "options.apifyProxyGroups" and "options.countryCode" or "options.apifyProxyCountry".',
+                '"options.groups", "options.apifyProxyGroups", "options.countryCode", "options.apifyProxyCountry", ' +
+                '"options.subdivisionCode" or "options.apifyProxySubdivision".',
         );
     }
 }

@@ -142,20 +142,18 @@ The difference is easy to remember. <ApiLink to="apify/interface/ProxyConfigurat
 
 ## Apify Proxy Configuration
 
-With Apify Proxy, you can select specific proxy groups to use, or countries to connect from.
-This allows you to get better proxy performance after some initial research.
+With Apify Proxy, you can select specific proxy groups to use, or countries to connect from. For even finer control, you can also target a specific subdivision (e.g. a US state) using the `subdivisionCode` option alongside `countryCode`. This allows you to get better proxy performance after some initial research.
 
 ```javascript
 const proxyConfiguration = await Actor.createProxyConfiguration({
     groups: ['RESIDENTIAL'],
     countryCode: 'US',
+    subdivisionCode: 'CA',
 });
 const proxyUrl = proxyConfiguration.newUrl();
 ```
 
-Now your crawlers will use only Residential proxies from the US. Note that you must first get access
-to a proxy group before you are able to use it. You can find your available proxy groups
-in the [proxy dashboard](https://console.apify.com/proxy).
+Now your crawlers will use only Residential proxies from California, US. The `subdivisionCode` accepts a 1–3 character [ISO 3166-2](https://en.wikipedia.org/wiki/ISO_3166-2) code (e.g. `CA` for California) and currently only works for the United States (`countryCode: 'US'`). Note that you must first get access to a proxy group before you are able to use it. You can find your available proxy groups in the [proxy dashboard](https://console.apify.com/proxy).
 
 ## Inspecting current proxy in Crawlers
 
