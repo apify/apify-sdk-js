@@ -17,6 +17,7 @@ const MAX_SESSION_ID_LENGTH = 50;
 const CHECK_ACCESS_REQUEST_TIMEOUT_MILLIS = 4_000;
 const CHECK_ACCESS_MAX_ATTEMPTS = 2;
 const COUNTRY_CODE_REGEX = /^[A-Z]{2}$/;
+// ISO 3166-2 subdivision codes are 1–3 uppercase alphanumeric characters, e.g. 'CA' (California), 'NSW' (New South Wales), '9' (Wien, AT-9)
 const SUBDIVISION_CODE_REGEX = /^[A-Z0-9]{1,3}$/;
 
 export interface ProxyConfigurationOptions extends CoreProxyConfigurationOptions {
