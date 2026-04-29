@@ -122,6 +122,7 @@ jobs:
                   author_name: Apify Release Bot
                   author_email: noreply@apify.com
                   message: 'chore(release): set package version to ${{ needs.release_metadata.outputs.version_number }} and update changelog [skip ci]'
+                  pull: '--rebase --autostash'
 
     create_github_release:
         name: Create github release
@@ -176,6 +177,9 @@ jobs:
                   author_name: Apify Release Bot
                   author_email: noreply@apify.com
                   message: 'docs: version docs for ${{ needs.update_changelog.outputs.version_number }} [skip ci]'
+                  pull: '--rebase --autostash'
+                  # `actions/checkout` detaches HEAD on SHA refs; EndBug needs a branch to push.
+                  new_branch: ${{ github.event.repository.default_branch }}
 
     publish_to_npm:
         name: Publish to npm
