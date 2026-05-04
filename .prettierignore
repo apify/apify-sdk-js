@@ -1,3 +1,4 @@
 .husky/pre-commit
 .prettierignore
 pnpm-lock.yaml
+CHANGELOG.md
