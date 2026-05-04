@@ -49,7 +49,7 @@
     ],
     "scripts": {
         "prepare": "husky",
-        "clean": "rimraf ./dist",
+        "clean": "rimraf ./dist ./tsconfig.build.tsbuildinfo",
         "compile": "tsc -p tsconfig.build.json && gen-esm-wrapper ./dist/index.js ./dist/index.mjs",
         "fixApifyExport": "node ./scripts/temp_fix_apify_exports.mjs",
         "build": "pnpm clean && pnpm compile && pnpm fixApifyExport",
