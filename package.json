@@ -63,18 +63,15 @@
         "coverage": "vitest --coverage",
         "lint": "oxlint --type-aware",
         "lint:fix": "oxlint --type-aware --fix",
-        "format": "prettier --write .",
-        "format:check": "prettier --check .",
+        "format": "oxfmt",
+        "format:check": "oxfmt --check",
         "preinstall": "npx only-allow pnpm"
     },
     "lint-staged": {
-        "src/**/*": [
+        "*.{ts,mts,cts,js,mjs,cjs}": [
+            "oxfmt --write --no-error-on-unmatched-pattern",
             "oxlint --type-aware --fix --no-error-on-unmatched-pattern"
-        ],
-        "test/**/*": [
-            "oxlint --type-aware --fix --no-error-on-unmatched-pattern"
-        ],
-        "*": "prettier --write --ignore-unknown"
+        ]
     },
     "dependencies": {
         "@apify/consts": "^2.51.0",
@@ -109,10 +106,10 @@
         "globby": "^16.0.0",
         "husky": "^9.1.7",
         "lint-staged": "^16.0.0",
+        "oxfmt": "0.46.0",
         "oxlint": "1.62.0",
         "oxlint-tsgolint": "0.22.0",
         "playwright": "^1.46.0",
-        "prettier": "3.8.1",
         "puppeteer": "^24.0.0",
         "rimraf": "^6.0.1",
         "tsx": "^4.16.5",
