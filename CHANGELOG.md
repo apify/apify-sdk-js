@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [3.7.1](https://github.com/apify/apify-sdk-js/releases/tag/v3.7.1) (2026-05-04)
+
+### 🚀 Features
+
+- Add subdivisionCode to proxy configuration ([#592](https://github.com/apify/apify-sdk-js/pull/592)) ([3dcc38a](https://github.com/apify/apify-sdk-js/commit/3dcc38a0fa008334da749b456b0a6da67a8e9e3b)) by [@daniil-poletaev](https://github.com/daniil-poletaev)
+
+
 ## [3.7.0](https://github.com/apify/apify-sdk-js/releases/tag/v3.7.0) (2026-03-12)
 
 ### 🚀 Features
