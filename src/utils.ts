@@ -38,13 +38,9 @@ export function checkCrawleeVersion() {
 
     const paths = [
         // when users install `crawlee` package, we need to check its core dependency
-        normalize(
-            `${process.cwd()}/node_modules/crawlee/node_modules/@crawlee/core/package.json`,
-        ),
+        normalize(`${process.cwd()}/node_modules/crawlee/node_modules/@crawlee/core/package.json`),
         // when users install `@crawlee/cheerio` or other crawler package, we need to check the dependency under basic crawler package
-        normalize(
-            `${process.cwd()}/node_modules/@crawlee/basic/node_modules/@crawlee/core/package.json`,
-        ),
+        normalize(`${process.cwd()}/node_modules/@crawlee/basic/node_modules/@crawlee/core/package.json`),
         // also check paths via `require.resolve` to support pnpm
         resolve('crawlee/package.json'),
         resolve('@crawlee/basic/package.json'),

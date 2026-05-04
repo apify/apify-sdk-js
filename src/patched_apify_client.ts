@@ -13,9 +13,7 @@ import {
 } from './charging.js';
 import type { Configuration } from './configuration.js';
 
-export const USES_PUSH_DATA_INTERCEPTION = Symbol(
-    'apify:uses-push-data-interception',
-);
+export const USES_PUSH_DATA_INTERCEPTION = Symbol('apify:uses-push-data-interception');
 
 /**
  * Context of a single Actor.pushData() call that is shared with the PatchedDatasetClient.pushItems() method calls.
@@ -32,22 +30,16 @@ export interface PpeAwarePushDataContext {
     chargeResult?: ChargeResult;
 }
 
-export const pushDataChargingContext =
-    new AsyncLocalStorage<PpeAwarePushDataContext>();
+export const pushDataChargingContext = new AsyncLocalStorage<PpeAwarePushDataContext>();
 
 export function createPatchedApifyClient(
     options: ApifyClientOptions,
     actor: { config: Configuration; getChargingManager: () => ChargingManager },
 ): ApifyClient {
     class PatchedDatasetClient<
-        Data extends Record<string | number, any> = Record<
-            string | number,
-            unknown
-        >,
+        Data extends Record<string | number, any> = Record<string | number, unknown>,
     > extends DatasetClient<Data> {
-        private normalizeItems(
-            items: string | Data | string[] | Data[],
-        ): Data[] {
+        private normalizeItems(items: string | Data | string[] | Data[]): Data[] {
             if (typeof items === 'string') {
                 const parsed = JSON.parse(items);
                 return Array.isArray(parsed) ? parsed : [parsed];
@@ -55,18 +47,14 @@ export function createPatchedApifyClient(
 
             if (Array.isArray(items)) {
                 return items.flatMap((item) =>
-                    typeof item === 'string'
-                        ? (JSON.parse(item) as Data | Data[])
-                        : item,
+                    typeof item === 'string' ? (JSON.parse(item) as Data | Data[]) : item,
                 ) as Data[];
             }
 
             return [items];
         }
 
-        override async pushItems(
-            items: string | Data | string[] | Data[],
-        ): Promise<void> {
+        override async pushItems(items: string | Data | string[] | Data[]): Promise<void> {
             const context = pushDataChargingContext.getStore();
 
             // Normalize string inputs: a single JSON string may encode multiple items
@@ -79,8 +67,7 @@ export function createPatchedApifyClient(
                 items: normalizedItems,
                 eventName: context?.eventName,
                 isDefaultDataset: true,
-                pushFn: async (limitedItems) =>
-                    super.pushItems(JSON.stringify(limitedItems)), // stringify the items for faster validation in Apify client
+                pushFn: async (limitedItems) => super.pushItems(JSON.stringify(limitedItems)), // stringify the items for faster validation in Apify client
             });
 
             if (!context) return;
@@ -90,23 +77,16 @@ export function createPatchedApifyClient(
             if (context.chargeResult === undefined) {
                 context.chargeResult = result;
             } else {
-                context.chargeResult = mergeChargeResults(
-                    context.chargeResult,
-                    result,
-                );
+                context.chargeResult = mergeChargeResults(context.chargeResult, result);
             }
         }
     }
 
     class PatchedApifyClient extends ApifyClient {
-        override dataset<
-            Data extends Record<string | number, any> = Record<
-                string | number,
-                unknown
-            >,
-        >(id: string): DatasetClient<Data> {
-            const isDefaultDataset =
-                id === actor.config.get('defaultDatasetId');
+        override dataset<Data extends Record<string | number, any> = Record<string | number, unknown>>(
+            id: string,
+        ): DatasetClient<Data> {
+            const isDefaultDataset = id === actor.config.get('defaultDatasetId');
 
             const datasetOptions = {
                 id,
@@ -117,8 +97,7 @@ export function createPatchedApifyClient(
             };
 
             const hasDefaultDatasetItemEvent =
-                DEFAULT_DATASET_ITEM_EVENT in
-                actor.getChargingManager().getPricingInfo().perEventPrices;
+                DEFAULT_DATASET_ITEM_EVENT in actor.getChargingManager().getPricingInfo().perEventPrices;
 
             if (!isDefaultDataset || !hasDefaultDatasetItemEvent) {
                 return new DatasetClient(datasetOptions);

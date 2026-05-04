@@ -18,8 +18,7 @@ await actor.update({
                     'apify-actor-start': {
                         eventTitle: 'Actor start',
                         eventPriceUsd: 1,
-                        eventDescription:
-                            'Charged automatically at the start of the run',
+                        eventDescription: 'Charged automatically at the start of the run',
                     },
                     'apify-default-dataset-item': {
                         eventTitle: 'Dataset item',
@@ -70,13 +69,7 @@ test('charge limit applies to combined cost of both events', async () => {
         result: 33,
     });
 
-    const { items } = await client
-        .dataset(run.defaultDatasetId)
-        .listItems({ limit: 100 });
+    const { items } = await client.dataset(run.defaultDatasetId).listItems({ limit: 100 });
 
-    assert.strictEqual(
-        items.length,
-        33,
-        `default items (${items.length}) != 33`,
-    );
+    assert.strictEqual(items.length, 33, `default items (${items.length}) != 33`);
 });

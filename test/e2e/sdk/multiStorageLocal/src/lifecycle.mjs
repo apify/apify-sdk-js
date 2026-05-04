@@ -27,9 +27,7 @@ await resultsDataset.pushData([
 // Verify purge-on-first-open: open the same alias again and write more data.
 // The previously written data should still be there (no second purge).
 const resultsDatasetAgain = await actor.openDataset({ alias: 'results' });
-await resultsDatasetAgain.pushData([
-    { url: 'https://example.net', title: 'Example Net' },
-]);
+await resultsDatasetAgain.pushData([{ url: 'https://example.net', title: 'Example Net' }]);
 
 // Read back all data from the aliased dataset
 const allData = await resultsDatasetAgain.getData();

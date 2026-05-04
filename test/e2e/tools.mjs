@@ -32,10 +32,7 @@ export function getStorage(dirName) {
  */
 export async function getStats(dirName, retries = 3) {
     const dir = getStorage(dirName);
-    const path = join(
-        dir,
-        'key_value_stores/default/SDK_CRAWLER_STATISTICS_0.json',
-    );
+    const path = join(dir, 'key_value_stores/default/SDK_CRAWLER_STATISTICS_0.json');
 
     if (!existsSync(path)) {
         if (!retries) {
@@ -188,9 +185,7 @@ function checkDatasetItem(item, propName) {
         case 'runCount':
             return Number.isInteger(item.runCount);
         default:
-            return ['string', 'number', 'boolean'].includes(
-                typeof item[propName],
-            );
+            return ['string', 'number', 'boolean'].includes(typeof item[propName]);
     }
 }
 

@@ -1,15 +1,7 @@
 import { defineConfig } from '@apify/oxlint-config';
 
 export default defineConfig({
-    ignorePatterns: [
-        '**/node_modules',
-        '**/dist',
-        'coverage',
-        'website',
-        'docs',
-        'scripts',
-        '**/*.d.ts',
-    ],
+    ignorePatterns: ['**/node_modules', '**/dist', 'coverage', 'website', 'docs', 'scripts', '**/*.d.ts'],
     rules: {
         'typescript/no-explicit-any': 'off',
         'typescript/ban-ts-comment': 'off',

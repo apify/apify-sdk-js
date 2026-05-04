@@ -32,11 +32,7 @@ test('aliased storages are resolved and written to correctly', async () => {
     assert.ok(aliasedDatasetId, 'Aliased dataset ID must be present');
 
     // The aliased storages should be different from the default ones
-    assert.notEqual(
-        aliasedDatasetId,
-        run.defaultDatasetId,
-        'Aliased dataset should differ from the default dataset',
-    );
+    assert.notEqual(aliasedDatasetId, run.defaultDatasetId, 'Aliased dataset should differ from the default dataset');
 
     // Verify data in the aliased dataset
     const aliasedDataset = await Dataset.open(aliasedDatasetId, {
@@ -44,11 +40,7 @@ test('aliased storages are resolved and written to correctly', async () => {
     });
     const datasetData = await aliasedDataset.getData();
 
-    assert.strictEqual(
-        datasetData.count,
-        2,
-        'Aliased dataset should have 2 items',
-    );
+    assert.strictEqual(datasetData.count, 2, 'Aliased dataset should have 2 items');
     assert.strictEqual(datasetData.items[0].url, 'https://example.com');
     assert.strictEqual(datasetData.items[0].title, 'Example');
     assert.strictEqual(datasetData.items[1].url, 'https://example.org');

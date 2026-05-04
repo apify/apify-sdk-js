@@ -75,10 +75,7 @@ export interface ProxyConfigurationOptions extends CoreProxyConfigurationOptions
      * Multiple different ProxyConfigurationOptions stratified into tiers. Crawlee crawlers will switch between those tiers
      * based on the blocked request statistics.
      */
-    tieredProxyConfig?: Omit<
-        ProxyConfigurationOptions,
-        keyof CoreProxyConfigurationOptions | 'tieredProxyConfig'
-    >[];
+    tieredProxyConfig?: Omit<ProxyConfigurationOptions, keyof CoreProxyConfigurationOptions | 'tieredProxyConfig'>[];
 
     /**
      * As part of the init process, we verify the configuration by checking the proxy status endpoint.
@@ -210,25 +207,14 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
         ow(
             rest,
             ow.object.partialShape({
-                groups: ow.optional.array.ofType(
-                    ow.string.matches(APIFY_PROXY_VALUE_REGEX),
-                ),
-                apifyProxyGroups: ow.optional.array.ofType(
-                    ow.string.matches(APIFY_PROXY_VALUE_REGEX),
-                ),
+                groups: ow.optional.array.ofType(ow.string.matches(APIFY_PROXY_VALUE_REGEX)),
+                apifyProxyGroups: ow.optional.array.ofType(ow.string.matches(APIFY_PROXY_VALUE_REGEX)),
                 countryCode: ow.optional.string.matches(COUNTRY_CODE_REGEX),
-                apifyProxyCountry:
-                    ow.optional.string.matches(COUNTRY_CODE_REGEX),
-                subdivisionCode: ow.optional.string.matches(
-                    SUBDIVISION_CODE_REGEX,
-                ),
-                apifyProxySubdivision: ow.optional.string.matches(
-                    SUBDIVISION_CODE_REGEX,
-                ),
+                apifyProxyCountry: ow.optional.string.matches(COUNTRY_CODE_REGEX),
+                subdivisionCode: ow.optional.string.matches(SUBDIVISION_CODE_REGEX),
+                apifyProxySubdivision: ow.optional.string.matches(SUBDIVISION_CODE_REGEX),
                 password: ow.optional.string,
-                tieredProxyUrls: ow.optional.array.ofType(
-                    ow.array.ofType(ow.string),
-                ),
+                tieredProxyUrls: ow.optional.array.ofType(ow.array.ofType(ow.string)),
                 tieredProxyConfig: ow.optional.array.ofType(ow.object),
             }),
         );
@@ -248,10 +234,7 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
         this.tieredProxyUrls ??= tieredProxyUrls;
 
         if (tieredProxyConfig) {
-            this.tieredProxyUrls = this._generateTieredProxyUrls(
-                tieredProxyConfig,
-                options,
-            );
+            this.tieredProxyUrls = this._generateTieredProxyUrls(tieredProxyConfig, options);
         }
 
         const groupsToUse = groups.length ? groups : apifyProxyGroups;
@@ -261,20 +244,14 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
         const port = config.get('proxyPort');
 
         if (subdivisionCodeToUse && !countryCodeToUse) {
-            throw new Error(
-                'ProxyConfiguration: "subdivisionCode" requires "countryCode" to be set.',
-            );
+            throw new Error('ProxyConfiguration: "subdivisionCode" requires "countryCode" to be set.');
         }
 
         // Validation
-        if (
-            (proxyUrls || newUrlFunction) &&
-            (groupsToUse.length || countryCodeToUse || subdivisionCodeToUse)
-        ) {
+        if ((proxyUrls || newUrlFunction) && (groupsToUse.length || countryCodeToUse || subdivisionCodeToUse)) {
             this._throwCannotCombineCustomWithApify();
         }
-        if (proxyUrls && newUrlFunction)
-            this._throwCannotCombineCustomMethods();
+        if (proxyUrls && newUrlFunction) this._throwCannotCombineCustomMethods();
 
         this.groups = groupsToUse;
         this.countryCode = countryCodeToUse;
@@ -356,24 +333,12 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
         options?: Parameters<CoreProxyConfiguration['newProxyInfo']>[1],
     ): Promise<ProxyInfo | undefined> {
         if (typeof sessionId === 'number') sessionId = `${sessionId}`;
-        ow(
-            sessionId,
-            ow.optional.string
-                .maxLength(MAX_SESSION_ID_LENGTH)
-                .matches(APIFY_PROXY_VALUE_REGEX),
-        );
+        ow(sessionId, ow.optional.string.maxLength(MAX_SESSION_ID_LENGTH).matches(APIFY_PROXY_VALUE_REGEX));
 
         const proxyInfo = await super.newProxyInfo(sessionId, options);
         if (!proxyInfo) return proxyInfo;
 
-        const {
-            groups,
-            countryCode,
-            subdivisionCode,
-            password,
-            port,
-            hostname,
-        } = (
+        const { groups, countryCode, subdivisionCode, password, port, hostname } = (
             this.usesApifyProxy ? this : new URL(proxyInfo.url)
         ) as ProxyConfiguration;
 
@@ -384,9 +349,7 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
             countryCode,
             subdivisionCode,
             // this.password is not encoded, but the password from the URL will be, we need to normalize
-            password: this.usesApifyProxy
-                ? (password ?? '')
-                : decodeURIComponent(password!),
+            password: this.usesApifyProxy ? (password ?? '') : decodeURIComponent(password!),
             hostname,
             port: port!,
         };
@@ -410,12 +373,7 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
         options?: Parameters<CoreProxyConfiguration['newUrl']>[1],
     ): Promise<string | undefined> {
         if (typeof sessionId === 'number') sessionId = `${sessionId}`;
-        ow(
-            sessionId,
-            ow.optional.string
-                .maxLength(MAX_SESSION_ID_LENGTH)
-                .matches(APIFY_PROXY_VALUE_REGEX),
-        );
+        ow(sessionId, ow.optional.string.maxLength(MAX_SESSION_ID_LENGTH).matches(APIFY_PROXY_VALUE_REGEX));
         if (this.newUrlFunction) {
             return (
                 (await this._callNewUrlFunction(sessionId, {
@@ -428,21 +386,14 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
         }
 
         if (this.tieredProxyUrls) {
-            return (
-                this._handleTieredUrl(
-                    sessionId ?? cryptoRandomObjectId(6),
-                    options,
-                ).proxyUrl ?? undefined
-            );
+            return this._handleTieredUrl(sessionId ?? cryptoRandomObjectId(6), options).proxyUrl ?? undefined;
         }
 
         return this.composeDefaultUrl(sessionId);
     }
 
     protected _generateTieredProxyUrls(
-        tieredProxyConfig: NonNullable<
-            ProxyConfigurationOptions['tieredProxyConfig']
-        >,
+        tieredProxyConfig: NonNullable<ProxyConfigurationOptions['tieredProxyConfig']>,
         globalOptions: ProxyConfigurationOptions,
     ) {
         return tieredProxyConfig.map((config) => [
@@ -558,10 +509,7 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
           }
         | undefined
     > {
-        const proxyStatusUrl = this.config.get(
-            'proxyStatusUrl',
-            'http://proxy.apify.com',
-        );
+        const proxyStatusUrl = this.config.get('proxyStatusUrl', 'http://proxy.apify.com');
         const requestOpts = {
             url: `${proxyStatusUrl}/?format=json`,
             proxyUrl: await this.newUrl(),

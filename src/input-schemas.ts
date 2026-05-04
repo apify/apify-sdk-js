@@ -30,17 +30,10 @@ const readJSONIfExists = (path: string): Dictionary | null => {
 /**
  * @ignore
  */
-export const noActorInputSchemaDefinedMarker = Symbol.for(
-    'apify.noActorInputSchemaDefined',
-);
+export const noActorInputSchemaDefinedMarker = Symbol.for('apify.noActorInputSchemaDefined');
 
-export const readInputSchema = ():
-    | Dictionary
-    | null
-    | typeof noActorInputSchemaDefinedMarker => {
-    const localConfig = readJSONIfExists(
-        join(process.cwd(), ACTOR_SPECIFICATION_FOLDER, LOCAL_CONFIG_NAME),
-    );
+export const readInputSchema = (): Dictionary | null | typeof noActorInputSchemaDefinedMarker => {
+    const localConfig = readJSONIfExists(join(process.cwd(), ACTOR_SPECIFICATION_FOLDER, LOCAL_CONFIG_NAME));
 
     // Input schema nested in the actor config
     if (typeof localConfig?.input === 'object') {
@@ -49,11 +42,7 @@ export const readInputSchema = ():
 
     // Input schema path from the actor config
     if (typeof localConfig?.input === 'string') {
-        const fullPath = join(
-            process.cwd(),
-            ACTOR_SPECIFICATION_FOLDER,
-            localConfig.input,
-        );
+        const fullPath = join(process.cwd(), ACTOR_SPECIFICATION_FOLDER, localConfig.input);
 
         return readJSONIfExists(fullPath);
     }
@@ -80,9 +69,7 @@ export const readInputSchema = ():
 export const getDefaultsFromInputSchema = (inputSchema: any) => {
     const defaults: Record<string, unknown> = {};
 
-    for (const [key, fieldSchema] of Object.entries<any>(
-        inputSchema.properties,
-    )) {
+    for (const [key, fieldSchema] of Object.entries<any>(inputSchema.properties)) {
         if (fieldSchema.default !== undefined) {
             defaults[key] = fieldSchema.default;
         }
