@@ -16,7 +16,6 @@ concurrency:
     cancel-in-progress: true
 
 jobs:
-    # NPM install is done in a separate job and cached to speed up the following jobs.
     build_and_test:
         name: Build & Test
         if: (!contains(github.event.head_commit.message, '[skip ci]') && !contains(github.event.head_commit.message, 'docs:'))
@@ -28,7 +27,7 @@ jobs:
                 # tests on windows are extremely unstable
                 # os: [ ubuntu-22.04, windows-2019 ]
                 os: [ubuntu-22.04]
-                node-version: [18, 20, 22, 24]
+                node-version: [20, 22, 24]
 
         steps:
             - name: Checkout repository
@@ -38,19 +37,18 @@ jobs:
               uses: actions/setup-node@v6
               with:
                   node-version: ${{ matrix.node-version }}
-                  cache: 'npm'
-                  cache-dependency-path: 'package-lock.json'
 
-            - name: Install Dependencies
-              run: |
-                  npm ci --force
-                  npx playwright install --with-deps
+            - name: Install pnpm and dependencies
+              uses: apify/workflows/pnpm-install@main
+
+            - name: Install Playwright browsers
+              run: pnpm exec playwright install --with-deps
 
             - name: Build
-              run: npm run ci:build
+              run: pnpm ci:build
 
             - name: Tests
-              run: npm test
+              run: pnpm test
 
     docs:
         name: Docs build
@@ -64,18 +62,14 @@ jobs:
               uses: actions/setup-node@v6
               with:
                   node-version: 24
-                  cache: 'npm'
-                  cache-dependency-path: 'package-lock.json'
 
-            - name: Install Dependencies
-              run: npm ci --force
+            - name: Install pnpm and dependencies
+              uses: apify/workflows/pnpm-install@main
 
             - name: Build docs
               if: github.ref != 'refs/heads/master'
-              run: |
-                  cd website
-                  npm ci
-                  npm run build
+              run: pnpm build
+              working-directory: ./website
 
     lint:
         name: Lint
@@ -88,17 +82,15 @@ jobs:
               uses: actions/setup-node@v6
               with:
                   node-version: 24
-                  cache: 'npm'
-                  cache-dependency-path: 'package-lock.json'
 
-            - name: Install Dependencies
-              run: npm ci --force
+            - name: Install pnpm and dependencies
+              uses: apify/workflows/pnpm-install@main
 
             - name: ESLint
-              run: npm run lint
+              run: pnpm lint
 
             - name: Prettier
-              run: npm run format:check
+              run: pnpm format:check
 
     publish:
         name: Publish
@@ -116,11 +108,9 @@ jobs:
               uses: actions/setup-node@v6
               with:
                   node-version: 24
-                  cache: 'npm'
-                  cache-dependency-path: 'package-lock.json'
 
-            - name: Install Dependencies
-              run: npm ci --force
+            - name: Install pnpm and dependencies
+              uses: apify/workflows/pnpm-install@main
 
             - name: Publish beta to npm
               uses: apify/workflows/execute-workflow@main

@@ -1,0 +1,24 @@
+packages:
+    - website
+
+minimumReleaseAge: 1440
+minimumReleaseAgeExclude:
+    - '@apify/*'
+    - '@crawlee/*'
+    - 'apify-client'
+    - 'apify'
+    - 'crawlee'
+    - 'got-scraping'
+
+onlyBuiltDependencies:
+    - '@playwright/browser-chromium'
+    - '@swc/core'
+    - esbuild
+    - playwright
+    - puppeteer
+
+nodeLinker: hoisted
+linkWorkspacePackages: true
+preferWorkspacePackages: true
+publicHoistPattern:
+    - '*'

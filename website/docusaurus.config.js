@@ -11,7 +11,7 @@ const packagePath = '.';
 /** @type {Partial<import('@docusaurus/types').DocusaurusConfig>} */
 module.exports = {
     future: {
-        experimental_faster: {
+        faster: {
             swcJsLoader: true,
             swcJsMinimizer: true,
             swcHtmlMinimizer: true,
@@ -208,7 +208,12 @@ module.exports = {
             },
         },
     },
-    staticDirectories: ['node_modules/@apify/docs-theme/static', 'static'],
+    staticDirectories: [
+        require('path').dirname(
+            require.resolve('@apify/docs-theme/package.json'),
+        ) + '/static',
+        'static',
+    ],
     customFields: {
         ...(config.customFields ?? []),
     },

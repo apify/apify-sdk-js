@@ -52,19 +52,20 @@
         "clean": "rimraf ./dist",
         "compile": "tsc -p tsconfig.build.json && gen-esm-wrapper ./dist/index.js ./dist/index.mjs",
         "fixApifyExport": "node ./scripts/temp_fix_apify_exports.mjs",
-        "build": "npm run clean && npm run compile && npm run fixApifyExport",
-        "prepublishOnly": "npm run build",
-        "ci:build": "npm run build",
+        "build": "pnpm clean && pnpm compile && pnpm fixApifyExport",
+        "prepublishOnly": "pnpm build",
+        "ci:build": "pnpm build",
         "test": "vitest run --silent",
-        "test:e2e": "npm run test:e2e:sdk",
-        "test:e2e:sdk": "npm run test:e2e:sdk:tarball && node test/e2e/runSdkTests.mjs",
-        "test:e2e:sdk:tarball": "npm run build && mv $(npm pack | tail -n 1) test/e2e/apify.tgz",
+        "test:e2e": "pnpm test:e2e:sdk",
+        "test:e2e:sdk": "pnpm test:e2e:sdk:tarball && node test/e2e/runSdkTests.mjs",
+        "test:e2e:sdk:tarball": "pnpm build && mv $(pnpm pack | tail -n 1) test/e2e/apify.tgz",
         "tsc-check-tests": "tsc --noEmit --project test/tsconfig.json",
         "coverage": "vitest --coverage",
         "lint": "eslint",
         "lint:fix": "eslint --fix",
         "format": "prettier --write .",
-        "format:check": "prettier --check ."
+        "format:check": "prettier --check .",
+        "preinstall": "npx only-allow pnpm"
     },
     "lint-staged": {
         "src/**/*": [
@@ -120,5 +121,5 @@
         "vite-tsconfig-paths": "^6.0.0",
         "vitest": "^3.0.0"
     },
-    "packageManager": "npm@10.9.2"
+    "packageManager": "pnpm@10.24.0"
 }

@@ -14,7 +14,6 @@ concurrency:
     cancel-in-progress: true
 
 jobs:
-    # NPM install is done in a separate job and cached to speed up the following jobs.
     build_and_test:
         name: Build & Test
         runs-on: ubuntu-22.04
@@ -27,16 +26,14 @@ jobs:
               uses: actions/setup-node@v6
               with:
                   node-version: 24
-                  cache: 'npm'
-                  cache-dependency-path: 'package-lock.json'
 
-            - name: Install Dependencies
-              run: npm ci --force
+            - name: Install pnpm and dependencies
+              uses: apify/workflows/pnpm-install@main
 
             - name: Build
-              run: npm run ci:build
+              run: pnpm ci:build
 
             - name: Test
-              run: npm run test:e2e
+              run: pnpm test:e2e
               env:
                   APIFY_TOKEN: ${{ secrets.APIFY_SCRAPER_TESTS_API_TOKEN }}
