@@ -1,8 +1,0 @@
-{
-    "extends": "@apify/tsconfig",
-    "compilerOptions": {
-        "jsx": "preserve",
-        "allowJs": true
-    },
-    "include": ["/**/*.js", "/**/*.ts", "src/**/*.jsx", "src/**/*.tsx"]
-}

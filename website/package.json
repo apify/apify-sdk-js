@@ -14,16 +14,11 @@
         "rename-version": "docusaurus rename-version",
         "swizzle": "docusaurus swizzle",
         "deploy": "rimraf .docusaurus && docusaurus deploy",
-        "docusaurus": "docusaurus",
-        "lint": "eslint",
-        "lint:fix": "eslint --fix"
+        "docusaurus": "docusaurus"
     },
     "devDependencies": {
-        "@apify/tsconfig": "^0.1.0",
+        "@apify/tsconfig": "^0.1.2",
         "@types/react": "^19.0.0",
-        "eslint": "^9.24.0",
-        "eslint-plugin-react": "^7.32.2",
-        "eslint-plugin-react-hooks": "^7.0.0",
         "fs-extra": "^11.1.1",
         "path-browserify": "^1.0.1",
         "rimraf": "^6.0.0"
@@ -31,7 +26,6 @@
     "dependencies": {
         "@apify/docs-theme": "^1.0.244",
         "@apify/docusaurus-plugin-typedoc-api": "^5.0.0",
-        "@apify/eslint-config": "^1.0.0",
         "@docusaurus/core": "^3.8.1",
         "@docusaurus/faster": "^3.8.1",
         "@docusaurus/plugin-client-redirects": "^3.8.1",
@@ -39,12 +33,10 @@
         "@signalwire/docusaurus-plugin-llms-txt": "^1.2.2",
         "clsx": "^2.0.0",
         "docusaurus-gtm-plugin": "^0.0.2",
-        "eslint-config-prettier": "^10.1.1",
         "prop-types": "^15.8.1",
         "raw-loader": "^4.0.2",
         "react": "^19.0.0",
         "react-dom": "^19.0.0",
-        "typescript-eslint": "^8.29.1",
         "unist-util-visit": "^5.0.0"
     }
 }

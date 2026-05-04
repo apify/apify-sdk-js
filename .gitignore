@@ -29,3 +29,4 @@ crawlee_storage
 storage
 *.tgz
 mise.toml
+tsconfig.build.tsbuildinfo
