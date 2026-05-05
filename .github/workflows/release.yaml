@@ -152,21 +152,16 @@ jobs:
               uses: actions/setup-node@v6
               with:
                   node-version: 24
-                  cache: 'npm'
-                  cache-dependency-path: 'package-lock.json'
 
-            - name: Install Dependencies
-              run: |
-                  npm ci
-                  cd website
-                  npm ci
+            - name: Install pnpm and dependencies
+              uses: apify/workflows/pnpm-install@main
 
             - name: Run docusaurus versioning
               run: |
                   MAJOR_MINOR=$(echo "${{ needs.update_changelog.outputs.version_number }}" | cut -d. -f1,2)
                   cd website
-                  npx docusaurus docs:version "$MAJOR_MINOR"
-                  npx docusaurus api:version "$MAJOR_MINOR"
+                  pnpm exec docusaurus docs:version "$MAJOR_MINOR"
+                  pnpm exec docusaurus api:version "$MAJOR_MINOR"
 
             - name: Commit versioned docs
               uses: EndBug/add-and-commit@v10
