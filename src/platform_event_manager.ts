@@ -101,11 +101,7 @@ export class PlatformEventManager extends EventManager {
         });
         this.eventsWs.on('error', (err) => {
             // Don't print this error as this happens in the case of very short Actor.main().
-            if (
-                err.message ===
-                'WebSocket was closed before the connection was established'
-            )
-                return;
+            if (err.message === 'WebSocket was closed before the connection was established') return;
 
             this.log.exception(err, 'web socket connection failed');
         });

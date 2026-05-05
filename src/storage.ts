@@ -107,9 +107,7 @@ function resolveStorageIdentifier(
             }
             storages = parsedStoragesJson.get(storagesJson)!;
         } catch {
-            throw new Error(
-                `Failed to parse ACTOR_STORAGES_JSON environment variable: ${storagesJson}`,
-            );
+            throw new Error(`Failed to parse ACTOR_STORAGES_JSON environment variable: ${storagesJson}`);
         }
 
         const typeKey = STORAGE_TYPE_KEYS[storageType];
@@ -153,19 +151,10 @@ export async function openStorage<T extends IStorage>(
     context: OpenStorageContext,
 ): Promise<T> {
     const isAlias =
-        identifier !== null &&
-        identifier !== undefined &&
-        typeof identifier === 'object' &&
-        'alias' in identifier;
+        identifier !== null && identifier !== undefined && typeof identifier === 'object' && 'alias' in identifier;
 
-    if (
-        isAlias &&
-        !context.config.get('isAtHome') &&
-        context.client instanceof ApifyClient
-    ) {
-        throw new Error(
-            'The `alias` option is not allowed for Apify-based storages running outside of Apify',
-        );
+    if (isAlias && !context.config.get('isAtHome') && context.client instanceof ApifyClient) {
+        throw new Error('The `alias` option is not allowed for Apify-based storages running outside of Apify');
     }
 
     const resolvedIdOrName = resolveStorageIdentifier(
@@ -192,10 +181,5 @@ export async function openStorage<T extends IStorage>(
         await (existingStorage as T & { drop(): Promise<void> }).drop();
     }
 
-    return StorageManager.openStorage<T>(
-        storageClass,
-        resolvedIdOrName,
-        context.client,
-        context.config,
-    );
+    return StorageManager.openStorage<T>(storageClass, resolvedIdOrName, context.client, context.config);
 }

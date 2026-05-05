@@ -7,13 +7,7 @@ const cwd = resolve(process.cwd(), 'dist');
 const target = resolve(cwd, 'index.d.ts');
 const file = readFileSync(target).toString();
 
-writeFileSync(
-    target,
-    file.replace(
-        `export * from './exports';`,
-        `// @ts-ignore\nexport * from './exports';`,
-    ),
-);
+writeFileSync(target, file.replace(`export * from './exports';`, `// @ts-ignore\nexport * from './exports';`));
 
 const files = await globby(`${cwd}/**/*.(d.ts|js)`);
 

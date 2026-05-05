@@ -15,13 +15,7 @@ import {
     purgeDefaultStorages,
     RequestQueue,
 } from '@crawlee/core';
-import type {
-    Awaitable,
-    Constructor,
-    Dictionary,
-    SetStatusMessageOptions,
-    StorageClient,
-} from '@crawlee/types';
+import type { Awaitable, Constructor, Dictionary, SetStatusMessageOptions, StorageClient } from '@crawlee/types';
 import { sleep, snakeCaseToCamelCase } from '@crawlee/utils';
 import type {
     ActorCallOptions,
@@ -50,11 +44,7 @@ import { addTimeoutToPromise } from '@apify/timeout';
 import type { ChargeOptions, ChargeResult } from './charging.js';
 import { ChargingManager, pushDataAndCharge } from './charging.js';
 import { Configuration } from './configuration.js';
-import {
-    getDefaultsFromInputSchema,
-    noActorInputSchemaDefinedMarker,
-    readInputSchema,
-} from './input-schemas.js';
+import { getDefaultsFromInputSchema, noActorInputSchemaDefinedMarker, readInputSchema } from './input-schemas.js';
 import { KeyValueStore } from './key_value_store.js';
 import {
     createPatchedApifyClient,
@@ -65,11 +55,7 @@ import {
 import { PlatformEventManager } from './platform_event_manager.js';
 import type { ProxyConfigurationOptions } from './proxy_configuration.js';
 import { ProxyConfiguration } from './proxy_configuration.js';
-import type {
-    OpenStorageOptions,
-    StorageIdentifier,
-    StorageIdentifierWithoutAlias,
-} from './storage.js';
+import type { OpenStorageOptions, StorageIdentifier, StorageIdentifierWithoutAlias } from './storage.js';
 import { openStorage } from './storage.js';
 import { checkCrawleeVersion, getSystemInfo } from './utils.js';
 
@@ -270,15 +256,9 @@ export interface Timeout {
     timeout?: number | 'inherit';
 }
 
-export interface CallOptions
-    extends Omit<ActorCallOptions, 'timeout'>, Token, Timeout {}
-export interface StartOptions
-    extends
-        Omit<ActorStartOptions, 'waitForFinish' | 'timeout'>,
-        Token,
-        Timeout {}
-export interface CallTaskOptions
-    extends Omit<TaskCallOptions, 'timeout'>, Token, Timeout {}
+export interface CallOptions extends Omit<ActorCallOptions, 'timeout'>, Token, Timeout {}
+export interface StartOptions extends Omit<ActorStartOptions, 'waitForFinish' | 'timeout'>, Token, Timeout {}
+export interface CallTaskOptions extends Omit<TaskCallOptions, 'timeout'>, Token, Timeout {}
 
 export interface AbortOptions extends RunAbortOptions, Token {
     /** Exit with given status message */
@@ -457,16 +437,10 @@ export class Actor<Data extends Dictionary = Dictionary> {
 
     constructor(options: ConfigurationOptions = {}) {
         // use default configuration object if nothing overridden (it fallbacks to env vars)
-        this.config =
-            Object.keys(options).length === 0
-                ? Configuration.getGlobalConfig()
-                : new Configuration(options);
+        this.config = Object.keys(options).length === 0 ? Configuration.getGlobalConfig() : new Configuration(options);
         this.apifyClient = this.newClient();
         this.eventManager = new PlatformEventManager(this.config);
-        this.chargingManager = new ChargingManager(
-            this.config,
-            this.apifyClient,
-        );
+        this.chargingManager = new ChargingManager(this.config, this.apifyClient);
     }
 
     /**
@@ -606,32 +580,20 @@ export class Actor<Data extends Dictionary = Dictionary> {
             this.gracefulShutdownHandlers.aborting = () => {
                 setTimeout(() => {
                     this.exit().catch((err) => {
-                        log.exception(
-                            err as Error,
-                            'Failed to exit gracefully',
-                        );
+                        log.exception(err as Error, 'Failed to exit gracefully');
                     });
                 }, delay);
             };
-            this.on(
-                ACTOR_EVENT_NAMES.ABORTING,
-                this.gracefulShutdownHandlers.aborting,
-            );
+            this.on(ACTOR_EVENT_NAMES.ABORTING, this.gracefulShutdownHandlers.aborting);
 
             this.gracefulShutdownHandlers.migrating = () => {
                 setTimeout(() => {
                     this.reboot().catch((err) => {
-                        log.exception(
-                            err as Error,
-                            'Failed to reboot on migration',
-                        );
+                        log.exception(err as Error, 'Failed to reboot on migration');
                     });
                 }, delay);
             };
-            this.on(
-                ACTOR_EVENT_NAMES.MIGRATING,
-                this.gracefulShutdownHandlers.migrating,
-            );
+            this.on(ACTOR_EVENT_NAMES.MIGRATING, this.gracefulShutdownHandlers.migrating);
         }
 
         await purgeDefaultStorages({
@@ -643,19 +605,13 @@ export class Actor<Data extends Dictionary = Dictionary> {
         Configuration.storage.enterWith(this.config);
 
         await this.chargingManager.init();
-        log.debug(
-            `ChargingManager initialized`,
-            this.chargingManager.getPricingInfo(),
-        );
+        log.debug(`ChargingManager initialized`, this.chargingManager.getPricingInfo());
     }
 
     /**
      * @ignore
      */
-    async exit(
-        messageOrOptions?: string | ExitOptions,
-        options: ExitOptions = {},
-    ): Promise<void> {
+    async exit(messageOrOptions?: string | ExitOptions, options: ExitOptions = {}): Promise<void> {
         // Prevent double-exit from graceful shutdown handlers
         if (this.isExiting) {
             log.debug('Actor.exit() called while already exiting, skipping');
@@ -678,16 +634,10 @@ export class Actor<Data extends Dictionary = Dictionary> {
 
         // Remove graceful shutdown handlers to prevent them from interfering with exit
         if (this.gracefulShutdownHandlers.aborting) {
-            this.off(
-                ACTOR_EVENT_NAMES.ABORTING,
-                this.gracefulShutdownHandlers.aborting,
-            );
+            this.off(ACTOR_EVENT_NAMES.ABORTING, this.gracefulShutdownHandlers.aborting);
         }
         if (this.gracefulShutdownHandlers.migrating) {
-            this.off(
-                ACTOR_EVENT_NAMES.MIGRATING,
-                this.gracefulShutdownHandlers.migrating,
-            );
+            this.off(ACTOR_EVENT_NAMES.MIGRATING, this.gracefulShutdownHandlers.migrating);
         }
 
         // Close the event manager and emit the final PERSIST_STATE event
@@ -718,9 +668,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
                     let finished = false;
                     setTimeout(() => {
                         if (!finished) {
-                            log.info(
-                                'Waiting for the storage to write its state to file system.',
-                            );
+                            log.info('Waiting for the storage to write its state to file system.');
                         }
                     }, 1000);
                     await client.teardown();
@@ -728,13 +676,10 @@ export class Actor<Data extends Dictionary = Dictionary> {
                 }
 
                 if (options.statusMessage != null) {
-                    const statusMessagePromise = this.setStatusMessage(
-                        options.statusMessage,
-                        {
-                            isStatusMessageTerminal: true,
-                            level: options.exitCode! > 0 ? 'ERROR' : 'INFO',
-                        },
-                    );
+                    const statusMessagePromise = this.setStatusMessage(options.statusMessage, {
+                        isStatusMessageTerminal: true,
+                        level: options.exitCode! > 0 ? 'ERROR' : 'INFO',
+                    });
                     // Waiting 1ms is enough for the network request to be sent. We don't need to wait for the response.
                     await Promise.race([statusMessagePromise, sleep(1)]);
                 }
@@ -761,10 +706,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
     /**
      * @ignore
      */
-    async fail(
-        messageOrOptions?: string | ExitOptions,
-        options: ExitOptions = {},
-    ): Promise<void> {
+    async fail(messageOrOptions?: string | ExitOptions, options: ExitOptions = {}): Promise<void> {
         return this.exit(messageOrOptions, { exitCode: 1, ...options });
     }
 
@@ -806,15 +748,8 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @param [options]
      * @ignore
      */
-    async call(
-        actorId: string,
-        input?: unknown,
-        options: CallOptions = {},
-    ): Promise<ClientActorRun> {
-        const timeout =
-            options.timeout === 'inherit'
-                ? this.getRemainingTime()
-                : options.timeout;
+    async call(actorId: string, input?: unknown, options: CallOptions = {}): Promise<ClientActorRun> {
+        const timeout = options.timeout === 'inherit' ? this.getRemainingTime() : options.timeout;
         const { token, ...rest } = options;
         const client = token ? this.newClient({ token }) : this.apifyClient;
         return client.actor(actorId).call(input, { ...rest, timeout });
@@ -844,15 +779,8 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @param [options]
      * @ignore
      */
-    async start(
-        actorId: string,
-        input?: unknown,
-        options: StartOptions = {},
-    ): Promise<ClientActorRun> {
-        const timeout =
-            options.timeout === 'inherit'
-                ? this.getRemainingTime()
-                : options.timeout;
+    async start(actorId: string, input?: unknown, options: StartOptions = {}): Promise<ClientActorRun> {
+        const timeout = options.timeout === 'inherit' ? this.getRemainingTime() : options.timeout;
         const { token, ...rest } = options;
         const client = token ? this.newClient({ token }) : this.apifyClient;
 
@@ -874,10 +802,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * ```
      * @ignore
      */
-    async abort(
-        runId: string,
-        options: AbortOptions = {},
-    ): Promise<ClientActorRun> {
+    async abort(runId: string, options: AbortOptions = {}): Promise<ClientActorRun> {
         const { token, statusMessage, ...rest } = options;
         const client = token ? this.newClient({ token }) : this.apifyClient;
 
@@ -916,15 +841,8 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @param [options]
      * @ignore
      */
-    async callTask(
-        taskId: string,
-        input?: Dictionary,
-        options: CallTaskOptions = {},
-    ): Promise<ClientActorRun> {
-        const timeout =
-            options.timeout === 'inherit'
-                ? this.getRemainingTime()
-                : options.timeout;
+    async callTask(taskId: string, input?: Dictionary, options: CallTaskOptions = {}): Promise<ClientActorRun> {
+        const timeout = options.timeout === 'inherit' ? this.getRemainingTime() : options.timeout;
         const { token, ...rest } = options;
         const client = token ? this.newClient({ token }) : this.apifyClient;
 
@@ -945,28 +863,15 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @param [options]
      * @ignore
      */
-    async metamorph(
-        targetActorId: string,
-        input?: unknown,
-        options: MetamorphOptions = {},
-    ): Promise<void> {
+    async metamorph(targetActorId: string, input?: unknown, options: MetamorphOptions = {}): Promise<void> {
         if (!this.isAtHome()) {
-            log.warning(
-                'Actor.metamorph() is only supported when running on the Apify platform.',
-            );
+            log.warning('Actor.metamorph() is only supported when running on the Apify platform.');
             return;
         }
 
-        const {
-            customAfterSleepMillis = this.config.get(
-                'metamorphAfterSleepMillis',
-            ),
-            ...metamorphOpts
-        } = options;
+        const { customAfterSleepMillis = this.config.get('metamorphAfterSleepMillis'), ...metamorphOpts } = options;
         const runId = this.config.get('actorRunId')!;
-        await this.apifyClient
-            .run(runId)
-            .metamorph(targetActorId, input, metamorphOpts);
+        await this.apifyClient.run(runId).metamorph(targetActorId, input, metamorphOpts);
 
         // Wait some time for container to be stopped.
         await sleep(customAfterSleepMillis);
@@ -983,16 +888,12 @@ export class Actor<Data extends Dictionary = Dictionary> {
         this._ensureActorInit('reboot');
 
         if (!this.isAtHome()) {
-            log.warning(
-                'Actor.reboot() is only supported when running on the Apify platform.',
-            );
+            log.warning('Actor.reboot() is only supported when running on the Apify platform.');
             return;
         }
 
         if (this.isRebooting) {
-            log.debug(
-                'Actor is already rebooting, skipping the additional reboot call.',
-            );
+            log.debug('Actor is already rebooting, skipping the additional reboot call.');
             return;
         }
 
@@ -1016,11 +917,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
         await this.apifyClient.run(runId).reboot();
 
         // Wait some time for container to be stopped.
-        const {
-            customAfterSleepMillis = this.config.get(
-                'metamorphAfterSleepMillis',
-            ),
-        } = options;
+        const { customAfterSleepMillis = this.config.get('metamorphAfterSleepMillis') } = options;
         await sleep(customAfterSleepMillis);
     }
 
@@ -1062,9 +959,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
 
         const runId = this.config.get('actorRunId')!;
         if (!runId) {
-            throw new Error(
-                `Environment variable ${ACTOR_ENV_VARS.RUN_ID} is not set!`,
-            );
+            throw new Error(`Environment variable ${ACTOR_ENV_VARS.RUN_ID} is not set!`);
         }
 
         return this.apifyClient.webhooks().create({
@@ -1083,10 +978,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * For more information, see the [Actor Runs](https://docs.apify.com/api/v2#/reference/actor-runs/) API endpoints.
      * @ignore
      */
-    async setStatusMessage(
-        statusMessage: string,
-        options?: SetStatusMessageOptions,
-    ): Promise<ClientActorRun> {
+    async setStatusMessage(statusMessage: string, options?: SetStatusMessageOptions): Promise<ClientActorRun> {
         const { isStatusMessageTerminal, level } = options || {};
         ow(statusMessage, ow.string);
         ow(isStatusMessageTerminal, ow.optional.boolean);
@@ -1166,16 +1058,11 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @param eventName If provided, the method will attempt to charge for the event for each pushed item.
      * @ignore
      */
-    async pushData(
-        item: Data | Data[],
-        eventName?: string | undefined,
-    ): Promise<ChargeResult> {
+    async pushData(item: Data | Data[], eventName?: string | undefined): Promise<ChargeResult> {
         this._ensureActorInit('pushData');
 
         if (eventName?.startsWith('apify-')) {
-            throw new Error(
-                `Cannot charge for synthetic event '${eventName}' manually`,
-            );
+            throw new Error(`Cannot charge for synthetic event '${eventName}' manually`);
         }
 
         const dataset = await this.openDataset();
@@ -1187,18 +1074,10 @@ export class Actor<Data extends Dictionary = Dictionary> {
         // 2. Direct charging: When using a non-patched client (e.g., forceCloud option or custom client),
         //    we handle charging here before delegating to the dataset.
         if (this.usesPushDataInterception(dataset)) {
-            return await this.pushDataViaInterceptedClient(
-                dataset,
-                item,
-                eventName,
-            );
+            return await this.pushDataViaInterceptedClient(dataset, item, eventName);
         }
 
-        return await this.pushDataWithExplicitCharging(
-            dataset,
-            item,
-            eventName,
-        );
+        return await this.pushDataWithExplicitCharging(dataset, item, eventName);
     }
 
     /**
@@ -1231,11 +1110,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
 
         this._ensureActorInit('openDataset');
 
-        return this._openStorage<Dataset<Data>>(
-            Dataset,
-            datasetIdOrName,
-            options,
-        );
+        return this._openStorage<Dataset<Data>>(Dataset, datasetIdOrName, options);
     }
 
     /**
@@ -1304,11 +1179,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @param [options]
      * @ignore
      */
-    async setValue<T>(
-        key: string,
-        value: T | null,
-        options: RecordOptions = {},
-    ): Promise<void> {
+    async setValue<T>(key: string, value: T | null, options: RecordOptions = {}): Promise<void> {
         this._ensureActorInit('setValue');
 
         const store = await this.openKeyValueStore();
@@ -1347,12 +1218,8 @@ export class Actor<Data extends Dictionary = Dictionary> {
     async getInput<T = Dictionary | string | Buffer>(): Promise<T | null> {
         this._ensureActorInit('getInput');
 
-        const inputSecretsPrivateKeyFile = this.config.get(
-            'inputSecretsPrivateKeyFile',
-        );
-        const inputSecretsPrivateKeyPassphrase = this.config.get(
-            'inputSecretsPrivateKeyPassphrase',
-        );
+        const inputSecretsPrivateKeyFile = this.config.get('inputSecretsPrivateKeyFile');
+        const inputSecretsPrivateKeyPassphrase = this.config.get('inputSecretsPrivateKeyPassphrase');
         const rawInput = await this.getValue<T>(this.config.get('inputKey'));
 
         let input = rawInput as T;
@@ -1454,15 +1321,10 @@ export class Actor<Data extends Dictionary = Dictionary> {
 
         this._ensureActorInit('openRequestQueue');
 
-        const queue = await this._openStorage(
-            RequestQueue,
-            queueIdOrName,
-            options,
-        );
+        const queue = await this._openStorage(RequestQueue, queueIdOrName, options);
 
         // eslint-disable-next-line dot-notation
-        queue['initialCount'] =
-            (await queue.client.get())?.totalRequestCount ?? 0;
+        queue['initialCount'] = (await queue.client.get())?.totalRequestCount ?? 0;
 
         return queue;
     }
@@ -1514,8 +1376,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
     ): Promise<ProxyConfiguration | undefined> {
         // Compatibility fix for Input UI where proxy: None returns { useApifyProxy: false }
         // Without this, it would cause proxy to use the zero config / auto mode.
-        const { useApifyProxy, checkAccess, ...options } =
-            proxyConfigurationOptions;
+        const { useApifyProxy, checkAccess, ...options } = proxyConfigurationOptions;
         const dontUseApifyProxy = useApifyProxy === false;
         const dontUseCustomProxies = !proxyConfigurationOptions.proxyUrls;
 
@@ -1598,26 +1459,18 @@ export class Actor<Data extends Dictionary = Dictionary> {
             ...APIFY_ENV_VARS,
             ...this.getModifiedActorEnvVars(),
         })) {
-            const camelCaseName = snakeCaseToCamelCase(
-                shortName,
-            ) as keyof ApifyEnv;
+            const camelCaseName = snakeCaseToCamelCase(shortName) as keyof ApifyEnv;
             let value: string | number | Date | undefined = env[fullName];
 
             // Parse dates and integers.
             if (value && fullName.endsWith('_AT')) {
                 const unix = Date.parse(value);
                 value = unix > 0 ? new Date(unix) : undefined;
-            } else if (
-                (INTEGER_ENV_VARS as readonly string[]).includes(fullName)
-            ) {
+            } else if ((INTEGER_ENV_VARS as readonly string[]).includes(fullName)) {
                 value = parseInt(value!, 10);
             }
 
-            Reflect.set(
-                envVars,
-                camelCaseName,
-                value || value === 0 ? value : null,
-            );
+            Reflect.set(envVars, camelCaseName, value || value === 0 ? value : null);
         }
 
         return envVars;
@@ -1632,9 +1485,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @ignore
      */
     newClient(options: ApifyClientOptions = {}): ApifyClient {
-        const { storageDir, ...storageClientOptions } = this.config.get(
-            'storageClientOptions',
-        ) as Dictionary;
+        const { storageDir, ...storageClientOptions } = this.config.get('storageClientOptions') as Dictionary;
         const { apifyVersion, crawleeVersion } = getSystemInfo();
 
         return createPatchedApifyClient(
@@ -1642,10 +1493,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
                 baseUrl: this.config.get('apiBaseUrl'),
                 publicBaseUrl: this.config.get('apiPublicBaseUrl'),
                 token: this.config.get('token'),
-                userAgentSuffix: [
-                    `SDK/${apifyVersion}`,
-                    `Crawlee/${crawleeVersion}`,
-                ],
+                userAgentSuffix: [`SDK/${apifyVersion}`, `Crawlee/${crawleeVersion}`],
                 ...storageClientOptions,
                 ...options, // allow overriding the instance configuration
             },
@@ -1680,10 +1528,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
         const kvStore = await KeyValueStore.open(options?.keyValueStoreName, {
             config: options?.config || Configuration.getGlobalConfig(),
         });
-        return kvStore.getAutoSavedValue<State>(
-            name || 'APIFY_GLOBAL_STATE',
-            defaultValue,
-        );
+        return kvStore.getAutoSavedValue<State>(name || 'APIFY_GLOBAL_STATE', defaultValue);
     }
 
     /**
@@ -1700,11 +1545,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
         defaultValue = {} as State,
         options?: UseStateOptions,
     ) {
-        return Actor.getDefaultInstance().useState<State>(
-            name,
-            defaultValue,
-            options,
-        );
+        return Actor.getDefaultInstance().useState<State>(name, defaultValue, options);
     }
 
     /**
@@ -1768,10 +1609,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * the promise will be awaited. The user function is called with no arguments.
      * @param options
      */
-    static async main<T>(
-        userFunc: UserFunc<T>,
-        options?: MainOptions,
-    ): Promise<T> {
+    static async main<T>(userFunc: UserFunc<T>, options?: MainOptions): Promise<T> {
         return Actor.getDefaultInstance().main<T>(userFunc, options);
     }
 
@@ -1812,10 +1650,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @param messageOrOptions First parameter accepts either a string (a terminal status message) or an `ExitOptions` object.
      * @param options Second parameter accepts an `ExitOptions` object.
      */
-    static async exit(
-        messageOrOptions?: string | ExitOptions,
-        options: ExitOptions = {},
-    ): Promise<void> {
+    static async exit(messageOrOptions?: string | ExitOptions, options: ExitOptions = {}): Promise<void> {
         return Actor.getDefaultInstance().exit(messageOrOptions, options);
     }
 
@@ -1824,10 +1659,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @param messageOrOptions First parameter accepts either a string (a terminal status message) or an `ExitOptions` object.
      * @param options Second parameter accepts an `ExitOptions` object.
      */
-    static async fail(
-        messageOrOptions?: string | ExitOptions,
-        options: ExitOptions = {},
-    ): Promise<void> {
+    static async fail(messageOrOptions?: string | ExitOptions, options: ExitOptions = {}): Promise<void> {
         return Actor.getDefaultInstance().fail(messageOrOptions, options);
     }
 
@@ -1862,11 +1694,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      *  Otherwise the `options.contentType` parameter must be provided.
      * @param [options]
      */
-    static async call(
-        actorId: string,
-        input?: unknown,
-        options: CallOptions = {},
-    ): Promise<ClientActorRun> {
+    static async call(actorId: string, input?: unknown, options: CallOptions = {}): Promise<ClientActorRun> {
         return Actor.getDefaultInstance().call(actorId, input, options);
     }
 
@@ -1895,11 +1723,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      *  Provided input will be merged with Actor task input.
      * @param [options]
      */
-    static async callTask(
-        taskId: string,
-        input?: Dictionary,
-        options: CallTaskOptions = {},
-    ): Promise<ClientActorRun> {
+    static async callTask(taskId: string, input?: Dictionary, options: CallTaskOptions = {}): Promise<ClientActorRun> {
         return Actor.getDefaultInstance().callTask(taskId, input, options);
     }
 
@@ -1926,11 +1750,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      *  Otherwise the `options.contentType` parameter must be provided.
      * @param [options]
      */
-    static async start(
-        actorId: string,
-        input?: Dictionary,
-        options: StartOptions = {},
-    ): Promise<ClientActorRun> {
+    static async start(actorId: string, input?: Dictionary, options: StartOptions = {}): Promise<ClientActorRun> {
         return Actor.getDefaultInstance().start(actorId, input, options);
     }
 
@@ -1948,10 +1768,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * const run = await Actor.abort(runId);
      * ```
      */
-    static async abort(
-        runId: string,
-        options: AbortOptions = {},
-    ): Promise<ClientActorRun> {
+    static async abort(runId: string, options: AbortOptions = {}): Promise<ClientActorRun> {
         return Actor.getDefaultInstance().abort(runId, options);
     }
 
@@ -1968,16 +1785,8 @@ export class Actor<Data extends Dictionary = Dictionary> {
      *  Otherwise, the `options.contentType` parameter must be provided.
      * @param [options]
      */
-    static async metamorph(
-        targetActorId: string,
-        input?: unknown,
-        options: MetamorphOptions = {},
-    ): Promise<void> {
-        return Actor.getDefaultInstance().metamorph(
-            targetActorId,
-            input,
-            options,
-        );
+    static async metamorph(targetActorId: string, input?: unknown, options: MetamorphOptions = {}): Promise<void> {
+        return Actor.getDefaultInstance().metamorph(targetActorId, input, options);
     }
 
     /**
@@ -2000,9 +1809,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @returns The return value is the Webhook object.
      * For more information, see the [Get webhook](https://apify.com/docs/api/v2#/reference/webhooks/webhook-object/get-webhook) API endpoint.
      */
-    static async addWebhook(
-        options: WebhookOptions,
-    ): Promise<Webhook | undefined> {
+    static async addWebhook(options: WebhookOptions): Promise<Webhook | undefined> {
         return Actor.getDefaultInstance().addWebhook(options);
     }
 
@@ -2016,14 +1823,8 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @returns The return value is the Run object. When run locally, this method returns empty object (`{}`).
      * For more information, see the [Actor Runs](https://docs.apify.com/api/v2#/reference/actor-runs/) API endpoints.
      */
-    static async setStatusMessage(
-        statusMessage: string,
-        options?: SetStatusMessageOptions,
-    ): Promise<ClientActorRun> {
-        return Actor.getDefaultInstance().setStatusMessage(
-            statusMessage,
-            options,
-        );
+    static async setStatusMessage(statusMessage: string, options?: SetStatusMessageOptions): Promise<ClientActorRun> {
+        return Actor.getDefaultInstance().setStatusMessage(statusMessage, options);
     }
 
     /**
@@ -2049,9 +1850,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @param item Object or array of objects containing data to be stored in the default dataset.
      * The objects must be serializable to JSON and the JSON representation of each object must be smaller than 9MB.
      */
-    static async pushData<Data extends Dictionary = Dictionary>(
-        item: Data | Data[],
-    ): Promise<void>;
+    static async pushData<Data extends Dictionary = Dictionary>(item: Data | Data[]): Promise<void>;
 
     /**
      * Stores an object or an array of objects to the default {@apilink Dataset} of the current Actor run.
@@ -2200,11 +1999,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      *   For any other value an error will be thrown.
      * @param [options]
      */
-    static async setValue<T>(
-        key: string,
-        value: T | null,
-        options: RecordOptions = {},
-    ): Promise<void> {
+    static async setValue<T>(key: string, value: T | null, options: RecordOptions = {}): Promise<void> {
         return Actor.getDefaultInstance().setValue(key, value, options);
     }
 
@@ -2235,9 +2030,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      *   on the MIME content type of the record, or `null`
      *   if the record is missing.
      */
-    static async getInput<
-        T = Dictionary | string | Buffer,
-    >(): Promise<T | null> {
+    static async getInput<T = Dictionary | string | Buffer>(): Promise<T | null> {
         return Actor.getDefaultInstance().getInput();
     }
 
@@ -2245,9 +2038,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * Gets the Actor input value just like the {@apilink Actor.getInput} method,
      * but throws if it is not found.
      */
-    static async getInputOrThrow<
-        T = Dictionary | string | Buffer,
-    >(): Promise<T> {
+    static async getInputOrThrow<T = Dictionary | string | Buffer>(): Promise<T> {
         return Actor.getDefaultInstance().getInputOrThrow<T>();
     }
 
@@ -2270,10 +2061,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
         storeIdOrName?: StorageIdentifierWithoutAlias | null,
         options: OpenStorageOptions = {},
     ): Promise<KeyValueStore> {
-        return Actor.getDefaultInstance().openKeyValueStore(
-            storeIdOrName,
-            options,
-        );
+        return Actor.getDefaultInstance().openKeyValueStore(storeIdOrName, options);
     }
 
     /**
@@ -2297,10 +2085,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
         queueIdOrName?: StorageIdentifierWithoutAlias | null,
         options: OpenStorageOptions = {},
     ): Promise<RequestQueue> {
-        return Actor.getDefaultInstance().openRequestQueue(
-            queueIdOrName,
-            options,
-        );
+        return Actor.getDefaultInstance().openRequestQueue(queueIdOrName, options);
     }
 
     /**
@@ -2346,9 +2131,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
             useApifyProxy?: boolean;
         } = {},
     ): Promise<ProxyConfiguration | undefined> {
-        return Actor.getDefaultInstance().createProxyConfiguration(
-            proxyConfigurationOptions,
-        );
+        return Actor.getDefaultInstance().createProxyConfiguration(proxyConfigurationOptions);
     }
 
     /**
@@ -2467,8 +2250,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
             };
         }
 
-        const isDefaultDataset =
-            dataset.id === this.config.get('defaultDatasetId');
+        const isDefaultDataset = dataset.id === this.config.get('defaultDatasetId');
 
         return pushDataAndCharge({
             chargingManager: this.chargingManager,
@@ -2527,9 +2309,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
         return undefined;
     }
 
-    private async inferDefaultsFromInputSchema<T extends Dictionary>(
-        input: T,
-    ): Promise<T> {
+    private async inferDefaultsFromInputSchema<T extends Dictionary>(input: T): Promise<T> {
         // TODO: https://github.com/apify/apify-shared-js/issues/547
 
         // On platform, this is already handled

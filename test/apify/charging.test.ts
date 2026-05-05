@@ -44,9 +44,7 @@ function setUpPlatformEnv(
         });
     }
 
-    process.env.APIFY_CHARGED_ACTOR_EVENT_COUNTS = JSON.stringify(
-        options.chargedEventCounts ?? {},
-    );
+    process.env.APIFY_CHARGED_ACTOR_EVENT_COUNTS = JSON.stringify(options.chargedEventCounts ?? {});
 }
 
 /**
@@ -282,10 +280,7 @@ describe('ChargingManager', () => {
 
             // Now try to push 10 items - budget only allows 0 more events at $1 each
             // pushData should overcharge by 1 item so the platform detects the overspend
-            const result = await Actor.pushData(
-                Array(10).fill({ hello: 'world' }),
-                'another-event',
-            );
+            const result = await Actor.pushData(Array(10).fill({ hello: 'world' }), 'another-event');
 
             // The API should be called with the overcharge of 1 event
             expect(chargeSpy).toHaveBeenCalledTimes(1);
@@ -325,10 +320,7 @@ describe('ChargingManager', () => {
                 charge: chargeSpy,
             } as any);
 
-            const result = await Actor.pushData(
-                [{ a: 1 }, { b: 2 }, { c: 3 }],
-                'my-event',
-            );
+            const result = await Actor.pushData([{ a: 1 }, { b: 2 }, { c: 3 }], 'my-event');
 
             // Budget is fully depleted → pushData overcharges by 1 item
             expect(result).toBeDefined();
@@ -391,9 +383,7 @@ describe('ChargingManager', () => {
             let loggerWarnSpy: MockInstance;
 
             beforeEach(() => {
-                loggerWarnSpy = vitest
-                    .spyOn(log, 'warning')
-                    .mockImplementation(() => {});
+                loggerWarnSpy = vitest.spyOn(log, 'warning').mockImplementation(() => {});
             });
 
             test('when on the platform should ignore it and log a warning', async () => {
@@ -415,9 +405,7 @@ describe('ChargingManager', () => {
                     eventChargeLimitReached: false,
                     chargeableWithinLimit: {},
                 });
-                expect(loggerWarnSpy).toHaveBeenCalledWith(
-                    "Attempting to charge for an unknown event 'unknown-event'",
-                );
+                expect(loggerWarnSpy).toHaveBeenCalledWith("Attempting to charge for an unknown event 'unknown-event'");
             });
 
             test('when running locally should pretend to charge it', async () => {
@@ -465,10 +453,7 @@ describe('ChargingManager', () => {
             await Actor.init();
 
             const chargingManager = Actor.getChargingManager();
-            const maxCount =
-                chargingManager.calculateMaxEventChargeCountWithinLimit(
-                    'event',
-                );
+            const maxCount = chargingManager.calculateMaxEventChargeCountWithinLimit('event');
 
             expect(maxCount).toBe(0);
         });
@@ -482,10 +467,7 @@ describe('ChargingManager', () => {
             await Actor.init();
             const chargingManager = Actor.getChargingManager();
 
-            const maxCount =
-                chargingManager.calculateMaxEventChargeCountWithinLimit(
-                    'unknown-event',
-                );
+            const maxCount = chargingManager.calculateMaxEventChargeCountWithinLimit('unknown-event');
 
             expect(maxCount).toBe(Infinity);
         });
@@ -695,10 +677,7 @@ describe('ChargingManager', () => {
             chargeSpy.mockClear();
 
             // After the overcharge, we're already strictly over budget - subsequent charges should not pile on
-            const pushResult = await Actor.pushData(
-                [{ hello: 'world' }],
-                'event',
-            );
+            const pushResult = await Actor.pushData([{ hello: 'world' }], 'event');
             expect(pushResult!.chargedCount).toBe(0);
             expect(pushResult!.eventChargeLimitReached).toBe(true);
             expect(chargeSpy).not.toHaveBeenCalled();

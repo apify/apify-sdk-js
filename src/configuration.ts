@@ -2,12 +2,7 @@ import type { ConfigurationOptions as CoreConfigurationOptions } from '@crawlee/
 import { Configuration as CoreConfiguration } from '@crawlee/core';
 
 import type { META_ORIGINS } from '@apify/consts';
-import {
-    ACTOR_ENV_VARS,
-    APIFY_ENV_VARS,
-    LOCAL_ACTOR_ENV_VARS,
-    LOCAL_APIFY_ENV_VARS,
-} from '@apify/consts';
+import { ACTOR_ENV_VARS, APIFY_ENV_VARS, LOCAL_ACTOR_ENV_VARS, LOCAL_APIFY_ENV_VARS } from '@apify/consts';
 
 export interface ConfigurationOptions extends CoreConfigurationOptions {
     metamorphAfterSleepMillis?: number;
@@ -162,8 +157,7 @@ export class Configuration extends CoreConfiguration {
         APIFY_PROXY_STATUS_URL: 'proxyStatusUrl',
         APIFY_PROXY_PORT: 'proxyPort',
         APIFY_INPUT_SECRETS_PRIVATE_KEY_FILE: 'inputSecretsPrivateKeyFile',
-        APIFY_INPUT_SECRETS_PRIVATE_KEY_PASSPHRASE:
-            'inputSecretsPrivateKeyPassphrase',
+        APIFY_INPUT_SECRETS_PRIVATE_KEY_PASSPHRASE: 'inputSecretsPrivateKeyPassphrase',
         APIFY_META_ORIGIN: 'metaOrigin',
 
         // Actor env vars
@@ -206,12 +200,9 @@ export class Configuration extends CoreConfiguration {
 
     protected static override DEFAULTS = {
         ...CoreConfiguration.DEFAULTS,
-        defaultKeyValueStoreId:
-            LOCAL_ACTOR_ENV_VARS[ACTOR_ENV_VARS.DEFAULT_KEY_VALUE_STORE_ID],
-        defaultDatasetId:
-            LOCAL_ACTOR_ENV_VARS[ACTOR_ENV_VARS.DEFAULT_DATASET_ID],
-        defaultRequestQueueId:
-            LOCAL_ACTOR_ENV_VARS[ACTOR_ENV_VARS.DEFAULT_REQUEST_QUEUE_ID],
+        defaultKeyValueStoreId: LOCAL_ACTOR_ENV_VARS[ACTOR_ENV_VARS.DEFAULT_KEY_VALUE_STORE_ID],
+        defaultDatasetId: LOCAL_ACTOR_ENV_VARS[ACTOR_ENV_VARS.DEFAULT_DATASET_ID],
+        defaultRequestQueueId: LOCAL_ACTOR_ENV_VARS[ACTOR_ENV_VARS.DEFAULT_REQUEST_QUEUE_ID],
         inputKey: 'INPUT',
         apiBaseUrl: 'https://api.apify.com',
         apiPublicBaseUrl: 'https://api.apify.com',
@@ -230,10 +221,7 @@ export class Configuration extends CoreConfiguration {
     /**
      * @inheritDoc
      */
-    override get<
-        T extends keyof ConfigurationOptions,
-        U extends ConfigurationOptions[T],
-    >(key: T, defaultValue?: U): U {
+    override get<T extends keyof ConfigurationOptions, U extends ConfigurationOptions[T]>(key: T, defaultValue?: U): U {
         return super.get(key as keyof CoreConfigurationOptions, defaultValue);
     }
 

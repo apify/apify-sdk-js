@@ -1,0 +1,15 @@
+{
+    "printWidth": 120,
+    "ignorePatterns": [
+        "**/*.md",
+        "**/*.json",
+        "**/*.jsonc",
+        "**/*.yaml",
+        "**/*.yml",
+        "**/node_modules",
+        "**/dist",
+        "coverage",
+        "website",
+        "docs"
+    ]
+}

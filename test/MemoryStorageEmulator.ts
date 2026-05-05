@@ -9,12 +9,7 @@ import { ensureDir } from 'fs-extra';
 import log from '@apify/log';
 import { cryptoRandomObjectId } from '@apify/utilities';
 
-const LOCAL_EMULATION_DIR = resolve(
-    __dirname,
-    '..',
-    'tmp',
-    'memory-emulation-dir',
-);
+const LOCAL_EMULATION_DIR = resolve(__dirname, '..', 'tmp', 'memory-emulation-dir');
 
 export class MemoryStorageEmulator {
     protected localStorageDirectories: string[] = [];
@@ -30,9 +25,7 @@ export class MemoryStorageEmulator {
             localDataDirectory: localStorageDir,
         });
         Configuration.getGlobalConfig().useStorageClient(this.storage);
-        log.debug(
-            `Initialized emulated memory storage in folder ${localStorageDir}`,
-        );
+        log.debug(`Initialized emulated memory storage in folder ${localStorageDir}`);
     }
 
     reapplyStorageClient() {

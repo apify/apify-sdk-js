@@ -24,10 +24,7 @@ async function run() {
     log.info(`Running E2E SDK tests`);
 
     const paths = await readdir(basePath, { withFileTypes: true });
-    const dirs = paths.filter(
-        (dirent) =>
-            dirent.isDirectory() && dirent.name !== basename(actorBasePath),
-    );
+    const dirs = paths.filter((dirent) => dirent.isDirectory() && dirent.name !== basename(actorBasePath));
 
     for (const dir of dirs) {
         await runWorker(dir.name);
@@ -79,9 +76,7 @@ async function packDir(dirName) {
         }
 
         const name = relative(dirName, join(dirent.parentPath, dirent.name));
-        const format = textSuffixes.some((suffix) => name.endsWith(suffix))
-            ? 'TEXT'
-            : 'BASE64';
+        const format = textSuffixes.some((suffix) => name.endsWith(suffix)) ? 'TEXT' : 'BASE64';
 
         sourceFiles[name] = {
             name,
@@ -136,23 +131,17 @@ async function runTest(dirName) {
 
     const actorClient = client.actor(actor.id);
     const build = await actorClient.build('0.0');
-    const buildResult = await client
-        .build(build.id)
-        .waitForFinish({ waitSecs: 30 * 60 });
+    const buildResult = await client.build(build.id).waitForFinish({ waitSecs: 30 * 60 });
 
     if (buildResult.status !== 'SUCCEEDED') {
         throw new Error('Build failed');
     }
 
     const testProcessFinished = Promise.withResolvers();
-    const testProcess = spawn(
-        process.argv[0],
-        [join(testDir, 'test.mjs'), actor.id],
-        {
-            stdio: 'pipe',
-            shell: false,
-        },
-    );
+    const testProcess = spawn(process.argv[0], [join(testDir, 'test.mjs'), actor.id], {
+        stdio: 'pipe',
+        shell: false,
+    });
 
     testProcess.stdout.on('data', (chunk) => process.stdout.write(chunk));
     testProcess.stderr.on('data', (chunk) => process.stderr.write(chunk));

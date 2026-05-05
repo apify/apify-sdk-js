@@ -26,9 +26,7 @@ function addBetaSuffixToVersion(version) {
     if (versions.some((v) => v === version)) {
         const [major, minor, patch] = version.split('.').map(Number);
         version = `${major}.${minor}.${patch + 1}`;
-        console.log(
-            `before-deploy: Version ${pkgJson.version} already exists on npm, bumping to ${version}`,
-        );
+        console.log(`before-deploy: Version ${pkgJson.version} already exists on npm, bumping to ${version}`);
     }
 
     const prereleaseNumbers = versions

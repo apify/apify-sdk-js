@@ -31,11 +31,7 @@ test('aliased storages work locally with purge-on-first-open across restarts', a
     });
     const data = await dataset.getData();
 
-    assert.strictEqual(
-        data.count,
-        2,
-        'There must be exactly two summary items (one per lifecycle)',
-    );
+    assert.strictEqual(data.count, 2, 'There must be exactly two summary items (one per lifecycle)');
 
     // First lifecycle: fresh local storage, writes 3 items total (2 + 1 from second open)
     const firstSummary = data.items[0];

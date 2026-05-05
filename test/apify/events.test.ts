@@ -4,11 +4,7 @@ import { sleep } from '@crawlee/utils';
 import { Actor, Configuration, PlatformEventManager } from 'apify';
 import { WebSocketServer } from 'ws';
 
-import {
-    ACTOR_ENV_VARS,
-    ACTOR_EVENT_NAMES,
-    APIFY_ENV_VARS,
-} from '@apify/consts';
+import { ACTOR_ENV_VARS, ACTOR_EVENT_NAMES, APIFY_ENV_VARS } from '@apify/consts';
 
 describe('events', () => {
     let wss: WebSocketServer = null!;
@@ -21,8 +17,7 @@ describe('events', () => {
         config.useEventManager(events);
 
         vitest.useFakeTimers();
-        process.env[ACTOR_ENV_VARS.EVENTS_WEBSOCKET_URL] =
-            'ws://localhost:9099/someRunId';
+        process.env[ACTOR_ENV_VARS.EVENTS_WEBSOCKET_URL] = 'ws://localhost:9099/someRunId';
         process.env[APIFY_ENV_VARS.TOKEN] = 'dummy';
     });
     afterEach(async () => {
@@ -47,14 +42,8 @@ describe('events', () => {
 
                 const send = (obj: Dictionary) => ws.send(JSON.stringify(obj));
 
-                setTimeout(
-                    () => send({ name: 'aborting', data: [1, 2, 3] }),
-                    50,
-                );
-                setTimeout(
-                    () => send({ name: 'aborting', data: { foo: 'bar' } }),
-                    100,
-                );
+                setTimeout(() => send({ name: 'aborting', data: [1, 2, 3] }), 50);
+                setTimeout(() => send({ name: 'aborting', data: { foo: 'bar' } }), 100);
                 setTimeout(() => send({ name: 'migrating', data: [1] }), 50);
                 setTimeout(() => send({ name: 'migrating', data: [2] }), 50);
             });
@@ -101,14 +90,8 @@ describe('events', () => {
 
                 const send = (obj: Dictionary) => ws.send(JSON.stringify(obj));
 
-                setTimeout(
-                    () => send({ name: 'aborting', data: [1, 2, 3] }),
-                    50,
-                );
-                setTimeout(
-                    () => send({ name: 'aborting', data: { foo: 'bar' } }),
-                    100,
-                );
+                setTimeout(() => send({ name: 'aborting', data: [1, 2, 3] }), 50);
+                setTimeout(() => send({ name: 'aborting', data: { foo: 'bar' } }), 100);
                 setTimeout(() => send({ name: 'migrating', data: [1] }), 50);
                 setTimeout(() => send({ name: 'migrating', data: [2] }), 50);
             });
@@ -157,16 +140,13 @@ describe('graceful exit handlers', () => {
         // Use incrementing port to avoid port reuse issues between tests
         testPort++;
         wss = new WebSocketServer({ port: testPort });
-        process.env[ACTOR_ENV_VARS.EVENTS_WEBSOCKET_URL] =
-            `ws://localhost:${testPort}/someRunId`;
+        process.env[ACTOR_ENV_VARS.EVENTS_WEBSOCKET_URL] = `ws://localhost:${testPort}/someRunId`;
         process.env[APIFY_ENV_VARS.TOKEN] = 'dummy';
         // Create a fresh PlatformEventManager for each test to avoid shared state
         testEvents = new PlatformEventManager(gracefulConfig);
         gracefulConfig.useEventManager(testEvents);
         // Mock process.exit to prevent actual exit during tests
-        processExitSpy = vitest
-            .spyOn(process, 'exit')
-            .mockImplementation((() => {}) as never);
+        processExitSpy = vitest.spyOn(process, 'exit').mockImplementation((() => {}) as never);
     });
 
     afterEach(async () => {
@@ -200,11 +180,9 @@ describe('graceful exit handlers', () => {
             });
         });
 
-        const exitSpy = vitest
-            .spyOn(actor, 'exit')
-            .mockImplementation(async () => {
-                exitCalled = true;
-            });
+        const exitSpy = vitest.spyOn(actor, 'exit').mockImplementation(async () => {
+            exitCalled = true;
+        });
 
         // Default behavior should register handlers
         await actor.init();
@@ -233,11 +211,9 @@ describe('graceful exit handlers', () => {
             });
         });
 
-        const rebootSpy = vitest
-            .spyOn(actor, 'reboot')
-            .mockImplementation(async () => {
-                rebootCalled = true;
-            });
+        const rebootSpy = vitest.spyOn(actor, 'reboot').mockImplementation(async () => {
+            rebootCalled = true;
+        });
 
         // Default behavior should register handlers
         await actor.init();
@@ -266,11 +242,9 @@ describe('graceful exit handlers', () => {
             });
         });
 
-        const exitSpy = vitest
-            .spyOn(actor, 'exit')
-            .mockImplementation(async () => {
-                exitCalled = true;
-            });
+        const exitSpy = vitest.spyOn(actor, 'exit').mockImplementation(async () => {
+            exitCalled = true;
+        });
 
         // Opt-out behavior (gracefulShutdown: false) should NOT register handlers
         await actor.init({ gracefulShutdown: false });

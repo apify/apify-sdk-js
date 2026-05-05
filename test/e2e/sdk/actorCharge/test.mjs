@@ -44,11 +44,7 @@ test('basic functionality', async () => {
     });
 
     const chargingDatasetId = await store.getValue('CHARGING_LOG_DATASET_ID');
-    assert.equal(
-        chargingDatasetId,
-        null,
-        'Charging dataset ID must not be present',
-    );
+    assert.equal(chargingDatasetId, null, 'Charging dataset ID must not be present');
 });
 
 test('charge limit', async () => {
