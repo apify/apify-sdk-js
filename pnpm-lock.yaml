@@ -4,10 +4,6 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
-overrides:
-  copy-webpack-plugin>serialize-javascript: ^7.0.4
-  css-minimizer-webpack-plugin>serialize-javascript: ^7.0.4
-
 importers:
 
   .:
@@ -7588,6 +7584,9 @@ packages:
     resolution: {integrity: sha512-k9lSsjl36EJdK7I06v7APZCbyGT2vMTsYSRX1Q2nbYmnkBqgUhRkAuzH08Ciotteu/PLJmIF2+tti7o3C/ts2g==}
     engines: {node: '>=18'}
 
+  randombytes@2.1.0:
+    resolution: {integrity: sha512-vYl3iOX+4CKUWuxGi9Ukhie6fsqXqS9FE2Zaic4tNFD2N2QQaXOMFbuKK4QmDHC0JO6B1Zp41J0LpT0oR68amQ==}
+
   range-parser@1.2.0:
     resolution: {integrity: sha512-kA5WQoNVo4t9lNx2kQNFCxKeBl5IbbSNBl1M/tLkw9WCn+hxNBAW5Qh8gdhs63CJnhjJ2zQWFoqPJP2sK1AV5A==}
     engines: {node: '>= 0.6'}
@@ -7982,9 +7981,8 @@ packages:
     resolution: {integrity: sha512-VMbMxbDeehAxpOtWJXlcUS5E8iXh6QmN+BkRX1GARS3wRaXEEgzCcB10gTQazO42tpNIya8xIyNx8fll1OFPrg==}
     engines: {node: '>= 0.8.0'}
 
-  serialize-javascript@7.0.5:
-    resolution: {integrity: sha512-F4LcB0UqUl1zErq+1nYEEzSHJnIwb3AF2XWB94b+afhrekOUijwooAYqFyRbjYkm2PAKBabx6oYv/xDxNi8IBw==}
-    engines: {node: '>=20.0.0'}
+  serialize-javascript@6.0.2:
+    resolution: {integrity: sha512-Saa1xPByTTq2gdeFZYLLo+RFE35NHZkAbqZeWNd3BpzppeVisAqpDjcp8dyf6uIvEqJRd46jemmyA4iFIeVk8g==}
 
   serve-handler@6.1.7:
     resolution: {integrity: sha512-CinAq1xWb0vR3twAv9evEU8cNWkXCb9kd5ePAHUKJBkOsUpR1wt/CvGdeca7vqumL1U5cSaeVQ6zZMxiJ3yWsg==}
@@ -14386,7 +14384,7 @@ snapshots:
       globby: 13.2.2
       normalize-path: 3.0.0
       schema-utils: 4.3.3
-      serialize-javascript: 7.0.5
+      serialize-javascript: 6.0.2
       webpack: 5.106.1(@swc/core@1.15.24)
 
   core-js-compat@3.49.0:
@@ -14517,7 +14515,7 @@ snapshots:
       jest-worker: 29.7.0
       postcss: 8.5.14
       schema-utils: 4.3.3
-      serialize-javascript: 7.0.5
+      serialize-javascript: 6.0.2
       webpack: 5.106.1(@swc/core@1.15.24)
     optionalDependencies:
       clean-css: 5.3.3
@@ -18187,6 +18185,10 @@ snapshots:
 
   quick-lru@7.3.0: {}
 
+  randombytes@2.1.0:
+    dependencies:
+      safe-buffer: 5.2.1
+
   range-parser@1.2.0: {}
 
   range-parser@1.2.1: {}
@@ -18718,7 +18720,9 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  serialize-javascript@7.0.5: {}
+  serialize-javascript@6.0.2:
+    dependencies:
+      randombytes: 2.1.0
 
   serve-handler@6.1.7:
     dependencies:
