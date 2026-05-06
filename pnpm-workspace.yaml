@@ -1,6 +1,10 @@
 packages:
     - website
 
+overrides:
+    copy-webpack-plugin>serialize-javascript: ^7.0.4
+    css-minimizer-webpack-plugin>serialize-javascript: ^7.0.4
+
 minimumReleaseAge: 1440
 minimumReleaseAgeExclude:
     - '@apify/*'
