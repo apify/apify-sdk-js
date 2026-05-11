@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [3.7.2](https://github.com/apify/apify-sdk-js/releases/tag/v3.7.2) (2026-05-11)
+
+### 🐛 Bug Fixes
+
+- Drop only-allow preinstall, enforce pnpm via devEngines ([#606](https://github.com/apify/apify-sdk-js/pull/606)) ([2c1a2a8](https://github.com/apify/apify-sdk-js/commit/2c1a2a866272bd34d7557d7ebb91af840bc44a87)) by [@B4nan](https://github.com/B4nan)
+
+
 ## [3.7.1](https://github.com/apify/apify-sdk-js/releases/tag/v3.7.1) (2026-05-04)
 
 ### 🚀 Features
