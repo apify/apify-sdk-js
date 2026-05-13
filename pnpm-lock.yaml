@@ -136,8 +136,8 @@ importers:
         specifier: ^1.0.246
         version: 1.0.246(@algolia/client-search@5.50.1)(@babel/core@7.29.0)(@docusaurus/plugin-content-docs@3.10.0(@docusaurus/faster@3.10.0(@docusaurus/types@3.10.0(@swc/core@1.15.24)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)))(@mdx-js/react@3.1.1(@types/react@19.2.14)(react@19.2.5))(@rspack/core@1.7.11)(@swc/core@1.15.24)(lightningcss@1.32.0)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(typescript@5.9.3))(@rspack/core@1.7.11)(@swc/core@1.15.24)(@types/react@19.2.14)(clsx@2.1.1)(postcss@8.5.14)(react-dom@19.2.5(react@19.2.5))(react-is@16.13.1)(react@19.2.5)(search-insights@2.17.3)(styled-components@5.3.11(@babel/core@7.29.0)(react-dom@19.2.5(react@19.2.5))(react-is@16.13.1)(react@19.2.5))(webpack@5.106.1(@swc/core@1.15.24))
       '@apify/docusaurus-plugin-typedoc-api':
-        specifier: ^5.0.0
-        version: 5.1.4(e7fb324fff40dd0de20c0e77e45ca0ef)
+        specifier: ^5.1.6
+        version: 5.1.6(e7fb324fff40dd0de20c0e77e45ca0ef)
       '@docusaurus/core':
         specifier: ^3.8.1
         version: 3.10.0(@docusaurus/faster@3.10.0(@docusaurus/types@3.10.0(@swc/core@1.15.24)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)))(@mdx-js/react@3.1.1(@types/react@19.2.14)(react@19.2.5))(@rspack/core@1.7.11)(@swc/core@1.15.24)(lightningcss@1.32.0)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(typescript@5.9.3)
@@ -359,8 +359,8 @@ packages:
       react: '*'
       react-dom: '*'
 
-  '@apify/docusaurus-plugin-typedoc-api@5.1.4':
-    resolution: {integrity: sha512-/h960ua/DQnE8i7k2pXws+8gZojv7PCL4vPgAYjSqwiC3zB+Mqz/csHB3BK6rFRW+Exizo2TCtFoH8Syq0jQiQ==}
+  '@apify/docusaurus-plugin-typedoc-api@5.1.6':
+    resolution: {integrity: sha512-qBjozPWltxMNyrH8GSM6V7KNTNc17KGcAOn8Z9RZftRH5SRhn/PKn/ENRAwjW8kpxT+0vEQAf+n32W/G7diZ8A==}
     engines: {node: '>=16.12.0'}
     peerDependencies:
       '@docusaurus/core': ^3.8.1
@@ -9309,7 +9309,7 @@ snapshots:
       - webpack
       - webpack-cli
 
-  '@apify/docusaurus-plugin-typedoc-api@5.1.4(e7fb324fff40dd0de20c0e77e45ca0ef)':
+  '@apify/docusaurus-plugin-typedoc-api@5.1.6(e7fb324fff40dd0de20c0e77e45ca0ef)':
     dependencies:
       '@docusaurus/core': 3.10.0(@docusaurus/faster@3.10.0(@docusaurus/types@3.10.0(@swc/core@1.15.24)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)))(@mdx-js/react@3.1.1(@types/react@19.2.14)(react@19.2.5))(@rspack/core@1.7.11)(@swc/core@1.15.24)(lightningcss@1.32.0)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(typescript@5.9.3)
       '@docusaurus/mdx-loader': 3.10.0(@swc/core@1.15.24)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
