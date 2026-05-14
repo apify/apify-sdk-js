@@ -1,7 +1,6 @@
 import { createPrivateKey } from 'node:crypto';
 
 import type {
-    ConfigurationOptions,
     EventManager,
     EventTypeName,
     IStorage,
@@ -9,11 +8,11 @@ import type {
     UseStateOptions,
 } from '@crawlee/core';
 import {
-    Configuration as CoreConfiguration,
     Dataset,
     EventType,
     purgeDefaultStorages,
     RequestQueue,
+    serviceLocator,
     StorageManager,
 } from '@crawlee/core';
 import type {
@@ -46,6 +45,7 @@ import { addTimeoutToPromise } from '@apify/timeout';
 
 import type { ChargeOptions, ChargeResult } from './charging.js';
 import { ChargingManager } from './charging.js';
+import type { ConfigurationOptions } from './configuration.js';
 import { Configuration } from './configuration.js';
 import { KeyValueStore } from './key_value_store.js';
 import { PlatformEventManager } from './platform_event_manager.js';
@@ -56,6 +56,21 @@ import {
     getSystemInfo,
     printOutdatedSdkWarning,
 } from './utils.js';
+
+/**
+ * Options accepted by the {@link Actor} constructor. Either pass field-level
+ * overrides (`token`, `inputKey`, …) — which the Actor will turn into a fresh
+ * {@link Configuration} — or pass a pre-built `configuration` instance. When
+ * both are present, `configuration` wins and the field-level overrides are
+ * ignored.
+ */
+export type ActorOptions = ConfigurationOptions & {
+    /**
+     * Pre-built {@link Configuration} instance the Actor should use. Takes
+     * precedence over any field-level overrides also passed in `options`.
+     */
+    configuration?: Configuration;
+};
 
 export interface InitOptions {
     storage?: StorageClient;
@@ -363,12 +378,17 @@ export class Actor<Data extends Dictionary = Dictionary> {
 
     private chargingManager: ChargingManager;
 
-    constructor(options: ConfigurationOptions = {}) {
-        // use default configuration object if nothing overridden (it fallbacks to env vars)
-        this.config =
-            Object.keys(options).length === 0
-                ? Configuration.getGlobalConfig()
-                : new Configuration(options);
+    constructor(options: ActorOptions = {}) {
+        const { configuration, ...configOptions } = options;
+        if (configuration) {
+            // BYO Configuration takes precedence; field-level overrides are
+            // ignored to keep the contract unambiguous.
+            this.config = configuration;
+        } else if (Object.keys(configOptions).length === 0) {
+            this.config = Configuration.getGlobalConfig();
+        } else {
+            this.config = new Configuration(configOptions);
+        }
         this.apifyClient = this.newClient();
         this.eventManager = new PlatformEventManager(this.config);
         this.chargingManager = new ChargingManager(
@@ -490,19 +510,19 @@ export class Actor<Data extends Dictionary = Dictionary> {
         printOutdatedSdkWarning();
 
         // reset global config instance to respect APIFY_ prefixed env vars
-        CoreConfiguration.globalConfig = Configuration.getGlobalConfig();
+        serviceLocator.setConfiguration(Configuration.getGlobalConfig());
 
         if (this.isAtHome()) {
-            this.config.set('availableMemoryRatio', 1);
-            this.config.set('disableBrowserSandbox', true); // for browser launcher, adds `--no-sandbox` to args
-            this.config.useStorageClient(this.apifyClient);
-            this.config.useEventManager(this.eventManager);
+            // availableMemoryRatio and disableBrowserSandbox are now set via
+            // conditional defaults in the Configuration constructor (isAtHome check)
+            serviceLocator.setStorageClient(this.apifyClient);
+            serviceLocator.setEventManager(this.eventManager);
         } else if (options.storage) {
-            this.config.useStorageClient(options.storage);
+            serviceLocator.setStorageClient(options.storage);
         }
 
         // Init the event manager the config uses
-        await this.config.getEventManager().init();
+        await serviceLocator.getEventManager().init();
         log.debug(`Events initialized`);
 
         await purgeDefaultStorages({
@@ -534,8 +554,8 @@ export class Actor<Data extends Dictionary = Dictionary> {
         options.exit ??= true;
         options.exitCode ??= EXIT_CODES.SUCCESS;
         options.timeoutSecs ??= 30;
-        const client = this.config.getStorageClient();
-        const events = this.config.getEventManager();
+        const client = serviceLocator.getStorageClient();
+        const events = serviceLocator.getEventManager();
 
         // Close the event manager and emit the final PERSIST_STATE event
         await events.close();
@@ -601,14 +621,14 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @ignore
      */
     on(event: EventTypeName, listener: (...args: any[]) => any): void {
-        this.config.getEventManager().on(event, listener);
+        serviceLocator.getEventManager().on(event, listener);
     }
 
     /**
      * @ignore
      */
     off(event: EventTypeName, listener?: (...args: any[]) => any): void {
-        this.config.getEventManager().off(event, listener);
+        serviceLocator.getEventManager().off(event, listener);
     }
 
     /**
@@ -776,12 +796,10 @@ export class Actor<Data extends Dictionary = Dictionary> {
         }
 
         const {
-            customAfterSleepMillis = this.config.get(
-                'metamorphAfterSleepMillis',
-            ),
+            customAfterSleepMillis = this.config.metamorphAfterSleepMillis,
             ...metamorphOpts
         } = options;
-        const runId = this.config.get('actorRunId')!;
+        const runId = this.config.actorRunId!;
         await this.apifyClient
             .run(runId)
             .metamorph(targetActorId, input, metamorphOpts);
@@ -815,27 +833,24 @@ export class Actor<Data extends Dictionary = Dictionary> {
         this.isRebooting = true;
 
         // Waiting for all the listeners to finish, as `.reboot()` kills the container.
+        const eventManager = serviceLocator.getEventManager();
         await Promise.all([
             // `persistState` for individual RequestLists, RequestQueue... instances to be persisted
-            ...this.config
-                .getEventManager()
+            ...eventManager
                 .listeners(EventType.PERSIST_STATE)
-                .map(async (x) => x()),
+                .map(async (x: (...args: any[]) => any) => x()),
             // `migrating` to pause Apify crawlers
-            ...this.config
-                .getEventManager()
+            ...eventManager
                 .listeners(EventType.MIGRATING)
-                .map(async (x) => x()),
+                .map(async (x: (...args: any[]) => any) => x()),
         ]);
 
-        const runId = this.config.get('actorRunId')!;
+        const runId = this.config.actorRunId!;
         await this.apifyClient.run(runId).reboot();
 
         // Wait some time for container to be stopped.
         const {
-            customAfterSleepMillis = this.config.get(
-                'metamorphAfterSleepMillis',
-            ),
+            customAfterSleepMillis = this.config.metamorphAfterSleepMillis,
         } = options;
         await sleep(customAfterSleepMillis);
     }
@@ -873,7 +888,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
             return undefined;
         }
 
-        const runId = this.config.get('actorRunId')!;
+        const runId = this.config.actorRunId!;
         if (!runId) {
             throw new Error(
                 `Environment variable ${ACTOR_ENV_VARS.RUN_ID} is not set!`,
@@ -924,7 +939,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
                 break;
         }
 
-        const client = this.config.getStorageClient();
+        const client = serviceLocator.getStorageClient();
 
         // just to be sure, this should be fast
         await addTimeoutToPromise(
@@ -937,7 +952,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
             'Setting status message timed out after 1s',
         ).catch((e) => log.warning(e.message));
 
-        const runId = this.config.get('actorRunId')!;
+        const runId = this.config.actorRunId!;
 
         if (runId) {
             // just to be sure, this should be fast
@@ -1213,13 +1228,9 @@ export class Actor<Data extends Dictionary = Dictionary> {
     async getInput<T = Dictionary | string | Buffer>(): Promise<T | null> {
         this._ensureActorInit('getInput');
 
-        const inputSecretsPrivateKeyFile = this.config.get(
-            'inputSecretsPrivateKeyFile',
-        );
-        const inputSecretsPrivateKeyPassphrase = this.config.get(
-            'inputSecretsPrivateKeyPassphrase',
-        );
-        const input = await this.getValue<T>(this.config.get('inputKey'));
+        const { inputSecretsPrivateKeyFile } = this.config;
+        const { inputSecretsPrivateKeyPassphrase } = this.config;
+        const input = await this.getValue<T>(this.config.inputKey);
         if (
             ow.isValid(input, ow.object.nonEmpty) &&
             inputSecretsPrivateKeyFile &&
@@ -1476,13 +1487,12 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @ignore
      */
     newClient(options: ApifyClientOptions = {}): ApifyClient {
-        const { storageDir, ...storageClientOptions } = this.config.get(
-            'storageClientOptions',
-        ) as Dictionary;
+        const { storageDir, ...storageClientOptions } = (this.config
+            .storageClientOptions ?? {}) as Dictionary;
         const { apifyVersion, crawleeVersion } = getSystemInfo();
         return new ApifyClient({
-            baseUrl: this.config.get('apiBaseUrl'),
-            token: this.config.get('token'),
+            baseUrl: this.config.apiBaseUrl,
+            token: this.config.token,
             userAgentSuffix: [
                 `SDK/${apifyVersion}`,
                 `Crawlee/${crawleeVersion}`,
