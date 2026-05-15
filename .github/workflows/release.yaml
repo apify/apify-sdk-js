@@ -81,7 +81,7 @@ jobs:
         needs: [release_metadata, build_and_test]
         runs-on: ubuntu-22.04
         outputs:
-            changelog_commitish: ${{ steps.commit.outputs.commit_sha }}
+            changelog_commitish: ${{ steps.commit.outputs.commit_long_sha }}
             version_number: ${{ needs.release_metadata.outputs.version_number }}
             tag_name: ${{ needs.release_metadata.outputs.tag_name }}
             release_notes: ${{ needs.release_metadata.outputs.release_notes }}
