@@ -81,7 +81,7 @@ jobs:
         needs: [release_metadata, build_and_test]
         runs-on: ubuntu-22.04
         outputs:
-            changelog_commitish: ${{ steps.commit.outputs.commit-sha || github.sha }}
+            changelog_commitish: ${{ steps.commit.outputs.commit_sha || github.sha }}
             version_number: ${{ needs.release_metadata.outputs.version_number }}
             tag_name: ${{ needs.release_metadata.outputs.tag_name }}
             release_notes: ${{ needs.release_metadata.outputs.release_notes }}
@@ -112,23 +112,12 @@ jobs:
                   write-mode: overwrite
                   contents: ${{ needs.release_metadata.outputs.changelog }}
 
-            - name: Stage release changes
-              id: stage
-              run: |
-                  git pull --rebase --autostash
-                  git add -A
-                  if git diff --cached --quiet; then
-                    echo "has-changes=false" >> "$GITHUB_OUTPUT"
-                  else
-                    echo "has-changes=true" >> "$GITHUB_OUTPUT"
-                  fi
-
             - name: Add changes to the release commit and push
               id: commit
-              if: steps.stage.outputs.has-changes == 'true'
-              uses: apify/workflows/commit@v0.44.0
+              uses: apify/actions/signed-commit@v1.0.0
               with:
-                  commit-message: 'chore(release): set package version to ${{ needs.release_metadata.outputs.version_number }} and update changelog [skip ci]'
+                  message: 'chore(release): set package version to ${{ needs.release_metadata.outputs.version_number }} and update changelog [skip ci]'
+                  pull: '--rebase --autostash'
                   github-token: ${{ secrets.APIFY_SERVICE_ACCOUNT_GITHUB_TOKEN }}
 
     create_github_release:
@@ -175,22 +164,11 @@ jobs:
                   pnpm exec docusaurus docs:version "$MAJOR_MINOR"
                   pnpm exec docusaurus api:version "$MAJOR_MINOR"
 
-            - name: Stage versioned docs
-              id: stage-version-docs
-              run: |
-                  git pull --rebase --autostash
-                  git add -A
-                  if git diff --cached --quiet; then
-                    echo "has-changes=false" >> "$GITHUB_OUTPUT"
-                  else
-                    echo "has-changes=true" >> "$GITHUB_OUTPUT"
-                  fi
-
             - name: Commit versioned docs
-              if: steps.stage-version-docs.outputs.has-changes == 'true'
-              uses: apify/workflows/commit@v0.44.0
+              uses: apify/actions/signed-commit@v1.0.0
               with:
-                  commit-message: 'docs: version docs for ${{ needs.update_changelog.outputs.version_number }} [skip ci]'
+                  message: 'docs: version docs for ${{ needs.update_changelog.outputs.version_number }} [skip ci]'
+                  pull: '--rebase --autostash'
                   github-token: ${{ secrets.APIFY_SERVICE_ACCOUNT_GITHUB_TOKEN }}
 
     publish_to_npm:

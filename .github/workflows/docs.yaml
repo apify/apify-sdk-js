@@ -40,21 +40,11 @@ jobs:
                   SMARTLOOK_PROJECT_KEY: ${{ secrets.SMARTLOOK_DOCS_PROJECT_KEY }}
                   SEGMENT_TOKEN: ${{ secrets.SEGMENT_TOKEN }}
 
-            - name: Stage the updated package.json and lockfile
-              id: stage
-              run: |
-                  git add website/package.json pnpm-lock.yaml
-                  if git diff --cached --quiet; then
-                    echo "has-changes=false" >> "$GITHUB_OUTPUT"
-                  else
-                    echo "has-changes=true" >> "$GITHUB_OUTPUT"
-                  fi
-
             - name: Commit the updated package.json and lockfile
-              if: steps.stage.outputs.has-changes == 'true'
-              uses: apify/workflows/commit@v0.44.0
+              uses: apify/actions/signed-commit@v1.0.0
               with:
-                  commit-message: 'chore: Automatic theme updating workflow [skip ci]'
+                  message: 'chore: Automatic theme updating workflow [skip ci]'
+                  add: 'website/package.json pnpm-lock.yaml'
                   github-token: ${{ secrets.APIFY_SERVICE_ACCOUNT_GITHUB_TOKEN }}
 
             - name: Set up GitHub Pages
