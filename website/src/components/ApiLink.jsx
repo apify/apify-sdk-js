@@ -1,30 +1,12 @@
 import React from 'react';
-import Link from '@docusaurus/Link';
-// eslint-disable-next-line import/no-extraneous-dependencies
-import { useDocsVersion } from '@docusaurus/plugin-content-docs/client';
-import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
+import ThemeApiLink from '@apify/docs-theme/src/theme/ApiLink';
 
 const ApiLink = ({ to, children }) => {
-    const { version, isLast } = useDocsVersion();
-    const { siteConfig } = useDocusaurusContext();
-
     if (to.toString().startsWith('apify/')) {
         to = to.toString().substring('apify/'.length);
     }
 
-    if (siteConfig.presets[0][1].docs.disableVersioning) {
-        return <Link to={`/reference/${to}`}>{children}</Link>;
-    }
-
-    let versionSlug = `${version}/`;
-
-    if (version === 'current') {
-        versionSlug = 'next/';
-    } else if (isLast) {
-        versionSlug = '';
-    }
-
-    return <Link to={`/reference/${versionSlug}${to}`}>{children}</Link>;
+    return <ThemeApiLink to={to}>{children}</ThemeApiLink>;
 };
 
 export default ApiLink;
