@@ -1,5 +1,5 @@
 import React from 'react';
-import ThemeApiLink from '@apify/docs-theme/src/theme/ApiLink';
+import ThemeApiLink from '@theme/ApiLink';
 
 const ApiLink = ({ to, children }) => {
     if (to.toString().startsWith('apify/')) {
