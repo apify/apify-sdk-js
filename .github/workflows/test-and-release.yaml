@@ -39,7 +39,7 @@ jobs:
                   node-version: ${{ matrix.node-version }}
 
             - name: Install pnpm and dependencies
-              uses: apify/workflows/pnpm-install@main
+              uses: apify/actions/pnpm-install@v1.0.0
 
             - name: Install Playwright browsers
               run: pnpm exec playwright install --with-deps
@@ -64,7 +64,7 @@ jobs:
                   node-version: 24
 
             - name: Install pnpm and dependencies
-              uses: apify/workflows/pnpm-install@main
+              uses: apify/actions/pnpm-install@v1.0.0
 
             - name: Build docs
               if: github.ref != 'refs/heads/master'
@@ -84,7 +84,7 @@ jobs:
                   node-version: 24
 
             - name: Install pnpm and dependencies
-              uses: apify/workflows/pnpm-install@main
+              uses: apify/actions/pnpm-install@v1.0.0
 
             - name: Lint
               run: pnpm lint
@@ -110,10 +110,10 @@ jobs:
                   node-version: 24
 
             - name: Install pnpm and dependencies
-              uses: apify/workflows/pnpm-install@main
+              uses: apify/actions/pnpm-install@v1.0.0
 
             - name: Publish beta to npm
-              uses: apify/workflows/execute-workflow@main
+              uses: apify/actions/execute-workflow@v1.0.0
               with:
                   workflow: publish-to-npm.yaml
                   inputs: >
