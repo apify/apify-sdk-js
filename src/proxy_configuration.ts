@@ -264,7 +264,7 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
         if (proxyUrls && proxyUrls.some((url) => url?.includes('apify.com'))) {
             this.log.warning(
                 'Some Apify proxy features may work incorrectly. Please consider setting up Apify properties instead of `proxyUrls`.\n' +
-                    'See https://sdk.apify.com/docs/guides/proxy-management#apify-proxy-configuration',
+                    'See https://docs.apify.com/sdk/js/docs/concepts/proxy-management#apify-proxy-configuration',
             );
         }
     }
