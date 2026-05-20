@@ -61,7 +61,7 @@ npm install apify playwright
 
 If you want to make use of Playwright on the Apify Platform, you need to use a Docker image
 that supports Playwright. We've created them for you, so head over to the new
-[Docker image guide](https://sdk.apify.com/docs/guides/docker-images) and pick the one
+[Docker image guide](https://docs.apify.com/sdk/js/docs/concepts/docker-images) and pick the one
 that best suits your needs.
 
 Note that your `package.json` **MUST** include `puppeteer` and/or `playwright` as dependencies.
