@@ -123,5 +123,12 @@
             "version": "10.33.4",
             "onFail": "warn"
         }
+    },
+    "pnpm": {
+        "overrides": {
+            "fast-uri": "^3.1.2",
+            "qs": "^6.15.2",
+            "webpack-dev-server": "^5.2.4"
+        }
     }
 }
