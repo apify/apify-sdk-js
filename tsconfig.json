@@ -1,6 +1,7 @@
 {
     "extends": "./tsconfig.build.json",
     "compilerOptions": {
+        "sourceMap": true,
         "paths": {
             "apify": ["./src"]
         }
