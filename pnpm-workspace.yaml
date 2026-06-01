@@ -1,24 +1,26 @@
 packages:
-    - website
+  - website
 
 minimumReleaseAge: 1440
 minimumReleaseAgeExclude:
-    - '@apify/*'
-    - '@crawlee/*'
-    - 'apify-client'
-    - 'apify'
-    - 'crawlee'
-    - 'got-scraping'
+  - '@apify/*'
+  - '@crawlee/*'
+  - 'apify-client'
+  - 'apify'
+  - 'crawlee'
+  - 'got-scraping'
+  # Renovate security update: vitest@4.1.0
+  - vitest@4.1.0
 
 onlyBuiltDependencies:
-    - '@playwright/browser-chromium'
-    - '@swc/core'
-    - esbuild
-    - playwright
-    - puppeteer
+  - '@playwright/browser-chromium'
+  - '@swc/core'
+  - esbuild
+  - playwright
+  - puppeteer
 
 nodeLinker: hoisted
 linkWorkspacePackages: true
 preferWorkspacePackages: true
 publicHoistPattern:
-    - '*'
+  - '*'
