@@ -18,12 +18,12 @@ export class KeyValueStore extends CoreKeyValueStore {
      */
     override getPublicUrl(key: string): string {
         const config = this.config as Configuration;
-        if (!config.get('isAtHome') && getPublicUrl) {
+        if (!config.isAtHome && getPublicUrl) {
             return getPublicUrl.call(this, key);
         }
 
         const publicUrl = new URL(
-            `${config.get('apiPublicBaseUrl')}/v2/key-value-stores/${this.id}/records/${key}`,
+            `${config.apiPublicBaseUrl}/v2/key-value-stores/${this.id}/records/${key}`,
         );
 
         if (this.storageObject?.urlSigningSecretKey) {

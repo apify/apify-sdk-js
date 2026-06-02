@@ -9,6 +9,7 @@ import { APIFY_ENV_VARS } from '@apify/consts';
 import log from '@apify/log';
 
 import { printOutdatedSdkWarning } from '../../packages/apify/src/utils.js';
+import { resetGlobalState } from '../resetGlobalState.js';
 
 describe('Actor.isAtHome()', () => {
     test('works', () => {
@@ -21,6 +22,13 @@ describe('Actor.isAtHome()', () => {
 });
 
 describe('Actor.newClient()', () => {
+    // crawlee v4's `Configuration` resolves env vars eagerly at construction.
+    // Reset the cached config + Actor singleton so each test observes the env
+    // it just wrote.
+    beforeEach(() => {
+        resetGlobalState();
+    });
+
     test('reads environment variables correctly', () => {
         process.env[APIFY_ENV_VARS.API_BASE_URL] =
             'http://www.example.com:1234/path';

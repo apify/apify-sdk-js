@@ -1,9 +1,15 @@
 import { createPublicKey } from 'node:crypto';
 
-import { Configuration, EventType, StorageManager } from '@crawlee/core';
+import { EventType, StorageManager } from '@crawlee/core';
 import { sleep } from '@crawlee/utils';
 import type { ApifyEnv } from 'apify';
-import { Actor, Dataset, KeyValueStore, ProxyConfiguration } from 'apify';
+import {
+    Actor,
+    Configuration,
+    Dataset,
+    KeyValueStore,
+    ProxyConfiguration,
+} from 'apify';
 import type { WebhookUpdateData } from 'apify-client';
 import { ActorClient, ApifyClient, RunClient, TaskClient } from 'apify-client';
 
@@ -705,13 +711,14 @@ describe('Actor', () => {
                 expect(getValueSpy).toBeCalledWith(KEY_VALUE_STORE_KEYS.INPUT);
                 expect(val1).toBe(123);
 
-                // Uses value from config
-                sdk.config.set('inputKey', 'some-value');
-                const val2 = await sdk.getInput();
-                expect(getValueSpy).toBeCalledTimes(2);
-                expect(getValueSpy).toBeCalledWith('some-value');
+                // Uses value from config - create a new Actor with custom inputKey
+                const sdk2 = new Actor({ inputKey: 'some-value' });
+                const getValueSpy2 = vitest.spyOn(sdk2 as any, 'getValue');
+                getValueSpy2.mockImplementation(async () => 123);
+                const val2 = await sdk2.getInput();
+                expect(getValueSpy2).toBeCalledTimes(1);
+                expect(getValueSpy2).toBeCalledWith('some-value');
                 expect(val2).toBe(123);
-                sdk.config.set('inputKey', undefined); // restore defaults
             });
 
             test('setValue()', async () => {
@@ -1181,9 +1188,15 @@ describe('Actor', () => {
     });
 
     describe('Actor.getInput', () => {
-        const TestingActor = new Actor();
+        // crawlee v4's Configuration resolves env vars eagerly at construction,
+        // so we pass a fresh `Configuration` to the Actor constructor — this
+        // observes whatever env vars the test body has set without touching
+        // the global cache.
+        const buildActor = () =>
+            new Actor({ configuration: new Configuration() });
 
         test('should work', async () => {
+            const TestingActor = buildActor();
             await expect(TestingActor.getInput()).resolves.toBeNull();
             await expect(TestingActor.getInputOrThrow()).rejects.toThrowError(
                 'Input does not exist',
@@ -1196,19 +1209,21 @@ describe('Actor', () => {
 
             await TestingActor.getInput();
 
-            // Uses value from env var.
+            // Uses value from env var — needs a fresh Actor to pick it up.
             process.env[ACTOR_ENV_VARS.INPUT_KEY] = 'some-value';
-            mockGetValue.mockImplementation(async (key) =>
+            const ActorWithInputKey = buildActor();
+            const mockGetValue2 = vitest.spyOn(ActorWithInputKey, 'getValue');
+            mockGetValue2.mockImplementation(async (key) =>
                 expect(key).toBe('some-value'),
             );
-            await TestingActor.getInput();
+            await ActorWithInputKey.getInput();
 
             delete process.env[ACTOR_ENV_VARS.INPUT_KEY];
             mockGetValue.mockRestore();
+            mockGetValue2.mockRestore();
         });
 
         test('should work with input secrets', async () => {
-            const mockGetValue = vitest.spyOn(TestingActor, 'getValue');
             const originalInput = { secret: 'foo', nonSecret: 'bar' };
             const likeInputSchema = {
                 properties: { secret: { type: 'string', isSecret: true } },
@@ -1223,12 +1238,15 @@ describe('Actor', () => {
             expect(encryptedInput.secret.startsWith('ENCRYPTED_')).toBe(true);
             expect(encryptedInput.nonSecret).toBe(originalInput.nonSecret);
 
-            mockGetValue.mockImplementation(async (key) => encryptedInput);
-
+            // Set the secrets env vars *before* constructing the Actor so
+            // the resolved config picks them up.
             process.env[APIFY_ENV_VARS.INPUT_SECRETS_PRIVATE_KEY_FILE] =
                 testingPrivateKeyFile;
             process.env[APIFY_ENV_VARS.INPUT_SECRETS_PRIVATE_KEY_PASSPHRASE] =
                 testingPrivateKeyPassphrase;
+            const TestingActor = buildActor();
+            const mockGetValue = vitest.spyOn(TestingActor, 'getValue');
+            mockGetValue.mockImplementation(async (key) => encryptedInput);
             const input = await TestingActor.getInput();
 
             expect(input).toStrictEqual(originalInput);
@@ -1282,18 +1300,22 @@ describe('Actor', () => {
     });
 
     describe('Actor.config and PPE', () => {
-        test('should work', async () => {
-            await Actor.init();
+        test('empty string maxTotalChargeUsd falls through to the schema default of Infinity', async () => {
+            // crawlee v4 treats empty-string env vars as unset, so the
+            // resolved config falls through to the schema default
+            // (`Infinity`).
             process.env.ACTOR_MAX_TOTAL_CHARGE_USD = '';
-            expect(Actor.config.get('maxTotalChargeUsd')).toBe(0);
+            await Actor.init();
+            expect(Actor.config.maxTotalChargeUsd).toBe(Infinity);
             expect(Actor.getChargingManager().getMaxTotalChargeUsd()).toBe(
                 Infinity,
             );
-
-            // the value in charging manager is cached, so we cant test that here
-            process.env.ACTOR_MAX_TOTAL_CHARGE_USD = '123';
-            expect(Actor.config.get('maxTotalChargeUsd')).toBe(123);
             await Actor.exit({ exit: false });
+        });
+
+        test('numeric maxTotalChargeUsd is correctly resolved from constructor options', () => {
+            const sdk = new Actor({ maxTotalChargeUsd: 123 });
+            expect(sdk.config.maxTotalChargeUsd).toBe(123);
         });
     });
 });
