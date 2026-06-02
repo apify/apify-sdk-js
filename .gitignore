@@ -30,3 +30,4 @@ storage
 *.tgz
 mise.toml
 tsconfig.build.tsbuildinfo
+.turbo
