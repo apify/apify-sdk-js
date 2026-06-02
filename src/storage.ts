@@ -1,8 +1,7 @@
-import type { IStorage } from '@crawlee/core';
-import { StorageManager } from '@crawlee/core';
-import type { Constructor, StorageClient } from '@crawlee/types';
-import { ApifyClient } from 'apify-client';
+import type { Constructor, IStorage, StorageOpenOptions } from '@crawlee/core';
+import type { StorageClient } from '@crawlee/types';
 
+import { ApifyStorageClient } from './apify_storage_client.js';
 import type { Configuration } from './configuration.js';
 
 export interface OpenStorageOptions {
@@ -74,7 +73,7 @@ const parsedStoragesJson = new Map<string, ActorStorages>();
 
 /**
  * Resolves a {@link StorageIdentifier} to a plain string ID or name
- * that can be passed to Crawlee's `StorageManager.openStorage()`.
+ * that can be passed to crawlee v4's `<Storage>.open()`.
  */
 function resolveStorageIdentifier(
     storageType: 'Dataset' | 'KeyValueStore' | 'RequestQueue',
@@ -98,8 +97,8 @@ function resolveStorageIdentifier(
     }
 
     // { alias: string }
-    const storagesJson = config.get('actorStoragesJson');
-    if (config.get('isAtHome') && storagesJson) {
+    const storagesJson = config.actorStoragesJson;
+    if (config.isAtHome && storagesJson) {
         let storages: ActorStorages;
         try {
             if (!parsedStoragesJson.has(storagesJson)) {
@@ -126,7 +125,7 @@ function resolveStorageIdentifier(
     // When using local storage, just use the alias as a name.
     // When using platform storage, we can't just make up a name — the alias must be
     // in ACTOR_STORAGES_JSON.
-    if (config.get('isAtHome')) {
+    if (config.isAtHome) {
         throw new Error(
             `Storage alias "${identifier.alias}" cannot be resolved because ACTOR_STORAGES_JSON is not set. ` +
                 `Aliases are only available for storages declared in the Actor's schema.`,
@@ -143,17 +142,19 @@ export interface OpenStorageContext {
 }
 
 /**
- * Opens a storage by its identifier, handling alias resolution and local purging.
+ * Opens a storage by its identifier, handling Apify alias resolution and local purging.
  */
 export async function openStorage<T extends IStorage>(
-    storageClass: Constructor<T>,
+    storageClass: Constructor<T> & {
+        open(id?: string | null, options?: StorageOpenOptions): Promise<T>;
+    },
     identifier: StorageIdentifier | null | undefined,
     context: OpenStorageContext,
 ): Promise<T> {
     const isAlias =
         identifier !== null && identifier !== undefined && typeof identifier === 'object' && 'alias' in identifier;
 
-    if (isAlias && !context.config.get('isAtHome') && context.client instanceof ApifyClient) {
+    if (isAlias && !context.config.isAtHome && context.client instanceof ApifyStorageClient) {
         throw new Error('The `alias` option is not allowed for Apify-based storages running outside of Apify');
     }
 
@@ -164,22 +165,21 @@ export async function openStorage<T extends IStorage>(
     );
 
     // When running locally, purge aliased storages on first open
-    // (similar to how Crawlee purges default storages on start)
+    // (similar to how crawlee purges default storages on start).
     if (
         isAlias &&
-        !context.config.get('isAtHome') &&
-        context.config.get('purgeOnStart') &&
+        !context.config.isAtHome &&
+        context.config.purgeOnStart &&
         !context.purgedStorageAliases.has(identifier.alias)
     ) {
         context.purgedStorageAliases.add(identifier.alias);
-        const existingStorage = await StorageManager.openStorage<T>(
-            storageClass,
-            resolvedIdOrName,
-            context.client,
-            context.config,
-        );
+        const existingStorage = await storageClass.open(resolvedIdOrName ?? null, {
+            storageClient: context.client,
+        });
         await (existingStorage as T & { drop(): Promise<void> }).drop();
     }
 
-    return StorageManager.openStorage<T>(storageClass, resolvedIdOrName, context.client, context.config);
+    return storageClass.open(resolvedIdOrName ?? null, {
+        storageClient: context.client,
+    });
 }
