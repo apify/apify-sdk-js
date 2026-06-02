@@ -1,8 +1,6 @@
-import type {
-    ProxyConfigurationOptions as CoreProxyConfigurationOptions,
-    ProxyInfo as CoreProxyInfo,
-} from '@crawlee/core';
+import type { ProxyConfigurationOptions as CoreProxyConfigurationOptions } from '@crawlee/core';
 import { ProxyConfiguration as CoreProxyConfiguration } from '@crawlee/core';
+import type { ProxyInfo as CoreProxyInfo } from '@crawlee/types';
 import { gotScraping } from 'got-scraping';
 import ow from 'ow';
 
@@ -12,11 +10,16 @@ import { cryptoRandomObjectId } from '@apify/utilities';
 import { Actor } from './actor.js';
 import { Configuration } from './configuration.js';
 
-// https://docs.apify.com/proxy/datacenter-proxy#username-parameters
-const MAX_SESSION_ID_LENGTH = 50;
 const CHECK_ACCESS_REQUEST_TIMEOUT_MILLIS = 4_000;
 const CHECK_ACCESS_MAX_ATTEMPTS = 2;
 const COUNTRY_CODE_REGEX = /^[A-Z]{2}$/;
+
+// Apify Proxy session identifier embedded in the proxy username — opaque to
+// users; a fresh one is minted for every URL the SDK hands out so that the
+// returned proxy URLs are independent.
+const SESSION_ID_LENGTH = 12;
+
+type NewUrlOptions = Parameters<CoreProxyConfiguration['newProxyInfo']>[0];
 
 export interface ProxyConfigurationOptions
     extends CoreProxyConfigurationOptions {
@@ -56,15 +59,6 @@ export interface ProxyConfigurationOptions
      * configurate the proxy by UI input schema. You should use the `countryCode` option in your crawler code.
      */
     apifyProxyCountry?: string;
-
-    /**
-     * Multiple different ProxyConfigurationOptions stratified into tiers. Crawlee crawlers will switch between those tiers
-     * based on the blocked request statistics.
-     */
-    tieredProxyConfig?: Omit<
-        ProxyConfigurationOptions,
-        keyof CoreProxyConfigurationOptions | 'tieredProxyConfig'
-    >[];
 }
 
 /**
@@ -91,9 +85,6 @@ export interface ProxyConfigurationOptions
  *   requestHandler({ proxyInfo }) {
  *       // Getting used proxy URL
  *       const proxyUrl = proxyInfo.url;
- *
- *       // Getting ID of used Session
- *       const sessionIdentifier = proxyInfo.sessionId;
  *   }
  * })
  *
@@ -104,7 +95,7 @@ export interface ProxyInfo extends CoreProxyInfo {
      * An array of proxy groups to be used by the [Apify Proxy](https://docs.apify.com/proxy).
      * If not provided, the proxy will select the groups automatically.
      */
-    groups: string[];
+    groups?: string[];
 
     /**
      * If set and relevant proxies are available in your Apify account, all proxied requests will
@@ -193,10 +184,6 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
                 apifyProxyCountry:
                     ow.optional.string.matches(COUNTRY_CODE_REGEX),
                 password: ow.optional.string,
-                tieredProxyUrls: ow.optional.array.ofType(
-                    ow.array.ofType(ow.string),
-                ),
-                tieredProxyConfig: ow.optional.array.ofType(ow.object),
             }),
         );
 
@@ -206,18 +193,7 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
             countryCode,
             apifyProxyCountry,
             password = config.proxyPassword,
-            tieredProxyConfig,
-            tieredProxyUrls,
         } = options;
-
-        this.tieredProxyUrls ??= tieredProxyUrls;
-
-        if (tieredProxyConfig) {
-            this.tieredProxyUrls = this._generateTieredProxyUrls(
-                tieredProxyConfig,
-                options,
-            );
-        }
 
         const groupsToUse = groups.length ? groups : apifyProxyGroups;
         const countryCodeToUse = countryCode || apifyProxyCountry;
@@ -241,7 +217,7 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
         this.port = port;
         this.usesApifyProxy = !this.proxyUrls && !this.newUrlFunction;
 
-        if (proxyUrls && proxyUrls.some((url) => url.includes('apify.com'))) {
+        if (proxyUrls && proxyUrls.some((url) => url?.includes('apify.com'))) {
             this.log.warning(
                 'Some Apify proxy features may work incorrectly. Please consider setting up Apify properties instead of `proxyUrls`.\n' +
                     'See https://sdk.apify.com/docs/guides/proxy-management#apify-proxy-configuration',
@@ -287,143 +263,65 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
     }
 
     /**
-     * This function creates a new {@apilink ProxyInfo} info object.
-     * It is used by CheerioCrawler and PuppeteerCrawler to generate proxy URLs and also to allow the user to inspect
-     * the currently used proxy via the requestHandler parameter `proxyInfo`.
-     * Use it if you want to work with a rich representation of a proxy URL.
-     * If you need the URL string only, use {@apilink ProxyConfiguration.newUrl}.
-     * @param [sessionId]
-     *  Represents the identifier of user {@apilink Session} that can be managed by the {@apilink SessionPool} or
-     *  you can use the Apify Proxy [Session](https://docs.apify.com/proxy#sessions) identifier.
-     *  When the provided sessionId is a number, it's converted to a string. Property sessionId of
-     *  {@apilink ProxyInfo} is always returned as a type string.
-     *
-     *  All the HTTP requests going through the proxy with the same session identifier
-     *  will use the same target proxy server (i.e. the same IP address).
-     *  The identifier must not be longer than 50 characters and include only the following: `0-9`, `a-z`, `A-Z`, `"."`, `"_"` and `"~"`.
-     * @return Represents information about used proxy and its configuration.
+     * Returns a new {@apilink ProxyInfo} object with a fresh proxy URL. Each call mints an
+     * independent URL; for Apify Proxy a random session id is embedded so consecutive
+     * calls resolve to different IPs.
      */
     override async newProxyInfo(
-        sessionId?: string | number,
-        options?: Parameters<CoreProxyConfiguration['newProxyInfo']>[1],
+        options?: NewUrlOptions,
     ): Promise<ProxyInfo | undefined> {
-        if (typeof sessionId === 'number') sessionId = `${sessionId}`;
-        ow(
-            sessionId,
-            ow.optional.string
-                .maxLength(MAX_SESSION_ID_LENGTH)
-                .matches(APIFY_PROXY_VALUE_REGEX),
-        );
+        const url = await this.newUrl(options);
+        if (!url) return undefined;
 
-        const proxyInfo = await super.newProxyInfo(sessionId, options);
-        if (!proxyInfo) return proxyInfo;
-
-        const { groups, countryCode, password, port, hostname } = (
-            this.usesApifyProxy ? this : new URL(proxyInfo.url)
-        ) as ProxyConfiguration;
-
-        return {
-            ...proxyInfo,
-            sessionId,
-            groups,
-            countryCode,
-            // this.password is not encoded, but the password from the URL will be, we need to normalize
-            password: this.usesApifyProxy
-                ? (password ?? '')
-                : decodeURIComponent(password!),
-            hostname,
-            port: port!,
+        const parsed = new URL(url);
+        const result: ProxyInfo = {
+            url,
+            username: decodeURIComponent(parsed.username),
+            password: decodeURIComponent(parsed.password),
+            hostname: parsed.hostname,
+            port: parsed.port,
         };
+        if (this.usesApifyProxy) {
+            result.groups = this.groups;
+            if (this.countryCode !== undefined)
+                result.countryCode = this.countryCode;
+        }
+        return result;
     }
 
     /**
-     * Returns a new proxy URL based on provided configuration options and the `sessionId` parameter.
-     * @param [sessionId]
-     *  Represents the identifier of user {@apilink Session} that can be managed by the {@apilink SessionPool} or
-     *  you can use the Apify Proxy [Session](https://docs.apify.com/proxy#sessions) identifier.
-     *  When the provided sessionId is a number, it's converted to a string.
-     *
-     *  All the HTTP requests going through the proxy with the same session identifier
-     *  will use the same target proxy server (i.e. the same IP address).
-     *  The identifier must not be longer than 50 characters and include only the following: `0-9`, `a-z`, `A-Z`, `"."`, `"_"` and `"~"`.
-     * @return A string with a proxy URL, including authentication credentials and port number.
-     *  For example, `http://bob:password123@proxy.example.com:8000`
+     * Returns a new proxy URL. For Apify Proxy, each call generates a URL with a fresh
+     * random session id, so consecutive calls return independent URLs. For custom
+     * `proxyUrls`, the URLs are rotated round-robin.
      */
     override async newUrl(
-        sessionId?: string | number,
-        options?: Parameters<CoreProxyConfiguration['newUrl']>[1],
+        options?: NewUrlOptions,
     ): Promise<string | undefined> {
-        if (typeof sessionId === 'number') sessionId = `${sessionId}`;
-        ow(
-            sessionId,
-            ow.optional.string
-                .maxLength(MAX_SESSION_ID_LENGTH)
-                .matches(APIFY_PROXY_VALUE_REGEX),
-        );
-        if (this.newUrlFunction) {
-            return (
-                (await this._callNewUrlFunction(sessionId, {
-                    request: options?.request,
-                })) ?? undefined
-            );
+        if (this.newUrlFunction || this.proxyUrls) {
+            return super.newUrl(options);
         }
-        if (this.proxyUrls) {
-            return this._handleCustomUrl(sessionId);
-        }
-
-        if (this.tieredProxyUrls) {
-            return (
-                this._handleTieredUrl(
-                    sessionId ?? cryptoRandomObjectId(6),
-                    options,
-                ).proxyUrl ?? undefined
-            );
-        }
-
-        return this.composeDefaultUrl(sessionId);
-    }
-
-    protected _generateTieredProxyUrls(
-        tieredProxyConfig: NonNullable<
-            ProxyConfigurationOptions['tieredProxyConfig']
-        >,
-        globalOptions: ProxyConfigurationOptions,
-    ) {
-        return tieredProxyConfig.map((config) => [
-            new ProxyConfiguration({
-                ...globalOptions,
-                ...config,
-                tieredProxyConfig: undefined,
-            }).composeDefaultUrl(),
-        ]);
+        return this.composeDefaultUrl(cryptoRandomObjectId(SESSION_ID_LENGTH));
     }
 
     /**
      * Returns proxy username.
      */
-    protected _getUsername(sessionId?: string): string {
-        let username;
+    protected _getUsername(sessionId: string): string {
         const { groups, countryCode } = this;
         const parts: string[] = [];
 
         if (groups && groups.length) {
             parts.push(`groups-${groups.join('+')}`);
         }
-        if (sessionId) {
-            parts.push(`session-${sessionId}`);
-        }
+        parts.push(`session-${sessionId}`);
         if (countryCode) {
             parts.push(`country-${countryCode}`);
         }
 
-        username = parts.join(',');
-
-        if (parts.length === 0) username = 'auto';
-
-        return username;
+        return parts.join(',');
     }
 
-    protected composeDefaultUrl(sessionId?: string): string {
+    protected composeDefaultUrl(sessionId: string): string {
         const username = this._getUsername(sessionId);
         const url = new URL(`http://${this.hostname}:${this.port}`);
         url.username = `${username}`;
