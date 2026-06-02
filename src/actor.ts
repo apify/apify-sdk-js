@@ -869,8 +869,8 @@ export class Actor<Data extends Dictionary = Dictionary> {
             return;
         }
 
-        const { customAfterSleepMillis = this.config.get('metamorphAfterSleepMillis'), ...metamorphOpts } = options;
-        const runId = this.config.get('actorRunId')!;
+        const { customAfterSleepMillis = this.config.metamorphAfterSleepMillis, ...metamorphOpts } = options;
+        const runId = this.config.actorRunId!;
         await this.apifyClient.run(runId).metamorph(targetActorId, input, metamorphOpts);
 
         // Wait some time for container to be stopped.
@@ -913,11 +913,11 @@ export class Actor<Data extends Dictionary = Dictionary> {
                 .map(async (x) => (x as any)({})),
         ]);
 
-        const runId = this.config.get('actorRunId')!;
+        const runId = this.config.actorRunId!;
         await this.apifyClient.run(runId).reboot();
 
         // Wait some time for container to be stopped.
-        const { customAfterSleepMillis = this.config.get('metamorphAfterSleepMillis') } = options;
+        const { customAfterSleepMillis = this.config.metamorphAfterSleepMillis } = options;
         await sleep(customAfterSleepMillis);
     }
 
@@ -957,7 +957,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
             return undefined;
         }
 
-        const runId = this.config.get('actorRunId')!;
+        const runId = this.config.actorRunId!;
         if (!runId) {
             throw new Error(`Environment variable ${ACTOR_ENV_VARS.RUN_ID} is not set!`);
         }
@@ -1015,7 +1015,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
             'Setting status message timed out after 1s',
         ).catch((e) => log.warning(e.message));
 
-        const runId = this.config.get('actorRunId')!;
+        const runId = this.config.actorRunId!;
 
         if (runId) {
             // just to be sure, this should be fast
@@ -1218,9 +1218,9 @@ export class Actor<Data extends Dictionary = Dictionary> {
     async getInput<T = Dictionary | string | Buffer>(): Promise<T | null> {
         this._ensureActorInit('getInput');
 
-        const inputSecretsPrivateKeyFile = this.config.get('inputSecretsPrivateKeyFile');
-        const inputSecretsPrivateKeyPassphrase = this.config.get('inputSecretsPrivateKeyPassphrase');
-        const rawInput = await this.getValue<T>(this.config.get('inputKey'));
+        const inputSecretsPrivateKeyFile = this.config.inputSecretsPrivateKeyFile;
+        const inputSecretsPrivateKeyPassphrase = this.config.inputSecretsPrivateKeyPassphrase;
+        const rawInput = await this.getValue<T>(this.config.inputKey);
 
         let input = rawInput as T;
 
@@ -1485,14 +1485,14 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @ignore
      */
     newClient(options: ApifyClientOptions = {}): ApifyClient {
-        const { storageDir, ...storageClientOptions } = this.config.get('storageClientOptions') as Dictionary;
+        const { storageDir, ...storageClientOptions } = this.config.storageClientOptions as Dictionary;
         const { apifyVersion, crawleeVersion } = getSystemInfo();
 
         return createPatchedApifyClient(
             {
-                baseUrl: this.config.get('apiBaseUrl'),
-                publicBaseUrl: this.config.get('apiPublicBaseUrl'),
-                token: this.config.get('token'),
+                baseUrl: this.config.apiBaseUrl,
+                publicBaseUrl: this.config.apiPublicBaseUrl,
+                token: this.config.token,
                 userAgentSuffix: [`SDK/${apifyVersion}`, `Crawlee/${crawleeVersion}`],
                 ...storageClientOptions,
                 ...options, // allow overriding the instance configuration
@@ -2250,7 +2250,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
             };
         }
 
-        const isDefaultDataset = dataset.id === this.config.get('defaultDatasetId');
+        const isDefaultDataset = dataset.id === this.config.defaultDatasetId;
 
         return pushDataAndCharge({
             chargingManager: this.chargingManager,
