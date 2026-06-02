@@ -1,13 +1,14 @@
 import { rm } from 'node:fs/promises';
 import { resolve } from 'node:path';
 
-import { StorageManager } from '@crawlee/core';
+import { serviceLocator } from '@crawlee/core';
 import { MemoryStorage } from '@crawlee/memory-storage';
-import { Configuration } from 'apify';
 import { ensureDir } from 'fs-extra';
 
 import log from '@apify/log';
 import { cryptoRandomObjectId } from '@apify/utilities';
+
+import { resetGlobalState } from './resetGlobalState.js';
 
 const LOCAL_EMULATION_DIR = resolve(
     __dirname,
@@ -20,7 +21,10 @@ export class MemoryStorageEmulator {
     protected localStorageDirectories: string[] = [];
 
     async init(dirName = cryptoRandomObjectId(10)) {
-        StorageManager.clearCache();
+        // crawlee v4 dropped `StorageManager.clearCache()` and
+        // `Configuration.useStorageClient()`; reset the global state and
+        // re-register the in-memory client instead.
+        resetGlobalState();
         const localStorageDir = resolve(LOCAL_EMULATION_DIR, dirName);
         this.localStorageDirectories.push(localStorageDir);
         await ensureDir(localStorageDir);
@@ -28,7 +32,7 @@ export class MemoryStorageEmulator {
         const storage = new MemoryStorage({
             localDataDirectory: localStorageDir,
         });
-        Configuration.getGlobalConfig().useStorageClient(storage);
+        serviceLocator.setStorageClient(storage);
         log.debug(
             `Initialized emulated memory storage in folder ${localStorageDir}`,
         );
@@ -40,7 +44,7 @@ export class MemoryStorageEmulator {
         });
 
         await Promise.all(promises);
-        StorageManager.clearCache();
+        resetGlobalState();
     }
 
     static toString() {
