@@ -17,6 +17,7 @@ export default defineConfig({
             reporter: ['text', 'lcov', 'cobertura'],
             exclude: ['**/node_modules/**', '**/dist/**', '**/test/**'],
         },
+        clearMocks: true,
         restoreMocks: true,
         testTimeout: 60_000,
         hookTimeout: 60_000,
