@@ -1,4 +1,4 @@
-import { EventType } from '@crawlee/core';
+import { EventType, serviceLocator } from '@crawlee/core';
 import type { Dictionary } from '@crawlee/utils';
 import { sleep } from '@crawlee/utils';
 import { Actor, Configuration, PlatformEventManager } from 'apify';
@@ -6,19 +6,28 @@ import { WebSocketServer } from 'ws';
 
 import { ACTOR_ENV_VARS, ACTOR_EVENT_NAMES, APIFY_ENV_VARS } from '@apify/consts';
 
+import { resetGlobalState } from '../resetGlobalState.js';
+
 describe('events', () => {
     let wss: WebSocketServer = null!;
-    const config = Configuration.getGlobalConfig();
+    let config: Configuration = null!;
     let events: PlatformEventManager = null!;
 
     beforeEach(() => {
-        wss = new WebSocketServer({ port: 9099 });
-        events = new PlatformEventManager(config);
-        config.useEventManager(events);
-
-        vitest.useFakeTimers();
+        // crawlee v4's Configuration snapshots env vars at construction, so the
+        // WS URL must be set *before* the config is (re-)resolved below.
         process.env[ACTOR_ENV_VARS.EVENTS_WEBSOCKET_URL] = 'ws://localhost:9099/someRunId';
         process.env[APIFY_ENV_VARS.TOKEN] = 'dummy';
+
+        // crawlee v4's serviceLocator throws when a service is re-set, so start
+        // each test from a clean locator and re-resolve the global config.
+        serviceLocator.reset();
+        config = Configuration.getGlobalConfig();
+        wss = new WebSocketServer({ port: 9099 });
+        events = new PlatformEventManager(config);
+        serviceLocator.setEventManager(events);
+
+        vitest.useFakeTimers();
     });
     afterEach(async () => {
         vitest.useRealTimers();
@@ -52,7 +61,7 @@ describe('events', () => {
         const eventsReceived: unknown[] = [];
         // Run main and store received events
         expect(wsClosed).toBe(false);
-        await Actor.init({ gracefulShutdown: false });
+        await Actor.init();
         await isWsConnected;
         Actor.on('aborting', (data) => eventsReceived.push(data));
         vitest.advanceTimersByTime(150);
@@ -117,7 +126,7 @@ describe('events', () => {
 
     test('should send persist state events in regular interval', async () => {
         const eventsReceived = [];
-        const interval = config.get('persistStateIntervalMillis')!;
+        const interval = config.persistStateIntervalMillis!;
 
         events.on(EventType.PERSIST_STATE, (data) => eventsReceived.push(data));
         await events.init();
@@ -133,19 +142,25 @@ describe('graceful exit handlers', () => {
     let wss: WebSocketServer = null!;
     let processExitSpy: ReturnType<typeof vitest.spyOn>;
     let testPort = 9098;
-    const gracefulConfig = Configuration.getGlobalConfig();
+    let gracefulConfig: Configuration = null!;
     let testEvents: PlatformEventManager = null!;
 
     beforeEach(() => {
-        // Use incrementing port to avoid port reuse issues between tests
+        // Use an incrementing port to avoid port reuse issues between tests.
         testPort++;
-        wss = new WebSocketServer({ port: testPort });
+        // crawlee v4's Configuration snapshots env vars at construction, so the
+        // per-test WS URL must be set before the global config is re-resolved.
         process.env[ACTOR_ENV_VARS.EVENTS_WEBSOCKET_URL] = `ws://localhost:${testPort}/someRunId`;
         process.env[APIFY_ENV_VARS.TOKEN] = 'dummy';
-        // Create a fresh PlatformEventManager for each test to avoid shared state
+        // Drop cached singletons so the fresh config picks up this test's WS URL,
+        // and start from a clean locator (v4 throws when a service is re-set).
+        resetGlobalState();
+        gracefulConfig = Configuration.getGlobalConfig();
+        wss = new WebSocketServer({ port: testPort });
+        // Create a fresh PlatformEventManager for each test to avoid shared state.
         testEvents = new PlatformEventManager(gracefulConfig);
-        gracefulConfig.useEventManager(testEvents);
-        // Mock process.exit to prevent actual exit during tests
+        serviceLocator.setEventManager(testEvents);
+        // Mock process.exit to prevent actual exit during tests.
         processExitSpy = vitest.spyOn(process, 'exit').mockImplementation((() => {}) as never);
     });
 
@@ -153,9 +168,9 @@ describe('graceful exit handlers', () => {
         delete process.env[ACTOR_ENV_VARS.EVENTS_WEBSOCKET_URL];
         delete process.env[APIFY_ENV_VARS.TOKEN];
         processExitSpy.mockRestore();
-        // Close the event manager to clean up WebSocket connections
+        // Close the event manager to clean up WebSocket connections.
         await testEvents.close();
-        // Close the WebSocket server - terminate all connections first
+        // Close the WebSocket server - terminate all connections first.
         for (const client of wss.clients) {
             client.terminate();
         }
@@ -170,12 +185,7 @@ describe('graceful exit handlers', () => {
 
         const eventReceived = new Promise<void>((resolve) => {
             wss.on('connection', (ws) => {
-                ws.send(
-                    JSON.stringify({
-                        name: ACTOR_EVENT_NAMES.ABORTING,
-                        data: {},
-                    }),
-                );
+                ws.send(JSON.stringify({ name: ACTOR_EVENT_NAMES.ABORTING, data: {} }));
                 resolve();
             });
         });
@@ -184,11 +194,11 @@ describe('graceful exit handlers', () => {
             exitCalled = true;
         });
 
-        // Default behavior should register handlers
+        // Default behavior should register handlers.
         await actor.init();
         await eventReceived;
 
-        // Wait for setTimeout(0) in the handler to fire
+        // Wait for the setTimeout(0) in the handler to fire.
         await sleep(50);
 
         expect(exitCalled).toBe(true);
@@ -201,12 +211,7 @@ describe('graceful exit handlers', () => {
 
         const eventReceived = new Promise<void>((resolve) => {
             wss.on('connection', (ws) => {
-                ws.send(
-                    JSON.stringify({
-                        name: ACTOR_EVENT_NAMES.MIGRATING,
-                        data: {},
-                    }),
-                );
+                ws.send(JSON.stringify({ name: ACTOR_EVENT_NAMES.MIGRATING, data: {} }));
                 resolve();
             });
         });
@@ -215,11 +220,11 @@ describe('graceful exit handlers', () => {
             rebootCalled = true;
         });
 
-        // Default behavior should register handlers
+        // Default behavior should register handlers.
         await actor.init();
         await eventReceived;
 
-        // Wait for setTimeout(0) in the handler to fire
+        // Wait for the setTimeout(0) in the handler to fire.
         await sleep(50);
 
         expect(rebootCalled).toBe(true);
@@ -232,12 +237,7 @@ describe('graceful exit handlers', () => {
 
         const eventReceived = new Promise<void>((resolve) => {
             wss.on('connection', (ws) => {
-                ws.send(
-                    JSON.stringify({
-                        name: ACTOR_EVENT_NAMES.ABORTING,
-                        data: {},
-                    }),
-                );
+                ws.send(JSON.stringify({ name: ACTOR_EVENT_NAMES.ABORTING, data: {} }));
                 resolve();
             });
         });
@@ -246,7 +246,7 @@ describe('graceful exit handlers', () => {
             exitCalled = true;
         });
 
-        // Opt-out behavior (gracefulShutdown: false) should NOT register handlers
+        // Opt-out (gracefulShutdown: false) should NOT register handlers.
         await actor.init({ gracefulShutdown: false });
         await eventReceived;
 
