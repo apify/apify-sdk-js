@@ -1,33 +1,26 @@
 import { createPrivateKey } from 'node:crypto';
 
 import type {
-    ConfigurationOptions,
     EventManager,
     EventTypeName,
     IStorage,
     RecordOptions,
+    StorageOpenOptions,
     UseStateOptions,
 } from '@crawlee/core';
-import {
-    Configuration as CoreConfiguration,
-    Dataset,
-    EventType,
-    purgeDefaultStorages,
-    RequestQueue,
-} from '@crawlee/core';
+import { Dataset, EventType, purgeDefaultStorages, RequestQueue, serviceLocator } from '@crawlee/core';
 import type { Awaitable, Constructor, Dictionary, SetStatusMessageOptions, StorageClient } from '@crawlee/types';
 import { sleep, snakeCaseToCamelCase } from '@crawlee/utils';
 import type {
     ActorCallOptions,
     ActorStartOptions,
-    ApifyClient,
     ApifyClientOptions,
     RunAbortOptions,
     TaskCallOptions,
     Webhook,
     WebhookEventType,
 } from 'apify-client';
-import { ActorRun as ClientActorRun } from 'apify-client';
+import { ActorRun as ClientActorRun, ApifyClient } from 'apify-client';
 import ow from 'ow';
 
 import {
@@ -41,23 +34,24 @@ import { decryptInputSecrets } from '@apify/input_secrets';
 import log from '@apify/log';
 import { addTimeoutToPromise } from '@apify/timeout';
 
-import type { ChargeOptions, ChargeResult } from './charging.js';
-import { ChargingManager, pushDataAndCharge } from './charging.js';
-import { Configuration } from './configuration.js';
-import { getDefaultsFromInputSchema, noActorInputSchemaDefinedMarker, readInputSchema } from './input-schemas.js';
-import { KeyValueStore } from './key_value_store.js';
 import {
-    createPatchedApifyClient,
+    ApifyStorageClient,
     type PpeAwarePushDataContext,
     pushDataChargingContext,
     USES_PUSH_DATA_INTERCEPTION,
-} from './patched_apify_client.js';
+} from './apify_storage_client.js';
+import type { ChargeOptions, ChargeResult } from './charging.js';
+import { ChargingManager, pushDataAndCharge } from './charging.js';
+import type { ConfigurationOptions } from './configuration.js';
+import { Configuration } from './configuration.js';
+import { getDefaultsFromInputSchema, noActorInputSchemaDefinedMarker, readInputSchema } from './input-schemas.js';
+import { KeyValueStore } from './key_value_store.js';
 import { PlatformEventManager } from './platform_event_manager.js';
 import type { ProxyConfigurationOptions } from './proxy_configuration.js';
 import { ProxyConfiguration } from './proxy_configuration.js';
 import type { OpenStorageOptions, StorageIdentifier, StorageIdentifierWithoutAlias } from './storage.js';
 import { openStorage } from './storage.js';
-import { checkCrawleeVersion, getSystemInfo } from './utils.js';
+import { checkCrawleeVersion, getSystemInfo, printOutdatedSdkWarning } from './utils.js';
 
 export interface InitOptions {
     storage?: StorageClient;
@@ -74,6 +68,21 @@ export interface InitOptions {
      */
     gracefulShutdownDelayMillis?: number;
 }
+
+/**
+ * Options accepted by the {@link Actor} constructor. Either pass field-level
+ * overrides (`token`, `inputKey`, …) — which the Actor turns into a fresh
+ * {@link Configuration} — or pass a pre-built `configuration` instance. When
+ * both are present, `configuration` wins and the field-level overrides are
+ * ignored.
+ */
+export type ActorOptions = ConfigurationOptions & {
+    /**
+     * Pre-built {@link Configuration} instance the Actor should use. Takes
+     * precedence over any field-level overrides also passed in `options`.
+     */
+    configuration?: Configuration;
+};
 
 export interface ExitOptions {
     /** Exit with given status message */
@@ -435,9 +444,28 @@ export class Actor<Data extends Dictionary = Dictionary> {
      */
     purgedStorageAliases = new Set<string>();
 
-    constructor(options: ConfigurationOptions = {}) {
-        // use default configuration object if nothing overridden (it fallbacks to env vars)
-        this.config = Object.keys(options).length === 0 ? Configuration.getGlobalConfig() : new Configuration(options);
+    constructor(options: ActorOptions = {}) {
+        const { configuration, ...configOptions } = options;
+        if (configuration) {
+            // BYO Configuration takes precedence; field-level overrides are
+            // ignored to keep the contract unambiguous. It must be the SDK's
+            // Configuration subclass, not a bare crawlee one — env-var
+            // resolution is driven by the subclass's `static fields`
+            // (`apifyConfigFields`) at construction, so a crawlee instance
+            // would silently expose none of the `APIFY_*`/`ACTOR_*` values.
+            if (!(configuration instanceof Configuration)) {
+                throw new Error(
+                    'Actor `configuration` must be an Apify SDK Configuration (imported from `apify`), ' +
+                        'not a crawlee Configuration, otherwise APIFY_*/ACTOR_* environment variables are not resolved.',
+                );
+            }
+            this.config = configuration;
+        } else if (Object.keys(configOptions).length === 0) {
+            // use default configuration object if nothing overridden (it fallbacks to env vars)
+            this.config = Configuration.getGlobalConfig();
+        } else {
+            this.config = new Configuration(configOptions);
+        }
         this.apifyClient = this.newClient();
         this.eventManager = new PlatformEventManager(this.config);
         this.chargingManager = new ChargingManager(this.config, this.apifyClient);
@@ -553,21 +581,24 @@ export class Actor<Data extends Dictionary = Dictionary> {
 
         checkCrawleeVersion();
         log.info('System info', getSystemInfo());
+        printOutdatedSdkWarning();
 
-        // reset global config instance to respect APIFY_ prefixed env vars
-        CoreConfiguration.globalConfig = Configuration.getGlobalConfig();
+        // Register this Actor's config as the global one so crawlee storages and
+        // the event manager resolve the same instance (`availableMemoryRatio` /
+        // `disableBrowserSandbox` at-home defaults now live in `Configuration`).
+        serviceLocator.setConfiguration(this.config);
 
         if (this.isAtHome()) {
-            this.config.set('availableMemoryRatio', 1);
-            this.config.set('disableBrowserSandbox', true); // for browser launcher, adds `--no-sandbox` to args
-            this.config.useStorageClient(this.apifyClient);
-            this.config.useEventManager(this.eventManager);
+            serviceLocator.setStorageClient(
+                new ApifyStorageClient(this.apifyClient, this.config, () => this.chargingManager),
+            );
+            serviceLocator.setEventManager(this.eventManager);
         } else if (options.storage) {
-            this.config.useStorageClient(options.storage);
+            serviceLocator.setStorageClient(options.storage);
         }
 
         // Init the event manager the config uses
-        await this.config.getEventManager().init();
+        await serviceLocator.getEventManager().init();
         log.debug(`Events initialized`);
 
         // Register handlers for aborting and migrating events for automatic graceful shutdown.
@@ -602,8 +633,6 @@ export class Actor<Data extends Dictionary = Dictionary> {
         });
         log.debug(`Default storages purged`);
 
-        Configuration.storage.enterWith(this.config);
-
         await this.chargingManager.init();
         log.debug(`ChargingManager initialized`, this.chargingManager.getPricingInfo());
     }
@@ -629,8 +658,8 @@ export class Actor<Data extends Dictionary = Dictionary> {
 
         this._ensureActorInit('exit');
 
-        const client = this.config.getStorageClient();
-        const events = this.config.getEventManager();
+        const client = serviceLocator.getStorageClient();
+        const events = serviceLocator.getEventManager();
 
         // Remove graceful shutdown handlers to prevent them from interfering with exit
         if (this.gracefulShutdownHandlers.aborting) {
@@ -714,14 +743,14 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @ignore
      */
     on(event: EventTypeName, listener: (...args: any[]) => any): void {
-        this.config.getEventManager().on(event, listener);
+        serviceLocator.getEventManager().on(event, listener);
     }
 
     /**
      * @ignore
      */
     off(event: EventTypeName, listener?: (...args: any[]) => any): void {
-        this.config.getEventManager().off(event, listener);
+        serviceLocator.getEventManager().off(event, listener);
     }
 
     /**
@@ -902,15 +931,15 @@ export class Actor<Data extends Dictionary = Dictionary> {
         // Waiting for all the listeners to finish, as `.reboot()` kills the container.
         await Promise.all([
             // `persistState` for individual RequestLists, RequestQueue... instances to be persisted
-            ...this.config
+            ...serviceLocator
                 .getEventManager()
                 .listeners(EventType.PERSIST_STATE)
-                .map(async (x) => (x as any)({})),
+                .map(async (x: (...args: unknown[]) => unknown) => x({})),
             // `migrating` to pause Apify crawlers
-            ...this.config
+            ...serviceLocator
                 .getEventManager()
                 .listeners(EventType.MIGRATING)
-                .map(async (x) => (x as any)({})),
+                .map(async (x: (...args: unknown[]) => unknown) => x({})),
         ]);
 
         const runId = this.config.actorRunId!;
@@ -1002,7 +1031,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
                 break;
         }
 
-        const client = this.config.getStorageClient();
+        const client = serviceLocator.getStorageClient();
 
         // just to be sure, this should be fast
         await addTimeoutToPromise(
@@ -1218,8 +1247,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
     async getInput<T = Dictionary | string | Buffer>(): Promise<T | null> {
         this._ensureActorInit('getInput');
 
-        const inputSecretsPrivateKeyFile = this.config.inputSecretsPrivateKeyFile;
-        const inputSecretsPrivateKeyPassphrase = this.config.inputSecretsPrivateKeyPassphrase;
+        const { inputSecretsPrivateKeyFile, inputSecretsPrivateKeyPassphrase } = this.config;
         const rawInput = await this.getValue<T>(this.config.inputKey);
 
         let input = rawInput as T;
@@ -1324,7 +1352,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
         const queue = await this._openStorage(RequestQueue, queueIdOrName, options);
 
         // eslint-disable-next-line dot-notation
-        queue['initialCount'] = (await queue.client.get())?.totalRequestCount ?? 0;
+        queue['initialCount'] = (await queue.client.getMetadata())?.totalRequestCount ?? 0;
 
         return queue;
     }
@@ -1485,20 +1513,17 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @ignore
      */
     newClient(options: ApifyClientOptions = {}): ApifyClient {
-        const { storageDir, ...storageClientOptions } = this.config.storageClientOptions as Dictionary;
+        const { storageDir, ...storageClientOptions } = (this.config.storageClientOptions ?? {}) as Dictionary;
         const { apifyVersion, crawleeVersion } = getSystemInfo();
 
-        return createPatchedApifyClient(
-            {
-                baseUrl: this.config.apiBaseUrl,
-                publicBaseUrl: this.config.apiPublicBaseUrl,
-                token: this.config.token,
-                userAgentSuffix: [`SDK/${apifyVersion}`, `Crawlee/${crawleeVersion}`],
-                ...storageClientOptions,
-                ...options, // allow overriding the instance configuration
-            },
-            this,
-        );
+        return new ApifyClient({
+            baseUrl: this.config.apiBaseUrl,
+            publicBaseUrl: this.config.apiPublicBaseUrl,
+            token: this.config.token,
+            userAgentSuffix: [`SDK/${apifyVersion}`, `Crawlee/${crawleeVersion}`],
+            ...storageClientOptions,
+            ...options, // allow overriding the instance configuration
+        });
     }
 
     /**
@@ -2262,13 +2287,17 @@ export class Actor<Data extends Dictionary = Dictionary> {
     }
 
     private async _openStorage<T extends IStorage>(
-        storageClass: Constructor<T>,
+        storageClass: Constructor<T> & {
+            open(id?: string | null, options?: StorageOpenOptions): Promise<T>;
+        },
         identifier?: StorageIdentifier | null,
         options: OpenStorageOptions = {},
     ) {
         return openStorage<T>(storageClass, identifier, {
             config: this.config,
-            client: options.forceCloud ? this.apifyClient : undefined,
+            client: options.forceCloud
+                ? new ApifyStorageClient(this.apifyClient, this.config, () => this.chargingManager)
+                : undefined,
             purgedStorageAliases: this.purgedStorageAliases,
         });
     }

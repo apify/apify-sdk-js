@@ -1,9 +1,9 @@
 import { createPublicKey } from 'node:crypto';
 
-import { Configuration, EventType, StorageManager } from '@crawlee/core';
+import { EventType, serviceLocator } from '@crawlee/core';
 import { sleep } from '@crawlee/utils';
 import type { ApifyEnv } from 'apify';
-import { Actor, Dataset, KeyValueStore, ProxyConfiguration } from 'apify';
+import { Actor, Configuration, Dataset, KeyValueStore, ProxyConfiguration, RequestQueue } from 'apify';
 import type { WebhookUpdateData } from 'apify-client';
 import { ActorClient, ApifyClient, RunClient, TaskClient } from 'apify-client';
 
@@ -18,6 +18,7 @@ import { encryptInputSecrets } from '@apify/input_secrets';
 import log from '@apify/log';
 
 import { MemoryStorageEmulator } from '../MemoryStorageEmulator.js';
+import { resetGlobalState } from '../resetGlobalState.js';
 
 const getEmptyEnv = () => {
     return {
@@ -630,13 +631,16 @@ describe('Actor', () => {
                 expect(getValueSpy).toBeCalledWith(KEY_VALUE_STORE_KEYS.INPUT);
                 expect(val1).toBe(123);
 
-                // Uses value from config
-                sdk.config.set('inputKey', 'some-value');
-                const val2 = await sdk.getInput();
+                // Uses value from config. crawlee v4's Configuration is
+                // immutable, so a different input key is supplied through a
+                // fresh Actor instance instead of mutating the existing config.
+                const sdkWithInputKey = new Actor({
+                    configuration: new Configuration({ inputKey: 'some-value' }),
+                });
+                const val2 = await sdkWithInputKey.getInput();
                 expect(getValueSpy).toBeCalledTimes(2);
                 expect(getValueSpy).toBeCalledWith('some-value');
                 expect(val2).toBe(123);
-                sdk.config.set('inputKey', undefined); // restore defaults
             });
 
             test('setValue()', async () => {
@@ -671,16 +675,19 @@ describe('Actor', () => {
             test('openRequestQueue should open storage', async () => {
                 const queueId = 'abc';
                 const options = { forceCloud: true };
-                const openStorageSpy = vitest.spyOn(StorageManager.prototype, 'openStorage');
-
+                // crawlee v4 opens storages via `<Storage>.open(id, { storageClient })`;
+                // `forceCloud` is expressed by passing an explicit (Apify) client.
                 const mockRQ = {
-                    client: { get: () => ({ totalRequestCount: 10 }) },
-                };
+                    client: {
+                        getMetadata: async () => ({ totalRequestCount: 10 }),
+                    },
+                } as unknown as RequestQueue;
+                const openSpy = vitest.spyOn(RequestQueue, 'open').mockResolvedValueOnce(mockRQ);
 
-                openStorageSpy.mockImplementationOnce(async () => mockRQ);
                 const queue = await sdk.openRequestQueue(queueId, options);
-                expect(openStorageSpy).toBeCalledWith(queueId, sdk.apifyClient);
-                expect(openStorageSpy).toBeCalledTimes(1);
+                expect(openSpy).toBeCalledTimes(1);
+                expect(openSpy.mock.calls[0][0]).toBe(queueId);
+                expect(openSpy.mock.calls[0][1]?.storageClient).toBeDefined();
 
                 // @ts-expect-error private prop
                 expect(queue.initialCount).toBe(10);
@@ -689,11 +696,11 @@ describe('Actor', () => {
             test('openDataset should open storage', async () => {
                 const datasetName = 'abc';
                 const options = { forceCloud: true };
-                const mockOpenStorage = vitest.spyOn(StorageManager.prototype, 'openStorage');
-                mockOpenStorage.mockResolvedValueOnce(vitest.fn());
-                const ds = await sdk.openDataset(datasetName, options);
-                expect(mockOpenStorage).toBeCalledTimes(1);
-                expect(mockOpenStorage).toBeCalledWith(datasetName, sdk.apifyClient);
+                const openSpy = vitest.spyOn(Dataset, 'open').mockResolvedValueOnce({} as Dataset);
+                await sdk.openDataset(datasetName, options);
+                expect(openSpy).toBeCalledTimes(1);
+                expect(openSpy.mock.calls[0][0]).toBe(datasetName);
+                expect(openSpy.mock.calls[0][1]?.storageClient).toBeDefined();
             });
 
             describe('StorageIdentifier support', () => {
@@ -712,96 +719,101 @@ describe('Actor', () => {
                     },
                 });
 
-                test('openDataset with { alias } resolves from ACTOR_STORAGES_JSON', async () => {
-                    sdk.config.set('actorStoragesJson', STORAGES_JSON);
+                // crawlee v4's Configuration is immutable, so the platform alias
+                // map is supplied through a fresh Actor instance instead of
+                // mutating the existing config. `isAtHome` is resolved from the
+                // env var at construction.
+                const atHomeAliasActor = (actorStoragesJson: string) => {
                     process.env[APIFY_ENV_VARS.IS_AT_HOME] = '1';
-                    const mockOpenStorage = vitest.spyOn(StorageManager.prototype, 'openStorage');
-                    mockOpenStorage.mockResolvedValueOnce(vitest.fn());
-                    await sdk.openDataset({ alias: 'custom' });
-                    expect(mockOpenStorage).toBeCalledTimes(1);
-                    expect(mockOpenStorage).toBeCalledWith('dataset-id-123', undefined);
-                    delete process.env[APIFY_ENV_VARS.IS_AT_HOME];
+                    try {
+                        return new Actor({
+                            configuration: new Configuration({ actorStoragesJson }),
+                        });
+                    } finally {
+                        delete process.env[APIFY_ENV_VARS.IS_AT_HOME];
+                    }
+                };
+
+                test('openDataset with { alias } resolves from ACTOR_STORAGES_JSON', async () => {
+                    const sdk2 = atHomeAliasActor(STORAGES_JSON);
+                    const openSpy = vitest.spyOn(Dataset, 'open').mockResolvedValueOnce({} as Dataset);
+                    await sdk2.openDataset({ alias: 'custom' });
+                    expect(openSpy).toBeCalledTimes(1);
+                    expect(openSpy.mock.calls[0][0]).toBe('dataset-id-123');
                 });
 
                 test('openDataset with { alias } throws when alias not found in ACTOR_STORAGES_JSON', async () => {
-                    sdk.config.set('actorStoragesJson', STORAGES_JSON);
-                    process.env[APIFY_ENV_VARS.IS_AT_HOME] = '1';
-                    await expect(sdk.openDataset({ alias: 'nonexistent' })).rejects.toThrow(
+                    const sdk2 = atHomeAliasActor(STORAGES_JSON);
+                    await expect(sdk2.openDataset({ alias: 'nonexistent' })).rejects.toThrow(
                         /Storage alias "nonexistent" not found in ACTOR_STORAGES_JSON/,
                     );
-                    delete process.env[APIFY_ENV_VARS.IS_AT_HOME];
                 });
 
                 test('openDataset with { alias } uses alias as name when ACTOR_STORAGES_JSON not set', async () => {
                     // No actorStoragesJson set — should use alias as a name for local storage
-                    const mockOpenStorage = vitest.spyOn(StorageManager.prototype, 'openStorage');
+                    const openSpy = vitest.spyOn(Dataset, 'open');
                     // First call is for the purge (drop), second for re-open
-                    const mockStorage = { drop: vitest.fn() };
-                    mockOpenStorage.mockResolvedValueOnce(mockStorage);
-                    mockOpenStorage.mockResolvedValueOnce(vitest.fn());
+                    const mockStorage = { drop: vitest.fn() } as unknown as Dataset;
+                    openSpy.mockResolvedValueOnce(mockStorage);
+                    openSpy.mockResolvedValueOnce({} as Dataset);
                     await sdk.openDataset({ alias: 'my-local-ds' });
                     // First open + drop, then re-open
-                    expect(mockOpenStorage).toBeCalledTimes(2);
-                    expect(mockOpenStorage).toBeCalledWith('my-local-ds', undefined);
-                    expect(mockStorage.drop).toBeCalledTimes(1);
+                    expect(openSpy).toBeCalledTimes(2);
+                    expect(openSpy.mock.calls[1][0]).toBe('my-local-ds');
+                    expect((mockStorage as unknown as { drop: ReturnType<typeof vitest.fn> }).drop).toBeCalledTimes(1);
                 });
 
                 test('openDataset with { alias } locally only purges once per alias', async () => {
-                    const mockOpenStorage = vitest.spyOn(StorageManager.prototype, 'openStorage');
-                    const mockStorage = { drop: vitest.fn() };
+                    const openSpy = vitest.spyOn(Dataset, 'open');
+                    const drop = vitest.fn();
+                    const mockStorage = { drop } as unknown as Dataset;
                     // First call: purge open, second: re-open after drop, third: second open (no purge)
-                    mockOpenStorage.mockResolvedValue(mockStorage);
+                    openSpy.mockResolvedValue(mockStorage);
                     await sdk.openDataset({ alias: 'once-only' });
-                    expect(mockStorage.drop).toBeCalledTimes(1);
-                    expect(mockOpenStorage).toBeCalledTimes(2);
+                    expect(drop).toBeCalledTimes(1);
+                    expect(openSpy).toBeCalledTimes(2);
 
-                    mockOpenStorage.mockClear();
-                    mockStorage.drop.mockClear();
+                    openSpy.mockClear();
+                    drop.mockClear();
                     await sdk.openDataset({ alias: 'once-only' });
                     // Second time: no purge, just one open call
-                    expect(mockStorage.drop).not.toBeCalled();
-                    expect(mockOpenStorage).toBeCalledTimes(1);
+                    expect(drop).not.toBeCalled();
+                    expect(openSpy).toBeCalledTimes(1);
                 });
 
                 test('openDataset with { id } passes ID directly', async () => {
-                    const mockOpenStorage = vitest.spyOn(StorageManager.prototype, 'openStorage');
-                    mockOpenStorage.mockResolvedValueOnce(vitest.fn());
+                    const openSpy = vitest.spyOn(Dataset, 'open').mockResolvedValueOnce({} as Dataset);
                     await sdk.openDataset({ id: 'explicit-id' });
-                    expect(mockOpenStorage).toBeCalledTimes(1);
-                    expect(mockOpenStorage).toBeCalledWith('explicit-id', undefined);
+                    expect(openSpy).toBeCalledTimes(1);
+                    expect(openSpy.mock.calls[0][0]).toBe('explicit-id');
                 });
 
                 test('openDataset with { name } passes name directly', async () => {
-                    const mockOpenStorage = vitest.spyOn(StorageManager.prototype, 'openStorage');
-                    mockOpenStorage.mockResolvedValueOnce(vitest.fn());
+                    const openSpy = vitest.spyOn(Dataset, 'open').mockResolvedValueOnce({} as Dataset);
                     await sdk.openDataset({ name: 'explicit-name' });
-                    expect(mockOpenStorage).toBeCalledTimes(1);
-                    expect(mockOpenStorage).toBeCalledWith('explicit-name', undefined);
+                    expect(openSpy).toBeCalledTimes(1);
+                    expect(openSpy.mock.calls[0][0]).toBe('explicit-name');
                 });
 
                 test('openDataset with plain string (backward compat) passes through', async () => {
-                    const mockOpenStorage = vitest.spyOn(StorageManager.prototype, 'openStorage');
-                    mockOpenStorage.mockResolvedValueOnce(vitest.fn());
+                    const openSpy = vitest.spyOn(Dataset, 'open').mockResolvedValueOnce({} as Dataset);
                     await sdk.openDataset('my-dataset');
-                    expect(mockOpenStorage).toBeCalledTimes(1);
-                    expect(mockOpenStorage).toBeCalledWith('my-dataset', undefined);
+                    expect(openSpy).toBeCalledTimes(1);
+                    expect(openSpy.mock.calls[0][0]).toBe('my-dataset');
                 });
 
                 test('openDataset with no argument opens default storage', async () => {
-                    const mockOpenStorage = vitest.spyOn(StorageManager.prototype, 'openStorage');
-                    mockOpenStorage.mockResolvedValueOnce(vitest.fn());
+                    const openSpy = vitest.spyOn(Dataset, 'open').mockResolvedValueOnce({} as Dataset);
                     await sdk.openDataset();
-                    expect(mockOpenStorage).toBeCalledTimes(1);
-                    expect(mockOpenStorage).toBeCalledWith(undefined, undefined);
+                    expect(openSpy).toBeCalledTimes(1);
+                    expect(openSpy.mock.calls[0][0]).toBe(null);
                 });
 
                 test('throws on malformed ACTOR_STORAGES_JSON', async () => {
-                    sdk.config.set('actorStoragesJson', '{not valid json');
-                    process.env[APIFY_ENV_VARS.IS_AT_HOME] = '1';
-                    await expect(sdk.openDataset({ alias: 'custom' })).rejects.toThrow(
+                    const sdk2 = atHomeAliasActor('{not valid json');
+                    await expect(sdk2.openDataset({ alias: 'custom' })).rejects.toThrow(
                         /Failed to parse ACTOR_STORAGES_JSON/,
                     );
-                    delete process.env[APIFY_ENV_VARS.IS_AT_HOME];
                 });
             });
         });
@@ -1124,7 +1136,7 @@ describe('Actor', () => {
 
             const migratingSpy = vitest.fn(persistResource(50));
             const persistStateSpy = vitest.fn(persistResource(50));
-            const events = Configuration.getEventManager();
+            const events = serviceLocator.getEventManager();
 
             events.on(EventType.PERSIST_STATE, persistStateSpy);
             events.on(EventType.MIGRATING, migratingSpy);
@@ -1310,18 +1322,22 @@ describe('Actor', () => {
             mockGetValue.mockImplementation(async (key) => expect(key).toEqual(KEY_VALUE_STORE_KEYS.INPUT));
 
             await TestingActor.getInput();
+            mockGetValue.mockRestore();
 
-            // Uses value from env var.
+            // Uses value from env var. crawlee v4's Configuration snapshots env
+            // vars at construction, so a fresh Actor is needed to pick up the
+            // newly-set input key.
             process.env[ACTOR_ENV_VARS.INPUT_KEY] = 'some-value';
-            mockGetValue.mockImplementation(async (key) => expect(key).toBe('some-value'));
-            await TestingActor.getInput();
+            const actorWithInputKey = new Actor({ configuration: new Configuration() });
+            const mockGetValue2 = vitest.spyOn(actorWithInputKey, 'getValue');
+            mockGetValue2.mockImplementation(async (key) => expect(key).toBe('some-value'));
+            await actorWithInputKey.getInput();
 
             delete process.env[ACTOR_ENV_VARS.INPUT_KEY];
-            mockGetValue.mockRestore();
+            mockGetValue2.mockRestore();
         });
 
         test('should work with input secrets', async () => {
-            const mockGetValue = vitest.spyOn(TestingActor, 'getValue');
             const originalInput = { secret: 'foo', nonSecret: 'bar' };
             const likeInputSchema = {
                 properties: { secret: { type: 'string', isSecret: true } },
@@ -1336,11 +1352,16 @@ describe('Actor', () => {
             expect(encryptedInput.secret.startsWith('ENCRYPTED_')).toBe(true);
             expect(encryptedInput.nonSecret).toBe(originalInput.nonSecret);
 
-            mockGetValue.mockImplementation(async (key) => encryptedInput);
-
+            // The private key + passphrase are read from env at Configuration
+            // construction (immutable in crawlee v4), so build the Actor after
+            // setting them.
             process.env[APIFY_ENV_VARS.INPUT_SECRETS_PRIVATE_KEY_FILE] = testingPrivateKeyFile;
             process.env[APIFY_ENV_VARS.INPUT_SECRETS_PRIVATE_KEY_PASSPHRASE] = testingPrivateKeyPassphrase;
-            const input = await TestingActor.getInput();
+            const secretsActor = new Actor({ configuration: new Configuration() });
+            const mockGetValue = vitest.spyOn(secretsActor, 'getValue');
+            mockGetValue.mockImplementation(async () => encryptedInput);
+
+            const input = await secretsActor.getInput();
 
             expect(input).toStrictEqual(originalInput);
 
@@ -1392,15 +1413,18 @@ describe('Actor', () => {
 
     describe('Actor.config and PPE', () => {
         test('should work', async () => {
+            delete process.env.ACTOR_MAX_TOTAL_CHARGE_USD;
             await Actor.init();
-            process.env.ACTOR_MAX_TOTAL_CHARGE_USD = '';
-            expect(Actor.config.get('maxTotalChargeUsd')).toBe(0);
+            // No explicit limit (`0`/empty/unset) is treated as unlimited.
+            expect(Actor.config.maxTotalChargeUsd).toBe(Infinity);
             expect(Actor.getChargingManager().getMaxTotalChargeUsd()).toBe(Infinity);
-
-            // the value in charging manager is cached, so we cant test that here
-            process.env.ACTOR_MAX_TOTAL_CHARGE_USD = '123';
-            expect(Actor.config.get('maxTotalChargeUsd')).toBe(123);
             await Actor.exit({ exit: false });
+
+            // crawlee v4's Configuration resolves ACTOR_MAX_TOTAL_CHARGE_USD
+            // eagerly at construction, so check it through a fresh instance.
+            process.env.ACTOR_MAX_TOTAL_CHARGE_USD = '123';
+            expect(new Configuration().maxTotalChargeUsd).toBe(123);
+            delete process.env.ACTOR_MAX_TOTAL_CHARGE_USD;
         });
     });
 });
