@@ -46,8 +46,11 @@ importers:
         specifier: ^2.25.0
         version: 2.25.0
       fs-extra:
-        specifier: ^11.4.1
-        version: 11.4.1
+        specifier: ^11.2.0
+        version: 11.3.6
+      got-scraping:
+        specifier: ^4.2.1
+        version: 4.2.1
       ow:
         specifier: ^2.0.0
         version: 2.0.0
@@ -71,8 +74,11 @@ importers:
         specifier: ^0.2.0
         version: 0.2.0
       '@commitlint/config-conventional':
-        specifier: ^21.2.3
-        version: 21.2.3
+        specifier: ^21.0.0
+        version: 21.2.0
+      '@crawlee/memory-storage':
+        specifier: ^4.0.0-beta.61
+        version: 4.0.0-beta.61
       '@playwright/browser-chromium':
         specifier: ^1.63.0
         version: 1.63.0
