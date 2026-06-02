@@ -83,35 +83,17 @@ Your crawlers will now use the selected proxies for all connections.
 
 ### IP Rotation and session management
 
+Every call to
+
 <ApiLink to="apify/class/ProxyConfiguration#newUrl">
     `proxyConfiguration.newUrl()`
 </ApiLink>
-allows you to pass a `sessionId` parameter. It will then be used to create a
-`sessionId`-`proxyUrl` pair, and subsequent `newUrl()` calls with the same
-`sessionId` will always return the same `proxyUrl`. This is extremely useful in
-scraping, because you want to create the impression of a real user. See the
-[session management guide](../guides/session-management) and
-<CrawleeApiLink to="core/class/SessionPool">`SessionPool`</CrawleeApiLink> class
-for more information on how keeping a real session helps you avoid blocking.
+returns an independent proxy URL. For Apify Proxy that URL embeds a fresh random
+session id, so consecutive calls resolve to different IP addresses; for custom
+`proxyUrls` the URLs are rotated round-robin.
 
-When no `sessionId` is provided, your proxy URLs are rotated round-robin, whereas Apify Proxy manages their rotation using black magic to get the best performance.
-
-<!--DOCUSAURUS_CODE_TABS-->
-
-<!-- Standalone -->
-
-```javascript
-const proxyConfiguration = await Actor.createProxyConfiguration({
-    /* opts */
-});
-const sessionPool = await SessionPool.open({
-    /* opts */
-});
-const session = await sessionPool.getSession();
-const proxyUrl = proxyConfiguration.newUrl(session.id);
-```
-
-<!-- Crawlers -->
+Session continuity (using the same IP across multiple requests, e.g. to keep a logged-in session alive) is handled one level up by Crawlee's <CrawleeApiLink to="core/class/SessionPool">`SessionPool`</CrawleeApiLink>: once a `Session` is paired with a proxy URL, the crawler reuses that pairing for subsequent requests tied to the same session. See the
+[session management guide](../guides/session-management) for more details.
 
 ```javascript
 const proxyConfiguration = await Actor.createProxyConfiguration({
@@ -124,8 +106,6 @@ const crawler = new PuppeteerCrawler({
     // ...
 });
 ```
-
-<!--END_DOCUSAURUS_CODE_TABS-->
 
 ## Apify Proxy vs. Your own proxies
 
