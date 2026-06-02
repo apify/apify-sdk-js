@@ -48,8 +48,10 @@ export class PlatformEventManager extends EventManager {
     /** Websocket connection to Actor events. */
     private eventsWs?: WebSocket;
 
-    constructor(override readonly config = Configuration.getGlobalConfig()) {
-        super();
+    constructor(readonly config = Configuration.getGlobalConfig()) {
+        super({
+            persistStateIntervalMillis: config.persistStateIntervalMillis,
+        });
     }
 
     /**

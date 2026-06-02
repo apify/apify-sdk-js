@@ -1,4 +1,4 @@
-import { EventType } from '@crawlee/core';
+import { EventType, serviceLocator } from '@crawlee/core';
 import type { Dictionary } from '@crawlee/utils';
 import { sleep } from '@crawlee/utils';
 import { Actor, Configuration, PlatformEventManager } from 'apify';
@@ -6,25 +6,35 @@ import { WebSocketServer } from 'ws';
 
 import { ACTOR_ENV_VARS, APIFY_ENV_VARS } from '@apify/consts';
 
+import { resetGlobalState } from '../resetGlobalState.js';
+
 describe('events', () => {
     let wss: WebSocketServer = null!;
-    const config = Configuration.getGlobalConfig();
     let events: PlatformEventManager = null!;
 
     beforeEach(() => {
-        wss = new WebSocketServer({ port: 9099 });
-        events = new PlatformEventManager(config);
-        config.useEventManager(events);
-
-        vitest.useFakeTimers();
+        // Set env vars BEFORE creating the Configuration — crawlee v4 resolves
+        // env-var-backed fields eagerly at construction, so a global config
+        // built earlier in the run wouldn't see `actorEventsWsUrl` and
+        // `events.init()` would silently never open the websocket.
         process.env[ACTOR_ENV_VARS.EVENTS_WEBSOCKET_URL] =
             'ws://localhost:9099/someRunId';
         process.env[APIFY_ENV_VARS.TOKEN] = 'dummy';
+
+        wss = new WebSocketServer({ port: 9099 });
+        // Drop the cached Configuration so it picks up the env vars we just set.
+        resetGlobalState();
+        const config = Configuration.getGlobalConfig();
+        events = new PlatformEventManager(config);
+        serviceLocator.setEventManager(events);
+
+        vitest.useFakeTimers();
     });
     afterEach(async () => {
         vitest.useRealTimers();
         delete process.env[ACTOR_ENV_VARS.EVENTS_WEBSOCKET_URL];
         delete process.env[APIFY_ENV_VARS.TOKEN];
+        resetGlobalState();
         await new Promise((resolve) => {
             wss.close(resolve);
         });
@@ -130,7 +140,7 @@ describe('events', () => {
 
     test('should send persist state events in regular interval', async () => {
         const eventsReceived = [];
-        const interval = config.persistStateIntervalMillis;
+        const interval = events.config.persistStateIntervalMillis;
 
         events.on(EventType.PERSIST_STATE, (data) => eventsReceived.push(data));
         await events.init();
