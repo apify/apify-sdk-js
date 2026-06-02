@@ -104,11 +104,11 @@ export class ChargingManager {
         private configuration: Configuration,
         apifyClient: ApifyClient,
     ) {
-        this.maxTotalChargeUsd = configuration.get('maxTotalChargeUsd') || Infinity; // convert `0` to `Infinity` in case the value is an empty string
-        this.isAtHome = configuration.get('isAtHome');
-        this.actorRunId = configuration.get('actorRunId');
-        this.purgeChargingLogDataset = configuration.get('purgeOnStart');
-        this.useChargingLogDataset = configuration.get('useChargingLogDataset');
+        this.maxTotalChargeUsd = configuration.maxTotalChargeUsd || Infinity; // convert `0` to `Infinity` in case the value is an empty string
+        this.isAtHome = configuration.isAtHome;
+        this.actorRunId = configuration.actorRunId;
+        this.purgeChargingLogDataset = configuration.purgeOnStart;
+        this.useChargingLogDataset = configuration.useChargingLogDataset;
 
         this.apifyClient = apifyClient;
     }
@@ -122,11 +122,11 @@ export class ChargingManager {
         chargedEventCounts?: Record<string, number>;
         maxTotalChargeUsd: number;
     }> {
-        if (this.configuration.get('actorPricingInfo') && this.configuration.get('chargedEventCounts')) {
+        if (this.configuration.actorPricingInfo && this.configuration.chargedEventCounts) {
             return {
-                pricingInfo: JSON.parse(this.configuration.get('actorPricingInfo')) as ActorRunPricingInfo,
-                chargedEventCounts: JSON.parse(this.configuration.get('chargedEventCounts')) as Record<string, number>,
-                maxTotalChargeUsd: this.configuration.get('maxTotalChargeUsd') || Infinity,
+                pricingInfo: JSON.parse(this.configuration.actorPricingInfo) as ActorRunPricingInfo,
+                chargedEventCounts: JSON.parse(this.configuration.chargedEventCounts) as Record<string, number>,
+                maxTotalChargeUsd: this.configuration.maxTotalChargeUsd || Infinity,
             };
         }
 
@@ -150,7 +150,7 @@ export class ChargingManager {
         return {
             pricingInfo: undefined,
             chargedEventCounts: {},
-            maxTotalChargeUsd: this.configuration.get('maxTotalChargeUsd') || Infinity,
+            maxTotalChargeUsd: this.configuration.maxTotalChargeUsd || Infinity,
         };
     }
 
@@ -165,7 +165,7 @@ export class ChargingManager {
             );
         }
 
-        if (this.configuration.get('testPayPerEvent')) {
+        if (this.configuration.testPayPerEvent) {
             if (this.isAtHome) {
                 throw new Error(
                     'Using the ACTOR_TEST_PAY_PER_EVENT environment variable is only supported in a local development environment',
@@ -176,7 +176,7 @@ export class ChargingManager {
         // Retrieve pricing information
         const { pricingInfo, chargedEventCounts, maxTotalChargeUsd } = await this.fetchPricingInfo();
 
-        if (this.configuration.get('testPayPerEvent')) {
+        if (this.configuration.testPayPerEvent) {
             this.pricingModel = 'PAY_PER_EVENT';
         } else {
             this.pricingModel ??= pricingInfo?.pricingModel;
