@@ -1,6 +1,6 @@
 import { createPublicKey } from 'node:crypto';
 
-import { EventType, serviceLocator, StorageManager } from '@crawlee/core';
+import { EventType, RequestQueue, serviceLocator } from '@crawlee/core';
 import { sleep } from '@crawlee/utils';
 import type { ApifyEnv } from 'apify';
 import {
@@ -759,19 +759,31 @@ describe('Actor', () => {
             test('openRequestQueue should open storage', async () => {
                 const queueId = 'abc';
                 const options = { forceCloud: true };
-                const openStorageSpy = vitest.spyOn(
-                    StorageManager.prototype,
-                    'openStorage',
-                );
+                const openSpy = vitest.spyOn(RequestQueue, 'open');
 
+                // crawlee v4's `RequestQueueClient` exposes metadata via
+                // `getMetadata()` (the v3 `get()` was dropped).
                 const mockRQ = {
-                    client: { get: () => ({ totalRequestCount: 10 }) },
+                    client: {
+                        getMetadata: async () => ({ totalRequestCount: 10 }),
+                    },
                 };
 
-                openStorageSpy.mockImplementationOnce(async () => mockRQ);
+                openSpy.mockImplementationOnce(async () => mockRQ as any);
                 const queue = await sdk.openRequestQueue(queueId, options);
-                expect(openStorageSpy).toBeCalledWith(queueId, sdk.apifyClient);
-                expect(openStorageSpy).toBeCalledTimes(1);
+                // `forceCloud: true` routes through an `ApifyStorageClient`
+                // adapter that satisfies crawlee v4's `StorageClient` interface.
+                expect(openSpy).toBeCalledWith(
+                    queueId,
+                    expect.objectContaining({
+                        storageClient: expect.objectContaining({
+                            createDatasetClient: expect.any(Function),
+                            createKeyValueStoreClient: expect.any(Function),
+                            createRequestQueueClient: expect.any(Function),
+                        }),
+                    }),
+                );
+                expect(openSpy).toBeCalledTimes(1);
 
                 // @ts-expect-error private prop
                 expect(queue.initialCount).toBe(10);
@@ -780,16 +792,19 @@ describe('Actor', () => {
             test('openDataset should open storage', async () => {
                 const datasetName = 'abc';
                 const options = { forceCloud: true };
-                const mockOpenStorage = vitest.spyOn(
-                    StorageManager.prototype,
-                    'openStorage',
-                );
-                mockOpenStorage.mockResolvedValueOnce(vitest.fn());
+                const openSpy = vitest.spyOn(Dataset, 'open');
+                openSpy.mockResolvedValueOnce(vitest.fn() as any);
                 const ds = await sdk.openDataset(datasetName, options);
-                expect(mockOpenStorage).toBeCalledTimes(1);
-                expect(mockOpenStorage).toBeCalledWith(
+                expect(openSpy).toBeCalledTimes(1);
+                expect(openSpy).toBeCalledWith(
                     datasetName,
-                    sdk.apifyClient,
+                    expect.objectContaining({
+                        storageClient: expect.objectContaining({
+                            createDatasetClient: expect.any(Function),
+                            createKeyValueStoreClient: expect.any(Function),
+                            createRequestQueueClient: expect.any(Function),
+                        }),
+                    }),
                 );
             });
         });

@@ -5,6 +5,7 @@ import type {
     EventTypeName,
     IStorage,
     RecordOptions,
+    StorageOpenOptions,
     UseStateOptions,
 } from '@crawlee/core';
 import {
@@ -13,7 +14,6 @@ import {
     purgeDefaultStorages,
     RequestQueue,
     serviceLocator,
-    StorageManager,
 } from '@crawlee/core';
 import type {
     Awaitable,
@@ -43,6 +43,7 @@ import { decryptInputSecrets } from '@apify/input_secrets';
 import log from '@apify/log';
 import { addTimeoutToPromise } from '@apify/timeout';
 
+import { ApifyStorageClient } from './apify_storage_client.js';
 import type { ChargeOptions, ChargeResult } from './charging.js';
 import { ChargingManager } from './charging.js';
 import type { ConfigurationOptions } from './configuration.js';
@@ -526,7 +527,9 @@ export class Actor<Data extends Dictionary = Dictionary> {
         serviceLocator.setConfiguration(this.config);
 
         if (this.isAtHome()) {
-            serviceLocator.setStorageClient(this.apifyClient);
+            serviceLocator.setStorageClient(
+                new ApifyStorageClient(this.apifyClient, this.config),
+            );
             serviceLocator.setEventManager(this.eventManager);
         } else if (options.storage) {
             serviceLocator.setStorageClient(options.storage);
@@ -1339,7 +1342,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
 
         // eslint-disable-next-line dot-notation
         queue['initialCount'] =
-            (await queue.client.get())?.totalRequestCount ?? 0;
+            (await queue.client.getMetadata())?.totalRequestCount ?? 0;
 
         return queue;
     }
@@ -2260,17 +2263,16 @@ export class Actor<Data extends Dictionary = Dictionary> {
     }
 
     private async _openStorage<T extends IStorage>(
-        storageClass: Constructor<T>,
+        storageClass: Constructor<T> & {
+            open(id?: string | null, options?: StorageOpenOptions): Promise<T>;
+        },
         id?: string,
         options: OpenStorageOptions = {},
     ) {
-        const client = options.forceCloud ? this.apifyClient : undefined;
-        return StorageManager.openStorage<T>(
-            storageClass,
-            id,
-            client,
-            this.config,
-        );
+        const storageClient = options.forceCloud
+            ? new ApifyStorageClient(this.apifyClient, this.config)
+            : undefined;
+        return storageClass.open(id ?? null, { storageClient });
     }
 
     private _ensureActorInit(methodCalled: string) {
