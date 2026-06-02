@@ -1,4 +1,4 @@
-import { EventManager, EventType } from '@crawlee/core';
+import { EventManager, EventType, serviceLocator } from '@crawlee/core';
 import { WebSocket } from 'ws';
 
 import { ACTOR_ENV_VARS, ACTOR_EVENT_NAMES } from '@apify/consts';
@@ -48,8 +48,23 @@ export class PlatformEventManager extends EventManager {
     /** Websocket connection to Actor events. */
     private eventsWs?: WebSocket;
 
-    constructor(override readonly config = Configuration.getGlobalConfig()) {
-        super();
+    constructor(
+        readonly config: Configuration = Configuration.getGlobalConfig() as Configuration,
+    ) {
+        super({
+            persistStateIntervalMillis: config.persistStateIntervalMillis,
+        });
+    }
+
+    /**
+     * Creates a `PlatformEventManager` from a (resolved) Configuration, mirroring
+     * `LocalEventManager.fromConfig()` from crawlee. Falls back to the global
+     * configuration if none is provided.
+     */
+    static fromConfig(config?: Configuration): PlatformEventManager {
+        return new PlatformEventManager(
+            config ?? (serviceLocator.getConfiguration() as Configuration),
+        );
     }
 
     /**

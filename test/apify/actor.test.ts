@@ -1,6 +1,6 @@
 import { createPublicKey } from 'node:crypto';
 
-import { EventType, StorageManager } from '@crawlee/core';
+import { EventType, serviceLocator, StorageManager } from '@crawlee/core';
 import { sleep } from '@crawlee/utils';
 import type { ApifyEnv } from 'apify';
 import {
@@ -1095,7 +1095,9 @@ describe('Actor', () => {
 
             const migratingSpy = vitest.fn(persistResource(50));
             const persistStateSpy = vitest.fn(persistResource(50));
-            const events = Configuration.getEventManager();
+            // crawlee v4 removed `Configuration.getEventManager()`; the
+            // event manager now lives on the global service locator.
+            const events = serviceLocator.getEventManager();
 
             events.on(EventType.PERSIST_STATE, persistStateSpy);
             events.on(EventType.MIGRATING, migratingSpy);
