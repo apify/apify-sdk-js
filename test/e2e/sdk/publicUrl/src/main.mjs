@@ -9,7 +9,7 @@ await Actor.setValue('public-record-key', JSON.stringify(data), {
 });
 
 const defaultKeyValueStore = await Actor.openKeyValueStore();
-const publicUrl = defaultKeyValueStore.getPublicUrl('public-record-key');
+const publicUrl = await defaultKeyValueStore.getPublicUrl('public-record-key');
 
 // Here we store the url itself
 await Actor.setValue('urlToPublicData', publicUrl);
