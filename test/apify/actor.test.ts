@@ -929,12 +929,12 @@ describe('Actor', () => {
             vi.useRealTimers();
         });
 
-        test.each([{ methodName: 'call' }, { methodName: 'start' }])(
+        test.each([{ methodName: 'call' as const }, { methodName: 'start' as const }])(
             `Actor.$methodName({timeout: 'inherit'})`,
             async ({ methodName }) => {
                 const options = { timeout: 'inherit' as const };
 
-                const callSpy = vitest.spyOn(ActorClient.prototype, methodName).mockReturnValue();
+                const callSpy = vitest.spyOn(ActorClient.prototype, methodName).mockReturnValue(undefined as any);
                 await Actor[methodName](actId, input, options);
                 expect(callSpy).toBeCalledWith(input, {
                     timeout: actorTimeout - usedTime,
@@ -945,7 +945,7 @@ describe('Actor', () => {
         test(`Actor.callTask({timeout: 'inherit'})`, async () => {
             const options = { timeout: 'inherit' as const };
 
-            const callSpy = vitest.spyOn(TaskClient.prototype, 'call').mockReturnValue();
+            const callSpy = vitest.spyOn(TaskClient.prototype, 'call').mockReturnValue(undefined as any);
             await Actor.callTask(actId, input, options);
             expect(callSpy).toBeCalledWith(input, {
                 timeout: actorTimeout - usedTime,
