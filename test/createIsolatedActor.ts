@@ -2,6 +2,7 @@ import { bindMethodsToServiceLocator, ServiceLocator } from '@crawlee/core';
 import { MemoryStorage } from '@crawlee/memory-storage';
 import type { StorageClient } from '@crawlee/types';
 import { Actor, Configuration, type PlatformEventManager } from 'apify';
+import { onTestFinished } from 'vitest';
 
 export interface IsolatedActor {
     actor: Actor;
@@ -21,6 +22,10 @@ export interface IsolatedActor {
  * fully isolated set of services without having to reset shared global state
  * (`serviceLocator.reset()`) between tests.
  *
+ * Teardown is automatic: the Actor's event manager (its WebSocket connection and
+ * persist-state interval) is closed when the current test finishes, via vitest's
+ * `onTestFinished`. Callers don't track or close anything by hand.
+ *
  * For tests that drive an `Actor` **instance** directly, use the returned
  * `actor`. For tests that go through the static `Actor.*` API, see
  * {@link initIsolatedDefaultActor}.
@@ -36,6 +41,11 @@ export function createIsolatedActor(
     const events = (actor as unknown as { eventManager: PlatformEventManager }).eventManager;
     const serviceLocator = new ServiceLocator(config, events, options.storageClient);
     bindMethodsToServiceLocator(serviceLocator, actor);
+
+    onTestFinished(async () => {
+        await events.close().catch(() => {});
+    });
+
     return { actor, config, events, serviceLocator };
 }
 
@@ -46,12 +56,20 @@ export function createIsolatedActor(
  * isolated, per-test locator — letting static-API tests stay isolated without
  * resetting the global locator between runs.
  *
- * Pair with {@link clearDefaultActor} in `afterEach`.
+ * Teardown is automatic (see {@link createIsolatedActor}): when the test
+ * finishes, the Actor is exited and the static default instance is dropped.
  */
 export async function initIsolatedDefaultActor(options: { config?: Configuration } = {}): Promise<IsolatedActor> {
     const isolated = createIsolatedActor(options);
     // eslint-disable-next-line no-underscore-dangle
     Actor._instance = isolated.actor;
+
+    onTestFinished(async () => {
+        await isolated.actor.exit({ exit: false }).catch(() => {});
+        // eslint-disable-next-line no-underscore-dangle
+        delete (Actor as { _instance?: Actor })._instance;
+    });
+
     await isolated.actor.init();
     return isolated;
 }
@@ -70,10 +88,4 @@ export function useInMemoryStorage(serviceLocator: ServiceLocator): MemoryStorag
     serviceLocator.reset();
     serviceLocator.setStorageClient(storage);
     return storage;
-}
-
-/** Drop the static default Actor installed by {@link initIsolatedDefaultActor}. */
-export function clearDefaultActor(): void {
-    // eslint-disable-next-line no-underscore-dangle
-    delete (Actor as { _instance?: Actor })._instance;
 }

@@ -5,7 +5,7 @@ import { afterEach, beforeEach, describe, expect, test } from 'vitest';
 import log from '@apify/log';
 
 import { mergeChargeResults } from '../../src/charging.js';
-import { clearDefaultActor, initIsolatedDefaultActor, useInMemoryStorage } from '../createIsolatedActor.js';
+import { initIsolatedDefaultActor, useInMemoryStorage } from '../createIsolatedActor.js';
 
 /**
  * Sets up environment variables to simulate running on the Apify platform.
@@ -169,11 +169,9 @@ describe('ChargingManager', () => {
         setUpLocalTestEnv({ maxTotalChargeUsd: '10' });
     });
 
-    afterEach(async () => {
-        await Actor.exit({ exit: false });
-        clearDefaultActor();
-
-        // Clean up all charging-related env vars
+    afterEach(() => {
+        // The isolated default Actor exits itself and is dropped via
+        // initIsolatedDefaultActor's onTestFinished hook; here we only own env.
         delete process.env.ACTOR_TEST_PAY_PER_EVENT;
         delete process.env.ACTOR_MAX_TOTAL_CHARGE_USD;
         delete process.env.APIFY_ACTOR_PRICING_INFO;
