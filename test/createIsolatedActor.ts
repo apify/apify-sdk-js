@@ -6,7 +6,6 @@ import { onTestFinished } from 'vitest';
 
 export interface IsolatedActor {
     actor: Actor;
-    config: Configuration;
     events: PlatformEventManager;
     serviceLocator: ServiceLocator;
 }
@@ -38,7 +37,7 @@ export function createIsolatedActor(
     // Seed the locator with the Actor's *own* event manager, so that on the
     // platform — where `init()` calls `setEventManager(this.eventManager)` — the
     // set is a no-op rather than a conflict with a second instance.
-    const events = (actor as unknown as { eventManager: PlatformEventManager }).eventManager;
+    const events = actor.eventManager as PlatformEventManager;
     const serviceLocator = new ServiceLocator(config, events, options.storageClient);
     bindMethodsToServiceLocator(serviceLocator, actor);
 
@@ -46,7 +45,7 @@ export function createIsolatedActor(
         await events.close().catch(() => {});
     });
 
-    return { actor, config, events, serviceLocator };
+    return { actor, events, serviceLocator };
 }
 
 /**
