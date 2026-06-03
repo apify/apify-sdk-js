@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { ApifyClient, KeyValueStore } from 'apify';
+import { ApifyClient } from 'apify';
 import { sleep } from 'crawlee';
 
 const client = new ApifyClient({
@@ -39,11 +39,8 @@ test('basic functionality', async () => {
     assert.strictEqual(run.status, 'SUCCEEDED');
     assert.deepEqual(run.chargedEventCounts, { foobar: 4 });
 
-    const store = await KeyValueStore.open(run.defaultKeyValueStoreId, {
-        storageClient: client,
-    });
-
-    const chargingDatasetId = await store.getValue('CHARGING_LOG_DATASET_ID');
+    const record = await client.keyValueStore(run.defaultKeyValueStoreId).getRecord('CHARGING_LOG_DATASET_ID');
+    const chargingDatasetId = record?.value ?? null;
     assert.equal(chargingDatasetId, null, 'Charging dataset ID must not be present');
 });
 

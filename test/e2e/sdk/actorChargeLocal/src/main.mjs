@@ -1,4 +1,4 @@
-import { Actor, ApifyClient, Dataset, log } from 'apify';
+import { Actor, ApifyClient, log } from 'apify';
 
 const client = new ApifyClient({
     token: process.env.APIFY_TOKEN,
@@ -33,7 +33,6 @@ const chargingLogDataset = await actor.openDataset('charging_log');
 const data = await chargingLogDataset.getData();
 
 // Transfer contents of the local charging log dataset into the default dataset on the platform
-const dataset = await Dataset.open(undefined, { storageClient: client });
-await dataset.pushData(data.items);
+await client.dataset(run.defaultDatasetId).pushItems(data.items);
 
 await actor.exit();

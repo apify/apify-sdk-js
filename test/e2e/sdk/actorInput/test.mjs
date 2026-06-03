@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { ApifyClient, KeyValueStore } from 'apify';
+import { ApifyClient } from 'apify';
 import { sleep } from 'crawlee';
 
 const client = new ApifyClient({
@@ -22,12 +22,8 @@ test('defaults work', async () => {
 
     assert.strictEqual(run.status, 'SUCCEEDED');
 
-    const store = await KeyValueStore.open(run.defaultKeyValueStoreId, {
-        storageClient: client,
-    });
-
-    const receivedInput = await store.getValue('RECEIVED_INPUT');
-    assert.deepEqual(receivedInput, { foo: 'bar' });
+    const record = await client.keyValueStore(run.defaultKeyValueStoreId).getRecord('RECEIVED_INPUT');
+    assert.deepEqual(record?.value, { foo: 'bar' });
 });
 
 test('input is passed through', async () => {
@@ -35,10 +31,6 @@ test('input is passed through', async () => {
 
     assert.strictEqual(run.status, 'SUCCEEDED');
 
-    const store = await KeyValueStore.open(run.defaultKeyValueStoreId, {
-        storageClient: client,
-    });
-
-    const receivedInput = await store.getValue('RECEIVED_INPUT');
-    assert.deepEqual(receivedInput, { foo: 'baz' });
+    const record = await client.keyValueStore(run.defaultKeyValueStoreId).getRecord('RECEIVED_INPUT');
+    assert.deepEqual(record?.value, { foo: 'baz' });
 });
