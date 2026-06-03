@@ -1,6 +1,7 @@
 import { createPublicKey } from 'node:crypto';
 
 import { EventType, serviceLocator } from '@crawlee/core';
+import { MemoryStorage } from '@crawlee/memory-storage';
 import { sleep } from '@crawlee/utils';
 import type { ApifyEnv } from 'apify';
 import { Actor, Configuration, Dataset, KeyValueStore, ProxyConfiguration, RequestQueue } from 'apify';
@@ -17,7 +18,7 @@ import {
 import { encryptInputSecrets } from '@apify/input_secrets';
 import log from '@apify/log';
 
-import { MemoryStorageEmulator } from '../MemoryStorageEmulator.js';
+import { createIsolatedActor } from '../createIsolatedActor.js';
 import { resetGlobalState } from '../resetGlobalState.js';
 
 const getEmptyEnv = () => {
@@ -69,14 +70,11 @@ const testingPrivateKeyFile =
 const testingPrivateKeyPassphrase = 'pwd1234';
 
 describe('Actor', () => {
-    const localStorageEmulator = new MemoryStorageEmulator();
-
-    beforeEach(async () => {
-        await localStorageEmulator.init();
-    });
-
-    afterAll(async () => {
-        await localStorageEmulator.destroy();
+    beforeEach(() => {
+        // Reset cached singletons so each test gets a fresh, env-current
+        // Configuration. Tests that need an isolated storage/event client build
+        // an Actor with createIsolatedActor instead of touching the global.
+        resetGlobalState();
     });
 
     describe('new Actor({ ... })', () => {
@@ -612,14 +610,11 @@ describe('Actor', () => {
         describe('Storage API', () => {
             let sdk: Actor<{ foo: string }>;
 
-            beforeEach(async () => {
-                sdk = new Actor({
-                    storageClientOptions: {
-                        storageDir: await localStorageEmulator.init(),
-                    },
-                });
+            beforeEach(() => {
+                sdk = createIsolatedActor({
+                    storageClient: new MemoryStorage({ persistStorage: false }),
+                }).actor as Actor<{ foo: string }>;
             });
-            afterAll(async () => localStorageEmulator.destroy());
 
             test('getInput()', async () => {
                 const getValueSpy = vitest.spyOn(KeyValueStore.prototype, 'getValue');
