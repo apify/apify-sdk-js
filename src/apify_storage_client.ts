@@ -114,6 +114,18 @@ class PpeAwareDatasetClient<
  * first (when one exists on the platform) and fall back to a name otherwise —
  * otherwise crawlee's `resolveStorageIdentifier` treats every string as a name
  * and the SDK would silently create a new storage named like the passed id.
+ *
+ * `Actor` wires this up automatically; construct it directly only to use Apify
+ * platform storage with crawlee's storage classes outside of `Actor` — e.g. to
+ * read another run's output with an explicit token:
+ *
+ * ```ts
+ * import { ApifyClient, ApifyStorageClient, Dataset } from 'apify';
+ *
+ * const client = new ApifyClient({ token });
+ * const dataset = await Dataset.open(datasetId, { storageClient: new ApifyStorageClient(client) });
+ * const { items } = await dataset.getData();
+ * ```
  */
 export class ApifyStorageClient implements StorageClient {
     constructor(
