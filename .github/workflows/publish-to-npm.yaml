@@ -15,6 +15,7 @@ on:
                 options:
                     - latest
                     - next
+                    - next-v4
 
 permissions:
     id-token: write # Required for OIDC
@@ -44,9 +45,9 @@ jobs:
             - name: Build module
               run: pnpm build
 
-            - name: Check version consistency and bump pre-release version (next only)
-              if: ${{ inputs.tag == 'next' }}
-              run: node ./.github/scripts/before-beta-release.js
+            - name: Check version consistency and bump pre-release version (pre-release tags only)
+              if: ${{ inputs.tag == 'next' || inputs.tag == 'next-v4' }}
+              run: node ./.github/scripts/before-beta-release.js ${{ inputs.tag }}
 
             - name: Publish to NPM
               run: pnpm publish --tag ${{ inputs.tag }} --no-git-checks
