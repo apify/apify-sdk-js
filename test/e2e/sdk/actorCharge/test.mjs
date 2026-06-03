@@ -26,15 +26,26 @@ await actor.update({
     ],
 });
 
-const runActor = async (input, options) => {
+// The platform reconciles `chargedEventCounts` onto the run record asynchronously
+// after the run finishes — and noticeably slower for runs that hit the charge
+// limit — so poll until it reaches the expected value instead of racing a fixed
+// delay (which made this test flaky).
+const runActor = async (input, options, expectedChargedEventCounts) => {
     const { id: runId } = await actor.call(input, options);
     await client.run(runId).waitForFinish();
-    await sleep(6000); // wait for updates to propagate to MongoDB
-    return await client.run(runId).get();
+
+    const expected = JSON.stringify(expectedChargedEventCounts);
+    const deadline = Date.now() + 60_000;
+    let run = await client.run(runId).get();
+    while (JSON.stringify(run.chargedEventCounts ?? {}) !== expected && Date.now() < deadline) {
+        await sleep(2000);
+        run = await client.run(runId).get();
+    }
+    return run;
 };
 
 test('basic functionality', async () => {
-    const run = await runActor({}, { maxTotalChargeUsd: 10 });
+    const run = await runActor({}, { maxTotalChargeUsd: 10 }, { foobar: 4 });
 
     assert.strictEqual(run.status, 'SUCCEEDED');
     assert.deepEqual(run.chargedEventCounts, { foobar: 4 });
@@ -45,7 +56,7 @@ test('basic functionality', async () => {
 });
 
 test('charge limit', async () => {
-    const run = await runActor({}, { maxTotalChargeUsd: 0.2 });
+    const run = await runActor({}, { maxTotalChargeUsd: 0.2 }, { foobar: 3 });
 
     assert.strictEqual(run.status, 'SUCCEEDED');
 
@@ -54,7 +65,7 @@ test('charge limit', async () => {
 });
 
 test('default options start cost-unlimited runs', async () => {
-    const run = await runActor({}, {});
+    const run = await runActor({}, {}, { foobar: 4 });
 
     assert.strictEqual(run.status, 'SUCCEEDED');
     assert.deepEqual(run.chargedEventCounts, { foobar: 4 });
