@@ -6,7 +6,7 @@ import { WebSocketServer } from 'ws';
 
 import { ACTOR_ENV_VARS, ACTOR_EVENT_NAMES, APIFY_ENV_VARS } from '@apify/consts';
 
-import { resetGlobalState } from '../resetGlobalState.js';
+import { createIsolatedActor, type IsolatedActor } from '../createIsolatedActor.js';
 
 describe('events', () => {
     let wss: WebSocketServer = null!;
@@ -142,24 +142,19 @@ describe('graceful exit handlers', () => {
     let wss: WebSocketServer = null!;
     let processExitSpy: ReturnType<typeof vitest.spyOn>;
     let testPort = 9098;
-    let gracefulConfig: Configuration = null!;
-    let testEvents: PlatformEventManager = null!;
+    // Event managers created per test (via createIsolatedActor) so afterEach can
+    // close their WebSocket connections.
+    let createdActors: IsolatedActor[] = [];
 
     beforeEach(() => {
         // Use an incrementing port to avoid port reuse issues between tests.
         testPort++;
         // crawlee v4's Configuration snapshots env vars at construction, so the
-        // per-test WS URL must be set before the global config is re-resolved.
+        // per-test WS URL must be set before each isolated actor's config is built.
         process.env[ACTOR_ENV_VARS.EVENTS_WEBSOCKET_URL] = `ws://localhost:${testPort}/someRunId`;
         process.env[APIFY_ENV_VARS.TOKEN] = 'dummy';
-        // Drop cached singletons so the fresh config picks up this test's WS URL,
-        // and start from a clean locator (v4 throws when a service is re-set).
-        resetGlobalState();
-        gracefulConfig = Configuration.getGlobalConfig();
+        createdActors = [];
         wss = new WebSocketServer({ port: testPort });
-        // Create a fresh PlatformEventManager for each test to avoid shared state.
-        testEvents = new PlatformEventManager(gracefulConfig);
-        serviceLocator.setEventManager(testEvents);
         // Mock process.exit to prevent actual exit during tests.
         processExitSpy = vitest.spyOn(process, 'exit').mockImplementation((() => {}) as never);
     });
@@ -168,8 +163,8 @@ describe('graceful exit handlers', () => {
         delete process.env[ACTOR_ENV_VARS.EVENTS_WEBSOCKET_URL];
         delete process.env[APIFY_ENV_VARS.TOKEN];
         processExitSpy.mockRestore();
-        // Close the event manager to clean up WebSocket connections.
-        await testEvents.close();
+        // Close each test's isolated event manager to clean up WebSocket connections.
+        await Promise.all(createdActors.map(async ({ events }) => events.close()));
         // Close the WebSocket server - terminate all connections first.
         for (const client of wss.clients) {
             client.terminate();
@@ -179,8 +174,17 @@ describe('graceful exit handlers', () => {
         });
     });
 
+    // Each test drives an Actor bound to its own ServiceLocator, so its services
+    // are isolated from the global locator and from the other tests — no
+    // `resetGlobalState()` / `serviceLocator.reset()` required between runs.
+    function isolatedActor() {
+        const isolated = createIsolatedActor();
+        createdActors.push(isolated);
+        return isolated;
+    }
+
     test('should automatically call Actor.exit() on aborting event by default', async () => {
-        const actor = new Actor();
+        const { actor } = isolatedActor();
         let exitCalled = false;
 
         const eventReceived = new Promise<void>((resolve) => {
@@ -206,7 +210,7 @@ describe('graceful exit handlers', () => {
     }, 10e3);
 
     test('should automatically call Actor.reboot() on migrating event by default', async () => {
-        const actor = new Actor();
+        const { actor } = isolatedActor();
         let rebootCalled = false;
 
         const eventReceived = new Promise<void>((resolve) => {
@@ -232,7 +236,7 @@ describe('graceful exit handlers', () => {
     }, 10e3);
 
     test('should not register handlers when gracefulShutdown is false (opt-out)', async () => {
-        const actor = new Actor();
+        const { actor } = isolatedActor();
         let exitCalled = false;
 
         const eventReceived = new Promise<void>((resolve) => {
