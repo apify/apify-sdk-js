@@ -16,7 +16,9 @@ const actor = new Actor({
     useChargingLogDataset: true,
     testPayPerEvent: true,
     isAtHome: false,
-    maxTotalChargeUsd: maxTotalChargeUsd ?? Infinity,
+    // The SDK treats `0`/unset as "no limit" — don't pass `Infinity`, which
+    // isn't a valid config input (zod rejects non-finite numbers).
+    maxTotalChargeUsd: maxTotalChargeUsd ?? 0,
     logLevel: 'DEBUG',
 });
 
