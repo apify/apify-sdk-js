@@ -78,7 +78,7 @@ export const apifyConfigFields = {
     disableBrowserSandbox: withApifyEnv(
         crawleeConfigFields.disableBrowserSandbox,
         'APIFY_DISABLE_BROWSER_SANDBOX',
-        coerceBoolean.optional().default(() => (isAtHome() ? true : undefined)),
+        coerceBoolean.default(() => isAtHome()),
     ),
     persistStateIntervalMillis: withApifyEnv(crawleeConfigFields.persistStateIntervalMillis, [
         APIFY_ENV_VARS.PERSIST_STATE_INTERVAL_MILLIS,
