@@ -100,6 +100,32 @@ class PpeAwareDatasetClient<
     }
 }
 
+// crawlee v4's `StorageClient` sub-client interfaces use different method names
+// than `apify-client`'s resource clients (`getValue`/`getRecord`,
+// `pushData`/`pushItems`, `getData`/`listItems`, `getMetadata`/`get`,
+// `drop`/`delete`). `adapt` wraps a client in a name-remapping proxy: `renames`
+// aliases the differing methods and `overrides` replaces the few whose return
+// shape differs; everything else — identically-named methods and the
+// pay-per-event marker symbol — passes straight through.
+//
+// `purge()` has no apify-client equivalent and isn't needed on the platform
+// (a run's storages are already fresh), so it's a no-op.
+const noPurge = { purge: async () => {} };
+
+function adapt<T extends object>(
+    client: T,
+    renames: Record<string, string>,
+    overrides: Record<string, (...args: any[]) => unknown> = {},
+): T {
+    return new Proxy(client, {
+        get(target, prop) {
+            if (typeof prop === 'string' && prop in overrides) return overrides[prop];
+            const value = Reflect.get(target, (typeof prop === 'string' && renames[prop]) || prop, target);
+            return typeof value === 'function' ? (value as (...args: unknown[]) => unknown).bind(target) : value;
+        },
+    });
+}
+
 /**
  * Bridges `apify-client`'s synchronous resource accessors (`dataset(id)`,
  * `keyValueStore(id)`, `requestQueue(id, options?)`) to crawlee v4's
@@ -131,24 +157,44 @@ export class ApifyStorageClient implements StorageClient {
 
     async createDatasetClient(options?: CreateDatasetClientOptions): Promise<DatasetClient> {
         const id = await this.resolveId(options, 'Dataset');
-        const datasetClient = this.chargingDatasetClient(id) ?? this.client.dataset(id);
-        // apify-client's resource clients overlap with `@crawlee/types`' shapes
-        // but don't implement the v4-added members (`getMetadata`,
-        // `getRecordPublicUrl`), so cast through.
-        return datasetClient as unknown as DatasetClient;
+        const client = this.chargingDatasetClient(id) ?? this.client.dataset(id);
+        return adapt(
+            client,
+            {
+                getMetadata: 'get',
+                drop: 'delete',
+                pushData: 'pushItems',
+                getData: 'listItems',
+            },
+            noPurge,
+        ) as unknown as DatasetClient;
     }
 
     async createKeyValueStoreClient(options?: CreateKeyValueStoreClientOptions): Promise<KeyValueStoreClient> {
         const id = await this.resolveId(options, 'KeyValueStore');
-        return this.client.keyValueStore(id) as unknown as KeyValueStoreClient;
+        const client = this.client.keyValueStore(id);
+        return adapt(
+            client,
+            {
+                getMetadata: 'get',
+                getValue: 'getRecord',
+                setValue: 'setRecord',
+                deleteValue: 'deleteRecord',
+                drop: 'delete',
+                getPublicUrl: 'getRecordPublicUrl',
+            },
+            {
+                ...noPurge,
+                // crawlee expects an array; apify-client returns `{ items }`.
+                listKeys: async (opts?: Parameters<typeof client.listKeys>[0]) => (await client.listKeys(opts)).items,
+            },
+        ) as unknown as KeyValueStoreClient;
     }
 
     async createRequestQueueClient(options?: CreateRequestQueueClientOptions): Promise<RequestQueueClient> {
         const id = await this.resolveId(options, 'RequestQueue');
-        return this.client.requestQueue(
-            id,
-            options?.clientKey ? { clientKey: options.clientKey } : undefined,
-        ) as unknown as RequestQueueClient;
+        const client = this.client.requestQueue(id, options?.clientKey ? { clientKey: options.clientKey } : undefined);
+        return adapt(client, { getMetadata: 'get', drop: 'delete' }, noPurge) as unknown as RequestQueueClient;
     }
 
     /**
