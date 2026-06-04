@@ -135,11 +135,13 @@ For example, `new ProxyConfiguration({ countryCode: 'CZE' })` throws:
 If you matched on the exact text of these validation errors, update those checks. The thrown `Error` now carries the structured `ZodError` as its `cause`, so you can inspect `error.cause.issues` programmatically instead of parsing the message:
 
 ```ts
+import { ZodError } from 'zod';
+
 try {
     new ProxyConfiguration({ countryCode: 'CZE' });
-} catch (error) {
-    console.log(error.message); // human-readable sentence (the text shown above)
-    console.log(error.cause?.issues); // structured ZodError issues, if you need to branch on them
+} catch (e) {
+    console.log((e as Error).message); // human-readable sentence (the text shown above)
+    console.log(((e as Error).cause as ZodError).issues); // structured ZodError issues, if you need to branch on them
 }
 ```
 
