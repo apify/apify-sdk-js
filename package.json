@@ -80,7 +80,7 @@
         "@crawlee/core": "^4.0.0-beta.61",
         "@crawlee/types": "^4.0.0-beta.61",
         "@crawlee/utils": "^4.0.0-beta.61",
-        "apify-client": "^2.17.0",
+        "apify-client": "^2.23.4",
         "semver": "^7.5.4",
         "tslib": "^2.6.2",
         "undici": "^7.0.0",
