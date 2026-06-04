@@ -1,4 +1,4 @@
-import { Actor, ApifyClient, Dataset } from 'apify';
+import { Actor, ApifyClient } from 'apify';
 
 const client = new ApifyClient({
     token: process.env.APIFY_TOKEN,
@@ -34,11 +34,7 @@ const allData = await resultsDatasetAgain.getData();
 
 // Transfer results to the platform's default dataset so the test script can verify
 const run = await client.run(process.env.ACTOR_RUN_ID).get();
-const platformDataset = await Dataset.open(run.defaultDatasetId, {
-    storageClient: client,
-});
-
-await platformDataset.pushData([
+await client.dataset(run.defaultDatasetId).pushItems([
     {
         datasetItemCount: allData.count,
         datasetItems: allData.items,
