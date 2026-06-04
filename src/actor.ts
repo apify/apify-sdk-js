@@ -993,7 +993,10 @@ export class Actor<Data extends Dictionary = Dictionary> {
 
         return this.apifyClient.webhooks().create({
             ...options,
-            // Copy to a mutable array — `WebhookOptions.eventTypes` is `readonly`.
+            // `WebhookOptions.eventTypes` is `readonly`, but apify-client still
+            // types `create()`'s `eventTypes` as a mutable array, so copy it.
+            // Remove once apify-client ships readonly eventTypes and we bump to it
+            // (https://github.com/apify/apify-client-js/pull/931).
             eventTypes: [...options.eventTypes],
             isAdHoc: true,
             condition: {
