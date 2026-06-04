@@ -5,7 +5,7 @@ import { afterEach, beforeEach, describe, expect, test } from 'vitest';
 import log from '@apify/log';
 
 import { mergeChargeResults } from '../../src/charging.js';
-import { MemoryStorageEmulator } from '../MemoryStorageEmulator.js';
+import { initIsolatedDefaultActor, useInMemoryStorage } from '../createIsolatedActor.js';
 
 /**
  * Sets up environment variables to simulate running on the Apify platform.
@@ -162,24 +162,16 @@ describe('mergeChargeResults()', () => {
 });
 
 describe('ChargingManager', () => {
-    const localStorageEmulator = new MemoryStorageEmulator();
-
-    beforeEach(async () => {
-        await localStorageEmulator.init();
-
-        // Default to local test mode - individual tests can switch to platform mode
+    beforeEach(() => {
+        // Default to local test mode - individual tests can switch to platform mode.
+        // Each test installs its own isolated default Actor (initIsolatedDefaultActor),
+        // so no global state needs resetting between runs.
         setUpLocalTestEnv({ maxTotalChargeUsd: '10' });
     });
 
-    afterEach(async () => {
-        await Actor.exit({ exit: false });
-
-        // @ts-expect-error
-        Actor._instance = undefined; // eslint-disable-line no-underscore-dangle
-
-        await localStorageEmulator.destroy();
-
-        // Clean up all charging-related env vars
+    afterEach(() => {
+        // The isolated default Actor exits itself and is dropped via
+        // initIsolatedDefaultActor's onTestFinished hook; here we only own env.
         delete process.env.ACTOR_TEST_PAY_PER_EVENT;
         delete process.env.ACTOR_MAX_TOTAL_CHARGE_USD;
         delete process.env.APIFY_ACTOR_PRICING_INFO;
@@ -191,7 +183,7 @@ describe('ChargingManager', () => {
 
     describe('charge()', () => {
         test('should return eventChargeLimitReached=false when count=0 even after hitting budget limit', async () => {
-            await Actor.init();
+            await initIsolatedDefaultActor();
 
             // First, hit the budget limit with a large charge
             const limitResult = await Actor.charge({
@@ -228,8 +220,8 @@ describe('ChargingManager', () => {
             });
             process.env.APIFY_CHARGED_ACTOR_EVENT_COUNTS = JSON.stringify({});
 
-            await Actor.init();
-            localStorageEmulator.reapplyStorageClient();
+            const { serviceLocator } = await initIsolatedDefaultActor();
+            useInMemoryStorage(serviceLocator);
 
             const chargeResult = await Actor.charge({
                 eventName: 'foobar',
@@ -255,8 +247,8 @@ describe('ChargingManager', () => {
                 },
             });
 
-            await Actor.init();
-            localStorageEmulator.reapplyStorageClient();
+            const { serviceLocator } = await initIsolatedDefaultActor();
+            useInMemoryStorage(serviceLocator);
 
             // Mock the API client charge method
             const chargeSpy = vitest.fn().mockResolvedValue(undefined);
@@ -312,8 +304,8 @@ describe('ChargingManager', () => {
                 chargedEventCounts: { 'my-event': 1 },
             });
 
-            await Actor.init();
-            localStorageEmulator.reapplyStorageClient();
+            const { serviceLocator } = await initIsolatedDefaultActor();
+            useInMemoryStorage(serviceLocator);
 
             const chargeSpy = vitest.fn().mockResolvedValue(undefined);
             vitest.spyOn(Actor.apifyClient, 'run').mockReturnValue({
@@ -349,8 +341,8 @@ describe('ChargingManager', () => {
                 },
             });
 
-            await Actor.init();
-            localStorageEmulator.reapplyStorageClient();
+            const { serviceLocator } = await initIsolatedDefaultActor();
+            useInMemoryStorage(serviceLocator);
 
             // Mock the API client charge method
             const chargeSpy = vitest.fn().mockResolvedValue(undefined);
@@ -392,7 +384,7 @@ describe('ChargingManager', () => {
                     pricingInfo: {},
                 });
 
-                await Actor.init();
+                await initIsolatedDefaultActor();
                 const chargingManager = Actor.getChargingManager();
 
                 const chargeResult = await chargingManager.charge({
@@ -411,7 +403,7 @@ describe('ChargingManager', () => {
             test('when running locally should pretend to charge it', async () => {
                 setUpLocalTestEnv({ maxTotalChargeUsd: '10' });
 
-                await Actor.init();
+                await initIsolatedDefaultActor();
                 const chargingManager = Actor.getChargingManager();
 
                 const chargeResult = await chargingManager.charge({
@@ -450,7 +442,7 @@ describe('ChargingManager', () => {
                 },
             });
 
-            await Actor.init();
+            await initIsolatedDefaultActor();
 
             const chargingManager = Actor.getChargingManager();
             const maxCount = chargingManager.calculateMaxEventChargeCountWithinLimit('event');
@@ -464,7 +456,7 @@ describe('ChargingManager', () => {
                 pricingInfo: {},
             });
 
-            await Actor.init();
+            await initIsolatedDefaultActor();
             const chargingManager = Actor.getChargingManager();
 
             const maxCount = chargingManager.calculateMaxEventChargeCountWithinLimit('unknown-event');
@@ -477,7 +469,7 @@ describe('ChargingManager', () => {
         test('should return all items when budget allows', async () => {
             setUpLocalTestEnv({ maxTotalChargeUsd: '10' });
 
-            await Actor.init();
+            await initIsolatedDefaultActor();
 
             const chargingManager = Actor.getChargingManager();
             const result = chargingManager.calculatePushDataLimits({
@@ -501,7 +493,7 @@ describe('ChargingManager', () => {
                 },
             });
 
-            await Actor.init();
+            await initIsolatedDefaultActor();
 
             const chargingManager = Actor.getChargingManager();
             const result = chargingManager.calculatePushDataLimits({
@@ -526,7 +518,7 @@ describe('ChargingManager', () => {
                 },
             });
 
-            await Actor.init();
+            await initIsolatedDefaultActor();
 
             const chargingManager = Actor.getChargingManager();
             const result = chargingManager.calculatePushDataLimits({
@@ -556,7 +548,7 @@ describe('ChargingManager', () => {
                 },
             });
 
-            await Actor.init();
+            await initIsolatedDefaultActor();
 
             const chargingManager = Actor.getChargingManager();
             const result = chargingManager.calculatePushDataLimits({
@@ -575,7 +567,7 @@ describe('ChargingManager', () => {
         test('should handle single item (non-array) input', async () => {
             setUpLocalTestEnv({ maxTotalChargeUsd: '10' });
 
-            await Actor.init();
+            await initIsolatedDefaultActor();
 
             const chargingManager = Actor.getChargingManager();
             const result = chargingManager.calculatePushDataLimits({
@@ -600,7 +592,7 @@ describe('ChargingManager', () => {
                 },
             });
 
-            await Actor.init();
+            await initIsolatedDefaultActor();
 
             const chargingManager = Actor.getChargingManager();
             const result = chargingManager.calculatePushDataLimits({
@@ -617,7 +609,7 @@ describe('ChargingManager', () => {
         test('should not charge for events when actor is not PPE', async () => {
             delete process.env.ACTOR_TEST_PAY_PER_EVENT;
 
-            await Actor.init();
+            await initIsolatedDefaultActor();
 
             const chargingManager = Actor.getChargingManager();
             const result = chargingManager.calculatePushDataLimits({
@@ -652,8 +644,8 @@ describe('ChargingManager', () => {
                 },
             });
 
-            await Actor.init();
-            localStorageEmulator.reapplyStorageClient();
+            const { serviceLocator } = await initIsolatedDefaultActor();
+            useInMemoryStorage(serviceLocator);
 
             // Mock the API client charge method
             const chargeSpy = vitest.fn().mockResolvedValue(undefined);
@@ -688,7 +680,7 @@ describe('ChargingManager', () => {
         test('should overcharge by exactly 1 event when count exceeds remaining budget', async () => {
             setUpLocalTestEnv({ maxTotalChargeUsd: '3' });
 
-            await Actor.init();
+            await initIsolatedDefaultActor();
 
             // Budget is $3, events cost $1 each locally → max 3 events
             // Charge 2 events first to leave room for only 1 more
@@ -711,7 +703,7 @@ describe('ChargingManager', () => {
         test('should not overcharge when the requested count fits within budget', async () => {
             setUpLocalTestEnv({ maxTotalChargeUsd: '5' });
 
-            await Actor.init();
+            await initIsolatedDefaultActor();
 
             // Budget is $5, events cost $1 each locally → max 5 events
             const result = await Actor.charge({
@@ -726,7 +718,7 @@ describe('ChargingManager', () => {
             // In local test mode, all events cost $1 each, so a $0.5 budget means 0 events fit
             setUpLocalTestEnv({ maxTotalChargeUsd: '0.5' });
 
-            await Actor.init();
+            await initIsolatedDefaultActor();
 
             // Budget is $0.5, events cost $1 each → maxEventChargeCount = 0
             // Requesting count=1 exceeds the limit, so we overcharge: 0 + 1 = 1
@@ -741,7 +733,7 @@ describe('ChargingManager', () => {
         test('should not overcharge when count exactly equals remaining budget', async () => {
             setUpLocalTestEnv({ maxTotalChargeUsd: '3' });
 
-            await Actor.init();
+            await initIsolatedDefaultActor();
 
             // Budget is $3, events cost $1 each → exactly 3 events fit
             const result = await Actor.charge({
@@ -765,8 +757,8 @@ describe('ChargingManager', () => {
                 chargedEventCounts: { task: 2 },
             });
 
-            await Actor.init();
-            localStorageEmulator.reapplyStorageClient();
+            const { serviceLocator } = await initIsolatedDefaultActor();
+            useInMemoryStorage(serviceLocator);
 
             const chargeSpy = vitest.fn().mockResolvedValue(undefined);
             vitest.spyOn(Actor.apifyClient, 'run').mockReturnValue({
