@@ -132,18 +132,21 @@ For example, `new ProxyConfiguration({ countryCode: 'CZE' })` throws:
 + Invalid string: must match pattern /^[A-Z]{2}$/ at `countryCode`, got `CZE`            // v4 (zod)
 ```
 
-If you matched on the exact text of these validation errors, update those checks. The thrown `Error` now carries the structured `ZodError` as its `cause`, so you can inspect `error.cause.issues` programmatically instead of parsing the message:
+If you matched on the exact text of these validation errors, update those checks. Validation failures now throw an `ArgumentValidationError` (exported from `apify`) whose `issues` expose the structured zod issues, so you can branch on them programmatically instead of parsing the message:
 
 ```ts
-import { ZodError } from 'zod';
+import { ArgumentValidationError } from 'apify';
 
 try {
     new ProxyConfiguration({ countryCode: 'CZE' });
 } catch (e) {
-    console.log((e as Error).message); // human-readable sentence (the text shown above)
-    console.log(((e as Error).cause as ZodError).issues); // structured ZodError issues, if you need to branch on them
+    const error = e as ArgumentValidationError;
+    console.log(error.message); // human-readable sentence (the text shown above)
+    console.log(error.issues); // structured zod issues, if you need to branch on them
 }
 ```
+
+The original `ZodError` is also kept on `error.cause`.
 
 ## Dependencies
 

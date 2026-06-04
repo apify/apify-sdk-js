@@ -80,19 +80,34 @@ function formatZodError(error: z.ZodError, root: unknown): string {
 }
 
 /**
- * Validates `value` against a zod `schema`, returning the parsed value.
+ * Error thrown when an argument fails validation (e.g. by `Actor.addWebhook()`
+ * or the `ProxyConfiguration` constructor).
  *
- * On failure it throws an `Error` whose message is a human-readable sentence
- * naming the offending field and the value it received (see {@link
- * formatZodError}) rather than a raw JSON dump, while preserving the structured
- * `ZodError` (including its `issues`) as the error's `cause` for programmatic
- * inspection.
+ * Its `message` is a human-readable sentence naming the offending field and the
+ * value it received (see {@link formatZodError}) — not a raw JSON dump. The
+ * structured zod {@link https://zod.dev | zod} issues are available on `issues`
+ * (and the original `ZodError` on `cause`) for programmatic inspection.
+ */
+export class ArgumentValidationError extends Error {
+    /** Structured issues from the underlying schema check. */
+    readonly issues: z.ZodError['issues'];
+
+    constructor(error: z.ZodError, value: unknown) {
+        super(formatZodError(error, value), { cause: error });
+        this.name = 'ArgumentValidationError';
+        this.issues = error.issues;
+    }
+}
+
+/**
+ * Validates `value` against a zod `schema`, returning the parsed value, or
+ * throwing an {@link ArgumentValidationError} if it doesn't match.
  * @internal
  */
 export function validate<Schema extends z.ZodType>(schema: Schema, value: unknown): z.infer<Schema> {
     const result = schema.safeParse(value);
     if (!result.success) {
-        throw new Error(formatZodError(result.error, value), { cause: result.error });
+        throw new ArgumentValidationError(result.error, value);
     }
     return result.data;
 }

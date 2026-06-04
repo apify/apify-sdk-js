@@ -1,4 +1,4 @@
-import { Actor, ProxyConfiguration } from 'apify';
+import { Actor, ArgumentValidationError, ProxyConfiguration } from 'apify';
 import { UserClient } from 'apify-client';
 import { type Dictionary, sleep } from 'crawlee';
 import { fetch, ProxyAgent } from 'undici';
@@ -199,6 +199,22 @@ describe('ProxyConfiguration', () => {
         expect(() => new ProxyConfiguration(opts)).toThrow(
             'Invalid string: must match pattern /^[A-Z]{2}$/ at `countryCode`, got `CZE`',
         );
+    });
+
+    test('throws an ArgumentValidationError exposing the structured issues', () => {
+        let caught: unknown;
+        try {
+            new ProxyConfiguration({ countryCode: 'CZE' });
+        } catch (error) {
+            caught = error;
+        }
+
+        expect(caught).toBeInstanceOf(ArgumentValidationError);
+        const error = caught as ArgumentValidationError;
+        expect(error.message).toContain('got `CZE`');
+        // `issues` is accessible directly (no need to reach into `cause`).
+        expect(error.issues).toHaveLength(1);
+        expect(error.issues[0].path).toEqual(['countryCode']);
     });
 
     test('should throw on invalid groups and countryCode args', async () => {
