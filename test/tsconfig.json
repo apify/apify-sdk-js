@@ -1,8 +1,12 @@
 {
     "extends": "../tsconfig.json",
-    "include": ["**/*", "../packages/*/src/**/*"],
+    "include": ["**/*", "../src/**/*"],
     "compilerOptions": {
         "noEmit": true,
+        // The base config sets rootDir to ./src for the package build; widen it to
+        // the repo root here so type-checking the test files (which live outside
+        // src/) doesn't trip TS6059.
+        "rootDir": "..",
         "sourceMap": true,
         "noUnusedLocals": false,
         "noUnusedParameters": false,
