@@ -1,4 +1,5 @@
 export * from './actor.js';
+export { ApifyStorageClient } from './apify_storage_client.js';
 export type {
     OpenStorageOptions,
     StorageAlias,
