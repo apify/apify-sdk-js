@@ -120,7 +120,9 @@ describe('Actor', () => {
         describe('main()', () => {
             test('throws on invalid args', async () => {
                 // @ts-expect-error invalid options
-                await expect(async () => new Actor().main()).rejects.toThrow();
+                await expect(async () => new Actor().main()).rejects.toThrow(
+                    "First parameter for Actor.main() must be a function (was 'undefined').",
+                );
             });
 
             test('works with simple user function', async () => {
@@ -1300,7 +1302,7 @@ describe('Actor', () => {
                     eventTypes: expectedEventTypes,
                     requestUrl: expectedRequestUrl,
                 }),
-            ).rejects.toThrow();
+            ).rejects.toThrow('Environment variable ACTOR_RUN_ID is not set!');
 
             delete process.env[APIFY_ENV_VARS.IS_AT_HOME];
         });

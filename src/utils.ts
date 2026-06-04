@@ -1,4 +1,4 @@
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { type } from 'node:os';
 import { normalize } from 'node:path';
@@ -7,9 +7,9 @@ import { normalize } from 'node:path';
 import crawleePkgJson from '@crawlee/core/package.json' with { type: 'json' };
 // @ts-ignore if we enable resolveJsonModule, we end up with `src` folder in `dist`
 import apifyClientPkgJson from 'apify-client/package.json' with { type: 'json' };
-// eslint-disable-next-line import/extensions
-import { readJSONSync } from 'fs-extra/esm';
 import semver from 'semver';
+
+import { z } from 'zod';
 
 import { APIFY_ENV_VARS } from '@apify/consts';
 import log from '@apify/log';
@@ -18,6 +18,32 @@ import log from '@apify/log';
 import apifyPkgJson from '../package.json' with { type: 'json' };
 
 const require = createRequire(import.meta.url);
+
+/**
+ * Returns `true` for a plain, non-empty object (not `null`, not an array).
+ * Mirrors the `ow.object.nonEmpty` predicate the SDK used previously.
+ * @internal
+ */
+export function isNonEmptyObject(value: unknown): value is Record<string, unknown> {
+    return typeof value === 'object' && value !== null && !Array.isArray(value) && Object.keys(value).length > 0;
+}
+
+/**
+ * Validates `value` against a zod `schema`, returning the parsed value.
+ *
+ * On failure it throws an `Error` whose message is a human-readable, multi-line
+ * sentence (via {@link https://zod.dev | zod}'s `prettifyError`) rather than a
+ * raw JSON dump, while preserving the structured `ZodError` (including its
+ * `issues`) as the error's `cause` for programmatic inspection.
+ * @internal
+ */
+export function validate<Schema extends z.ZodType>(schema: Schema, value: unknown): z.infer<Schema> {
+    const result = schema.safeParse(value);
+    if (!result.success) {
+        throw new Error(z.prettifyError(result.error), { cause: result.error });
+    }
+    return result.data;
+}
 
 /**
  * Gets info about system, node version and apify package version.
@@ -64,7 +90,7 @@ export function checkCrawleeVersion() {
         let version;
 
         try {
-            version = readJSONSync(path).version;
+            version = JSON.parse(readFileSync(path, 'utf8')).version;
         } catch {
             //
         }

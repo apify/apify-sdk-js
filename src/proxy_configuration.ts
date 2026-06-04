@@ -1,14 +1,15 @@
 import type { ProxyConfigurationOptions as CoreProxyConfigurationOptions } from '@crawlee/core';
 import { ProxyConfiguration as CoreProxyConfiguration } from '@crawlee/core';
 import type { ProxyInfo as CoreProxyInfo } from '@crawlee/types';
-import { gotScraping } from 'got-scraping';
-import ow from 'ow';
+import { fetch, ProxyAgent } from 'undici';
+import { z } from 'zod';
 
 import { APIFY_ENV_VARS, APIFY_PROXY_VALUE_REGEX } from '@apify/consts';
 import { cryptoRandomObjectId } from '@apify/utilities';
 
 import { Actor } from './actor.js';
 import { Configuration } from './configuration.js';
+import { validate } from './utils.js';
 
 const CHECK_ACCESS_REQUEST_TIMEOUT_MILLIS = 4_000;
 const CHECK_ACCESS_MAX_ATTEMPTS = 2;
@@ -198,17 +199,19 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
             newUrlFunction,
             ['validateRequired' as string]: false,
         });
-        ow(
+        validate(
+            z
+                .object({
+                    groups: z.array(z.string().regex(APIFY_PROXY_VALUE_REGEX)).optional(),
+                    apifyProxyGroups: z.array(z.string().regex(APIFY_PROXY_VALUE_REGEX)).optional(),
+                    countryCode: z.string().regex(COUNTRY_CODE_REGEX).optional(),
+                    apifyProxyCountry: z.string().regex(COUNTRY_CODE_REGEX).optional(),
+                    subdivisionCode: z.string().regex(SUBDIVISION_CODE_REGEX).optional(),
+                    apifyProxySubdivision: z.string().regex(SUBDIVISION_CODE_REGEX).optional(),
+                    password: z.string().optional(),
+                })
+                .strict(),
             rest,
-            ow.object.exactShape({
-                groups: ow.optional.array.ofType(ow.string.matches(APIFY_PROXY_VALUE_REGEX)),
-                apifyProxyGroups: ow.optional.array.ofType(ow.string.matches(APIFY_PROXY_VALUE_REGEX)),
-                countryCode: ow.optional.string.matches(COUNTRY_CODE_REGEX),
-                apifyProxyCountry: ow.optional.string.matches(COUNTRY_CODE_REGEX),
-                subdivisionCode: ow.optional.string.matches(SUBDIVISION_CODE_REGEX),
-                apifyProxySubdivision: ow.optional.string.matches(SUBDIVISION_CODE_REGEX),
-                password: ow.optional.string,
-            }),
         );
 
         const {
@@ -429,27 +432,40 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
         | undefined
     > {
         const { proxyStatusUrl } = this.config;
-        const requestOpts = {
-            url: `${proxyStatusUrl}/?format=json`,
-            proxyUrl: await this.newUrl(),
-            timeout: { request: CHECK_ACCESS_REQUEST_TIMEOUT_MILLIS },
-            responseType: 'json',
-        } as const;
+        const url = `${proxyStatusUrl}/?format=json`;
 
-        for (let attempt = 1; attempt <= CHECK_ACCESS_MAX_ATTEMPTS; attempt++) {
-            try {
-                const response = await gotScraping<{
-                    connected: boolean;
-                    connectionError: string;
-                    isManInTheMiddle: boolean;
-                }>(requestOpts);
-                return response.body;
-            } catch {
-                // retry connection errors
+        // The status endpoint (`proxy.apify.com`) is requested *through* the proxy
+        // so it can report on this exact connection (auth + man-in-the-middle).
+        // `undici`'s `fetch` + `ProxyAgent` come from the same package, so the
+        // dispatcher is recognized (Node's global `fetch` uses a separate internal
+        // copy of undici that would reject this dispatcher instance).
+        const proxyUrl = await this.newUrl();
+        // Without a proxy URL we can't perform the (proxied) status check.
+        if (!proxyUrl) return undefined;
+        const dispatcher = new ProxyAgent(proxyUrl);
+
+        try {
+            for (let attempt = 1; attempt <= CHECK_ACCESS_MAX_ATTEMPTS; attempt++) {
+                try {
+                    const response = await fetch(url, {
+                        dispatcher,
+                        signal: AbortSignal.timeout(CHECK_ACCESS_REQUEST_TIMEOUT_MILLIS),
+                    });
+                    if (!response.ok) continue;
+                    return (await response.json()) as {
+                        connected: boolean;
+                        connectionError: string;
+                        isManInTheMiddle: boolean;
+                    };
+                } catch {
+                    // retry connection errors
+                }
             }
-        }
 
-        return undefined;
+            return undefined;
+        } finally {
+            await dispatcher.close();
+        }
     }
 
     /**

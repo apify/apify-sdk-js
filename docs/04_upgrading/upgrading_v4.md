@@ -120,3 +120,34 @@ const url = store.getPublicUrl('myKey');
 // v4
 const url = await store.getPublicUrl('myKey');
 ```
+
+## Argument validation (`ow` → `zod`)
+
+Runtime argument validation (e.g. `Actor.addWebhook()`, `Actor.setStatusMessage()`, `Actor.openDataset()` / `openKeyValueStore()` / `openRequestQueue()`, and the `ProxyConfiguration` constructor) now uses [`zod`](https://zod.dev) instead of `ow`. Validation is just as strict — invalid arguments still throw synchronously, before any work is done — but the **error messages changed**.
+
+For example, `new ProxyConfiguration({ countryCode: 'CZE' })` throws:
+
+```diff
+- Expected property string `countryCode` to match `/^[A-Z]{2}$/`, got `CZE` in object   // v3 (ow)
++ ✖ Invalid string: must match pattern /^[A-Z]{2}$/                                       // v4 (zod)
++   → at countryCode
+```
+
+If you matched on the exact text of these validation errors, update those checks. The thrown `Error` now carries the structured `ZodError` as its `cause`, so you can inspect `error.cause.issues` programmatically instead of parsing the message:
+
+```ts
+try {
+    new ProxyConfiguration({ countryCode: 'CZE' });
+} catch (error) {
+    console.log(error.message); // human-readable sentence (the text shown above)
+    console.log(error.cause?.issues); // structured ZodError issues, if you need to branch on them
+}
+```
+
+## Dependencies
+
+The SDK dropped several runtime dependencies in favor of native Node.js APIs and packages it already pulls in:
+
+- **`got-scraping`** — the internal Apify Proxy status check now uses the native `fetch` (via `undici`'s `ProxyAgent`). If your Actor imported `got-scraping` transitively through `apify`, add it to your own `dependencies`.
+- **`fs-extra`** — replaced with `node:fs`.
+- **`ow`** — replaced with `zod` (see above).

@@ -21,7 +21,7 @@ import type {
     WebhookEventType,
 } from 'apify-client';
 import { ActorRun as ClientActorRun, ApifyClient } from 'apify-client';
-import ow from 'ow';
+import { z } from 'zod';
 
 import {
     ACTOR_ENV_VARS,
@@ -51,7 +51,7 @@ import type { ProxyConfigurationOptions } from './proxy_configuration.js';
 import { ProxyConfiguration } from './proxy_configuration.js';
 import type { OpenStorageOptions, StorageIdentifier, StorageIdentifierWithoutAlias } from './storage.js';
 import { openStorage } from './storage.js';
-import { checkCrawleeVersion, getSystemInfo, printOutdatedSdkWarning } from './utils.js';
+import { checkCrawleeVersion, getSystemInfo, isNonEmptyObject, printOutdatedSdkWarning, validate } from './utils.js';
 
 export interface InitOptions {
     storage?: StorageClient;
@@ -506,24 +506,22 @@ export class Actor<Data extends Dictionary = Dictionary> {
      *
      * If the user function returns a promise, it is considered asynchronous:
      * ```js
-     * import { gotScraping } from 'got-scraping';
-     *
      * await Actor.main(() => {
      *   // My asynchronous function that returns a promise
-     *   return gotScraping('http://www.example.com').then((html) => {
-     *     console.log(html);
-     *   });
+     *   return fetch('http://www.example.com')
+     *     .then((response) => response.text())
+     *     .then((html) => {
+     *       console.log(html);
+     *     });
      * });
      * ```
      *
      * To simplify your code, you can take advantage of the `async`/`await` keywords:
      *
      * ```js
-     * import { gotScraping } from 'got-scraping';
-     *
      * await Actor.main(async () => {
      *   // My asynchronous function
-     *   const html = await request('http://www.example.com');
+     *   const html = await fetch('http://www.example.com').then((response) => response.text());
      *   console.log(html);
      * });
      * ```
@@ -963,20 +961,22 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @ignore
      */
     async addWebhook(options: WebhookOptions): Promise<Webhook | undefined> {
-        ow(
+        validate(
+            z
+                .object({
+                    eventTypes: z.array(z.string()),
+                    requestUrl: z.string(),
+                    payloadTemplate: z.string().optional(),
+                    idempotencyKey: z.string().optional(),
+                    headersTemplate: z.string().optional(),
+                    description: z.string().optional(),
+                    ignoreSslErrors: z.boolean().optional(),
+                    doNotRetry: z.boolean().optional(),
+                    shouldInterpolateStrings: z.boolean().optional(),
+                    isApifyIntegration: z.boolean().optional(),
+                })
+                .strict(),
             options,
-            ow.object.exactShape({
-                eventTypes: ow.array.ofType<WebhookEventType>(ow.string),
-                requestUrl: ow.string,
-                payloadTemplate: ow.optional.string,
-                idempotencyKey: ow.optional.string,
-                headersTemplate: ow.optional.string,
-                description: ow.optional.string,
-                ignoreSslErrors: ow.optional.boolean,
-                doNotRetry: ow.optional.boolean,
-                shouldInterpolateStrings: ow.optional.boolean,
-                isApifyIntegration: ow.optional.boolean,
-            }),
         );
 
         if (!this.isAtHome()) {
@@ -993,6 +993,8 @@ export class Actor<Data extends Dictionary = Dictionary> {
 
         return this.apifyClient.webhooks().create({
             ...options,
+            // Copy to a mutable array — `WebhookOptions.eventTypes` is `readonly`.
+            eventTypes: [...options.eventTypes],
             isAdHoc: true,
             condition: {
                 actorRunId: runId,
@@ -1009,8 +1011,8 @@ export class Actor<Data extends Dictionary = Dictionary> {
      */
     async setStatusMessage(statusMessage: string, options?: SetStatusMessageOptions): Promise<ClientActorRun> {
         const { isStatusMessageTerminal, level } = options || {};
-        ow(statusMessage, ow.string);
-        ow(isStatusMessageTerminal, ow.optional.boolean);
+        validate(z.string(), statusMessage);
+        validate(z.boolean().optional(), isStatusMessageTerminal);
 
         this._ensureActorInit('setStatusMessage');
 
@@ -1130,12 +1132,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
         datasetIdOrName?: StorageIdentifier | null,
         options: OpenStorageOptions = {},
     ): Promise<Dataset<Data>> {
-        ow(
-            options,
-            ow.object.exactShape({
-                forceCloud: ow.optional.boolean,
-            }),
-        );
+        validate(z.object({ forceCloud: z.boolean().optional() }).strict(), options);
 
         this._ensureActorInit('openDataset');
 
@@ -1252,11 +1249,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
 
         let input = rawInput as T;
 
-        if (
-            ow.isValid(rawInput, ow.object.nonEmpty) &&
-            inputSecretsPrivateKeyFile &&
-            inputSecretsPrivateKeyPassphrase
-        ) {
+        if (isNonEmptyObject(rawInput) && inputSecretsPrivateKeyFile && inputSecretsPrivateKeyPassphrase) {
             const privateKey = createPrivateKey({
                 key: Buffer.from(inputSecretsPrivateKeyFile, 'base64'),
                 passphrase: inputSecretsPrivateKeyPassphrase,
@@ -1265,7 +1258,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
             input = decryptInputSecrets({ input: rawInput, privateKey });
         }
 
-        if (ow.isValid(input, ow.object.nonEmpty) && !Buffer.isBuffer(input)) {
+        if (isNonEmptyObject(input) && !Buffer.isBuffer(input)) {
             input = await this.inferDefaultsFromInputSchema(input);
         }
 
@@ -1306,12 +1299,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
         storeIdOrName?: StorageIdentifierWithoutAlias | null,
         options: OpenStorageOptions = {},
     ): Promise<KeyValueStore> {
-        ow(
-            options,
-            ow.object.exactShape({
-                forceCloud: ow.optional.boolean,
-            }),
-        );
+        validate(z.object({ forceCloud: z.boolean().optional() }).strict(), options);
 
         this._ensureActorInit('openKeyValueStore');
 
@@ -1340,12 +1328,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
         queueIdOrName?: StorageIdentifierWithoutAlias | null,
         options: OpenStorageOptions = {},
     ): Promise<RequestQueue> {
-        ow(
-            options,
-            ow.object.exactShape({
-                forceCloud: ow.optional.boolean,
-            }),
-        );
+        validate(z.object({ forceCloud: z.boolean().optional() }).strict(), options);
 
         this._ensureActorInit('openRequestQueue');
 
@@ -1608,24 +1591,22 @@ export class Actor<Data extends Dictionary = Dictionary> {
      *
      * If the user function returns a promise, it is considered asynchronous:
      * ```js
-     * import { gotScraping } from 'got-scraping';
-     *
      * await Actor.main(() => {
      *   // My asynchronous function that returns a promise
-     *   return gotScraping('http://www.example.com').then((html) => {
-     *     console.log(html);
-     *   });
+     *   return fetch('http://www.example.com')
+     *     .then((response) => response.text())
+     *     .then((html) => {
+     *       console.log(html);
+     *     });
      * });
      * ```
      *
      * To simplify your code, you can take advantage of the `async`/`await` keywords:
      *
      * ```js
-     * import { gotScraping } from 'got-scraping';
-     *
      * await Actor.main(async () => {
      *   // My asynchronous function
-     *   const html = await gotScraping('http://www.example.com');
+     *   const html = await fetch('http://www.example.com').then((response) => response.text());
      *   console.log(html);
      * });
      * ```
@@ -1654,11 +1635,9 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * behavior by setting `options.gracefulShutdown` to `false`.
      *
      * ```js
-     * import { gotScraping } from 'got-scraping';
-     *
      * await Actor.init();
      *
-     * const html = await gotScraping('http://www.example.com');
+     * const html = await fetch('http://www.example.com').then((response) => response.text());
      * console.log(html);
      *
      * await Actor.exit();
