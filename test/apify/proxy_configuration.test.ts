@@ -169,7 +169,7 @@ describe('ProxyConfiguration', () => {
                         subdivisionCode: 'California',
                         password,
                     }),
-            ).toThrow('Invalid string: must match pattern /^[A-Z0-9]{1,3}$/');
+            ).toThrow('Invalid string: must match pattern /^[A-Z0-9]{1,3}$/ at `subdivisionCode`, got `California`');
             expect(
                 () =>
                     new ProxyConfiguration({
@@ -177,19 +177,19 @@ describe('ProxyConfiguration', () => {
                         subdivisionCode: 'ca',
                         password,
                     }),
-            ).toThrow('Invalid string: must match pattern /^[A-Z0-9]{1,3}$/');
+            ).toThrow('Invalid string: must match pattern /^[A-Z0-9]{1,3}$/ at `subdivisionCode`, got `ca`');
         });
     });
 
     test('should throw on invalid arguments structure', () => {
         // Validation errors are plain, human-readable sentences that name the
-        // offending field (zod's `prettifyError`), not a JSON dump.
+        // offending field *and* the value it received, not a JSON dump.
         const invalidGroups = ['GROUP1*'];
         let opts = { ...basicOpts };
         opts.groups = invalidGroups;
 
         expect(() => new ProxyConfiguration(opts)).toThrow(
-            '✖ Invalid string: must match pattern /^[\\w._~]+$/\n  → at groups[0]',
+            'Invalid string: must match pattern /^[\\w._~]+$/ at `groups[0]`, got `GROUP1*`',
         );
 
         // Country code
@@ -197,7 +197,7 @@ describe('ProxyConfiguration', () => {
         opts = { ...basicOpts };
         opts.countryCode = invalidCountryCode;
         expect(() => new ProxyConfiguration(opts)).toThrow(
-            '✖ Invalid string: must match pattern /^[A-Z]{2}$/\n  → at countryCode',
+            'Invalid string: must match pattern /^[A-Z]{2}$/ at `countryCode`, got `CZE`',
         );
     });
 

@@ -129,8 +129,7 @@ For example, `new ProxyConfiguration({ countryCode: 'CZE' })` throws:
 
 ```diff
 - Expected property string `countryCode` to match `/^[A-Z]{2}$/`, got `CZE` in object   // v3 (ow)
-+ ✖ Invalid string: must match pattern /^[A-Z]{2}$/                                       // v4 (zod)
-+   → at countryCode
++ Invalid string: must match pattern /^[A-Z]{2}$/ at `countryCode`, got `CZE`            // v4 (zod)
 ```
 
 If you matched on the exact text of these validation errors, update those checks. The thrown `Error` now carries the structured `ZodError` as its `cause`, so you can inspect `error.cause.issues` programmatically instead of parsing the message:

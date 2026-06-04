@@ -9,7 +9,7 @@ import crawleePkgJson from '@crawlee/core/package.json' with { type: 'json' };
 import apifyClientPkgJson from 'apify-client/package.json' with { type: 'json' };
 import semver from 'semver';
 
-import { z } from 'zod';
+import type { z } from 'zod';
 
 import { APIFY_ENV_VARS } from '@apify/consts';
 import log from '@apify/log';
@@ -28,19 +28,71 @@ export function isNonEmptyObject(value: unknown): value is Record<string, unknow
     return typeof value === 'object' && value !== null && !Array.isArray(value) && Object.keys(value).length > 0;
 }
 
+/** Formats a zod issue path like `groups[0]` or `countryCode`. */
+function formatIssuePath(path: readonly PropertyKey[]): string {
+    let out = '';
+    for (const key of path) {
+        if (typeof key === 'number') out += `[${key}]`;
+        else out += out ? `.${String(key)}` : String(key);
+    }
+    return out;
+}
+
+/** Reads the value at `path` from the validated input, to include in the error. */
+function valueAtPath(root: unknown, path: readonly PropertyKey[]): unknown {
+    let current = root;
+    for (const key of path) {
+        if (current === null || typeof current !== 'object') return undefined;
+        current = (current as Record<PropertyKey, unknown>)[key];
+    }
+    return current;
+}
+
+/** Renders a primitive received value for an error; skips objects/Dates (noisy). */
+function describeReceived(value: unknown): string | undefined {
+    switch (typeof value) {
+        case 'string':
+            return value;
+        case 'number':
+        case 'boolean':
+        case 'bigint':
+            return String(value);
+        default:
+            return undefined;
+    }
+}
+
+/**
+ * Formats a `ZodError` as a plain, human-readable message that names the
+ * offending field *and* the value it received (e.g. ``must match pattern
+ * /^[A-Z]{2}$/ at `countryCode`, got `CZE` ``) — closer to the old `ow` errors
+ * than zod's default, which omits the received value.
+ */
+function formatZodError(error: z.ZodError, root: unknown): string {
+    return error.issues
+        .map((issue) => {
+            const location = issue.path.length ? ` at \`${formatIssuePath(issue.path)}\`` : '';
+            const received = describeReceived(valueAtPath(root, issue.path));
+            const got = received === undefined ? '' : `, got \`${received}\``;
+            return `${issue.message}${location}${got}`;
+        })
+        .join('\n');
+}
+
 /**
  * Validates `value` against a zod `schema`, returning the parsed value.
  *
- * On failure it throws an `Error` whose message is a human-readable, multi-line
- * sentence (via {@link https://zod.dev | zod}'s `prettifyError`) rather than a
- * raw JSON dump, while preserving the structured `ZodError` (including its
- * `issues`) as the error's `cause` for programmatic inspection.
+ * On failure it throws an `Error` whose message is a human-readable sentence
+ * naming the offending field and the value it received (see {@link
+ * formatZodError}) rather than a raw JSON dump, while preserving the structured
+ * `ZodError` (including its `issues`) as the error's `cause` for programmatic
+ * inspection.
  * @internal
  */
 export function validate<Schema extends z.ZodType>(schema: Schema, value: unknown): z.infer<Schema> {
     const result = schema.safeParse(value);
     if (!result.success) {
-        throw new Error(z.prettifyError(result.error), { cause: result.error });
+        throw new Error(formatZodError(result.error, value), { cause: result.error });
     }
     return result.data;
 }
