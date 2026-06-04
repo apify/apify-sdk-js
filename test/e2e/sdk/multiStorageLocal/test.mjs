@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { ApifyClient, Dataset } from 'apify';
+import { ApifyClient } from 'apify';
 import { sleep } from 'crawlee';
 
 const client = new ApifyClient({
@@ -26,10 +26,7 @@ test('aliased storages work locally with purge-on-first-open across restarts', a
 
     assert.strictEqual(run.status, 'SUCCEEDED');
 
-    const dataset = await Dataset.open(run.defaultDatasetId, {
-        storageClient: client,
-    });
-    const data = await dataset.getData();
+    const data = await client.dataset(run.defaultDatasetId).listItems();
 
     assert.strictEqual(data.count, 2, 'There must be exactly two summary items (one per lifecycle)');
 

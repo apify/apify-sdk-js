@@ -1,4 +1,4 @@
-import { Actor, ApifyClient, Dataset, log } from 'apify';
+import { Actor, ApifyClient, log } from 'apify';
 
 const client = new ApifyClient({
     token: process.env.APIFY_TOKEN,
@@ -16,7 +16,9 @@ const actor = new Actor({
     useChargingLogDataset: true,
     testPayPerEvent: true,
     isAtHome: false,
-    maxTotalChargeUsd: maxTotalChargeUsd ?? Infinity,
+    // The SDK treats `0`/unset as "no limit" — don't pass `Infinity`, which
+    // isn't a valid config input (zod rejects non-finite numbers).
+    maxTotalChargeUsd: maxTotalChargeUsd ?? 0,
     logLevel: 'DEBUG',
 });
 
@@ -33,7 +35,6 @@ const chargingLogDataset = await actor.openDataset('charging_log');
 const data = await chargingLogDataset.getData();
 
 // Transfer contents of the local charging log dataset into the default dataset on the platform
-const dataset = await Dataset.open(undefined, { storageClient: client });
-await dataset.pushData(data.items);
+await client.dataset(run.defaultDatasetId).pushItems(data.items);
 
 await actor.exit();

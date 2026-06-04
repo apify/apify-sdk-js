@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { ApifyClient, Dataset } from 'apify';
+import { ApifyClient } from 'apify';
 import { sleep } from 'crawlee';
 
 const client = new ApifyClient({
@@ -23,15 +23,12 @@ test('basic functionality', async () => {
     assert.strictEqual(run.status, 'SUCCEEDED');
     assert.deepEqual(run.chargedEventCounts, undefined);
 
-    const chargingDataset = await Dataset.open(run.defaultDatasetId, {
-        storageClient: client,
-    });
-    const chargingRecords = await chargingDataset.getData();
+    const chargingRecords = await client.dataset(run.defaultDatasetId).listItems();
 
     assert.strictEqual(
         chargingRecords.count,
         1,
-        `There must be exactly one item in the charging dataset (ID ${chargingDataset.id})`,
+        `There must be exactly one item in the charging dataset (ID ${run.defaultDatasetId})`,
     );
     assert.strictEqual(chargingRecords.items[0].chargedCount, 4);
     assert.strictEqual(chargingRecords.items[0].eventName, 'foobar');
@@ -43,15 +40,12 @@ test('charge limit', async () => {
     assert.strictEqual(run.status, 'SUCCEEDED');
     assert.deepEqual(run.chargedEventCounts, undefined);
 
-    const chargingDataset = await Dataset.open(run.defaultDatasetId, {
-        storageClient: client,
-    });
-    const chargingRecords = await chargingDataset.getData();
+    const chargingRecords = await client.dataset(run.defaultDatasetId).listItems();
 
     assert.strictEqual(
         chargingRecords.count,
         1,
-        `There must be exactly one item in the charging dataset (ID ${chargingDataset.id})`,
+        `There must be exactly one item in the charging dataset (ID ${run.defaultDatasetId})`,
     );
     // The Actor tries to charge 4 events, the limit allows 2, but the SDK intentionally overcharges by 1 so that the Actor doesn't get stuck
     assert.strictEqual(chargingRecords.items[0].chargedCount, 3);
