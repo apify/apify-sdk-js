@@ -1,7 +1,7 @@
-import { Actor, ProxyConfiguration } from 'apify';
+import { Actor, ArgumentValidationError, ProxyConfiguration } from 'apify';
 import { UserClient } from 'apify-client';
 import { type Dictionary, sleep } from 'crawlee';
-import { gotScraping } from 'got-scraping';
+import { fetch, ProxyAgent } from 'undici';
 
 import { APIFY_ENV_VARS, LOCAL_APIFY_ENV_VARS } from '@apify/consts';
 
@@ -22,13 +22,31 @@ const basicOpts = {
 const apifyProxyUrlPattern =
     /^http:\/\/groups-GROUP1\+GROUP2,session-[A-Za-z0-9]+,country-CZ:test12345@proxy\.apify\.com:8000$/;
 
-vitest.mock('got-scraping', async () => {
+// The proxy status check uses undici's `fetch` (routed through a `ProxyAgent`)
+// instead of a heavy HTTP client. Mock both: `fetchSpy` stubs the status
+// response, `proxyAgentSpy` lets us assert the proxy URL the request is sent
+// through.
+// `ProxyAgent` is instantiated with `new`, so the mock must be a regular
+// (constructable) function, not an arrow.
+vitest.mock('undici', () => {
     return {
-        gotScraping: vitest.fn(),
+        fetch: vitest.fn(),
+        ProxyAgent: vitest.fn(function () {
+            return { close: vitest.fn() };
+        }),
     };
 });
 
-const gotScrapingSpy = vitest.mocked(gotScraping);
+const fetchSpy = vitest.mocked(fetch);
+const proxyAgentSpy = vitest.mocked(ProxyAgent);
+
+/** Builds a fake undici `Response` whose `json()` resolves to `body`. */
+const statusResponse = (body: unknown, ok = true) => ({ ok, json: async () => body }) as any;
+
+beforeEach(() => {
+    fetchSpy.mockReset();
+    proxyAgentSpy.mockClear();
+});
 
 afterEach(() => {
     delete process.env[APIFY_ENV_VARS.TOKEN];
@@ -151,7 +169,7 @@ describe('ProxyConfiguration', () => {
                         subdivisionCode: 'California',
                         password,
                     }),
-            ).toThrow();
+            ).toThrow('Invalid string: must match pattern /^[A-Z0-9]{1,3}$/ at `subdivisionCode`, got `California`');
             expect(
                 () =>
                     new ProxyConfiguration({
@@ -159,53 +177,76 @@ describe('ProxyConfiguration', () => {
                         subdivisionCode: 'ca',
                         password,
                     }),
-            ).toThrow();
+            ).toThrow('Invalid string: must match pattern /^[A-Z0-9]{1,3}$/ at `subdivisionCode`, got `ca`');
         });
     });
 
     test('should throw on invalid arguments structure', () => {
-        // Group value
+        // Validation errors are plain, human-readable sentences that name the
+        // offending field *and* the value it received, not a JSON dump.
         const invalidGroups = ['GROUP1*'];
         let opts = { ...basicOpts };
         opts.groups = invalidGroups;
 
-        expect(() => new ProxyConfiguration(opts)).toThrow('got `GROUP1*` in object');
+        expect(() => new ProxyConfiguration(opts)).toThrow(
+            'Invalid string: must match pattern /^[\\w._~]+$/ at `groups[0]`, got `GROUP1*`',
+        );
 
         // Country code
         const invalidCountryCode = 'CZE';
         opts = { ...basicOpts };
         opts.countryCode = invalidCountryCode;
-        expect(() => new ProxyConfiguration(opts)).toThrow('got `CZE` in object');
+        expect(() => new ProxyConfiguration(opts)).toThrow(
+            'Invalid string: must match pattern /^[A-Z]{2}$/ at `countryCode`, got `CZE`',
+        );
+    });
+
+    test('throws an ArgumentValidationError exposing the structured issues', () => {
+        let caught: unknown;
+        try {
+            new ProxyConfiguration({ countryCode: 'CZE' });
+        } catch (error) {
+            caught = error;
+        }
+
+        expect(caught).toBeInstanceOf(ArgumentValidationError);
+        const error = caught as ArgumentValidationError;
+        expect(error.message).toContain('got `CZE`');
+        // `issues` is accessible directly (no need to reach into `cause`).
+        expect(error.issues).toHaveLength(1);
+        expect(error.issues[0].path).toEqual(['countryCode']);
     });
 
     test('should throw on invalid groups and countryCode args', async () => {
         expect(
             // @ts-expect-error invalid input
             () => new ProxyConfiguration({ groups: [new Date()] }),
-        ).toThrowError();
+        ).toThrow('Invalid input: expected string, received Date');
         expect(
             // @ts-expect-error invalid input
             () => new ProxyConfiguration({ groups: [{}, 'fff', 'ccc'] }),
-        ).toThrowError();
-        expect(() => new ProxyConfiguration({ groups: ['ffff', 'ff-hf', 'ccc'] })).toThrowError();
-        expect(() => new ProxyConfiguration({ groups: ['ffff', 'fff', 'cc$c'] })).toThrowError();
+        ).toThrow('Invalid input: expected string, received object');
+        expect(() => new ProxyConfiguration({ groups: ['ffff', 'ff-hf', 'ccc'] })).toThrow('must match pattern');
+        expect(() => new ProxyConfiguration({ groups: ['ffff', 'fff', 'cc$c'] })).toThrow('must match pattern');
         expect(
             // @ts-expect-error invalid input
             () => new ProxyConfiguration({ apifyProxyGroups: [new Date()] }),
-        ).toThrowError();
+        ).toThrow('Invalid input: expected string, received Date');
 
         expect(
             // @ts-expect-error invalid input
             () => new ProxyConfiguration({ countryCode: new Date() }),
-        ).toThrow();
-        expect(() => new ProxyConfiguration({ countryCode: 'aa' })).toThrow();
-        expect(() => new ProxyConfiguration({ countryCode: 'aB' })).toThrow();
-        expect(() => new ProxyConfiguration({ countryCode: 'Ba' })).toThrow();
-        expect(() => new ProxyConfiguration({ countryCode: '11' })).toThrow();
-        expect(() => new ProxyConfiguration({ countryCode: 'DDDD' })).toThrow();
-        expect(() => new ProxyConfiguration({ countryCode: 'dddd' })).toThrow();
-        // @ts-expect-error invalid input
-        expect(() => new ProxyConfiguration({ countryCode: 1111 })).toThrow();
+        ).toThrow('Invalid input: expected string, received Date');
+        expect(() => new ProxyConfiguration({ countryCode: 'aa' })).toThrow('must match pattern /^[A-Z]{2}$/');
+        expect(() => new ProxyConfiguration({ countryCode: 'aB' })).toThrow('must match pattern /^[A-Z]{2}$/');
+        expect(() => new ProxyConfiguration({ countryCode: 'Ba' })).toThrow('must match pattern /^[A-Z]{2}$/');
+        expect(() => new ProxyConfiguration({ countryCode: '11' })).toThrow('must match pattern /^[A-Z]{2}$/');
+        expect(() => new ProxyConfiguration({ countryCode: 'DDDD' })).toThrow('must match pattern /^[A-Z]{2}$/');
+        expect(() => new ProxyConfiguration({ countryCode: 'dddd' })).toThrow('must match pattern /^[A-Z]{2}$/');
+        expect(
+            // @ts-expect-error invalid input
+            () => new ProxyConfiguration({ countryCode: 1111 }),
+        ).toThrow('Invalid input: expected string, received number');
     });
 
     test('should throw on invalid newUrlFunction', async () => {
@@ -385,7 +426,7 @@ describe('Actor.createProxyConfiguration()', () => {
     test('should work with all options', async () => {
         const status = { connected: true };
         const url = 'http://proxy.apify.com/?format=json';
-        gotScrapingSpy.mockResolvedValueOnce({ body: status } as any);
+        fetchSpy.mockResolvedValueOnce(statusResponse(status));
 
         const proxyConfiguration = await Actor.createProxyConfiguration(basicOpts);
 
@@ -401,11 +442,12 @@ describe('Actor.createProxyConfiguration()', () => {
         // @ts-expect-error private property
         expect(proxyConfiguration.port).toBe(port);
 
-        expect(gotScrapingSpy).toBeCalledWith({
-            url,
-            proxyUrl: expect.stringMatching(apifyProxyUrlPattern),
-            timeout: { request: 4000 },
-            responseType: 'json',
+        // The status endpoint is fetched through a proxy whose URL carries the
+        // groups/country/session built from the options.
+        expect(proxyAgentSpy).toBeCalledWith(expect.stringMatching(apifyProxyUrlPattern));
+        expect(fetchSpy).toBeCalledWith(url, {
+            dispatcher: expect.anything(),
+            signal: expect.any(AbortSignal),
         });
     });
 
@@ -417,7 +459,7 @@ describe('Actor.createProxyConfiguration()', () => {
 
         expect(proxyConfiguration).toBeInstanceOf(ProxyConfiguration);
         // The status endpoint must not be hit when access checking is disabled.
-        expect(gotScrapingSpy).not.toHaveBeenCalled();
+        expect(fetchSpy).not.toHaveBeenCalled();
     });
 
     test('should work without password (with token)', async () => {
@@ -428,7 +470,7 @@ describe('Actor.createProxyConfiguration()', () => {
         const getUserSpy = vitest.spyOn(UserClient.prototype, 'get');
         const status = { connected: true };
 
-        gotScrapingSpy.mockResolvedValueOnce({ body: status } as any);
+        fetchSpy.mockResolvedValueOnce(statusResponse(status));
         getUserSpy.mockResolvedValueOnce(userData as any);
 
         const proxyConfiguration = await Actor.createProxyConfiguration(opts);
@@ -443,7 +485,6 @@ describe('Actor.createProxyConfiguration()', () => {
         // @ts-expect-error private property
         expect(proxyConfiguration.port).toBe(port);
 
-        gotScrapingSpy.mockRestore();
         getUserSpy.mockRestore();
     });
 
@@ -467,15 +508,9 @@ describe('Actor.createProxyConfiguration()', () => {
 
         const status = { connected: true };
 
-        const fakeCall = async () => {
-            return { body: status };
-        };
-
-        gotScrapingSpy.mockImplementationOnce(fakeCall as any);
+        fetchSpy.mockResolvedValueOnce(statusResponse(status));
 
         await expect(Actor.createProxyConfiguration()).rejects.toThrow('Apify Proxy password must be provided');
-
-        gotScrapingSpy.mockRestore();
 
         delete process.env[APIFY_ENV_VARS.IS_AT_HOME];
         await expect(Actor.createProxyConfiguration()).resolves.toBeInstanceOf(ProxyConfiguration);
@@ -489,11 +524,10 @@ describe('Actor.createProxyConfiguration()', () => {
         const status = { connected: false, connectionError };
         const getUserSpy = vitest.spyOn(UserClient.prototype, 'get');
         getUserSpy.mockResolvedValue(userData as any);
-        gotScrapingSpy.mockResolvedValueOnce({ body: status } as any);
+        fetchSpy.mockResolvedValueOnce(statusResponse(status));
 
         await expect(Actor.createProxyConfiguration({ groups })).rejects.toThrow(connectionError);
 
-        gotScrapingSpy.mockRestore();
         getUserSpy.mockRestore();
 
         delete process.env[APIFY_ENV_VARS.IS_AT_HOME];
@@ -502,8 +536,8 @@ describe('Actor.createProxyConfiguration()', () => {
 
     test('should not throw when access check is unresponsive', async () => {
         process.env.APIFY_PROXY_PASSWORD = '123456789';
-        gotScrapingSpy.mockRejectedValueOnce(new Error('some error'));
-        gotScrapingSpy.mockRejectedValueOnce(new Error('some error'));
+        fetchSpy.mockRejectedValueOnce(new Error('some error'));
+        fetchSpy.mockRejectedValueOnce(new Error('some error'));
 
         const proxyConfiguration = new ProxyConfiguration();
         // @ts-expect-error private property
@@ -512,7 +546,6 @@ describe('Actor.createProxyConfiguration()', () => {
         await proxyConfiguration.initialize();
         expect(logMock).toBeCalledTimes(1);
 
-        gotScrapingSpy.mockRestore();
         logMock.mockRestore();
     });
 
@@ -521,22 +554,17 @@ describe('Actor.createProxyConfiguration()', () => {
         process.env.APIFY_PROXY_HOSTNAME = 'proxy-domain.apify.com';
         process.env.APIFY_PROXY_PASSWORD = password;
 
-        gotScrapingSpy.mockResolvedValueOnce({
-            body: { connected: true },
-        } as any);
+        fetchSpy.mockResolvedValueOnce(statusResponse({ connected: true }));
 
         await Actor.createProxyConfiguration();
-        expect(gotScrapingSpy).toBeCalledWith({
-            url: `${process.env.APIFY_PROXY_STATUS_URL}/?format=json`,
-            proxyUrl: expect.stringMatching(
+        expect(proxyAgentSpy).toBeCalledWith(
+            expect.stringMatching(
                 new RegExp(`^http://session-[A-Za-z0-9]+:${password}@${process.env.APIFY_PROXY_HOSTNAME}:8000$`),
             ),
-            responseType: 'json',
-            timeout: {
-                request: 4000,
-            },
+        );
+        expect(fetchSpy).toBeCalledWith(`${process.env.APIFY_PROXY_STATUS_URL}/?format=json`, {
+            dispatcher: expect.anything(),
+            signal: expect.any(AbortSignal),
         });
-
-        gotScrapingSpy.mockRestore();
     });
 });
