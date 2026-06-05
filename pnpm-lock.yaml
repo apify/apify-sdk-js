@@ -38,23 +38,17 @@ importers:
         specifier: ^4.0.0-beta.61
         version: 4.0.0-beta.61
       apify-client:
-        specifier: ^2.17.0
-        version: 2.22.3
-      fs-extra:
-        specifier: ^11.2.0
-        version: 11.3.4
-      got-scraping:
-        specifier: ^4.2.1
-        version: 4.2.1
-      ow:
-        specifier: ^2.0.0
-        version: 2.0.0
+        specifier: ^2.23.4
+        version: 2.23.4
       semver:
         specifier: ^7.5.4
         version: 7.7.4
       tslib:
         specifier: ^2.6.2
         version: 2.8.1
+      undici:
+        specifier: ^8.0.0
+        version: 8.3.0
       ws:
         specifier: ^8.18.0
         version: 8.21.0
@@ -80,9 +74,6 @@ importers:
       '@types/content-type':
         specifier: ^1.1.8
         version: 1.1.9
-      '@types/fs-extra':
-        specifier: ^11.0.4
-        version: 11.0.4
       '@types/node':
         specifier: ^24.0.0
         version: 24.12.2
@@ -3717,9 +3708,6 @@ packages:
   '@types/express@4.17.25':
     resolution: {integrity: sha512-dVd04UKsfpINUnK0yBoYHDF3xu7xVH4BuDotC/xGuycx4CgbP48X/KF/586bcObxT0HENHXEU8Nqtu6NR+eKhw==}
 
-  '@types/fs-extra@11.0.4':
-    resolution: {integrity: sha512-yTbItCNreRooED33qjunPthRcSjERP1r4MqCZc7wv0u2sUkzTFp45tgUfS5+r7FrZPdmCCNflLhVSP/o+SemsQ==}
-
   '@types/gtag.js@0.0.20':
     resolution: {integrity: sha512-wwAbk3SA2QeU67unN7zPxjEHmPmlXwZXZvQEpbEUQuMCRGgKyE1m6XDuTUA9b6pCGb/GqJmdfMOY5LuDjJSbbg==}
 
@@ -3755,9 +3743,6 @@ packages:
 
   '@types/json-schema@7.0.15':
     resolution: {integrity: sha512-5+fP8P8MFNC+AyZCDxrB2pkZFPGzqQWUzpSeuuVLvm8VMcorNYavBqoFcxK8bQz4Qsbn4oUEEem4wDLfcysGHA==}
-
-  '@types/jsonfile@6.1.4':
-    resolution: {integrity: sha512-D5qGUYwjvnNNextdU59/+fI+spnwtTFmyQP0h+PfIOSkNfpU6AOICUOkm4i0OnSk+NyjdPJrxCDro0sJsWlRpQ==}
 
   '@types/mdast@4.0.4':
     resolution: {integrity: sha512-kGaNbPh1k7AFzgpud/gMdvIm5xuECykRR+JnWKQno9TAXVa6WIVCGTPvYGekIDL4uwCZQSYbUxNBSb1aUo79oA==}
@@ -4058,8 +4043,8 @@ packages:
     resolution: {integrity: sha512-KMReFUr0B4t+D+OBkjR3KYqvocp2XaSzO55UcB6mgQMd3KbcE+mWTyvVV7D/zsdEbNnV6acZUutkiHQXvTr1Rw==}
     engines: {node: '>= 8'}
 
-  apify-client@2.22.3:
-    resolution: {integrity: sha512-i09jamE2H7A/wasjOPAUs5NJkhs8m9YqOwennD2ALe2gTskPOpaUJ/QLlP8Flctm/etYFZSrJByA/uO27Fw2/A==}
+  apify-client@2.23.4:
+    resolution: {integrity: sha512-Uw2cZXfR9iQw1jyQBonSqL/QJhp154YTB070m6A6aCYAIrklOqKfNnqXIIWKCkyTWqEqwNJ1784OJL5ZnB8tTQ==}
 
   arg@5.0.2:
     resolution: {integrity: sha512-PYjyFOLKQ9y57JvQ6QLo8dAgNqswh8M1RMJYdQduT6xbWSgK36P/Z/v+p888pM69jMMfS8Xd8F6I1kQ/I9HUGg==}
@@ -8521,6 +8506,10 @@ packages:
   undici@7.24.8:
     resolution: {integrity: sha512-6KQ/+QxK49Z/p3HO6E5ZCZWNnCasyZLa5ExaVYyvPxUwKtbCPMKELJOqh7EqOle0t9cH/7d2TaaTRRa6Nhs4YQ==}
     engines: {node: '>=20.18.1'}
+
+  undici@8.3.0:
+    resolution: {integrity: sha512-TkUDgb6tl7KOGZ+7e8E3d2FYgUQgF6z5YypqjWmixVQSQERFcVrVg0ySADm2LVLRh5ljAaHTCR5Fmz3Q34rB7Q==}
+    engines: {node: '>=22.19.0'}
 
   unicode-canonical-property-names-ecmascript@2.0.1:
     resolution: {integrity: sha512-dA8WbNeb2a6oQzAQ55YlT5vQAWGV9WXOsi3SskE3bcCdM0P4SDd+24zS/OCacdRq5BkdsRj9q3Pg6YyQoxIGqg==}
@@ -13457,11 +13446,6 @@ snapshots:
       '@types/qs': 6.15.0
       '@types/serve-static': 1.15.10
 
-  '@types/fs-extra@11.0.4':
-    dependencies:
-      '@types/jsonfile': 6.1.4
-      '@types/node': 24.12.2
-
   '@types/gtag.js@0.0.20': {}
 
   '@types/hast@3.0.4':
@@ -13497,10 +13481,6 @@ snapshots:
       parse5: 7.3.0
 
   '@types/json-schema@7.0.15': {}
-
-  '@types/jsonfile@6.1.4':
-    dependencies:
-      '@types/node': 24.12.2
 
   '@types/mdast@4.0.4':
     dependencies:
@@ -13855,7 +13835,7 @@ snapshots:
       normalize-path: 3.0.0
       picomatch: 2.3.2
 
-  apify-client@2.22.3:
+  apify-client@2.23.4:
     dependencies:
       '@apify/consts': 2.52.0
       '@apify/log': 2.5.34
@@ -19189,6 +19169,8 @@ snapshots:
   undici-types@7.16.0: {}
 
   undici@7.24.8: {}
+
+  undici@8.3.0: {}
 
   unicode-canonical-property-names-ecmascript@2.0.1: {}
 
