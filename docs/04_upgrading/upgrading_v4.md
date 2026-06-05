@@ -5,9 +5,9 @@ title: Upgrading to v4
 
 This page summarizes the breaking changes between Apify SDK v3 and v4. Apify SDK v4 adopts the redesigned Crawlee v4 interfaces (`Configuration`, `EventManager`, `StorageClient`, `ProxyConfiguration`), so most of the changes here track the corresponding Crawlee v4 changes.
 
-## Node.js 22+
+## Node.js 22.19+
 
-The SDK now requires **Node.js 22 or newer**.
+The SDK now requires **Node.js 22.19 or newer**.
 
 ## ESM
 
