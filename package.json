@@ -3,7 +3,7 @@
     "version": "3.7.2",
     "description": "The scalable web crawling and scraping library for JavaScript/Node.js. Enables development of data extraction and web automation jobs (not only) with headless Chrome and Puppeteer.",
     "engines": {
-        "node": ">=22.0.0"
+        "node": ">=22.19.0"
     },
     "type": "module",
     "main": "./dist/index.js",
@@ -80,12 +80,10 @@
         "@crawlee/core": "^4.0.0-beta.61",
         "@crawlee/types": "^4.0.0-beta.61",
         "@crawlee/utils": "^4.0.0-beta.61",
-        "apify-client": "^2.17.0",
-        "fs-extra": "^11.2.0",
-        "got-scraping": "^4.2.1",
-        "ow": "^2.0.0",
+        "apify-client": "^2.23.4",
         "semver": "^7.5.4",
         "tslib": "^2.6.2",
+        "undici": "^8.0.0",
         "ws": "^8.18.0",
         "zod": "^4.0.0"
     },
@@ -96,7 +94,6 @@
         "@crawlee/memory-storage": "^4.0.0-beta.61",
         "@playwright/browser-chromium": "^1.60.0",
         "@types/content-type": "^1.1.8",
-        "@types/fs-extra": "^11.0.4",
         "@types/node": "^24.0.0",
         "@types/semver": "^7.5.8",
         "@types/tough-cookie": "^4.0.5",

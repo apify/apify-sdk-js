@@ -5,9 +5,9 @@ title: Upgrading to v4
 
 This page summarizes the breaking changes between Apify SDK v3 and v4. Apify SDK v4 adopts the redesigned Crawlee v4 interfaces (`Configuration`, `EventManager`, `StorageClient`, `ProxyConfiguration`), so most of the changes here track the corresponding Crawlee v4 changes.
 
-## Node.js 22+
+## Node.js 22.19+
 
-The SDK now requires **Node.js 22 or newer**.
+The SDK now requires **Node.js 22.19 or newer**.
 
 ## ESM
 
@@ -120,3 +120,38 @@ const url = store.getPublicUrl('myKey');
 // v4
 const url = await store.getPublicUrl('myKey');
 ```
+
+## Argument validation (`ow` → `zod`)
+
+Runtime argument validation (e.g. `Actor.addWebhook()`, `Actor.setStatusMessage()`, `Actor.openDataset()` / `openKeyValueStore()` / `openRequestQueue()`, and the `ProxyConfiguration` constructor) now uses [`zod`](https://zod.dev) instead of `ow`. Validation is just as strict — invalid arguments still throw synchronously, before any work is done — but the **error messages changed**.
+
+For example, `new ProxyConfiguration({ countryCode: 'CZE' })` throws:
+
+```diff
+- Expected property string `countryCode` to match `/^[A-Z]{2}$/`, got `CZE` in object   // v3 (ow)
++ Invalid string: must match pattern /^[A-Z]{2}$/ at `countryCode`, got `CZE`            // v4 (zod)
+```
+
+If you matched on the exact text of these validation errors, update those checks. Validation failures now throw an `ArgumentValidationError` (exported from `apify`) whose `issues` expose the structured zod issues, so you can branch on them programmatically instead of parsing the message:
+
+```ts
+import { ArgumentValidationError } from 'apify';
+
+try {
+    new ProxyConfiguration({ countryCode: 'CZE' });
+} catch (e) {
+    const error = e as ArgumentValidationError;
+    console.log(error.message); // human-readable sentence (the text shown above)
+    console.log(error.issues); // structured zod issues, if you need to branch on them
+}
+```
+
+The original `ZodError` is also kept on `error.cause`.
+
+## Dependencies
+
+The SDK dropped several runtime dependencies in favor of native Node.js APIs and packages it already pulls in:
+
+- **`got-scraping`** — the internal Apify Proxy status check now uses the native `fetch` (via `undici`'s `ProxyAgent`). If your Actor imported `got-scraping` transitively through `apify`, add it to your own `dependencies`.
+- **`fs-extra`** — replaced with `node:fs`.
+- **`ow`** — replaced with `zod` (see above).
