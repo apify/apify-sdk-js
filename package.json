@@ -3,7 +3,7 @@
     "version": "3.7.2",
     "description": "The scalable web crawling and scraping library for JavaScript/Node.js. Enables development of data extraction and web automation jobs (not only) with headless Chrome and Puppeteer.",
     "engines": {
-        "node": ">=22.19.0"
+        "node": ">=22.0.0"
     },
     "type": "module",
     "main": "./dist/index.js",
@@ -83,7 +83,6 @@
         "apify-client": "^2.23.4",
         "semver": "^7.5.4",
         "tslib": "^2.6.2",
-        "undici": "^8.0.0",
         "ws": "^8.18.0",
         "zod": "^4.0.0"
     },
