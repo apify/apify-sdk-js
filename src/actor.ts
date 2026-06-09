@@ -217,7 +217,7 @@ export interface ApifyEnv {
     logFormat: string | null;
 
     /**
-     * Origin for the Actor run, i.e. how it was started. See [here](https://docs.apify.com/sdk/python/reference/enum/MetaOrigin)
+     * Origin for the Actor run, i.e. how it was started. See [here](https://docs.apify.com/platform/actors/running/runs-and-builds)
      * for more details. (APIFY_META_ORIGIN)
      */
     metaOrigin: string | null;
