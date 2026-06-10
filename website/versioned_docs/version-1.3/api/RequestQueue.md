@@ -212,7 +212,7 @@ const { handledRequestCount } = await queue.getInfo();
 
 Returns an object containing general information about the request queue.
 
-The function returns the same object as the Apify API Client's [getQueue](https://docs.apify.com/api/apify-client-js/latest#ApifyClient-requestQueues)
+The function returns the same object as the Apify API Client's [getQueue](https://docs.apify.com/api/client/js/reference/class/RequestQueueClient)
 function, which in turn calls the [Get request queue](https://apify.com/docs/api/v2#/reference/request-queues/queue/get-request-queue) API endpoint.
 
 **Example:**

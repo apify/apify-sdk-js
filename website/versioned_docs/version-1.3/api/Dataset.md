@@ -116,7 +116,7 @@ call [`datasetClient.downloadItems()`](https://github.com/apify/apify-client-js#
 Returns an object containing general information about the dataset.
 
 The function returns the same object as the Apify API Client's
-[getDataset](https://docs.apify.com/api/apify-client-js/latest#ApifyClient-datasets-getDataset) function, which in turn calls the
+[getDataset](https://docs.apify.com/api/client/js/reference/class/DatasetClient) function, which in turn calls the
 [Get dataset](https://apify.com/docs/api/v2#/reference/datasets/dataset/get-dataset) API endpoint.
 
 **Example:**
