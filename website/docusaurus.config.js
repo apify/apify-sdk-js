@@ -143,8 +143,6 @@ module.exports = {
                                 'https://crawlee.dev/js/api/core/interface/StorageManagerOptions',
                             ConfigurationOptions:
                                 'https://crawlee.dev/js/api/core/interface/ConfigurationOptions',
-                            EventManager:
-                                'https://crawlee.dev/js/api/core/interface/EventManager',
                             RecordOptions:
                                 'https://crawlee.dev/js/api/core/interface/RecordOptions',
                             UseStateOptions:
