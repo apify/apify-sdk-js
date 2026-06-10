@@ -41150,7 +41150,7 @@
                         "summary": [
                             {
                                 "kind": "text",
-                                "text": "Origin for the Actor run, i.e. how it was started. See [here](https://docs.apify.com/platform/actors/running/runs-and-builds)\nfor more details. (APIFY_META_ORIGIN)"
+                                "text": "Origin for the Actor run, i.e. how it was started. See [here](https://docs.apify.com/platform/actors/running/runs-and-builds#origin)\nfor more details. (APIFY_META_ORIGIN)"
                             }
                         ]
                     },
