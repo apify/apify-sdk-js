@@ -112,6 +112,7 @@ module.exports = {
                     editUrl:
                         'https://github.com/apify/apify-sdk-js/edit/master/website/',
                 },
+                blog: false,
             }),
         ],
     ]),
