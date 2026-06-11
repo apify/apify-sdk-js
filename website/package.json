@@ -2,7 +2,7 @@
     "name": "apify-sdk-website",
     "private": true,
     "overrides": {
-        "@rspack/core": "2.0.6"
+        "@rspack/core": "2.0.8"
     },
     "scripts": {
         "examples": "docusaurus-examples",
