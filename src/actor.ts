@@ -676,12 +676,14 @@ export class Actor<Data extends Dictionary = Dictionary> {
                 }
 
                 if (options.statusMessage != null) {
-                    const statusMessagePromise = this.setStatusMessage(options.statusMessage, {
+                    // Fully await the terminal status message. Racing it against a 1ms timer only works when a
+                    // connection to the API is already warm; on a cold start (e.g. `Actor.init()` immediately
+                    // followed by `Actor.exit()`) the request isn't flushed yet and gets dropped by the following
+                    // `process.exit()`. `setStatusMessage()` is internally bounded by 1s timeouts, so this stays bounded.
+                    await this.setStatusMessage(options.statusMessage, {
                         isStatusMessageTerminal: true,
                         level: options.exitCode! > 0 ? 'ERROR' : 'INFO',
                     });
-                    // Waiting 1ms is enough for the network request to be sent. We don't need to wait for the response.
-                    await Promise.race([statusMessagePromise, sleep(1)]);
                 }
             },
             options.timeoutSecs * 1000,
