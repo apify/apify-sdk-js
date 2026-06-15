@@ -5,9 +5,9 @@ title: Upgrading to v4
 
 This page summarizes the breaking changes between Apify SDK v3 and v4. Apify SDK v4 adopts the redesigned Crawlee v4 interfaces (`Configuration`, `EventManager`, `StorageClient`, `ProxyConfiguration`), so most of the changes here track the corresponding Crawlee v4 changes.
 
-## Node.js 22.19+
+## Node.js 22+
 
-The SDK now requires **Node.js 22.19 or newer**.
+The SDK now requires **Node.js 22 or newer**.
 
 ## ESM
 
@@ -152,6 +152,6 @@ The original `ZodError` is also kept on `error.cause`.
 
 The SDK dropped several runtime dependencies in favor of native Node.js APIs and packages it already pulls in:
 
-- **`got-scraping`** — the internal Apify Proxy status check now uses the native `fetch` (via `undici`'s `ProxyAgent`). If your Actor imported `got-scraping` transitively through `apify`, add it to your own `dependencies`.
+- **`got-scraping`** — the internal Apify Proxy status check now uses a native `node:http` request. If your Actor imported `got-scraping` transitively through `apify`, add it to your own `dependencies`.
 - **`fs-extra`** — replaced with `node:fs`.
 - **`ow`** — replaced with `zod` (see above).
