@@ -1,7 +1,7 @@
 import { Actor, ArgumentValidationError, ProxyConfiguration } from 'apify';
 import { UserClient } from 'apify-client';
 import { type Dictionary, sleep } from 'crawlee';
-import { fetch, ProxyAgent } from 'undici';
+import type { MockInstance } from 'vitest';
 
 import { APIFY_ENV_VARS, LOCAL_APIFY_ENV_VARS } from '@apify/consts';
 
@@ -22,30 +22,20 @@ const basicOpts = {
 const apifyProxyUrlPattern =
     /^http:\/\/groups-GROUP1\+GROUP2,session-[A-Za-z0-9]+,country-CZ:test12345@proxy\.apify\.com:8000$/;
 
-// The proxy status check uses undici's `fetch` (routed through a `ProxyAgent`)
-// instead of a heavy HTTP client. Mock both: `fetchSpy` stubs the status
-// response, `proxyAgentSpy` lets us assert the proxy URL the request is sent
-// through.
-// `ProxyAgent` is instantiated with `new`, so the mock must be a regular
-// (constructable) function, not an arrow.
-vitest.mock('undici', () => {
-    return {
-        fetch: vitest.fn(),
-        ProxyAgent: vitest.fn(function () {
-            return { close: vitest.fn() };
-        }),
-    };
-});
-
-const fetchSpy = vitest.mocked(fetch);
-const proxyAgentSpy = vitest.mocked(ProxyAgent);
-
-/** Builds a fake undici `Response` whose `json()` resolves to `body`. */
-const statusResponse = (body: unknown, ok = true) => ({ ok, json: async () => body }) as any;
+// The proxy status check is a `node:http` request through the proxy, encapsulated
+// in `_requestStatus(statusUrl, proxyUrl)`. Spy on it to stub the status response
+// and to assert the (session/groups/country) proxy URL the request is routed
+// through — without touching the network.
+//
+// The spy is (re)created in `beforeEach` because the vitest config has
+// `restoreMocks: true`, which un-spies module-level spies between tests. It
+// defaults to "unavailable" so tests that don't set a status never hit the real
+// network; tests opt in via `requestStatusSpy.mockResolvedValueOnce(...)`.
+let requestStatusSpy: MockInstance;
 
 beforeEach(() => {
-    fetchSpy.mockReset();
-    proxyAgentSpy.mockClear();
+    requestStatusSpy = vitest.spyOn(ProxyConfiguration.prototype as never, '_requestStatus');
+    requestStatusSpy.mockRejectedValue(new Error('Proxy status unavailable in tests'));
 });
 
 afterEach(() => {
@@ -426,7 +416,7 @@ describe('Actor.createProxyConfiguration()', () => {
     test('should work with all options', async () => {
         const status = { connected: true };
         const url = 'http://proxy.apify.com/?format=json';
-        fetchSpy.mockResolvedValueOnce(statusResponse(status));
+        requestStatusSpy.mockResolvedValueOnce(status);
 
         const proxyConfiguration = await Actor.createProxyConfiguration(basicOpts);
 
@@ -444,11 +434,7 @@ describe('Actor.createProxyConfiguration()', () => {
 
         // The status endpoint is fetched through a proxy whose URL carries the
         // groups/country/session built from the options.
-        expect(proxyAgentSpy).toBeCalledWith(expect.stringMatching(apifyProxyUrlPattern));
-        expect(fetchSpy).toBeCalledWith(url, {
-            dispatcher: expect.anything(),
-            signal: expect.any(AbortSignal),
-        });
+        expect(requestStatusSpy).toBeCalledWith(url, expect.stringMatching(apifyProxyUrlPattern));
     });
 
     test('disabling `checkAccess` skips the proxy status check', async () => {
@@ -459,7 +445,7 @@ describe('Actor.createProxyConfiguration()', () => {
 
         expect(proxyConfiguration).toBeInstanceOf(ProxyConfiguration);
         // The status endpoint must not be hit when access checking is disabled.
-        expect(fetchSpy).not.toHaveBeenCalled();
+        expect(requestStatusSpy).not.toHaveBeenCalled();
     });
 
     test('should work without password (with token)', async () => {
@@ -470,7 +456,7 @@ describe('Actor.createProxyConfiguration()', () => {
         const getUserSpy = vitest.spyOn(UserClient.prototype, 'get');
         const status = { connected: true };
 
-        fetchSpy.mockResolvedValueOnce(statusResponse(status));
+        requestStatusSpy.mockResolvedValueOnce(status);
         getUserSpy.mockResolvedValueOnce(userData as any);
 
         const proxyConfiguration = await Actor.createProxyConfiguration(opts);
@@ -508,7 +494,7 @@ describe('Actor.createProxyConfiguration()', () => {
 
         const status = { connected: true };
 
-        fetchSpy.mockResolvedValueOnce(statusResponse(status));
+        requestStatusSpy.mockResolvedValueOnce(status);
 
         await expect(Actor.createProxyConfiguration()).rejects.toThrow('Apify Proxy password must be provided');
 
@@ -524,7 +510,7 @@ describe('Actor.createProxyConfiguration()', () => {
         const status = { connected: false, connectionError };
         const getUserSpy = vitest.spyOn(UserClient.prototype, 'get');
         getUserSpy.mockResolvedValue(userData as any);
-        fetchSpy.mockResolvedValueOnce(statusResponse(status));
+        requestStatusSpy.mockResolvedValueOnce(status);
 
         await expect(Actor.createProxyConfiguration({ groups })).rejects.toThrow(connectionError);
 
@@ -536,8 +522,7 @@ describe('Actor.createProxyConfiguration()', () => {
 
     test('should not throw when access check is unresponsive', async () => {
         process.env.APIFY_PROXY_PASSWORD = '123456789';
-        fetchSpy.mockRejectedValueOnce(new Error('some error'));
-        fetchSpy.mockRejectedValueOnce(new Error('some error'));
+        requestStatusSpy.mockRejectedValue(new Error('some error'));
 
         const proxyConfiguration = new ProxyConfiguration();
         // @ts-expect-error private property
@@ -554,17 +539,14 @@ describe('Actor.createProxyConfiguration()', () => {
         process.env.APIFY_PROXY_HOSTNAME = 'proxy-domain.apify.com';
         process.env.APIFY_PROXY_PASSWORD = password;
 
-        fetchSpy.mockResolvedValueOnce(statusResponse({ connected: true }));
+        requestStatusSpy.mockResolvedValueOnce({ connected: true });
 
         await Actor.createProxyConfiguration();
-        expect(proxyAgentSpy).toBeCalledWith(
+        expect(requestStatusSpy).toBeCalledWith(
+            `${process.env.APIFY_PROXY_STATUS_URL}/?format=json`,
             expect.stringMatching(
                 new RegExp(`^http://session-[A-Za-z0-9]+:${password}@${process.env.APIFY_PROXY_HOSTNAME}:8000$`),
             ),
         );
-        expect(fetchSpy).toBeCalledWith(`${process.env.APIFY_PROXY_STATUS_URL}/?format=json`, {
-            dispatcher: expect.anything(),
-            signal: expect.any(AbortSignal),
-        });
     });
 });

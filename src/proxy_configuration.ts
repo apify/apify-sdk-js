@@ -1,7 +1,10 @@
+import { once } from 'node:events';
+import { request as httpRequest, type IncomingMessage } from 'node:http';
+import { json } from 'node:stream/consumers';
+
 import type { ProxyConfigurationOptions as CoreProxyConfigurationOptions } from '@crawlee/core';
 import { ProxyConfiguration as CoreProxyConfiguration } from '@crawlee/core';
 import type { ProxyInfo as CoreProxyInfo } from '@crawlee/types';
-import { fetch, ProxyAgent } from 'undici';
 import { z } from 'zod';
 
 import { APIFY_ENV_VARS, APIFY_PROXY_VALUE_REGEX } from '@apify/consts';
@@ -21,6 +24,13 @@ const SUBDIVISION_CODE_REGEX = /^[A-Z0-9]{1,3}$/;
 // users; a fresh one is minted for every URL the SDK hands out so that the
 // returned proxy URLs are independent.
 const SESSION_ID_LENGTH = 12;
+
+/** Response of the Apify Proxy status endpoint (`proxy.apify.com/?format=json`). */
+interface ProxyStatus {
+    connected: boolean;
+    connectionError: string;
+    isManInTheMiddle: boolean;
+}
 
 type NewUrlOptions = Parameters<CoreProxyConfiguration['newProxyInfo']>[0];
 
@@ -423,49 +433,64 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
     /**
      * Apify Proxy can be down for a second or a minute, but this should not crash processes.
      */
-    protected async _fetchStatus(): Promise<
-        | {
-              connected: boolean;
-              connectionError: string;
-              isManInTheMiddle: boolean;
-          }
-        | undefined
-    > {
+    protected async _fetchStatus(): Promise<ProxyStatus | undefined> {
         const { proxyStatusUrl } = this.config;
-        const url = `${proxyStatusUrl}/?format=json`;
+        const statusUrl = `${proxyStatusUrl}/?format=json`;
 
-        // The status endpoint (`proxy.apify.com`) is requested *through* the proxy
-        // so it can report on this exact connection (auth + man-in-the-middle).
-        // `undici`'s `fetch` + `ProxyAgent` come from the same package, so the
-        // dispatcher is recognized (Node's global `fetch` uses a separate internal
-        // copy of undici that would reject this dispatcher instance).
         const proxyUrl = await this.newUrl();
         // Without a proxy URL we can't perform the (proxied) status check.
         if (!proxyUrl) return undefined;
-        const dispatcher = new ProxyAgent(proxyUrl);
 
-        try {
-            for (let attempt = 1; attempt <= CHECK_ACCESS_MAX_ATTEMPTS; attempt++) {
-                try {
-                    const response = await fetch(url, {
-                        dispatcher,
-                        signal: AbortSignal.timeout(CHECK_ACCESS_REQUEST_TIMEOUT_MILLIS),
-                    });
-                    if (!response.ok) continue;
-                    return (await response.json()) as {
-                        connected: boolean;
-                        connectionError: string;
-                        isManInTheMiddle: boolean;
-                    };
-                } catch {
-                    // retry connection errors
-                }
+        for (let attempt = 1; attempt <= CHECK_ACCESS_MAX_ATTEMPTS; attempt++) {
+            try {
+                return await this._requestStatus(statusUrl, proxyUrl);
+            } catch {
+                // retry connection errors
             }
-
-            return undefined;
-        } finally {
-            await dispatcher.close();
         }
+
+        return undefined;
+    }
+
+    /**
+     * Fetches the Apify Proxy status endpoint once, *through* the proxy, so the
+     * response reports on this exact connection (auth + man-in-the-middle).
+     *
+     * Uses a native `node:http` forward-proxy request — an absolute request URL
+     * plus a `Proxy-Authorization` header — so no proxy-agent dependency is
+     * needed. The status endpoint (`http://proxy.apify.com`) is plain HTTP.
+     */
+    protected async _requestStatus(statusUrl: string, proxyUrl: string): Promise<ProxyStatus> {
+        const target = new URL(statusUrl);
+        const proxy = new URL(proxyUrl);
+
+        const headers: Record<string, string> = { host: target.host };
+        if (proxy.username) {
+            const credentials = `${decodeURIComponent(proxy.username)}:${decodeURIComponent(proxy.password)}`;
+            headers['proxy-authorization'] = `Basic ${Buffer.from(credentials).toString('base64')}`;
+        }
+
+        const request = httpRequest({
+            host: proxy.hostname,
+            port: proxy.port,
+            // Absolute-form request URI tells the proxy to forward the request.
+            path: target.href,
+            headers,
+            signal: AbortSignal.timeout(CHECK_ACCESS_REQUEST_TIMEOUT_MILLIS),
+        });
+        request.end();
+
+        // `once` rejects if the request emits `error` first (connection refused,
+        // timeout/abort), so failures propagate to the retry loop in `_fetchStatus`.
+        const [response] = (await once(request, 'response')) as [IncomingMessage];
+
+        const statusCode = response.statusCode ?? 0;
+        if (statusCode < 200 || statusCode >= 300) {
+            response.resume(); // drain so the socket can be freed
+            throw new Error(`Apify Proxy status check responded with status code ${statusCode}.`);
+        }
+
+        return (await json(response)) as ProxyStatus;
     }
 
     /**
