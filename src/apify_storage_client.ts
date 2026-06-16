@@ -8,11 +8,13 @@ import type {
     DatasetClient,
     KeyValueStoreClient,
     RequestQueueClient,
+    SetStatusMessageOptions,
     StorageClient,
 } from '@crawlee/types';
 import type { ApifyClient } from 'apify-client';
 import { DatasetClient as ApifyDatasetClient } from 'apify-client';
 
+import { ApifyRequestQueueClient } from './apify_request_queue_client.js';
 import {
     type ChargeResult,
     type ChargingManager,
@@ -203,10 +205,27 @@ export class ApifyStorageClient implements StorageClient {
         ) as unknown as KeyValueStoreClient;
     }
 
+    /**
+     * Sets the run's status message (shown in the Apify console). Crawlee v4 calls
+     * this on the storage client to surface crawl progress. No-op when not running
+     * on the platform (no run id).
+     */
+    async setStatusMessage(message: string, options?: SetStatusMessageOptions): Promise<void> {
+        const runId = this.config?.actorRunId;
+        if (!runId) return;
+        await this.client.run(runId).update({
+            statusMessage: message,
+            isStatusMessageTerminal: options?.isStatusMessageTerminal,
+        });
+    }
+
     async createRequestQueueClient(options?: CreateRequestQueueClientOptions): Promise<RequestQueueClient> {
         const id = await this.resolveId(options, 'RequestQueue');
         const client = this.client.requestQueue(id, options?.clientKey ? { clientKey: options.clientKey } : undefined);
-        return adapt(client, { getMetadata: 'get', drop: 'delete' }, noPurge) as unknown as RequestQueueClient;
+        // Crawlee v4's RequestQueueClient is a stateful, pull-based interface that
+        // can't be satisfied by name-remapping; it's implemented on apify-client.
+        // (cast: published @crawlee/types still ships the pre-redesign interface.)
+        return new ApifyRequestQueueClient(client) as unknown as RequestQueueClient;
     }
 
     /**

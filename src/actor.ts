@@ -1332,9 +1332,6 @@ export class Actor<Data extends Dictionary = Dictionary> {
 
         const queue = await this._openStorage(RequestQueue, queueIdOrName, options);
 
-        // eslint-disable-next-line dot-notation
-        queue['initialCount'] = (await queue.client.getMetadata())?.totalRequestCount ?? 0;
-
         return queue;
     }
 

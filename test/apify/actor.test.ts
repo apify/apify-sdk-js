@@ -674,20 +674,14 @@ describe('Actor', () => {
                 const options = { forceCloud: true };
                 // crawlee v4 opens storages via `<Storage>.open(id, { storageClient })`;
                 // `forceCloud` is expressed by passing an explicit (Apify) client.
-                const mockRQ = {
-                    client: {
-                        getMetadata: async () => ({ totalRequestCount: 10 }),
-                    },
-                } as unknown as RequestQueue;
+                const mockRQ = {} as unknown as RequestQueue;
                 const openSpy = vitest.spyOn(RequestQueue, 'open').mockResolvedValueOnce(mockRQ);
 
                 const queue = await sdk.openRequestQueue(queueId, options);
                 expect(openSpy).toBeCalledTimes(1);
                 expect(openSpy.mock.calls[0][0]).toBe(queueId);
                 expect(openSpy.mock.calls[0][1]?.storageClient).toBeDefined();
-
-                // @ts-expect-error private prop
-                expect(queue.initialCount).toBe(10);
+                expect(queue).toBe(mockRQ);
             });
 
             test('openDataset should open storage', async () => {
