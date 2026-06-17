@@ -60,8 +60,8 @@ importers:
         specifier: ^0.2.5
         version: 0.2.10(oxlint@1.70.0(oxlint-tsgolint@0.22.0))
       '@apify/tsconfig':
-        specifier: ^0.1.2
-        version: 0.1.2
+        specifier: ^0.2.0
+        version: 0.2.0
       '@commitlint/config-conventional':
         specifier: ^21.0.0
         version: 21.0.2
@@ -181,8 +181,8 @@ importers:
         version: 5.1.0
     devDependencies:
       '@apify/tsconfig':
-        specifier: ^0.1.2
-        version: 0.1.2
+        specifier: ^0.2.0
+        version: 0.2.0
       '@types/react':
         specifier: ^19.0.0
         version: 19.2.17
@@ -402,8 +402,8 @@ packages:
   '@apify/timeout@0.3.5':
     resolution: {integrity: sha512-3nuQXwxh2sKxBo5tgDoZWuZHiSpqrKg1+sJHjFSk8blhyX6I2FZzpfW7UaCELeYLZiSjWUPh2rXNrc3zLmJGJg==}
 
-  '@apify/tsconfig@0.1.2':
-    resolution: {integrity: sha512-9dzEI1ZQ5+iM0k0fmPJrpdSSPUolVdeI1nDGFZMjD9UabTmIvjQrzui+1a25uy913AUEBrKTojEPj87pU9/Ekg==}
+  '@apify/tsconfig@0.2.0':
+    resolution: {integrity: sha512-0i6rF+hgXw6mQXhENYNTnP+Yo4WY38d698k/pk4rIpdCx/sSuEprR2N5WdtMaN628vCB+aZjff0jPN2EnQYtjQ==}
 
   '@apify/ui-icons@1.44.0':
     resolution: {integrity: sha512-AWnlAlbImVKeA4tAINO9HMYgcYnkMB6zLACVBQe0fOdHboFB9ZEZt/3CHWyHSx6xvytM7LLDFcvJRWPzlTAJkw==}
@@ -9524,7 +9524,7 @@ snapshots:
 
   '@apify/timeout@0.3.5': {}
 
-  '@apify/tsconfig@0.1.2': {}
+  '@apify/tsconfig@0.2.0': {}
 
   '@apify/ui-icons@1.44.0(react-dom@19.2.7(react@19.2.7))(react@19.2.7)':
     dependencies:

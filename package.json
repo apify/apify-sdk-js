@@ -90,7 +90,7 @@
     },
     "devDependencies": {
         "@apify/oxlint-config": "^0.2.5",
-        "@apify/tsconfig": "^0.1.2",
+        "@apify/tsconfig": "^0.2.0",
         "@commitlint/config-conventional": "^21.0.0",
         "@playwright/browser-chromium": "^1.60.0",
         "@types/content-type": "^1.1.8",
