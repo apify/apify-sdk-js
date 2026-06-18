@@ -80,6 +80,57 @@ jobs:
               run: pnpm build
               working-directory: ./website
 
+            - name: Run Lychee Link Checker
+              id: lychee
+              if: github.event_name == 'pull_request'
+              uses: lycheeverse/lychee-action@v2.8.0
+              with:
+                  fail: false
+                  args: >
+                      --base-url https://docs.apify.com
+                      --max-retries 6
+                      --exclude="github.com"
+                      --exclude="npmjs.com"
+                      --exclude="docs\.apify\.com/sdk/js/assets/"
+                      --no-progress
+                      --timeout '60'
+                      --accept '100..=103,200..=299,429'
+                      --max-redirects 5
+                      --format markdown
+                      './website/build/**/*.html'
+
+            - name: Find Comment
+              if: github.event_name == 'pull_request'
+              uses: peter-evans/find-comment@v4
+              id: find-comment
+              with:
+                  issue-number: ${{ github.event.pull_request.number }}
+                  body-includes: There are broken links in the documentation.
+
+            - name: Links are passing
+              if: github.event_name == 'pull_request' && steps.lychee.outputs.exit_code == 0 && steps.find-comment.outputs.comment-id
+              uses: peter-evans/create-or-update-comment@v5
+              with:
+                  comment-id: ${{ steps.find-comment.outputs.comment-id }}
+                  issue-number: ${{ github.event.pull_request.number }}
+                  body: |
+                      ✅ The link checker did not find any broken links.
+
+                      See more at ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}#summary-${{ job.check_run_id }}
+                  edit-mode: replace
+
+            - name: Links are failing
+              if: github.event_name == 'pull_request' && steps.lychee.outputs.exit_code != 0
+              uses: peter-evans/create-or-update-comment@v5
+              with:
+                  comment-id: ${{ steps.find-comment.outputs.comment-id }}
+                  issue-number: ${{ github.event.pull_request.number }}
+                  body: |
+                      ⚠️ There are broken links in the documentation.
+
+                      See more at ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}#summary-${{ job.check_run_id }}
+                  edit-mode: replace
+
     lint:
         name: Lint
         runs-on: ubuntu-22.04

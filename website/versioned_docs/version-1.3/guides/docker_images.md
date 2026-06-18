@@ -6,7 +6,7 @@ id: docker-images
 
 Running headless browsers in Docker requires a lot of setup to do it right. But you don't need to worry about that, because we already did it for you and created base images that you can freely use. We use them every day on the [Apify Platform](../guides/apify_platform.md).
 
-All images can be found in their [GitHub repo](https://github.com/apify/apify-actor-docker) and in our [DockerHub](https://hub.docker.com/orgs/apify).
+All images can be found in their [GitHub repo](https://github.com/apify/apify-actor-docker) and in our [DockerHub](https://hub.docker.com/u/apify).
 
 ## Overview
 
@@ -165,7 +165,7 @@ Similar to [`actor-node-puppeteer-chrome`](#actor-node-puppeteer-chrome), but fo
 [`CheerioCrawler`](../api/cheerio-crawler) and [`PlaywrightCrawler`](../api/playwright-crawler),
 but **NOT** [`PuppeteerCrawler`](../api/puppeteer-crawler).
 
-It uses the [`PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD`](https://playwright.dev/docs/api/environment-variables/)
+It uses the [`PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD`](https://playwright.dev/docs/library#browser-downloads)
 environment variable to block installation of more browsers into your images (to keep them small).
 If you want more browsers, either choose the [`actor-node-playwright`](#actor-node-playwright) image
 or override this env var.
