@@ -40,7 +40,7 @@ jobs:
 
         steps:
             - name: Checkout repository
-              uses: actions/checkout@v6
+              uses: actions/checkout@v7
 
             - name: Use Node.js ${{ matrix.node-version }}
               uses: actions/setup-node@v6
@@ -97,7 +97,7 @@ jobs:
 
         steps:
             - name: Checkout repository
-              uses: actions/checkout@v6
+              uses: actions/checkout@v7
               with:
                   token: ${{ secrets.APIFY_SERVICE_ACCOUNT_GITHUB_TOKEN }}
                   fetch-depth: 0
@@ -151,7 +151,7 @@ jobs:
         runs-on: ubuntu-22.04
         steps:
             - name: Checkout repository
-              uses: actions/checkout@v6
+              uses: actions/checkout@v7
               with:
                   # Always check out the default branch (not the SHA) so the commit
                   # action can push to a branch ref.
