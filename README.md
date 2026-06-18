@@ -37,6 +37,14 @@ await Actor.exit();
 
 > You can also install the [`crawlee`](https://npmjs.org/crawlee) module, as it now provides the crawlers that were previously exported by Apify SDK. If you don't plan to use crawlers in your Actors, then you don't need to install it. Keep in mind that neither `playwright` nor `puppeteer` are bundled with `crawlee` in order to reduce install size and allow greater flexibility. That's why we manually install it with NPM. You can choose one, both, or neither. For more information and example please check [`documentation.`](https://docs.apify.com/sdk/js/docs/concepts/actor-lifecycle#running-crawlee-code-as-an-actor)
 
+## What are Actors?
+
+Actors are serverless programs that can do almost anything. From simple scripts and web scrapers to complex automation workflows, AI agents, or even always-on services that expose HTTP endpoints.
+
+They can run either locally or on the Apify platform, where you can scale their execution, monitor runs, schedule tasks, integrate them with other services, or even publish and monetize them. If you're new to Apify, learn more about the platform in the [Apify documentation](https://docs.apify.com/platform/about).
+
+For more context, read the [Actor whitepaper](https://whitepaper.actor/).
+
 ## What you can build
 
 Almost any Node.js project can become an Actor, including projects for:

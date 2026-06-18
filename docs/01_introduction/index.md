@@ -19,11 +19,13 @@ console.log(input);
 await Actor.exit();
 ```
 
-## What are Actors
+## What are Actors?
 
 Actors are serverless programs that can do almost anything. From simple scripts and web scrapers to complex automation workflows, AI agents, or even always-on services that expose HTTP endpoints.
 
-Actors can be executed locally or on the [Apify platform](https://docs.apify.com/platform). The Apify platform lets you run Actors at scale and provides features for monitoring, scheduling, publishing, and monetizing them.
+They can run either locally or on the Apify platform, where you can scale their execution, monitor runs, schedule tasks, integrate them with other services, or even publish and monetize them. If you're new to Apify, learn more about the platform in the [Apify documentation](https://docs.apify.com/platform/about).
+
+For more context, read the [Actor whitepaper](https://whitepaper.actor/).
 
 ## What you can build
 
