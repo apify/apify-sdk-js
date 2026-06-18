@@ -5,6 +5,8 @@
 [![Chat on discord](https://img.shields.io/discord/801163717915574323?label=discord)](https://discord.gg/jyEM2PRvMU)
 [![Build Status](https://github.com/apify/apify-sdk-js/actions/workflows/test-and-release.yaml/badge.svg?branch=master)](https://github.com/apify/apify-sdk-js/actions/workflows/test-and-release.yaml)
 
+`apify` is the official SDK for building [Apify Actors](https://docs.apify.com/platform/actors) in JavaScript and TypeScript. It handles the Actor lifecycle, storage access, platform events, proxy configuration, and more.
+
 ## Quick Start
 
 This short tutorial will set you up to start using Apify SDK in a minute or two.
@@ -34,6 +36,18 @@ await Actor.exit();
 ```
 
 > You can also install the [`crawlee`](https://npmjs.org/crawlee) module, as it now provides the crawlers that were previously exported by Apify SDK. If you don't plan to use crawlers in your Actors, then you don't need to install it. Keep in mind that neither `playwright` nor `puppeteer` are bundled with `crawlee` in order to reduce install size and allow greater flexibility. That's why we manually install it with NPM. You can choose one, both, or neither. For more information and example please check [`documentation.`](https://docs.apify.com/sdk/js/docs/concepts/actor-lifecycle#running-crawlee-code-as-an-actor)
+
+## What you can build
+
+Almost any Node.js project can become an Actor, including projects for:
+
+- **Web scraping and crawling** - The SDK works seamlessly with [Crawlee](https://crawlee.dev), which makes Apify a natural place to deploy and scale your crawlers. Start from a ready-made [Cheerio](https://apify.com/templates/js-crawlee-cheerio) template.
+- **Browser automation** - Drive a real browser with [Playwright](https://playwright.dev), [Puppeteer](https://pptr.dev), or [Selenium](https://apify.com/apify/example-selenium) to automate tasks, fill in forms, or test web apps.
+- **AI agents** - Host agents built with your framework of choice. Ready-made Actor templates cover [LangChain](https://apify.com/templates/js-langchain), [LangGraph](https://apify.com/templates/js-langgraph-agent), [BeeAI](https://apify.com/templates/ts-beeai-agent), and [Mastra](https://apify.com/templates/ts-mastraai).
+- **MCP servers** - Deploy an MCP server as an Actor and make its tools available to any MCP client. See the [MCP server](https://apify.com/templates/ts-mcp-empty) and [MCP proxy](https://apify.com/templates/ts-mcp-proxy) templates.
+- **Web servers and APIs** - Run a web server inside an Actor to serve HTTP requests, for example to expose your scraper as a live API. See the [Standby](https://apify.com/templates/js-standby) templates.
+
+Whatever you build, the Apify SDK doesn't lock you into a particular framework. Bring the libraries you already use, and let Apify run your project in the cloud.
 
 ## Support
 
