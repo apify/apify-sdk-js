@@ -236,6 +236,14 @@ export class ChargingManager {
     }
 
     /**
+     * Whether {@link ChargingManager.init} has run. All charging operations (including
+     * {@link ChargingManager.getPricingInfo}) require an initialized manager.
+     */
+    get isInitialized(): boolean {
+        return this.chargingState !== undefined;
+    }
+
+    /**
      * Get information about the pricing for this Actor.
      */
     getPricingInfo(): ActorPricingInfo {

@@ -1497,7 +1497,12 @@ export class Actor<Data extends Dictionary = Dictionary> {
                 ...storageClientOptions,
                 ...options, // allow overriding the instance configuration
             },
-            this,
+            {
+                config: this.config,
+                // Hand over the raw manager rather than the public getChargingManager(), which
+                // warns about a missing init() — a standalone client is a supported use case.
+                getChargingManager: () => this.chargingManager,
+            },
         );
     }
 

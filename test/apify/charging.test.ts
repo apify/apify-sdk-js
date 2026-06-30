@@ -788,3 +788,24 @@ describe('ChargingManager', () => {
         });
     });
 });
+
+describe('Actor.newClient()', () => {
+    afterEach(() => {
+        // @ts-expect-error reset the singleton between tests
+        Actor._instance = undefined; // eslint-disable-line no-underscore-dangle
+    });
+
+    test('dataset() works without calling Actor.init()', () => {
+        // `Actor.newClient()` is documented as usable standalone (init() is only required on
+        // the platform). The charging-aware dataset() getter must not require an initialized
+        // ChargingManager, otherwise it throws "ChargingManager is not initialized".
+        const warningSpy = vitest.spyOn(log, 'warning');
+        const client = Actor.newClient({ token: 'test-token' });
+
+        expect(() => client.dataset('some-dataset-id')).not.toThrow();
+        // ...and it must not nag about a missing init() on this supported path.
+        expect(warningSpy).not.toHaveBeenCalledWith(expect.stringContaining('Actor.init()'));
+
+        warningSpy.mockRestore();
+    });
+});
