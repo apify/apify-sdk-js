@@ -126,7 +126,7 @@
     },
     "pnpm": {
         "overrides": {
-            "fast-uri": "^3.1.2",
+            "fast-uri": "^4.0.0",
             "qs": "^6.15.2",
             "webpack-dev-server": "^5.2.4"
         }
