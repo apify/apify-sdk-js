@@ -96,8 +96,13 @@ export function createPatchedApifyClient(
                 httpClient: this.httpClient,
             };
 
+            // Charging is only configured for an initialized Actor (a platform run). A
+            // standalone client from `Actor.newClient()` without `Actor.init()` has no
+            // charging state, so skip interception rather than letting getPricingInfo() throw.
+            const chargingManager = actor.getChargingManager();
             const hasDefaultDatasetItemEvent =
-                DEFAULT_DATASET_ITEM_EVENT in actor.getChargingManager().getPricingInfo().perEventPrices;
+                chargingManager.isInitialized &&
+                DEFAULT_DATASET_ITEM_EVENT in chargingManager.getPricingInfo().perEventPrices;
 
             if (!isDefaultDataset || !hasDefaultDatasetItemEvent) {
                 return new DatasetClient(datasetOptions);
