@@ -39,7 +39,7 @@ jobs:
                   node-version: ${{ matrix.node-version }}
 
             - name: Install pnpm and dependencies
-              uses: apify/actions/pnpm-install@v1.3.0
+              uses: apify/actions/pnpm-install@v1.3.1
 
             - name: Cache Playwright browsers
               uses: actions/cache@v6
@@ -73,7 +73,7 @@ jobs:
                   node-version: 24
 
             - name: Install pnpm and dependencies
-              uses: apify/actions/pnpm-install@v1.3.0
+              uses: apify/actions/pnpm-install@v1.3.1
 
             - name: Build docs
               if: github.ref != 'refs/heads/master'
@@ -144,7 +144,7 @@ jobs:
                   node-version: 24
 
             - name: Install pnpm and dependencies
-              uses: apify/actions/pnpm-install@v1.3.0
+              uses: apify/actions/pnpm-install@v1.3.1
 
             - name: Lint
               run: pnpm lint
@@ -170,10 +170,10 @@ jobs:
                   node-version: 24
 
             - name: Install pnpm and dependencies
-              uses: apify/actions/pnpm-install@v1.3.0
+              uses: apify/actions/pnpm-install@v1.3.1
 
             - name: Publish beta to npm
-              uses: apify/actions/execute-workflow@v1.3.0
+              uses: apify/actions/execute-workflow@v1.3.1
               with:
                   workflow: publish-to-npm.yaml
                   inputs: >
