@@ -89,7 +89,7 @@
         "ws": "^8.18.0"
     },
     "devDependencies": {
-        "@apify/oxlint-config": "^0.2.5",
+        "@apify/oxlint-config": "^0.3.0",
         "@apify/tsconfig": "^0.2.0",
         "@commitlint/config-conventional": "^21.0.0",
         "@playwright/browser-chromium": "^1.60.0",
