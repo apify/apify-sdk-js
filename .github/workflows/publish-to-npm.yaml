@@ -39,7 +39,7 @@ jobs:
                   registry-url: 'https://registry.npmjs.org'
 
             - name: Install pnpm and dependencies
-              uses: apify/actions/pnpm-install@v1.3.1
+              uses: apify/actions/pnpm-install@v1.3.2
 
             - name: Build module
               run: pnpm build
