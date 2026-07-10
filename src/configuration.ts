@@ -204,7 +204,7 @@ export class Configuration extends CoreConfiguration {
         defaultDatasetId: LOCAL_ACTOR_ENV_VARS[ACTOR_ENV_VARS.DEFAULT_DATASET_ID],
         defaultRequestQueueId: LOCAL_ACTOR_ENV_VARS[ACTOR_ENV_VARS.DEFAULT_REQUEST_QUEUE_ID],
         inputKey: 'INPUT',
-        apiBaseUrl: 'https://api.apify.com',
+        apiBaseUrl: 'https://api.apify.com/',
         apiPublicBaseUrl: 'https://api.apify.com',
         proxyStatusUrl: 'http://proxy.apify.com',
         proxyHostname: LOCAL_APIFY_ENV_VARS[APIFY_ENV_VARS.PROXY_HOSTNAME],
