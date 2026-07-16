@@ -2,17 +2,18 @@
 import { AsyncLocalStorage } from 'node:async_hooks';
 
 import type {
-    CreateDatasetClientOptions,
-    CreateKeyValueStoreClientOptions,
-    CreateRequestQueueClientOptions,
-    DatasetClient,
-    KeyValueStoreClient,
-    RequestQueueClient,
-    StorageClient,
+    CreateDatasetBackendOptions,
+    CreateKeyValueStoreBackendOptions,
+    CreateRequestQueueBackendOptions,
+    DatasetBackend,
+    KeyValueStoreBackend,
+    RequestQueueBackend,
+    StorageBackend,
 } from '@crawlee/types';
 import type { ApifyClient } from 'apify-client';
 import { DatasetClient as ApifyDatasetClient } from 'apify-client';
 
+import { ApifyRequestQueueClient } from './apify_request_queue_client.js';
 import {
     type ChargeResult,
     type ChargingManager,
@@ -153,7 +154,7 @@ function adapt<T extends object>(
  * const { items } = await dataset.getData();
  * ```
  */
-export class ApifyStorageClient implements StorageClient {
+export class ApifyStorageClient implements StorageBackend {
     constructor(
         private readonly client: ApifyClient,
         private readonly config?: Configuration,
@@ -167,7 +168,7 @@ export class ApifyStorageClient implements StorageClient {
         return info?.id === id;
     }
 
-    async createDatasetClient(options?: CreateDatasetClientOptions): Promise<DatasetClient> {
+    async createDatasetBackend(options?: CreateDatasetBackendOptions): Promise<DatasetBackend> {
         const id = await this.resolveId(options, 'Dataset');
         const client = this.chargingDatasetClient(id) ?? this.client.dataset(id);
         return adapt(
@@ -179,10 +180,10 @@ export class ApifyStorageClient implements StorageClient {
                 getData: 'listItems',
             },
             noPurge,
-        ) as unknown as DatasetClient;
+        ) as unknown as DatasetBackend;
     }
 
-    async createKeyValueStoreClient(options?: CreateKeyValueStoreClientOptions): Promise<KeyValueStoreClient> {
+    async createKeyValueStoreBackend(options?: CreateKeyValueStoreBackendOptions): Promise<KeyValueStoreBackend> {
         const id = await this.resolveId(options, 'KeyValueStore');
         const client = this.client.keyValueStore(id);
         return adapt(
@@ -200,13 +201,15 @@ export class ApifyStorageClient implements StorageClient {
                 // crawlee expects an array; apify-client returns `{ items }`.
                 listKeys: async (opts?: Parameters<typeof client.listKeys>[0]) => (await client.listKeys(opts)).items,
             },
-        ) as unknown as KeyValueStoreClient;
+        ) as unknown as KeyValueStoreBackend;
     }
 
-    async createRequestQueueClient(options?: CreateRequestQueueClientOptions): Promise<RequestQueueClient> {
+    async createRequestQueueBackend(options?: CreateRequestQueueBackendOptions): Promise<RequestQueueBackend> {
         const id = await this.resolveId(options, 'RequestQueue');
         const client = this.client.requestQueue(id, options?.clientKey ? { clientKey: options.clientKey } : undefined);
-        return adapt(client, { getMetadata: 'get', drop: 'delete' }, noPurge) as unknown as RequestQueueClient;
+        // Crawlee v4's RequestQueueBackend is a stateful, pull-based interface that
+        // can't be satisfied by name-remapping; it's implemented on apify-client.
+        return new ApifyRequestQueueClient(client);
     }
 
     /**
