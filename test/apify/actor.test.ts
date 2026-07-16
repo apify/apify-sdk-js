@@ -930,7 +930,8 @@ describe('Actor', () => {
                 const callSpy = vitest.spyOn(ActorClient.prototype, methodName).mockReturnValue();
                 await Actor[methodName](actId, input, options);
                 expect(callSpy).toBeCalledWith(input, {
-                    timeout: actorTimeout - usedTime,
+                    // The client expects the timeout in seconds, while the remaining time is computed in milliseconds.
+                    timeout: (actorTimeout - usedTime) / 1000,
                 });
             },
         );
@@ -941,7 +942,40 @@ describe('Actor', () => {
             const callSpy = vitest.spyOn(TaskClient.prototype, 'call').mockReturnValue();
             await Actor.callTask(actId, input, options);
             expect(callSpy).toBeCalledWith(input, {
-                timeout: actorTimeout - usedTime,
+                timeout: (actorTimeout - usedTime) / 1000,
+            });
+        });
+
+        test(`inherited timeout is rounded up to a whole second`, async () => {
+            vi.setSystemTime(new Date(testStartTime.getTime() + usedTime + 500));
+
+            const callSpy = vitest.spyOn(ActorClient.prototype, 'call').mockReturnValue();
+            await Actor.call(actId, input, { timeout: 'inherit' });
+            expect(callSpy).toBeCalledWith(input, {
+                timeout: (actorTimeout - usedTime) / 1000,
+            });
+        });
+
+        test.each([{ methodName: 'call' }, { methodName: 'start' }])(
+            `Actor.$methodName({timeout: 'inherit'}) is clamped to 1 second when the run is already past its timeout`,
+            async ({ methodName }) => {
+                vi.setSystemTime(new Date(testStartTime.getTime() + actorTimeout + 5000));
+
+                const callSpy = vitest.spyOn(ActorClient.prototype, methodName).mockReturnValue();
+                await Actor[methodName](actId, input, { timeout: 'inherit' });
+                expect(callSpy).toBeCalledWith(input, {
+                    timeout: 1,
+                });
+            },
+        );
+
+        test(`Actor.callTask({timeout: 'inherit'}) is clamped to 1 second when the run is already past its timeout`, async () => {
+            vi.setSystemTime(new Date(testStartTime.getTime() + actorTimeout + 5000));
+
+            const callSpy = vitest.spyOn(TaskClient.prototype, 'call').mockReturnValue();
+            await Actor.callTask(actId, input, { timeout: 'inherit' });
+            expect(callSpy).toBeCalledWith(input, {
+                timeout: 1,
             });
         });
     });
