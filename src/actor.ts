@@ -2299,13 +2299,14 @@ export class Actor<Data extends Dictionary = Dictionary> {
     }
 
     /**
-     * Get time remaining from the Actor run timeout. Returns `undefined` if not on an Apify platform or the current
-     * run was started without a timeout.
+     * Get time remaining from the Actor run timeout, in seconds. Returns `undefined` if not on an Apify platform
+     * or the current run was started without a timeout.
      */
     private getRemainingTime(): number | undefined {
         const env = this.getEnv();
         if (this.isAtHome() && env.timeoutAt !== null) {
-            return env.timeoutAt.getTime() - Date.now();
+            // Rounding up so that a sub-second remainder does not become 0, which the API treats as "no timeout".
+            return Math.max(Math.ceil((env.timeoutAt.getTime() - Date.now()) / 1000), 0);
         }
         log.warning(
             'Using `inherit` argument is only possible when the Actor is running on the Apify platform and when the ' +
