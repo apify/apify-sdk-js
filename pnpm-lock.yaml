@@ -23,8 +23,8 @@ importers:
         specifier: ^2.4.3
         version: 2.5.41
       '@apify/timeout':
-        specifier: ^0.3.0
-        version: 0.3.5
+        specifier: ^0.4.0
+        version: 0.4.1
       '@apify/utilities':
         specifier: ^2.13.0
         version: 2.34.1
@@ -401,6 +401,9 @@ packages:
 
   '@apify/timeout@0.3.5':
     resolution: {integrity: sha512-3nuQXwxh2sKxBo5tgDoZWuZHiSpqrKg1+sJHjFSk8blhyX6I2FZzpfW7UaCELeYLZiSjWUPh2rXNrc3zLmJGJg==}
+
+  '@apify/timeout@0.4.1':
+    resolution: {integrity: sha512-nBV8gL8ZK5Pf7hqbpwUoAnLYg0y80RzLZ6MqKNTyU/NR16js0BDRszvlveJYIYsoiffRVcQGCmMOQOhQfPQvFw==}
 
   '@apify/tsconfig@0.2.0':
     resolution: {integrity: sha512-0i6rF+hgXw6mQXhENYNTnP+Yo4WY38d698k/pk4rIpdCx/sSuEprR2N5WdtMaN628vCB+aZjff0jPN2EnQYtjQ==}
@@ -9521,6 +9524,8 @@ snapshots:
       '@apify/log': 2.5.41
 
   '@apify/timeout@0.3.5': {}
+
+  '@apify/timeout@0.4.1': {}
 
   '@apify/tsconfig@0.2.0': {}
 
