@@ -8,13 +8,16 @@ import semver from 'semver';
 import { APIFY_ENV_VARS } from '@apify/consts';
 import log from '@apify/log';
 
-describe('Actor.isAtHome()', () => {
+describe('Actor platform detection', () => {
     test('works', () => {
         expect(Actor.isAtHome()).toBe(false);
+        expect(Actor.isRunningOnApify()).toBe(false);
         process.env[APIFY_ENV_VARS.IS_AT_HOME] = '1';
         expect(Actor.isAtHome()).toBe(true);
+        expect(Actor.isRunningOnApify()).toBe(true);
         delete process.env[APIFY_ENV_VARS.IS_AT_HOME];
         expect(Actor.isAtHome()).toBe(false);
+        expect(Actor.isRunningOnApify()).toBe(false);
     });
 });
 
