@@ -1,7 +1,6 @@
 import { createPublicKey } from 'node:crypto';
 
-import { EventType, serviceLocator } from '@crawlee/core';
-import { MemoryStorage } from '@crawlee/memory-storage';
+import { EventType, MemoryStorageBackend, serviceLocator } from '@crawlee/core';
 import { sleep } from '@crawlee/utils';
 import type { ApifyEnv } from 'apify';
 import { Actor, Configuration, Dataset, KeyValueStore, ProxyConfiguration, RequestQueue } from 'apify';
@@ -614,7 +613,7 @@ describe('Actor', () => {
 
             beforeEach(() => {
                 sdk = createIsolatedActor({
-                    storageClient: new MemoryStorage({ persistStorage: false }),
+                    storageClient: new MemoryStorageBackend(),
                 }).actor as Actor<{ foo: string }>;
             });
 
@@ -680,7 +679,7 @@ describe('Actor', () => {
                 const queue = await sdk.openRequestQueue(queueId, options);
                 expect(openSpy).toBeCalledTimes(1);
                 expect(openSpy.mock.calls[0][0]).toBe(queueId);
-                expect(openSpy.mock.calls[0][1]?.storageClient).toBeDefined();
+                expect(openSpy.mock.calls[0][1]?.storageBackend).toBeDefined();
                 expect(queue).toBe(mockRQ);
             });
 
@@ -691,7 +690,7 @@ describe('Actor', () => {
                 await sdk.openDataset(datasetName, options);
                 expect(openSpy).toBeCalledTimes(1);
                 expect(openSpy.mock.calls[0][0]).toBe(datasetName);
-                expect(openSpy.mock.calls[0][1]?.storageClient).toBeDefined();
+                expect(openSpy.mock.calls[0][1]?.storageBackend).toBeDefined();
             });
 
             describe('StorageIdentifier support', () => {

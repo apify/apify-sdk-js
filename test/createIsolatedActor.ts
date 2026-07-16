@@ -1,6 +1,5 @@
-import { bindMethodsToServiceLocator, ServiceLocator } from '@crawlee/core';
-import { MemoryStorage } from '@crawlee/memory-storage';
-import type { StorageClient } from '@crawlee/types';
+import { bindMethodsToServiceLocator, MemoryStorageBackend, ServiceLocator } from '@crawlee/core';
+import type { StorageBackend } from '@crawlee/types';
 import { Actor, Configuration, type PlatformEventManager } from 'apify';
 import { onTestFinished } from 'vitest';
 
@@ -30,7 +29,7 @@ export interface IsolatedActor {
  * {@link initIsolatedDefaultActor}.
  */
 export function createIsolatedActor(
-    options: { config?: Configuration; storageClient?: StorageClient } = {},
+    options: { config?: Configuration; storageClient?: StorageBackend } = {},
 ): IsolatedActor {
     const config = options.config ?? new Configuration();
     const actor = new Actor({ configuration: config });
@@ -82,9 +81,9 @@ export async function initIsolatedDefaultActor(options: { config?: Configuration
  * re-setting it — harmless here because the locator is the test's own isolated
  * instance, not the shared global one.
  */
-export function useInMemoryStorage(serviceLocator: ServiceLocator): MemoryStorage {
-    const storage = new MemoryStorage({ persistStorage: false });
+export function useInMemoryStorage(serviceLocator: ServiceLocator): MemoryStorageBackend {
+    const storage = new MemoryStorageBackend();
     serviceLocator.reset();
-    serviceLocator.setStorageClient(storage);
+    serviceLocator.setStorageBackend(storage);
     return storage;
 }

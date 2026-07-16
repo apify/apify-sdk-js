@@ -2,14 +2,13 @@
 import { AsyncLocalStorage } from 'node:async_hooks';
 
 import type {
-    CreateDatasetClientOptions,
-    CreateKeyValueStoreClientOptions,
-    CreateRequestQueueClientOptions,
-    DatasetClient,
-    KeyValueStoreClient,
-    RequestQueueClient,
-    SetStatusMessageOptions,
-    StorageClient,
+    CreateDatasetBackendOptions,
+    CreateKeyValueStoreBackendOptions,
+    CreateRequestQueueBackendOptions,
+    DatasetBackend,
+    KeyValueStoreBackend,
+    RequestQueueBackend,
+    StorageBackend,
 } from '@crawlee/types';
 import type { ApifyClient } from 'apify-client';
 import { DatasetClient as ApifyDatasetClient } from 'apify-client';
@@ -155,7 +154,7 @@ function adapt<T extends object>(
  * const { items } = await dataset.getData();
  * ```
  */
-export class ApifyStorageClient implements StorageClient {
+export class ApifyStorageClient implements StorageBackend {
     constructor(
         private readonly client: ApifyClient,
         private readonly config?: Configuration,
@@ -169,7 +168,7 @@ export class ApifyStorageClient implements StorageClient {
         return info?.id === id;
     }
 
-    async createDatasetClient(options?: CreateDatasetClientOptions): Promise<DatasetClient> {
+    async createDatasetBackend(options?: CreateDatasetBackendOptions): Promise<DatasetBackend> {
         const id = await this.resolveId(options, 'Dataset');
         const client = this.chargingDatasetClient(id) ?? this.client.dataset(id);
         return adapt(
@@ -181,10 +180,10 @@ export class ApifyStorageClient implements StorageClient {
                 getData: 'listItems',
             },
             noPurge,
-        ) as unknown as DatasetClient;
+        ) as unknown as DatasetBackend;
     }
 
-    async createKeyValueStoreClient(options?: CreateKeyValueStoreClientOptions): Promise<KeyValueStoreClient> {
+    async createKeyValueStoreBackend(options?: CreateKeyValueStoreBackendOptions): Promise<KeyValueStoreBackend> {
         const id = await this.resolveId(options, 'KeyValueStore');
         const client = this.client.keyValueStore(id);
         return adapt(
@@ -202,30 +201,15 @@ export class ApifyStorageClient implements StorageClient {
                 // crawlee expects an array; apify-client returns `{ items }`.
                 listKeys: async (opts?: Parameters<typeof client.listKeys>[0]) => (await client.listKeys(opts)).items,
             },
-        ) as unknown as KeyValueStoreClient;
+        ) as unknown as KeyValueStoreBackend;
     }
 
-    /**
-     * Sets the run's status message (shown in the Apify console). Crawlee v4 calls
-     * this on the storage client to surface crawl progress. No-op when not running
-     * on the platform (no run id).
-     */
-    async setStatusMessage(message: string, options?: SetStatusMessageOptions): Promise<void> {
-        const runId = this.config?.actorRunId;
-        if (!runId) return;
-        await this.client.run(runId).update({
-            statusMessage: message,
-            isStatusMessageTerminal: options?.isStatusMessageTerminal,
-        });
-    }
-
-    async createRequestQueueClient(options?: CreateRequestQueueClientOptions): Promise<RequestQueueClient> {
+    async createRequestQueueBackend(options?: CreateRequestQueueBackendOptions): Promise<RequestQueueBackend> {
         const id = await this.resolveId(options, 'RequestQueue');
         const client = this.client.requestQueue(id, options?.clientKey ? { clientKey: options.clientKey } : undefined);
-        // Crawlee v4's RequestQueueClient is a stateful, pull-based interface that
+        // Crawlee v4's RequestQueueBackend is a stateful, pull-based interface that
         // can't be satisfied by name-remapping; it's implemented on apify-client.
-        // (cast: published @crawlee/types still ships the pre-redesign interface.)
-        return new ApifyRequestQueueClient(client) as unknown as RequestQueueClient;
+        return new ApifyRequestQueueClient(client);
     }
 
     /**

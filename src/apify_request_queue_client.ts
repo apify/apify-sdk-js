@@ -3,35 +3,13 @@ import { createHash } from 'node:crypto';
 import type {
     BatchAddRequestsResult,
     QueueOperationInfo,
-    RequestOptions,
+    RequestQueueBackend,
     RequestQueueInfo,
+    RequestQueueOperationOptions,
     RequestSchema,
     UpdateRequestSchema,
 } from '@crawlee/types';
 import type { RequestQueueClient as ApifyRequestQueueResourceClient } from 'apify-client';
-
-/**
- * Crawlee v4's redesigned (pull-based) `RequestQueueClient` interface.
- *
- * This is a local copy because the published `@crawlee/types` still ships the
- * pre-redesign interface in its `.d.ts` even though `@crawlee/core`'s runtime
- * already calls these methods (`addBatchOfRequests`/`fetchNextRequest`/…). Once
- * crawlee publishes the regenerated types, drop this and `implements`
- * `@crawlee/types`' `RequestQueueClient` directly.
- */
-interface RequestQueueClientV4 {
-    getMetadata(): Promise<RequestQueueInfo>;
-    drop(): Promise<void>;
-    purge(): Promise<void>;
-    addBatchOfRequests(requests: RequestSchema[], options?: RequestOptions): Promise<BatchAddRequestsResult>;
-    getRequest(uniqueKey: string): Promise<RequestOptions | undefined>;
-    fetchNextRequest(): Promise<RequestOptions | null>;
-    markRequestAsHandled(request: UpdateRequestSchema): Promise<QueueOperationInfo | null>;
-    reclaimRequest(request: UpdateRequestSchema, options?: RequestOptions): Promise<QueueOperationInfo | null>;
-    isEmpty(): Promise<boolean>;
-    isFinished(): Promise<boolean>;
-    setExpectedRequestProcessingTimeSecs?(secs: number): void;
-}
 
 /** Apify request IDs are the first 15 chars of a base64url-ish SHA-256 of the unique key. */
 const REQUEST_ID_LENGTH = 15;
@@ -53,7 +31,7 @@ function uniqueKeyToRequestId(uniqueKey: string): string {
 }
 
 /**
- * Implements Crawlee v4's stateful, pull-based {@link RequestQueueClient} interface
+ * Implements Crawlee v4's stateful, pull-based {@link RequestQueueBackend} interface
  * on top of `apify-client`'s REST request-queue API.
  *
  * `fetchNextRequest` locks requests server-side (`listAndLockHead`) so the queue can
@@ -63,7 +41,7 @@ function uniqueKeyToRequestId(uniqueKey: string): string {
  *
  * @internal
  */
-export class ApifyRequestQueueClient implements RequestQueueClientV4 {
+export class ApifyRequestQueueClient implements RequestQueueBackend {
     /** Locked request ids waiting to be handed out by {@link fetchNextRequest}, in queue order. */
     private readonly queueHead: string[] = [];
 
@@ -89,11 +67,14 @@ export class ApifyRequestQueueClient implements RequestQueueClientV4 {
         // already fresh, so purge is a no-op here (use drop() to remove it entirely).
     }
 
-    setExpectedRequestProcessingTimeSecs(secs: number): void {
+    async setExpectedRequestProcessingTimeSecs(secs: number): Promise<void> {
         this.lockSecs = secs;
     }
 
-    async addBatchOfRequests(requests: RequestSchema[], options: RequestOptions = {}): Promise<BatchAddRequestsResult> {
+    async addBatchOfRequests(
+        requests: RequestSchema[],
+        options: RequestQueueOperationOptions = {},
+    ): Promise<BatchAddRequestsResult> {
         const { forefront } = options;
         // The API assigns ids itself; strip any incoming id so its strict input validation passes.
         const apiRequests = requests.map((request) => {
@@ -114,12 +95,12 @@ export class ApifyRequestQueueClient implements RequestQueueClientV4 {
         return result as unknown as BatchAddRequestsResult;
     }
 
-    async getRequest(uniqueKey: string): Promise<RequestOptions | undefined> {
+    async getRequest(uniqueKey: string): Promise<UpdateRequestSchema | undefined> {
         const request = await this.client.getRequest(uniqueKeyToRequestId(uniqueKey));
-        return (request as RequestOptions | undefined) ?? undefined;
+        return (request as UpdateRequestSchema | undefined) ?? undefined;
     }
 
-    async fetchNextRequest(): Promise<RequestOptions | null> {
+    async fetchNextRequest(): Promise<UpdateRequestSchema | undefined> {
         await this.ensureHeadIsNonEmpty();
 
         while (this.queueHead.length > 0) {
@@ -130,12 +111,12 @@ export class ApifyRequestQueueClient implements RequestQueueClientV4 {
             if (!request || (request as { handledAt?: string }).handledAt) {
                 continue;
             }
-            return request as RequestOptions;
+            return request as UpdateRequestSchema;
         }
-        return null;
+        return undefined;
     }
 
-    async markRequestAsHandled(request: UpdateRequestSchema): Promise<QueueOperationInfo | null> {
+    async markRequestAsHandled(request: UpdateRequestSchema): Promise<QueueOperationInfo | undefined> {
         const result = await this.client.updateRequest({
             ...this.toApiRequest(request),
             handledAt: request.handledAt ?? new Date().toISOString(),
@@ -146,8 +127,8 @@ export class ApifyRequestQueueClient implements RequestQueueClientV4 {
 
     async reclaimRequest(
         request: UpdateRequestSchema,
-        options: RequestOptions = {},
-    ): Promise<QueueOperationInfo | null> {
+        options: RequestQueueOperationOptions = {},
+    ): Promise<QueueOperationInfo | undefined> {
         const { forefront } = options;
         const result = await this.client.updateRequest(this.toApiRequest(request), { forefront });
 
@@ -188,7 +169,7 @@ export class ApifyRequestQueueClient implements RequestQueueClientV4 {
         }
     }
 
-    /** Crawlee's `RequestSchema`/`UpdateRequestSchema` is structurally the apify-client request shape. */
+    /** Crawlee's `UpdateRequestSchema` is structurally the apify-client request shape. */
     private toApiRequest(
         request: UpdateRequestSchema,
     ): Parameters<ApifyRequestQueueResourceClient['updateRequest']>[0] {

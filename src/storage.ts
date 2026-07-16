@@ -1,5 +1,5 @@
 import type { Constructor, IStorage, StorageOpenOptions } from '@crawlee/core';
-import type { StorageClient } from '@crawlee/types';
+import type { StorageBackend } from '@crawlee/types';
 
 import { ApifyStorageClient } from './apify_storage_client.js';
 import type { Configuration } from './configuration.js';
@@ -137,7 +137,7 @@ function resolveStorageIdentifier(
 
 export interface OpenStorageContext {
     config: Configuration;
-    client?: StorageClient;
+    client?: StorageBackend;
     purgedStorageAliases: Set<string>;
 }
 
@@ -174,12 +174,12 @@ export async function openStorage<T extends IStorage>(
     ) {
         context.purgedStorageAliases.add(identifier.alias);
         const existingStorage = await storageClass.open(resolvedIdOrName ?? null, {
-            storageClient: context.client,
+            storageBackend: context.client,
         });
         await (existingStorage as T & { drop(): Promise<void> }).drop();
     }
 
     return storageClass.open(resolvedIdOrName ?? null, {
-        storageClient: context.client,
+        storageBackend: context.client,
     });
 }
