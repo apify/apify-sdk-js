@@ -956,14 +956,27 @@ describe('Actor', () => {
             });
         });
 
-        test(`inherited timeout is clamped to zero when the run is already past its timeout`, async () => {
+        test.each([{ methodName: 'call' }, { methodName: 'start' }])(
+            `Actor.$methodName({timeout: 'inherit'}) is skipped when the run is already past its timeout`,
+            async ({ methodName }) => {
+                vi.setSystemTime(new Date(testStartTime.getTime() + actorTimeout + 5000));
+
+                const warningSpy = vitest.spyOn(log, 'warning').mockImplementation(() => {});
+                const callSpy = vitest.spyOn(ActorClient.prototype, methodName).mockReturnValue();
+                await expect(Actor[methodName](actId, input, { timeout: 'inherit' })).resolves.toBeUndefined();
+                expect(callSpy).not.toBeCalled();
+                expect(warningSpy).toBeCalledWith(expect.stringContaining('skipped'));
+            },
+        );
+
+        test(`Actor.callTask({timeout: 'inherit'}) is skipped when the run is already past its timeout`, async () => {
             vi.setSystemTime(new Date(testStartTime.getTime() + actorTimeout + 5000));
 
-            const callSpy = vitest.spyOn(ActorClient.prototype, 'call').mockReturnValue();
-            await Actor.call(actId, input, { timeout: 'inherit' });
-            expect(callSpy).toBeCalledWith(input, {
-                timeout: 0,
-            });
+            const warningSpy = vitest.spyOn(log, 'warning').mockImplementation(() => {});
+            const callSpy = vitest.spyOn(TaskClient.prototype, 'call').mockReturnValue();
+            await expect(Actor.callTask(actId, input, { timeout: 'inherit' })).resolves.toBeUndefined();
+            expect(callSpy).not.toBeCalled();
+            expect(warningSpy).toBeCalledWith(expect.stringContaining('skipped'));
         });
     });
 

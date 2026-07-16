@@ -252,6 +252,8 @@ export interface Timeout {
      *
      * Using `inherit` will set timeout of the newly started Actor run to the time
      * remaining until this Actor run times out so that the new run does not outlive this one.
+     * If there is no time remaining (this run is already past its own timeout), the new run
+     * is not started at all — the method only logs a warning and returns `undefined`.
      */
     timeout?: number | 'inherit';
 }
@@ -748,8 +750,16 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @param [options]
      * @ignore
      */
-    async call(actorId: string, input?: unknown, options: CallOptions = {}): Promise<ClientActorRun> {
+    async call(actorId: string, input?: unknown, options: CallOptions = {}): Promise<ClientActorRun | undefined> {
         const timeout = options.timeout === 'inherit' ? this.getRemainingTime() : options.timeout;
+
+        if (options.timeout === 'inherit' && timeout === 0) {
+            log.warning(
+                "Actor.call() was skipped: `timeout: 'inherit'` was used, but the current run has no time remaining before its own timeout.",
+            );
+            return undefined;
+        }
+
         const { token, ...rest } = options;
         const client = token ? this.newClient({ token }) : this.apifyClient;
         return client.actor(actorId).call(input, { ...rest, timeout });
@@ -779,8 +789,16 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @param [options]
      * @ignore
      */
-    async start(actorId: string, input?: unknown, options: StartOptions = {}): Promise<ClientActorRun> {
+    async start(actorId: string, input?: unknown, options: StartOptions = {}): Promise<ClientActorRun | undefined> {
         const timeout = options.timeout === 'inherit' ? this.getRemainingTime() : options.timeout;
+
+        if (options.timeout === 'inherit' && timeout === 0) {
+            log.warning(
+                "Actor.start() was skipped: `timeout: 'inherit'` was used, but the current run has no time remaining before its own timeout.",
+            );
+            return undefined;
+        }
+
         const { token, ...rest } = options;
         const client = token ? this.newClient({ token }) : this.apifyClient;
 
@@ -841,8 +859,20 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @param [options]
      * @ignore
      */
-    async callTask(taskId: string, input?: Dictionary, options: CallTaskOptions = {}): Promise<ClientActorRun> {
+    async callTask(
+        taskId: string,
+        input?: Dictionary,
+        options: CallTaskOptions = {},
+    ): Promise<ClientActorRun | undefined> {
         const timeout = options.timeout === 'inherit' ? this.getRemainingTime() : options.timeout;
+
+        if (options.timeout === 'inherit' && timeout === 0) {
+            log.warning(
+                "Actor.callTask() was skipped: `timeout: 'inherit'` was used, but the current run has no time remaining before its own timeout.",
+            );
+            return undefined;
+        }
+
         const { token, ...rest } = options;
         const client = token ? this.newClient({ token }) : this.apifyClient;
 
@@ -1698,8 +1728,14 @@ export class Actor<Data extends Dictionary = Dictionary> {
      *  JSON and its content type set to `application/json; charset=utf-8`.
      *  Otherwise the `options.contentType` parameter must be provided.
      * @param [options]
+     * @returns The Actor run object, or `undefined` when the `timeout: 'inherit'` option is used
+     *  but the current run has no time remaining before its own timeout — the run is then not started at all.
      */
-    static async call(actorId: string, input?: unknown, options: CallOptions = {}): Promise<ClientActorRun> {
+    static async call(
+        actorId: string,
+        input?: unknown,
+        options: CallOptions = {},
+    ): Promise<ClientActorRun | undefined> {
         return Actor.getDefaultInstance().call(actorId, input, options);
     }
 
@@ -1727,8 +1763,14 @@ export class Actor<Data extends Dictionary = Dictionary> {
      *  JSON and its content type set to `application/json; charset=utf-8`.
      *  Provided input will be merged with Actor task input.
      * @param [options]
+     * @returns The Actor run object, or `undefined` when the `timeout: 'inherit'` option is used
+     *  but the current run has no time remaining before its own timeout — the run is then not started at all.
      */
-    static async callTask(taskId: string, input?: Dictionary, options: CallTaskOptions = {}): Promise<ClientActorRun> {
+    static async callTask(
+        taskId: string,
+        input?: Dictionary,
+        options: CallTaskOptions = {},
+    ): Promise<ClientActorRun | undefined> {
         return Actor.getDefaultInstance().callTask(taskId, input, options);
     }
 
@@ -1754,8 +1796,14 @@ export class Actor<Data extends Dictionary = Dictionary> {
      *  JSON and its content type set to `application/json; charset=utf-8`.
      *  Otherwise the `options.contentType` parameter must be provided.
      * @param [options]
+     * @returns The Actor run object, or `undefined` when the `timeout: 'inherit'` option is used
+     *  but the current run has no time remaining before its own timeout — the run is then not started at all.
      */
-    static async start(actorId: string, input?: Dictionary, options: StartOptions = {}): Promise<ClientActorRun> {
+    static async start(
+        actorId: string,
+        input?: Dictionary,
+        options: StartOptions = {},
+    ): Promise<ClientActorRun | undefined> {
         return Actor.getDefaultInstance().start(actorId, input, options);
     }
 
@@ -2305,7 +2353,8 @@ export class Actor<Data extends Dictionary = Dictionary> {
     private getRemainingTime(): number | undefined {
         const env = this.getEnv();
         if (this.isAtHome() && env.timeoutAt !== null) {
-            // Rounding up so that a sub-second remainder does not become 0, which the API treats as "no timeout".
+            // Rounded up so that a positive remainder is never truncated to 0 — callers treat 0 (only possible
+            // when this run is already past its own timeout) as "no time remaining" and skip starting the run.
             return Math.max(Math.ceil((env.timeoutAt.getTime() - Date.now()) / 1000), 0);
         }
         log.warning(
