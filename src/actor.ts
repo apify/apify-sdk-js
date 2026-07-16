@@ -2299,15 +2299,15 @@ export class Actor<Data extends Dictionary = Dictionary> {
     }
 
     /**
-     * Get time remaining from the Actor run timeout, rounded up to whole seconds with minimum value of 1 second.
+     * Get time remaining from the Actor run timeout in seconds, rounded up to whole seconds with minimum value of 1 second.
      *
      * The API treats a 0 second timeout as no timeout, the minimum acceptable timeout is 1 second.
      *
-     * Returns `undefined` if not on an Apify platform or the current run was started without a timeout.
+     * Returns `undefined` if not on the Apify platform or the current run was started without a timeout.
      */
-    private getRemainingTime(): number | undefined {
+    private getRemainingTimeSecs(): number | undefined {
         const env = this.getEnv();
-        const smallestPossibleApiTimeout = 1;
+        const MINIMUM_API_TIMEOUT_SECS = 1;
         if (this.isAtHome() && env.timeoutAt !== null) {
             return Math.max(Math.ceil((env.timeoutAt.getTime() - Date.now()) / 1000), smallestPossibleApiTimeout);
         }
