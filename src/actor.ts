@@ -749,7 +749,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @ignore
      */
     async call(actorId: string, input?: unknown, options: CallOptions = {}): Promise<ClientActorRun> {
-        const timeout = options.timeout === 'inherit' ? this.getRemainingTime() : options.timeout;
+        const timeout = options.timeout === 'inherit' ? this.getRemainingTimeSecs() : options.timeout;
         const { token, ...rest } = options;
         const client = token ? this.newClient({ token }) : this.apifyClient;
         return client.actor(actorId).call(input, { ...rest, timeout });
@@ -780,7 +780,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @ignore
      */
     async start(actorId: string, input?: unknown, options: StartOptions = {}): Promise<ClientActorRun> {
-        const timeout = options.timeout === 'inherit' ? this.getRemainingTime() : options.timeout;
+        const timeout = options.timeout === 'inherit' ? this.getRemainingTimeSecs() : options.timeout;
         const { token, ...rest } = options;
         const client = token ? this.newClient({ token }) : this.apifyClient;
 
@@ -842,7 +842,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @ignore
      */
     async callTask(taskId: string, input?: Dictionary, options: CallTaskOptions = {}): Promise<ClientActorRun> {
-        const timeout = options.timeout === 'inherit' ? this.getRemainingTime() : options.timeout;
+        const timeout = options.timeout === 'inherit' ? this.getRemainingTimeSecs() : options.timeout;
         const { token, ...rest } = options;
         const client = token ? this.newClient({ token }) : this.apifyClient;
 
@@ -2309,7 +2309,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
         const env = this.getEnv();
         const MINIMUM_API_TIMEOUT_SECS = 1;
         if (this.isAtHome() && env.timeoutAt !== null) {
-            return Math.max(Math.ceil((env.timeoutAt.getTime() - Date.now()) / 1000), smallestPossibleApiTimeout);
+            return Math.max(Math.ceil((env.timeoutAt.getTime() - Date.now()) / 1000), MINIMUM_API_TIMEOUT_SECS);
         }
         log.warning(
             'Using `inherit` argument is only possible when the Actor is running on the Apify platform and when the ' +
