@@ -750,6 +750,15 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @param [options]
      * @ignore
      */
+    async call(actorId: string, input?: unknown, options?: CallOptions & { timeout?: number }): Promise<ClientActorRun>;
+    /** @ignore */
+    async call(
+        actorId: string,
+        input: unknown,
+        options: CallOptions & { timeout: 'inherit' },
+    ): Promise<ClientActorRun | undefined>;
+    /** @ignore */
+    async call(actorId: string, input?: unknown, options?: CallOptions): Promise<ClientActorRun | undefined>;
     async call(actorId: string, input?: unknown, options: CallOptions = {}): Promise<ClientActorRun | undefined> {
         const timeout = options.timeout === 'inherit' ? this.getRemainingTime() : options.timeout;
 
@@ -789,6 +798,19 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @param [options]
      * @ignore
      */
+    async start(
+        actorId: string,
+        input?: unknown,
+        options?: StartOptions & { timeout?: number },
+    ): Promise<ClientActorRun>;
+    /** @ignore */
+    async start(
+        actorId: string,
+        input: unknown,
+        options: StartOptions & { timeout: 'inherit' },
+    ): Promise<ClientActorRun | undefined>;
+    /** @ignore */
+    async start(actorId: string, input?: unknown, options?: StartOptions): Promise<ClientActorRun | undefined>;
     async start(actorId: string, input?: unknown, options: StartOptions = {}): Promise<ClientActorRun | undefined> {
         const timeout = options.timeout === 'inherit' ? this.getRemainingTime() : options.timeout;
 
@@ -859,6 +881,19 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @param [options]
      * @ignore
      */
+    async callTask(
+        taskId: string,
+        input?: Dictionary,
+        options?: CallTaskOptions & { timeout?: number },
+    ): Promise<ClientActorRun>;
+    /** @ignore */
+    async callTask(
+        taskId: string,
+        input: Dictionary | undefined,
+        options: CallTaskOptions & { timeout: 'inherit' },
+    ): Promise<ClientActorRun | undefined>;
+    /** @ignore */
+    async callTask(taskId: string, input?: Dictionary, options?: CallTaskOptions): Promise<ClientActorRun | undefined>;
     async callTask(
         taskId: string,
         input?: Dictionary,
@@ -1728,9 +1763,32 @@ export class Actor<Data extends Dictionary = Dictionary> {
      *  JSON and its content type set to `application/json; charset=utf-8`.
      *  Otherwise the `options.contentType` parameter must be provided.
      * @param [options]
-     * @returns The Actor run object, or `undefined` when the `timeout: 'inherit'` option is used
-     *  but the current run has no time remaining before its own timeout — the run is then not started at all.
+     * @returns The Actor run object.
      */
+    static async call(
+        actorId: string,
+        input?: unknown,
+        options?: CallOptions & { timeout?: number },
+    ): Promise<ClientActorRun>;
+    /**
+     * Runs an Actor on the Apify platform with the timeout inherited from the current run, so that
+     * the new run does not outlive this one.
+     *
+     * @returns The Actor run object, or `undefined` when the current run has no time remaining before
+     *  its own timeout — the run is then not started at all and only a warning is logged.
+     */
+    static async call(
+        actorId: string,
+        input: unknown,
+        options: CallOptions & { timeout: 'inherit' },
+    ): Promise<ClientActorRun | undefined>;
+    /**
+     * Runs an Actor on the Apify platform using the current user account (determined by the `APIFY_TOKEN` environment variable).
+     *
+     * @returns The Actor run object. It is `undefined` only when `options.timeout` resolves to `'inherit'`
+     *  and the current run has no time remaining before its own timeout.
+     */
+    static async call(actorId: string, input?: unknown, options?: CallOptions): Promise<ClientActorRun | undefined>;
     static async call(
         actorId: string,
         input?: unknown,
@@ -1763,9 +1821,36 @@ export class Actor<Data extends Dictionary = Dictionary> {
      *  JSON and its content type set to `application/json; charset=utf-8`.
      *  Provided input will be merged with Actor task input.
      * @param [options]
-     * @returns The Actor run object, or `undefined` when the `timeout: 'inherit'` option is used
-     *  but the current run has no time remaining before its own timeout — the run is then not started at all.
+     * @returns The Actor run object.
      */
+    static async callTask(
+        taskId: string,
+        input?: Dictionary,
+        options?: CallTaskOptions & { timeout?: number },
+    ): Promise<ClientActorRun>;
+    /**
+     * Runs an Actor task on the Apify platform with the timeout inherited from the current run, so that
+     * the new run does not outlive this one.
+     *
+     * @returns The Actor run object, or `undefined` when the current run has no time remaining before
+     *  its own timeout — the run is then not started at all and only a warning is logged.
+     */
+    static async callTask(
+        taskId: string,
+        input: Dictionary | undefined,
+        options: CallTaskOptions & { timeout: 'inherit' },
+    ): Promise<ClientActorRun | undefined>;
+    /**
+     * Runs an Actor task on the Apify platform using the current user account (determined by the `APIFY_TOKEN` environment variable).
+     *
+     * @returns The Actor run object. It is `undefined` only when `options.timeout` resolves to `'inherit'`
+     *  and the current run has no time remaining before its own timeout.
+     */
+    static async callTask(
+        taskId: string,
+        input?: Dictionary,
+        options?: CallTaskOptions,
+    ): Promise<ClientActorRun | undefined>;
     static async callTask(
         taskId: string,
         input?: Dictionary,
@@ -1796,9 +1881,37 @@ export class Actor<Data extends Dictionary = Dictionary> {
      *  JSON and its content type set to `application/json; charset=utf-8`.
      *  Otherwise the `options.contentType` parameter must be provided.
      * @param [options]
-     * @returns The Actor run object, or `undefined` when the `timeout: 'inherit'` option is used
-     *  but the current run has no time remaining before its own timeout — the run is then not started at all.
+     * @returns The Actor run object.
      */
+    static async start(
+        actorId: string,
+        input?: Dictionary,
+        options?: StartOptions & { timeout?: number },
+    ): Promise<ClientActorRun>;
+    /**
+     * Starts an Actor run on the Apify platform with the timeout inherited from the current run, so that
+     * the new run does not outlive this one.
+     *
+     * @returns The Actor run object, or `undefined` when the current run has no time remaining before
+     *  its own timeout — the run is then not started at all and only a warning is logged.
+     */
+    static async start(
+        actorId: string,
+        input: Dictionary | undefined,
+        options: StartOptions & { timeout: 'inherit' },
+    ): Promise<ClientActorRun | undefined>;
+    /**
+     * Runs an Actor on the Apify platform using the current user account (determined by the `APIFY_TOKEN` environment variable),
+     * unlike `Actor.call`, this method just starts the run without waiting for finish.
+     *
+     * @returns The Actor run object. It is `undefined` only when `options.timeout` resolves to `'inherit'`
+     *  and the current run has no time remaining before its own timeout.
+     */
+    static async start(
+        actorId: string,
+        input?: Dictionary,
+        options?: StartOptions,
+    ): Promise<ClientActorRun | undefined>;
     static async start(
         actorId: string,
         input?: Dictionary,
