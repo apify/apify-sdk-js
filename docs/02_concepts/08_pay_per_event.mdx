@@ -52,13 +52,13 @@ Your Actor users can set the maximum cost for the run. It helps users control th
 
 The user spending limit for the run is available in your Actor code as the `ACTOR_MAX_TOTAL_CHARGE_USD` environment variable, and <ApiLink to="interface/ChargeResult">`ChargeResult`</ApiLink> already accounts for it. To control the limit, inspect the fields of `ChargeResult`:
 
-- `eventChargeLimitReached`: Checks if the user's limit allows for another charge of the event.
+- `eventChargeLimitReached`: Checks if the user's spending limits has been reached and doesn't allow for another charge of the event.
 - `chargeableWithinLimit`: Indicates how many events of each type can still be charged within the remaining budget.
 - `chargedCount`: Indicates how many events were billed by the call.
 
 <CodeBlock language="typescript">{ChargeLimitCheckSource}</CodeBlock>
 
-When the charge limit is reached, <ApiLink to="class/Actor#charge">`Actor.charge`</ApiLink> stops charging and <ApiLink to="class/Actor#pushData">`Actor.push_data`</ApiLink> stops pushing data. The platform then aborts the run automatically. However, the run keeps consuming platform resources for a short time before it stops. For details, see [Handle graceful shutdown](https://docs.apify.com/platform/actors/publishing/monetize/pay-per-event#handle-graceful-shutdown).
+When the charge limit is reached, <ApiLink to="class/Actor#charge">`Actor.charge`</ApiLink> stops charging and <ApiLink to="class/Actor#pushData">`Actor.pushData`</ApiLink> stops pushing data. The platform then aborts the run automatically. However, the run keeps consuming platform resources for a short time before it stops. For details, see [Handle graceful shutdown](https://docs.apify.com/platform/actors/publishing/monetize/pay-per-event#handle-graceful-shutdown).
 
 ## Test monetization locally
 
@@ -70,7 +70,15 @@ ACTOR_TEST_PAY_PER_EVENT=true npm start
 
 ### View the log
 
-To inspect the results of your tests, open the `charging-log` dataset. By default, it's stored in the `storage/datasets/charging-log/` directory.
+To inspect the results of your tests:
+
+1. In addition to the `ACTOR_TEST_PAY_PER_EVENT` environment variable, pass `ACTOR_USE_CHARGING_LOG_DATASET`:
+
+   ```shell
+   ACTOR_TEST_PAY_PER_EVENT=true ACTOR_USE_CHARGING_LOG_DATASET=true npm start
+   ```
+
+1. Open the `charging_log` dataset. By default, it's stored in the `storage/datasets/charging_log/` directory.
 
 The log contains all the events charged throughout the run. Because pricing configuration is stored by the Apify platform, all events have a default price of $1.
 
