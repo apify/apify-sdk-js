@@ -1,5 +1,6 @@
 export * from './actor.js';
 export { ApifyStorageBackend, type ApifyStorageBackendOptions } from './apify_storage_backend.js';
+export type { RequestQueueAccessMode } from './apify_request_queue_backend.js';
 export { ArgumentValidationError } from './utils.js';
 export type {
     OpenStorageOptions,
