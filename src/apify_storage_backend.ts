@@ -1,5 +1,6 @@
 /* eslint-disable max-classes-per-file */
 import { AsyncLocalStorage } from 'node:async_hooks';
+import { createHash } from 'node:crypto';
 
 import type {
     DatasetBackend,
@@ -22,11 +23,27 @@ import type { Configuration } from './configuration.js';
 
 type StorageType = 'Dataset' | 'KeyValueStore' | 'RequestQueue';
 
+/** The reserved alias crawlee uses for the default (unnamed) storage. */
+const DEFAULT_STORAGE_ALIAS = '__default__';
+
 const DEFAULT_ID_CONFIG_KEY = {
     Dataset: 'defaultDatasetId',
     KeyValueStore: 'defaultKeyValueStoreId',
     RequestQueue: 'defaultRequestQueueId',
 } as const;
+
+const ACTOR_STORAGES_TYPE_KEY = {
+    Dataset: 'datasets',
+    KeyValueStore: 'keyValueStores',
+    RequestQueue: 'requestQueues',
+} as const;
+
+/** The parsed shape of the `ACTOR_STORAGES_JSON` environment variable. */
+interface ActorStorages {
+    datasets?: Record<string, string>;
+    keyValueStores?: Record<string, string>;
+    requestQueues?: Record<string, string>;
+}
 
 /** Marks a dataset client whose `pushItems` charges for pay-per-event. @internal */
 export const USES_PUSH_DATA_INTERCEPTION = Symbol('apify:uses-push-data-interception');
@@ -142,8 +159,8 @@ export interface ApifyStorageBackendOptions {
 /**
  * Bridges `apify-client`'s synchronous resource accessors (`dataset(id)`,
  * `keyValueStore(id)`, `requestQueue(id, options?)`) to crawlee v4's
- * `StorageBackend` interface (async factory methods accepting either an `id`
- * or a `name`).
+ * `StorageBackend` interface (async factory methods accepting an `id`,
+ * a `name`, or an `alias`).
  *
  * For the run's default dataset it transparently swaps in a charging-aware
  * dataset client (pay-per-event on `Actor.pushData()`), provided a charging
@@ -165,12 +182,27 @@ export class ApifyStorageBackend implements StorageBackend {
     private readonly config?: Configuration;
     private readonly getChargingManager?: () => ChargingManager;
 
+    /** Unnamed storages created for aliases in this process, so an alias maps to one storage. */
+    private readonly aliasIdCache = new Map<string, string>();
+
     constructor(
         private readonly client: ApifyClient,
         options: ApifyStorageBackendOptions = {},
     ) {
         this.config = options.configuration;
         this.getChargingManager = options.getChargingManager;
+    }
+
+    /**
+     * Partitions crawlee's storage-instance cache by API base URL and token, so the same storage
+     * opened through two differently-authenticated backends is cached separately.
+     */
+    getStorageBackendCacheKey(): string {
+        const hash = createHash('sha256')
+            .update(`${this.client.publicBaseUrl}${this.client.token ?? ''}`)
+            .digest('hex')
+            .slice(0, 8);
+        return `ApifyStorageBackend:${hash}`;
     }
 
     async storageExists(id: string, type: StorageType): Promise<boolean> {
@@ -255,14 +287,57 @@ export class ApifyStorageBackend implements StorageBackend {
         return datasetClient;
     }
 
-    private async resolveId(options: { id?: string; name?: string } | undefined, type: StorageType): Promise<string> {
+    /**
+     * Resolves a crawlee {@link StorageIdentifier} to a platform storage id.
+     *
+     * Aliases resolve to unnamed storages: the reserved `__default__` alias maps to the run's
+     * default storage, and other aliases to the storages declared in the Actor's schema (via the
+     * `ACTOR_STORAGES_JSON` environment variable, maintained by the platform). Outside the
+     * platform, an unnamed storage is created per alias instead (remembered for this process only).
+     */
+    private async resolveId(options: StorageIdentifier | undefined, type: StorageType): Promise<string> {
         if (options?.id) return options.id;
         if (options?.name) {
             return (await this.collectionClient(type).getOrCreate(options.name)).id;
         }
-        // No id/name (crawlee's `__default__` alias): use the default storage
-        // id from the run's environment. apify-client rejects an empty id.
-        return this.config?.[DEFAULT_ID_CONFIG_KEY[type]] ?? '';
+
+        const alias = (options && 'alias' in options && options.alias) || DEFAULT_STORAGE_ALIAS;
+
+        if (alias === DEFAULT_STORAGE_ALIAS) {
+            const defaultId = this.config?.[DEFAULT_ID_CONFIG_KEY[type]];
+            if (defaultId) return defaultId;
+        } else {
+            const declaredId = this.aliasFromActorStorages(alias, type);
+            if (declaredId) return declaredId;
+            if (this.config?.isAtHome) {
+                throw new Error(
+                    `Storage alias "${alias}" cannot be resolved because it is not declared in the Actor's schema storages. ` +
+                        `Declare it in the Actor schema, or open the storage by name instead.`,
+                );
+            }
+        }
+
+        // No platform-provided id for this alias (e.g. cloud storage used locally via an API
+        // token) — create an unnamed storage for it, one per alias per process.
+        const cacheKey = `${type}:${alias}`;
+        const cachedId = this.aliasIdCache.get(cacheKey);
+        if (cachedId) return cachedId;
+        const created = await this.collectionClient(type).getOrCreate();
+        this.aliasIdCache.set(cacheKey, created.id);
+        return created.id;
+    }
+
+    /** Looks an alias up in the Actor's schema storages (the `ACTOR_STORAGES_JSON` env var). */
+    private aliasFromActorStorages(alias: string, type: StorageType): string | undefined {
+        const storagesJson = this.config?.actorStoragesJson;
+        if (!storagesJson) return undefined;
+        let storages: ActorStorages;
+        try {
+            storages = JSON.parse(storagesJson);
+        } catch {
+            throw new Error(`Failed to parse ACTOR_STORAGES_JSON environment variable: ${storagesJson}`);
+        }
+        return storages[ACTOR_STORAGES_TYPE_KEY[type]]?.[alias];
     }
 
     private resourceClient(id: string, type: StorageType) {
