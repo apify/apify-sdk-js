@@ -124,6 +124,21 @@ function adapt<T extends object>(
     });
 }
 
+export interface ApifyStorageBackendOptions {
+    /**
+     * SDK configuration providing the run's default storage ids and related environment values.
+     * Without it, opening storages requires an explicit id or name.
+     */
+    configuration?: Configuration;
+
+    /**
+     * Supplies the charging manager for pay-per-event runs, enabling the charging-aware default
+     * dataset client.
+     * @internal
+     */
+    getChargingManager?: () => ChargingManager;
+}
+
 /**
  * Bridges `apify-client`'s synchronous resource accessors (`dataset(id)`,
  * `keyValueStore(id)`, `requestQueue(id, options?)`) to crawlee v4's
@@ -134,31 +149,34 @@ function adapt<T extends object>(
  * dataset client (pay-per-event on `Actor.pushData()`), provided a charging
  * manager is supplied and a default-dataset-item price is configured.
  *
- * `storageExists()` lets `Dataset.open(idOrName)` resolve a string to an id
- * first (when one exists on the platform) and fall back to a name otherwise —
- * otherwise crawlee's `resolveStorageIdentifier` treats every string as a name
- * and the SDK would silently create a new storage named like the passed id.
- *
  * `Actor` wires this up automatically; construct it directly only to use Apify
  * platform storage with crawlee's storage classes outside of `Actor` — e.g. to
  * read another run's output with an explicit token:
  *
  * ```ts
- * import { ApifyClient, ApifyStorageClient, Dataset } from 'apify';
+ * import { ApifyClient, ApifyStorageBackend, Dataset } from 'apify';
  *
  * const client = new ApifyClient({ token });
- * const dataset = await Dataset.open(datasetId, { storageBackend: new ApifyStorageClient(client) });
+ * const dataset = await Dataset.open(datasetId, { storageBackend: new ApifyStorageBackend(client) });
  * const { items } = await dataset.getData();
  * ```
  */
-export class ApifyStorageClient implements StorageBackend {
+export class ApifyStorageBackend implements StorageBackend {
+    private readonly config?: Configuration;
+    private readonly getChargingManager?: () => ChargingManager;
+
     constructor(
         private readonly client: ApifyClient,
-        private readonly config?: Configuration,
-        private readonly getChargingManager?: () => ChargingManager,
-    ) {}
+        options: ApifyStorageBackendOptions = {},
+    ) {
+        this.config = options.configuration;
+        this.getChargingManager = options.getChargingManager;
+    }
 
     async storageExists(id: string, type: StorageType): Promise<boolean> {
+        // Lets `Dataset.open(idOrName)` and friends resolve a string to an id first (when one
+        // exists on the platform) and fall back to a name otherwise; without this, crawlee would
+        // treat every string as a name and silently create a new storage named like the passed id.
         // Apify's `GET /v2/{kind}/{idOrName}` matches by either id or name;
         // confirm it was an *id* match so crawlee can fall through to `{ name }`.
         const info = await this.resourceClient(id, type).get();
