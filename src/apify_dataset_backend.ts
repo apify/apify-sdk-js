@@ -6,6 +6,9 @@ import { MAX_PAYLOAD_SIZE_BYTES } from '@apify/consts';
 const SAFETY_BUFFER_PERCENT = 0.01 / 100; // 0.01%
 const EFFECTIVE_LIMIT_BYTES = MAX_PAYLOAD_SIZE_BYTES - Math.ceil(MAX_PAYLOAD_SIZE_BYTES * SAFETY_BUFFER_PERCENT);
 
+/** Per-item ceiling — 2 bytes under the chunk limit, so even a lone item fits its `[]` wrapper. */
+const MAX_ITEM_BYTES = EFFECTIVE_LIMIT_BYTES - 2;
+
 /**
  * Implements crawlee v4's {@link DatasetBackend} interface on top of `apify-client`'s
  * dataset API. Mostly a thin method-mapping wrapper (`getMetadata`/`get`, `drop`/`delete`,
@@ -54,9 +57,9 @@ export class ApifyDatasetBackend implements DatasetBackend {
 function serializeToSizeLimit(item: Dictionary, index: number): string {
     const payload = JSON.stringify(item);
     const bytes = Buffer.byteLength(payload);
-    if (bytes > EFFECTIVE_LIMIT_BYTES) {
+    if (bytes > MAX_ITEM_BYTES) {
         throw new Error(
-            `Data item at index ${index} is too large (size: ${bytes} bytes, limit: ${EFFECTIVE_LIMIT_BYTES} bytes)`,
+            `Data item at index ${index} is too large (size: ${bytes} bytes, limit: ${MAX_ITEM_BYTES} bytes)`,
         );
     }
     return payload;

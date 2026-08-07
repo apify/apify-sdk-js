@@ -2,6 +2,8 @@ import type { ApifyClient, DatasetClient, KeyValueStoreClient } from 'apify-clie
 import { DatasetClient as ApifyDatasetClient } from 'apify-client';
 import { describe, expect, test, vi } from 'vitest';
 
+import { MAX_PAYLOAD_SIZE_BYTES } from '@apify/consts';
+
 import { ApifyDatasetBackend } from '../../src/apify_dataset_backend.js';
 import { ApifyKeyValueStoreBackend } from '../../src/apify_key_value_store_backend.js';
 import { ApifyRequestQueueSharedBackend } from '../../src/apify_request_queue_shared_backend.js';
@@ -196,6 +198,9 @@ describe('ApifyDatasetBackend', () => {
         };
     }
 
+    // Mirrors the backend's per-item ceiling: 9MB API limit - 0.01% safety buffer - 2 bytes for '[]'.
+    const maxItemBytes = MAX_PAYLOAD_SIZE_BYTES - Math.ceil(MAX_PAYLOAD_SIZE_BYTES * 0.0001) - 2;
+
     test('maps the backend interface onto the apify-client dataset client', async () => {
         const client = createMockDatasetClient();
         const backend = new ApifyDatasetBackend(client as unknown as DatasetClient);
@@ -234,10 +239,18 @@ describe('ApifyDatasetBackend', () => {
         const chunks = client.pushItems.mock.calls.map(([chunk]) => chunk as string);
         expect(chunks.length).toBeGreaterThan(1);
         for (const chunk of chunks) {
-            expect(Buffer.byteLength(chunk)).toBeLessThanOrEqual(9437184);
+            expect(Buffer.byteLength(chunk)).toBeLessThanOrEqual(MAX_PAYLOAD_SIZE_BYTES);
         }
         // All items arrive, in the original order.
         expect(chunks.flatMap((chunk) => JSON.parse(chunk))).toEqual(items);
+    });
+
+    test('pushing an empty array makes no API call', async () => {
+        const client = createMockDatasetClient();
+        const backend = new ApifyDatasetBackend(client as unknown as DatasetClient);
+
+        await backend.pushData([]);
+        expect(client.pushItems).not.toHaveBeenCalled();
     });
 
     test('rejects an item that alone exceeds the payload limit', async () => {
@@ -247,6 +260,36 @@ describe('ApifyDatasetBackend', () => {
         await expect(backend.pushData([{ ok: true }, { payload: 'a'.repeat(10 * 1024 * 1024) }])).rejects.toThrow(
             /Data item at index 1 is too large/,
         );
+        expect(client.pushItems).not.toHaveBeenCalled();
+    });
+
+    test('accepts an item at exactly the per-item limit and rejects one byte over', async () => {
+        const client = createMockDatasetClient();
+        const backend = new ApifyDatasetBackend(client as unknown as DatasetClient);
+
+        // `{"payload":"a…a"}` serializes to n + 14 bytes.
+        const maxPayload = 'a'.repeat(maxItemBytes - 14);
+
+        await backend.pushData([{ payload: maxPayload }]);
+        expect(client.pushItems).toHaveBeenCalledTimes(1);
+        const chunk = client.pushItems.mock.calls[0][0] as string;
+        expect(Buffer.byteLength(chunk)).toBeLessThanOrEqual(MAX_PAYLOAD_SIZE_BYTES);
+
+        await expect(backend.pushData([{ payload: `${maxPayload}a` }])).rejects.toThrow(
+            /Data item at index 0 is too large/,
+        );
+    });
+
+    test('measures item size in bytes, not string characters', async () => {
+        const client = createMockDatasetClient();
+        const backend = new ApifyDatasetBackend(client as unknown as DatasetClient);
+
+        // 'é' is one character but two UTF-8 bytes — the item is far below the
+        // limit in characters, yet just over it in bytes, so it must be rejected.
+        const item = { payload: 'é'.repeat(Math.ceil(maxItemBytes / 2)) };
+        expect(JSON.stringify(item).length).toBeLessThan(maxItemBytes);
+
+        await expect(backend.pushData([item])).rejects.toThrow(/Data item at index 0 is too large/);
         expect(client.pushItems).not.toHaveBeenCalled();
     });
 });
