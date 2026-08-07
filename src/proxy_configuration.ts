@@ -8,6 +8,7 @@ import type { ProxyInfo as CoreProxyInfo } from '@crawlee/types';
 import { z } from 'zod';
 
 import { APIFY_ENV_VARS, APIFY_PROXY_VALUE_REGEX } from '@apify/consts';
+import defaultLog from '@apify/log';
 import { cryptoRandomObjectId } from '@apify/utilities';
 
 import { Actor } from './actor.js';
@@ -196,6 +197,8 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
     private port?: number;
     private usesApifyProxy?: boolean;
 
+    protected readonly log = defaultLog.child({ prefix: 'ProxyConfiguration' });
+
     /**
      * @internal
      */
@@ -258,7 +261,7 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
         this.password = password;
         this.hostname = hostname!;
         this.port = port;
-        this.usesApifyProxy = !this.proxyUrls && !this.newUrlFunction;
+        this.usesApifyProxy = !proxyUrls && !newUrlFunction;
 
         if (proxyUrls && proxyUrls.some((url) => url?.includes('apify.com'))) {
             this.log.warning(
@@ -338,7 +341,7 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
      * `proxyUrls`, the URLs are rotated round-robin.
      */
     override async newUrl(options?: NewUrlOptions): Promise<string | undefined> {
-        if (this.newUrlFunction || this.proxyUrls) {
+        if (!this.usesApifyProxy) {
             return super.newUrl(options);
         }
         return this.composeDefaultUrl(cryptoRandomObjectId(SESSION_ID_LENGTH));
@@ -413,7 +416,9 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
         }
 
         const { connected, connectionError, isManInTheMiddle } = status;
-        this.isManInTheMiddle = isManInTheMiddle;
+        // Declared `readonly false` on the base class; the status check is the one place that
+        // learns the actual value, so bypass the readonly marker.
+        (this as { isManInTheMiddle: boolean }).isManInTheMiddle = isManInTheMiddle;
 
         if (connected) {
             return true;
@@ -503,6 +508,16 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
                 'It is not allowed to set "options.proxyUrls" or "options.newUrlFunction" combined with ' +
                 '"options.groups", "options.apifyProxyGroups", "options.countryCode", "options.apifyProxyCountry", ' +
                 '"options.subdivisionCode" or "options.apifyProxySubdivision".',
+        );
+    }
+
+    /**
+     * Throws cannot combine custom proxies with custom generating function
+     * @internal
+     */
+    protected _throwCannotCombineCustomMethods() {
+        throw new Error(
+            'Cannot combine custom proxies "options.proxyUrls" with custom generating function "options.newUrlFunction".',
         );
     }
 }

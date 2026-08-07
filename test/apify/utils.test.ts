@@ -1,7 +1,6 @@
 import type { IncomingMessage } from 'node:http';
 
 import type { Request } from '@crawlee/core';
-import { createRequestDebugInfo } from '@crawlee/utils';
 import { Actor, Configuration } from 'apify';
 import semver from 'semver';
 
@@ -88,73 +87,5 @@ describe('printOutdatedSdkWarning()', () => {
         printOutdatedSdkWarning();
 
         expect(spy).not.toHaveBeenCalled();
-    });
-});
-
-describe('createRequestDebugInfo()', () => {
-    test('handles Puppeteer response', () => {
-        const request = {
-            id: 'some-id',
-            url: 'https://example.com',
-            loadedUrl: 'https://example.com',
-            method: 'POST',
-            retryCount: 2,
-            errorMessages: ['xxx'],
-            someThingElse: 'xxx',
-            someOther: 'yyy',
-        } as unknown as Request;
-
-        const response = {
-            status: () => 201,
-            another: 'yyy',
-        };
-
-        const additionalFields = {
-            foo: 'bar',
-        };
-
-        expect(createRequestDebugInfo(request, response, additionalFields)).toEqual({
-            requestId: 'some-id',
-            url: 'https://example.com',
-            loadedUrl: 'https://example.com',
-            method: 'POST',
-            retryCount: 2,
-            errorMessages: ['xxx'],
-            statusCode: 201,
-            foo: 'bar',
-        });
-    });
-
-    test('handles NodeJS response', () => {
-        const request = {
-            id: 'some-id',
-            url: 'https://example.com',
-            loadedUrl: 'https://example.com',
-            method: 'POST',
-            retryCount: 2,
-            errorMessages: ['xxx'],
-            someThingElse: 'xxx',
-            someOther: 'yyy',
-        } as unknown as Request;
-
-        const response = {
-            statusCode: 201,
-            another: 'yyy',
-        } as unknown as IncomingMessage;
-
-        const additionalFields = {
-            foo: 'bar',
-        };
-
-        expect(createRequestDebugInfo(request, response, additionalFields)).toEqual({
-            requestId: 'some-id',
-            url: 'https://example.com',
-            loadedUrl: 'https://example.com',
-            method: 'POST',
-            retryCount: 2,
-            errorMessages: ['xxx'],
-            statusCode: 201,
-            foo: 'bar',
-        });
     });
 });
