@@ -5,6 +5,7 @@ import { createHash } from 'node:crypto';
 import type {
     DatasetBackend,
     KeyValueStoreBackend,
+    KeyValueStoreItemData,
     RequestQueueBackend,
     StorageBackend,
     StorageIdentifier,
@@ -260,7 +261,6 @@ export class ApifyStorageBackend implements StorageBackend {
             client,
             {
                 getMetadata: 'get',
-                getValue: 'getRecord',
                 setValue: 'setRecord',
                 deleteValue: 'deleteRecord',
                 drop: 'delete',
@@ -268,8 +268,18 @@ export class ApifyStorageBackend implements StorageBackend {
             },
             {
                 ...noPurge,
-                // crawlee expects an array; apify-client returns `{ items }`.
-                listKeys: async (opts?: Parameters<typeof client.listKeys>[0]) => (await client.listKeys(opts)).items,
+                // Storage backends are byte transports — the KeyValueStore frontend parses values
+                // according to their content type, so the record must be returned unparsed.
+                getValue: async (key: string) => client.getRecord(key, { buffer: true }),
+                // The API does not report a content type for listed keys; crawlee's item shape
+                // requires the field, so it is left undefined via the cast.
+                listKeys: async (opts?: Parameters<typeof client.listKeys>[0]) => {
+                    const result = await client.listKeys(opts);
+                    return {
+                        ...result,
+                        items: result.items.map(({ key, size }) => ({ key, size }) as KeyValueStoreItemData),
+                    };
+                },
             },
         ) as unknown as KeyValueStoreBackend;
     }
