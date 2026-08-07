@@ -28,6 +28,18 @@ export function isNonEmptyObject(value: unknown): value is Record<string, unknow
     return typeof value === 'object' && value !== null && !Array.isArray(value) && Object.keys(value).length > 0;
 }
 
+/**
+ * Converts a `SNAKE_CASE` string to `camelCase` (previously provided by `@crawlee/utils`).
+ * @internal
+ */
+export function snakeCaseToCamelCase(snakeCaseStr: string): string {
+    return snakeCaseStr
+        .toLowerCase()
+        .split('_')
+        .map((part, index) => (index > 0 ? part.charAt(0).toUpperCase() + part.slice(1) : part))
+        .join('');
+}
+
 /** Formats a zod issue path like `groups[0]` or `countryCode`. */
 function formatIssuePath(path: readonly PropertyKey[]): string {
     let out = '';
