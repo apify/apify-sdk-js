@@ -14,7 +14,6 @@ export { ChargeOptions, ChargeResult, ActorPricingInfo, ChargingManager } from '
 export * from './configuration.js';
 export * from './proxy_configuration.js';
 export * from './platform_event_manager.js';
-export * from './key_value_store.js';
 export {
     Dataset,
     DatasetDataOptions,
@@ -27,6 +26,7 @@ export {
     RequestQueue,
     RequestQueueOperationOptions,
     RequestQueueOptions,
+    KeyValueStore,
     KeyConsumer,
     KeyValueStoreOptions,
     RecordOptions,
