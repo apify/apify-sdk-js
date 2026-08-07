@@ -399,7 +399,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * Configuration of this SDK instance (provided to its constructor). See {@apilink Configuration} for details.
      * @internal
      */
-    readonly config: Configuration;
+    readonly configuration: Configuration;
 
     /**
      * Default {@apilink ApifyClient} instance.
@@ -466,16 +466,16 @@ export class Actor<Data extends Dictionary = Dictionary> {
                         'not a crawlee Configuration, otherwise APIFY_*/ACTOR_* environment variables are not resolved.',
                 );
             }
-            this.config = configuration;
+            this.configuration = configuration;
         } else if (Object.keys(configOptions).length === 0) {
             // use default configuration object if nothing overridden (it fallbacks to env vars)
-            this.config = Configuration.getGlobalConfig();
+            this.configuration = Configuration.getGlobalConfiguration();
         } else {
-            this.config = new Configuration(configOptions);
+            this.configuration = new Configuration(configOptions);
         }
         this.apifyClient = this.newClient();
-        this.eventManager = new PlatformEventManager(this.config);
-        this.chargingManager = new ChargingManager(this.config, this.apifyClient);
+        this.eventManager = new PlatformEventManager(this.configuration);
+        this.chargingManager = new ChargingManager(this.configuration, this.apifyClient);
     }
 
     /**
@@ -591,11 +591,11 @@ export class Actor<Data extends Dictionary = Dictionary> {
         // Register this Actor's config as the global one so crawlee storages and
         // the event manager resolve the same instance (`availableMemoryRatio` /
         // `disableBrowserSandbox` at-home defaults now live in `Configuration`).
-        serviceLocator.setConfiguration(this.config);
+        serviceLocator.setConfiguration(this.configuration);
 
         if (this.isAtHome()) {
             serviceLocator.setStorageBackend(
-                new ApifyStorageClient(this.apifyClient, this.config, () => this.chargingManager),
+                new ApifyStorageClient(this.apifyClient, this.configuration, () => this.chargingManager),
             );
             serviceLocator.setEventManager(this.eventManager);
         } else if (options.storage) {
@@ -633,7 +633,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
         }
 
         await purgeDefaultStorages({
-            configuration: this.config,
+            configuration: this.configuration,
             onlyPurgeOnce: true,
         });
         log.debug(`Default storages purged`);
@@ -903,8 +903,8 @@ export class Actor<Data extends Dictionary = Dictionary> {
             return;
         }
 
-        const { customAfterSleepMillis = this.config.metamorphAfterSleepMillis, ...metamorphOpts } = options;
-        const runId = this.config.actorRunId!;
+        const { customAfterSleepMillis = this.configuration.metamorphAfterSleepMillis, ...metamorphOpts } = options;
+        const runId = this.configuration.actorRunId!;
         await this.apifyClient.run(runId).metamorph(targetActorId, input, metamorphOpts);
 
         // Wait some time for container to be stopped.
@@ -947,11 +947,11 @@ export class Actor<Data extends Dictionary = Dictionary> {
                 .map(async (x: (...args: unknown[]) => unknown) => x({})),
         ]);
 
-        const runId = this.config.actorRunId!;
+        const runId = this.configuration.actorRunId!;
         await this.apifyClient.run(runId).reboot();
 
         // Wait some time for container to be stopped.
-        const { customAfterSleepMillis = this.config.metamorphAfterSleepMillis } = options;
+        const { customAfterSleepMillis = this.configuration.metamorphAfterSleepMillis } = options;
         await sleep(customAfterSleepMillis);
     }
 
@@ -993,7 +993,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
             return undefined;
         }
 
-        const runId = this.config.actorRunId!;
+        const runId = this.configuration.actorRunId!;
         if (!runId) {
             throw new Error(`Environment variable ${ACTOR_ENV_VARS.RUN_ID} is not set!`);
         }
@@ -1038,7 +1038,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
                 break;
         }
 
-        const runId = this.config.actorRunId!;
+        const runId = this.configuration.actorRunId!;
 
         if (runId) {
             // just to be sure, this should be fast
@@ -1236,8 +1236,8 @@ export class Actor<Data extends Dictionary = Dictionary> {
     async getInput<T = Dictionary | string | Buffer>(): Promise<T | null> {
         this._ensureActorInit('getInput');
 
-        const { inputSecretsPrivateKeyFile, inputSecretsPrivateKeyPassphrase } = this.config;
-        const rawInput = await this.getValue<T>(this.config.inputKey);
+        const { inputSecretsPrivateKeyFile, inputSecretsPrivateKeyPassphrase } = this.configuration;
+        const rawInput = await this.getValue<T>(this.configuration.inputKey);
 
         let input = rawInput as T;
 
@@ -1384,7 +1384,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
             return undefined;
         }
 
-        const proxyConfiguration = new ProxyConfiguration(options, this.config);
+        const proxyConfiguration = new ProxyConfiguration(options, this.configuration);
 
         if (await proxyConfiguration.initialize({ checkAccess })) {
             return proxyConfiguration;
@@ -1485,13 +1485,13 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @ignore
      */
     newClient(options: ApifyClientOptions = {}): ApifyClient {
-        const { storageDir, ...storageClientOptions } = (this.config.storageClientOptions ?? {}) as Dictionary;
+        const { storageDir, ...storageClientOptions } = (this.configuration.storageClientOptions ?? {}) as Dictionary;
         const { apifyVersion, crawleeVersion } = getSystemInfo();
 
         return new ApifyClient({
-            baseUrl: this.config.apiBaseUrl,
-            publicBaseUrl: this.config.apiPublicBaseUrl,
-            token: this.config.token,
+            baseUrl: this.configuration.apiBaseUrl,
+            publicBaseUrl: this.configuration.apiPublicBaseUrl,
+            token: this.configuration.token,
             userAgentSuffix: [`SDK/${apifyVersion}`, `Crawlee/${crawleeVersion}`],
             ...storageClientOptions,
             ...options, // allow overriding the instance configuration
@@ -1523,7 +1523,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
         this._ensureActorInit('useState');
 
         const kvStore = await KeyValueStore.open(options?.keyValueStoreName, {
-            configuration: options?.configuration || Configuration.getGlobalConfig(),
+            configuration: options?.configuration || Configuration.getGlobalConfiguration(),
         });
         return kvStore.getAutoSavedValue<State>(name || 'APIFY_GLOBAL_STATE', defaultValue);
     }
@@ -2189,8 +2189,8 @@ export class Actor<Data extends Dictionary = Dictionary> {
     }
 
     /** Default {@apilink Configuration} instance. */
-    static get config(): Configuration {
-        return Actor.getDefaultInstance().config;
+    static get configuration(): Configuration {
+        return Actor.getDefaultInstance().configuration;
     }
 
     /** @internal */
@@ -2243,7 +2243,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
             };
         }
 
-        const isDefaultDataset = dataset.id === this.config.defaultDatasetId;
+        const isDefaultDataset = dataset.id === this.configuration.defaultDatasetId;
 
         return pushDataAndCharge({
             chargingManager: this.chargingManager,
@@ -2262,9 +2262,9 @@ export class Actor<Data extends Dictionary = Dictionary> {
         options: OpenStorageOptions = {},
     ) {
         return openStorage<T>(storageClass, identifier, {
-            config: this.config,
+            config: this.configuration,
             client: options.forceCloud
-                ? new ApifyStorageClient(this.apifyClient, this.config, () => this.chargingManager)
+                ? new ApifyStorageClient(this.apifyClient, this.configuration, () => this.chargingManager)
                 : undefined,
             purgedStorageAliases: this.purgedStorageAliases,
         });
