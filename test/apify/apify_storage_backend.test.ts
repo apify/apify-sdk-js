@@ -1,6 +1,8 @@
 import type { ApifyClient } from 'apify-client';
 import { describe, expect, test, vi } from 'vitest';
 
+import { ApifyRequestQueueSharedBackend } from '../../src/apify_request_queue_shared_backend.js';
+import { ApifyRequestQueueSingleBackend } from '../../src/apify_request_queue_single_backend.js';
 import { ApifyStorageBackend } from '../../src/apify_storage_backend.js';
 import { Configuration } from '../../src/configuration.js';
 
@@ -31,6 +33,27 @@ function asApifyClient(mock: MockApifyClient): ApifyClient {
 }
 
 describe('ApifyStorageBackend', () => {
+    test('picks the request queue backend implementation by access mode', async () => {
+        const client = createMockApifyClient();
+        const configuration = new Configuration({ defaultRequestQueueId: 'default-rq' });
+        const single = new ApifyStorageBackend(asApifyClient(client), { configuration });
+        const shared = new ApifyStorageBackend(asApifyClient(client), { configuration, requestQueueAccess: 'shared' });
+
+        await expect(single.createRequestQueueBackend()).resolves.toBeInstanceOf(ApifyRequestQueueSingleBackend);
+        await expect(shared.createRequestQueueBackend()).resolves.toBeInstanceOf(ApifyRequestQueueSharedBackend);
+    });
+
+    test('passes a run-scoped clientKey to the request queue client', async () => {
+        const client = createMockApifyClient();
+        const backend = new ApifyStorageBackend(asApifyClient(client), {
+            configuration: new Configuration({ defaultRequestQueueId: 'default-rq', actorRunId: 'test-run-id' }),
+        });
+
+        await backend.createRequestQueueBackend();
+
+        expect(client.requestQueue).toHaveBeenCalledWith('default-rq', { clientKey: 'test-run-id' });
+    });
+
     test('resolves the reserved __default__ alias to the default storage id', async () => {
         const client = createMockApifyClient();
         const backend = new ApifyStorageBackend(asApifyClient(client), {
@@ -91,13 +114,13 @@ describe('ApifyStorageBackend', () => {
         expect(client.keyValueStore).toHaveBeenCalledWith('id-of-my-store');
     });
 
-    test('partitions the storage cache by API credentials', () => {
+    test('partitions the storage cache by API credentials, not by access mode', () => {
         const client = createMockApifyClient();
-        const backend = new ApifyStorageBackend(asApifyClient(client));
-        const sameCredentials = new ApifyStorageBackend(asApifyClient(client));
+        const single = new ApifyStorageBackend(asApifyClient(client));
+        const shared = new ApifyStorageBackend(asApifyClient(client), { requestQueueAccess: 'shared' });
         const otherToken = new ApifyStorageBackend(asApifyClient({ ...client, token: 'other-token' }));
 
-        expect(backend.getStorageBackendCacheKey()).toBe(sameCredentials.getStorageBackendCacheKey());
-        expect(backend.getStorageBackendCacheKey()).not.toBe(otherToken.getStorageBackendCacheKey());
+        expect(single.getStorageBackendCacheKey()).toBe(shared.getStorageBackendCacheKey());
+        expect(single.getStorageBackendCacheKey()).not.toBe(otherToken.getStorageBackendCacheKey());
     });
 });

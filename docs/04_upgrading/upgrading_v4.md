@@ -113,6 +113,17 @@ const client = new ApifyClient({ token });
 const store = await KeyValueStore.open(storeId, { storageBackend: new ApifyStorageBackend(client) });
 ```
 
+### Request queue access modes
+
+On the platform, request queues can now be consumed in two modes, controlled by the `requestQueueAccess` option of `Actor.init()` (or of `ApifyStorageBackend` when constructing it directly):
+
+- `'single'` (default) assumes the run is the only consumer of its request queues. Requests are not locked server-side and the queue head is estimated locally, which means fewer (paid) API calls and better performance. Multiple producers may still add requests concurrently.
+- `'shared'` locks every fetched request server-side, so several concurrent consumers (e.g. multiple Actor runs) can process one queue safely, at the cost of roughly one extra API call per request.
+
+```ts
+await Actor.init({ requestQueueAccess: 'shared' });
+```
+
 `KeyValueStore.getPublicUrl()` is now asynchronous (it signs URLs server-side when running on the Apify platform). Update call sites accordingly:
 
 ```ts

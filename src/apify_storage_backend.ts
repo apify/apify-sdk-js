@@ -11,6 +11,11 @@ import type {
 } from '@crawlee/types';
 import type { ApifyClient } from 'apify-client';
 import { DatasetClient as ApifyDatasetClient } from 'apify-client';
+import { cryptoRandomObjectId } from '@apify/utilities';
+
+import type { RequestQueueAccessMode } from './apify_request_queue_backend.js';
+import { ApifyRequestQueueSharedBackend } from './apify_request_queue_shared_backend.js';
+import { ApifyRequestQueueSingleBackend } from './apify_request_queue_single_backend.js';
 
 import {
     type ChargeResult,
@@ -25,6 +30,9 @@ type StorageType = 'Dataset' | 'KeyValueStore' | 'RequestQueue';
 
 /** The reserved alias crawlee uses for the default (unnamed) storage. */
 const DEFAULT_STORAGE_ALIAS = '__default__';
+
+/** The maximum clientKey length accepted by the request queue API. */
+const MAX_CLIENT_KEY_LENGTH = 32;
 
 const DEFAULT_ID_CONFIG_KEY = {
     Dataset: 'defaultDatasetId',
@@ -149,6 +157,14 @@ export interface ApifyStorageBackendOptions {
     configuration?: Configuration;
 
     /**
+     * Determines how request queues opened through this backend are consumed —
+     * `'single'` (default) assumes this is the queue's only consumer and skips request locking for
+     * fewer (paid) API calls; `'shared'` locks requests server-side so any number of concurrent
+     * consumers can process the same queue safely.
+     */
+    requestQueueAccess?: RequestQueueAccessMode;
+
+    /**
      * Supplies the charging manager for pay-per-event runs, enabling the charging-aware default
      * dataset client.
      * @internal
@@ -180,22 +196,29 @@ export interface ApifyStorageBackendOptions {
  */
 export class ApifyStorageBackend implements StorageBackend {
     private readonly config?: Configuration;
+    private readonly requestQueueAccess: RequestQueueAccessMode;
     private readonly getChargingManager?: () => ChargingManager;
 
     /** Unnamed storages created for aliases in this process, so an alias maps to one storage. */
     private readonly aliasIdCache = new Map<string, string>();
+
+    /** Fallback request queue client key when the run id is unavailable — one per backend. */
+    private fallbackClientKey?: string;
 
     constructor(
         private readonly client: ApifyClient,
         options: ApifyStorageBackendOptions = {},
     ) {
         this.config = options.configuration;
+        this.requestQueueAccess = options.requestQueueAccess ?? 'single';
         this.getChargingManager = options.getChargingManager;
     }
 
     /**
      * Partitions crawlee's storage-instance cache by API base URL and token, so the same storage
-     * opened through two differently-authenticated backends is cached separately.
+     * opened through two differently-authenticated backends is cached separately. The request
+     * queue access mode is deliberately not part of the key — opening the same queue in `single`
+     * and `shared` mode at once is not supported, and whichever backend opens it first wins.
      */
     getStorageBackendCacheKey(): string {
         const hash = createHash('sha256')
@@ -253,8 +276,19 @@ export class ApifyStorageBackend implements StorageBackend {
 
     async createRequestQueueBackend(options?: StorageIdentifier): Promise<RequestQueueBackend> {
         const id = await this.resolveId(options, 'RequestQueue');
-        const client = this.client.requestQueue(id);
-        return adapt(client, { getMetadata: 'get', drop: 'delete' }, noPurge) as unknown as RequestQueueBackend;
+        const client = this.client.requestQueue(id, { clientKey: this.requestQueueClientKey() });
+        return this.requestQueueAccess === 'shared'
+            ? new ApifyRequestQueueSharedBackend(client)
+            : new ApifyRequestQueueSingleBackend(client);
+    }
+
+    /**
+     * A stable per-run client key makes the API's `hadMultipleClients` flag meaningful and lets a
+     * migrated or resurrected run re-acquire the request locks of its previous incarnation.
+     */
+    private requestQueueClientKey(): string {
+        const key = this.config?.actorRunId ?? (this.fallbackClientKey ??= cryptoRandomObjectId(MAX_CLIENT_KEY_LENGTH));
+        return key.slice(0, MAX_CLIENT_KEY_LENGTH);
     }
 
     /**
