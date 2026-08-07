@@ -1,10 +1,10 @@
 import type { StorageOpenOptions } from '@crawlee/core';
 import { KeyValueStore as CoreKeyValueStore, serviceLocator } from '@crawlee/core';
 import type { KeyValueStoreInfo } from '@crawlee/types';
-import { KeyValueStoreClient as RemoteKeyValueStoreClient } from 'apify-client';
 
 import { createHmacSignature } from '@apify/utilities';
 
+import { ApifyKeyValueStoreBackend } from './apify_key_value_store_backend.js';
 import type { Configuration } from './configuration.js';
 
 // crawlee v4 dropped the `storageObject` cache from `KeyValueStore`, so the
@@ -35,20 +35,15 @@ export class KeyValueStore extends CoreKeyValueStore {
         // `isAtHome`, so that a `forceCloud` store opened locally still gets a
         // signed Apify URL (matching the platform behaviour). `backend` is
         // `private` on `CoreKeyValueStore`, so bypass the visibility check.
-        // (The Apify backend is a name-remapping `Proxy` around the apify-client
-        // store client, which `instanceof` sees through.)
         const { backend } = this as unknown as { backend: unknown };
-        const isLocalStore = !(backend instanceof RemoteKeyValueStoreClient);
 
-        if (isLocalStore) {
+        if (!(backend instanceof ApifyKeyValueStoreBackend)) {
             return super.getPublicUrl(key);
         }
 
         const publicUrl = new URL(`${config.apiPublicBaseUrl}/v2/key-value-stores/${this.id}/records/${key}`);
 
-        const metadata = (await (
-            backend as unknown as { getMetadata(): Promise<KeyValueStoreInfo> }
-        ).getMetadata()) as ApifyKeyValueStoreInfo;
+        const metadata = (await backend.getMetadata()) as ApifyKeyValueStoreInfo;
 
         if (metadata?.urlSigningSecretKey) {
             publicUrl.searchParams.append('signature', createHmacSignature(metadata.urlSigningSecretKey, key));

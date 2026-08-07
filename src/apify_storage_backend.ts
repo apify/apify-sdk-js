@@ -5,7 +5,6 @@ import { createHash } from 'node:crypto';
 import type {
     DatasetBackend,
     KeyValueStoreBackend,
-    KeyValueStoreItemData,
     RequestQueueBackend,
     StorageBackend,
     StorageIdentifier,
@@ -14,10 +13,11 @@ import type { ApifyClient } from 'apify-client';
 import { DatasetClient as ApifyDatasetClient } from 'apify-client';
 import { cryptoRandomObjectId } from '@apify/utilities';
 
+import { ApifyDatasetBackend } from './apify_dataset_backend.js';
+import { ApifyKeyValueStoreBackend } from './apify_key_value_store_backend.js';
 import type { RequestQueueAccessMode } from './apify_request_queue_backend.js';
 import { ApifyRequestQueueSharedBackend } from './apify_request_queue_shared_backend.js';
 import { ApifyRequestQueueSingleBackend } from './apify_request_queue_single_backend.js';
-
 import {
     type ChargeResult,
     type ChargingManager,
@@ -54,7 +54,7 @@ interface ActorStorages {
     requestQueues?: Record<string, string>;
 }
 
-/** Marks a dataset client whose `pushItems` charges for pay-per-event. @internal */
+/** Marks a dataset backend whose underlying client charges for pushed items (pay-per-event). @internal */
 export const USES_PUSH_DATA_INTERCEPTION = Symbol('apify:uses-push-data-interception');
 
 /**
@@ -122,32 +122,6 @@ class PpeAwareDatasetClient<
         context.chargeResult =
             context.chargeResult === undefined ? result : mergeChargeResults(context.chargeResult, result);
     }
-}
-
-// crawlee v4's storage backend interfaces use different method names
-// than `apify-client`'s resource clients (`getValue`/`getRecord`,
-// `pushData`/`pushItems`, `getData`/`listItems`, `getMetadata`/`get`,
-// `drop`/`delete`). `adapt` wraps a client in a name-remapping proxy: `renames`
-// aliases the differing methods and `overrides` replaces the few whose return
-// shape differs; everything else — identically-named methods and the
-// pay-per-event marker symbol — passes straight through.
-//
-// `purge()` has no apify-client equivalent and isn't needed on the platform
-// (a run's storages are already fresh), so it's a no-op.
-const noPurge = { purge: async () => {} };
-
-function adapt<T extends object>(
-    client: T,
-    renames: Record<string, string>,
-    overrides: Record<string, (...args: any[]) => unknown> = {},
-): T {
-    return new Proxy(client, {
-        get(target, prop) {
-            if (typeof prop === 'string' && prop in overrides) return overrides[prop];
-            const value = Reflect.get(target, (typeof prop === 'string' && renames[prop]) || prop, target);
-            return typeof value === 'function' ? (value as (...args: unknown[]) => unknown).bind(target) : value;
-        },
-    });
 }
 
 export interface ApifyStorageBackendOptions {
@@ -241,47 +215,19 @@ export class ApifyStorageBackend implements StorageBackend {
 
     async createDatasetBackend(options?: StorageIdentifier): Promise<DatasetBackend> {
         const id = await this.resolveId(options, 'Dataset');
-        const client = this.chargingDatasetClient(id) ?? this.client.dataset(id);
-        return adapt(
-            client,
-            {
-                getMetadata: 'get',
-                drop: 'delete',
-                pushData: 'pushItems',
-                getData: 'listItems',
-            },
-            noPurge,
-        ) as unknown as DatasetBackend;
+        const chargingClient = this.chargingDatasetClient(id);
+        const backend = new ApifyDatasetBackend(chargingClient ?? this.client.dataset(id));
+        if (chargingClient) {
+            // `Actor.pushData()` looks for this marker on the dataset's backend to know the
+            // pay-per-event charging happens inside the intercepted `pushItems()` calls.
+            Object.assign(backend, { [USES_PUSH_DATA_INTERCEPTION]: true });
+        }
+        return backend;
     }
 
     async createKeyValueStoreBackend(options?: StorageIdentifier): Promise<KeyValueStoreBackend> {
         const id = await this.resolveId(options, 'KeyValueStore');
-        const client = this.client.keyValueStore(id);
-        return adapt(
-            client,
-            {
-                getMetadata: 'get',
-                setValue: 'setRecord',
-                deleteValue: 'deleteRecord',
-                drop: 'delete',
-                getPublicUrl: 'getRecordPublicUrl',
-            },
-            {
-                ...noPurge,
-                // Storage backends are byte transports — the KeyValueStore frontend parses values
-                // according to their content type, so the record must be returned unparsed.
-                getValue: async (key: string) => client.getRecord(key, { buffer: true }),
-                // The API does not report a content type for listed keys; crawlee's item shape
-                // requires the field, so it is left undefined via the cast.
-                listKeys: async (opts?: Parameters<typeof client.listKeys>[0]) => {
-                    const result = await client.listKeys(opts);
-                    return {
-                        ...result,
-                        items: result.items.map(({ key, size }) => ({ key, size }) as KeyValueStoreItemData),
-                    };
-                },
-            },
-        ) as unknown as KeyValueStoreBackend;
+        return new ApifyKeyValueStoreBackend(this.client.keyValueStore(id));
     }
 
     async createRequestQueueBackend(options?: StorageIdentifier): Promise<RequestQueueBackend> {
@@ -315,7 +261,7 @@ export class ApifyStorageBackend implements StorageBackend {
             DEFAULT_DATASET_ITEM_EVENT in getChargingManager().getPricingInfo().perEventPrices;
         if (!hasDefaultDatasetItemEvent) return undefined;
 
-        const datasetClient = new PpeAwareDatasetClient(
+        return new PpeAwareDatasetClient(
             {
                 id,
                 baseUrl: this.client.baseUrl,
@@ -325,10 +271,6 @@ export class ApifyStorageBackend implements StorageBackend {
             },
             getChargingManager,
         );
-        Object.assign(datasetClient as object, {
-            [USES_PUSH_DATA_INTERCEPTION]: true,
-        });
-        return datasetClient;
     }
 
     /**
