@@ -24,7 +24,6 @@ export {
     DatasetOptions,
     DatasetContent,
     RequestQueue,
-    QueueOperationInfo,
     RequestQueueOperationOptions,
     RequestQueueOptions,
     KeyConsumer,
@@ -39,4 +38,5 @@ export {
     LoggerJson,
     LoggerText,
 } from '@crawlee/core';
+export type { QueueOperationInfo } from '@crawlee/types';
 export { ApifyClient, ApifyClientOptions } from 'apify-client';

@@ -4,7 +4,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import process from 'node:process';
 
-import type { Dictionary } from '@crawlee/utils';
+import type { Dictionary } from '@crawlee/types';
 
 // These paths are used *if* there is no `input` field in the actor.json configuration file!
 const DEFAULT_INPUT_SCHEMA_PATHS = [

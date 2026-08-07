@@ -2,13 +2,11 @@
 import { AsyncLocalStorage } from 'node:async_hooks';
 
 import type {
-    CreateDatasetClientOptions,
-    CreateKeyValueStoreClientOptions,
-    CreateRequestQueueClientOptions,
-    DatasetClient,
-    KeyValueStoreClient,
-    RequestQueueClient,
-    StorageClient,
+    DatasetBackend,
+    KeyValueStoreBackend,
+    RequestQueueBackend,
+    StorageBackend,
+    StorageIdentifier,
 } from '@crawlee/types';
 import type { ApifyClient } from 'apify-client';
 import { DatasetClient as ApifyDatasetClient } from 'apify-client';
@@ -100,7 +98,7 @@ class PpeAwareDatasetClient<
     }
 }
 
-// crawlee v4's `StorageClient` sub-client interfaces use different method names
+// crawlee v4's storage backend interfaces use different method names
 // than `apify-client`'s resource clients (`getValue`/`getRecord`,
 // `pushData`/`pushItems`, `getData`/`listItems`, `getMetadata`/`get`,
 // `drop`/`delete`). `adapt` wraps a client in a name-remapping proxy: `renames`
@@ -129,7 +127,7 @@ function adapt<T extends object>(
 /**
  * Bridges `apify-client`'s synchronous resource accessors (`dataset(id)`,
  * `keyValueStore(id)`, `requestQueue(id, options?)`) to crawlee v4's
- * `StorageClient` interface (async factory methods accepting either an `id`
+ * `StorageBackend` interface (async factory methods accepting either an `id`
  * or a `name`).
  *
  * For the run's default dataset it transparently swaps in a charging-aware
@@ -149,11 +147,11 @@ function adapt<T extends object>(
  * import { ApifyClient, ApifyStorageClient, Dataset } from 'apify';
  *
  * const client = new ApifyClient({ token });
- * const dataset = await Dataset.open(datasetId, { storageClient: new ApifyStorageClient(client) });
+ * const dataset = await Dataset.open(datasetId, { storageBackend: new ApifyStorageClient(client) });
  * const { items } = await dataset.getData();
  * ```
  */
-export class ApifyStorageClient implements StorageClient {
+export class ApifyStorageClient implements StorageBackend {
     constructor(
         private readonly client: ApifyClient,
         private readonly config?: Configuration,
@@ -167,7 +165,7 @@ export class ApifyStorageClient implements StorageClient {
         return info?.id === id;
     }
 
-    async createDatasetClient(options?: CreateDatasetClientOptions): Promise<DatasetClient> {
+    async createDatasetBackend(options?: StorageIdentifier): Promise<DatasetBackend> {
         const id = await this.resolveId(options, 'Dataset');
         const client = this.chargingDatasetClient(id) ?? this.client.dataset(id);
         return adapt(
@@ -179,10 +177,10 @@ export class ApifyStorageClient implements StorageClient {
                 getData: 'listItems',
             },
             noPurge,
-        ) as unknown as DatasetClient;
+        ) as unknown as DatasetBackend;
     }
 
-    async createKeyValueStoreClient(options?: CreateKeyValueStoreClientOptions): Promise<KeyValueStoreClient> {
+    async createKeyValueStoreBackend(options?: StorageIdentifier): Promise<KeyValueStoreBackend> {
         const id = await this.resolveId(options, 'KeyValueStore');
         const client = this.client.keyValueStore(id);
         return adapt(
@@ -200,13 +198,13 @@ export class ApifyStorageClient implements StorageClient {
                 // crawlee expects an array; apify-client returns `{ items }`.
                 listKeys: async (opts?: Parameters<typeof client.listKeys>[0]) => (await client.listKeys(opts)).items,
             },
-        ) as unknown as KeyValueStoreClient;
+        ) as unknown as KeyValueStoreBackend;
     }
 
-    async createRequestQueueClient(options?: CreateRequestQueueClientOptions): Promise<RequestQueueClient> {
+    async createRequestQueueBackend(options?: StorageIdentifier): Promise<RequestQueueBackend> {
         const id = await this.resolveId(options, 'RequestQueue');
-        const client = this.client.requestQueue(id, options?.clientKey ? { clientKey: options.clientKey } : undefined);
-        return adapt(client, { getMetadata: 'get', drop: 'delete' }, noPurge) as unknown as RequestQueueClient;
+        const client = this.client.requestQueue(id);
+        return adapt(client, { getMetadata: 'get', drop: 'delete' }, noPurge) as unknown as RequestQueueBackend;
     }
 
     /**
