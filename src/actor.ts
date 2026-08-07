@@ -9,8 +9,8 @@ import type {
     UseStateOptions,
 } from '@crawlee/core';
 import { Dataset, EventType, purgeDefaultStorages, RequestQueue, serviceLocator } from '@crawlee/core';
-import type { Awaitable, Constructor, Dictionary, SetStatusMessageOptions, StorageClient } from '@crawlee/types';
-import { sleep, snakeCaseToCamelCase } from '@crawlee/utils';
+import type { Awaitable, Constructor, Dictionary, SetStatusMessageOptions, StorageBackend } from '@crawlee/types';
+import { sleep } from '@crawlee/utils';
 import type {
     ActorCallOptions,
     ActorStartOptions,
@@ -51,10 +51,17 @@ import type { ProxyConfigurationOptions } from './proxy_configuration.js';
 import { ProxyConfiguration } from './proxy_configuration.js';
 import type { OpenStorageOptions, StorageIdentifier, StorageIdentifierWithoutAlias } from './storage.js';
 import { openStorage } from './storage.js';
-import { checkCrawleeVersion, getSystemInfo, isNonEmptyObject, printOutdatedSdkWarning, validate } from './utils.js';
+import {
+    checkCrawleeVersion,
+    getSystemInfo,
+    isNonEmptyObject,
+    printOutdatedSdkWarning,
+    snakeCaseToCamelCase,
+    validate,
+} from './utils.js';
 
 export interface InitOptions {
-    storage?: StorageClient;
+    storage?: StorageBackend;
     /**
      * Whether to automatically handle platform shutdown signals.
      * When enabled, `Actor.exit()` is called on `aborting` events and `Actor.reboot()` on `migrating` events.
@@ -587,12 +594,12 @@ export class Actor<Data extends Dictionary = Dictionary> {
         serviceLocator.setConfiguration(this.config);
 
         if (this.isAtHome()) {
-            serviceLocator.setStorageClient(
+            serviceLocator.setStorageBackend(
                 new ApifyStorageClient(this.apifyClient, this.config, () => this.chargingManager),
             );
             serviceLocator.setEventManager(this.eventManager);
         } else if (options.storage) {
-            serviceLocator.setStorageClient(options.storage);
+            serviceLocator.setStorageBackend(options.storage);
         }
 
         // Init the event manager the config uses
@@ -626,7 +633,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
         }
 
         await purgeDefaultStorages({
-            config: this.config,
+            configuration: this.config,
             onlyPurgeOnce: true,
         });
         log.debug(`Default storages purged`);
@@ -656,7 +663,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
 
         this._ensureActorInit('exit');
 
-        const client = serviceLocator.getStorageClient();
+        const client = serviceLocator.getStorageBackend();
         const events = serviceLocator.getEventManager();
 
         // Remove graceful shutdown handlers to prevent them from interfering with exit
@@ -1031,27 +1038,14 @@ export class Actor<Data extends Dictionary = Dictionary> {
                 break;
         }
 
-        const client = serviceLocator.getStorageClient();
-
-        // just to be sure, this should be fast
-        await addTimeoutToPromise(
-            async () =>
-                client.setStatusMessage!(statusMessage, {
-                    isStatusMessageTerminal,
-                    level,
-                }),
-            1000,
-            'Setting status message timed out after 1s',
-        ).catch((e) => log.warning(e.message));
-
         const runId = this.config.actorRunId!;
 
         if (runId) {
             // just to be sure, this should be fast
             const run = await addTimeoutToPromise(
-                async () => this.apifyClient.run(runId).get(),
+                async () => this.apifyClient.run(runId).update({ statusMessage, isStatusMessageTerminal }),
                 1000,
-                'Getting the current run timed out after 1s',
+                'Setting status message timed out after 1s',
             ).catch((e) => log.warning(e.message));
 
             if (run) {
@@ -1332,9 +1326,6 @@ export class Actor<Data extends Dictionary = Dictionary> {
 
         const queue = await this._openStorage(RequestQueue, queueIdOrName, options);
 
-        // eslint-disable-next-line dot-notation
-        queue['initialCount'] = (await queue.client.getMetadata())?.totalRequestCount ?? 0;
-
         return queue;
     }
 
@@ -1532,7 +1523,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
         this._ensureActorInit('useState');
 
         const kvStore = await KeyValueStore.open(options?.keyValueStoreName, {
-            config: options?.config || Configuration.getGlobalConfig(),
+            configuration: options?.configuration || Configuration.getGlobalConfig(),
         });
         return kvStore.getAutoSavedValue<State>(name || 'APIFY_GLOBAL_STATE', defaultValue);
     }
@@ -2209,7 +2200,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
     }
 
     private usesPushDataInterception(dataset: Dataset): boolean {
-        return Boolean((dataset.client as any)[USES_PUSH_DATA_INTERCEPTION]);
+        return Boolean((dataset.backend as any)[USES_PUSH_DATA_INTERCEPTION]);
     }
 
     private async pushDataViaInterceptedClient(

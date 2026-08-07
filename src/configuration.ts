@@ -255,7 +255,7 @@ export class Configuration extends CoreConfiguration {
      * what crawlee internals resolve against; this singleton is only the
      * fallback for code reaching for a configuration without an explicit one.
      */
-    static override getGlobalConfig(): Configuration {
+    static getGlobalConfig(): Configuration {
         Configuration.globalConfig ??= new Configuration();
         return Configuration.globalConfig;
     }
