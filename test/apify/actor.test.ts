@@ -1401,12 +1401,12 @@ describe('Actor', () => {
         });
     });
 
-    describe('Actor.config and PPE', () => {
+    describe('Actor.configuration and PPE', () => {
         test('should work', async () => {
             delete process.env.ACTOR_MAX_TOTAL_CHARGE_USD;
             await Actor.init();
             // No explicit limit (`0`/empty/unset) is treated as unlimited.
-            expect(Actor.config.maxTotalChargeUsd).toBe(Infinity);
+            expect(Actor.configuration.maxTotalChargeUsd).toBe(Infinity);
             expect(Actor.getChargingManager().getMaxTotalChargeUsd()).toBe(Infinity);
             await Actor.exit({ exit: false });
 

@@ -168,13 +168,13 @@ export interface Configuration extends ApifyResolvedConfigValues {}
 /**
  * `Configuration` is a value object holding the SDK configuration. We can use it in two ways:
  *
- * 1. When using `Actor` class, we can get the instance configuration via `sdk.config`
+ * 1. When using `Actor` class, we can get the instance configuration via `sdk.configuration`
  *
  *    ```javascript
  *    import { Actor } from 'apify';
  *
  *    const sdk = new Actor({ token: '123' });
- *    console.log(sdk.config.token); // '123'
+ *    console.log(sdk.configuration.token); // '123'
  *    ```
  *
  * 2. To get the global configuration (singleton instance). It will respect the environment variables.
@@ -182,7 +182,7 @@ export interface Configuration extends ApifyResolvedConfigValues {}
  *    ```javascript
  *    import { Configuration } from 'apify';
  *
- *    const config = Configuration.getGlobalConfig();
+ *    const config = Configuration.getGlobalConfiguration();
  *    console.log(config.headless);
  *    console.log(config.persistStateIntervalMillis);
  *    ```
@@ -255,7 +255,7 @@ export class Configuration extends CoreConfiguration {
      * what crawlee internals resolve against; this singleton is only the
      * fallback for code reaching for a configuration without an explicit one.
      */
-    static getGlobalConfig(): Configuration {
+    static override getGlobalConfiguration(): Configuration {
         Configuration.globalConfig ??= new Configuration();
         return Configuration.globalConfig;
     }
