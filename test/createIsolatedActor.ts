@@ -75,7 +75,7 @@ export async function initIsolatedDefaultActor(options: { config?: Configuration
 /**
  * Replace a locator's storage client with a fresh in-memory one.
  *
- * On the platform, `Actor.init()` registers an `ApifyStorageClient`; tests that
+ * On the platform, `Actor.init()` registers an `ApifyStorageBackend`; tests that
  * assert on `pushData()` / `openDataset()` want local in-memory storage instead.
  * crawlee services are set-once, so swapping one means resetting the locator and
  * re-setting it — harmless here because the locator is the test's own isolated
