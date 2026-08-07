@@ -1,7 +1,7 @@
 import type { IStorage, StorageOpenOptions } from '@crawlee/core';
 import type { Constructor, StorageBackend } from '@crawlee/types';
 
-import { ApifyStorageClient } from './apify_storage_client.js';
+import { ApifyStorageBackend } from './apify_storage_backend.js';
 import type { Configuration } from './configuration.js';
 
 export interface OpenStorageOptions {
@@ -137,7 +137,7 @@ function resolveStorageIdentifier(
 
 export interface OpenStorageContext {
     config: Configuration;
-    client?: StorageBackend;
+    backend?: StorageBackend;
     purgedStorageAliases: Set<string>;
 }
 
@@ -154,7 +154,7 @@ export async function openStorage<T extends IStorage>(
     const isAlias =
         identifier !== null && identifier !== undefined && typeof identifier === 'object' && 'alias' in identifier;
 
-    if (isAlias && !context.config.isAtHome && context.client instanceof ApifyStorageClient) {
+    if (isAlias && !context.config.isAtHome && context.backend instanceof ApifyStorageBackend) {
         throw new Error('The `alias` option is not allowed for Apify-based storages running outside of Apify');
     }
 
@@ -174,12 +174,12 @@ export async function openStorage<T extends IStorage>(
     ) {
         context.purgedStorageAliases.add(identifier.alias);
         const existingStorage = await storageClass.open(resolvedIdOrName ?? null, {
-            storageBackend: context.client,
+            storageBackend: context.backend,
         });
         await (existingStorage as T & { drop(): Promise<void> }).drop();
     }
 
     return storageClass.open(resolvedIdOrName ?? null, {
-        storageBackend: context.client,
+        storageBackend: context.backend,
     });
 }

@@ -35,11 +35,11 @@ import log from '@apify/log';
 import { addTimeoutToPromise } from '@apify/timeout';
 
 import {
-    ApifyStorageClient,
+    ApifyStorageBackend,
     type PpeAwarePushDataContext,
     pushDataChargingContext,
     USES_PUSH_DATA_INTERCEPTION,
-} from './apify_storage_client.js';
+} from './apify_storage_backend.js';
 import type { ChargeOptions, ChargeResult } from './charging.js';
 import { ChargingManager, pushDataAndCharge } from './charging.js';
 import type { ConfigurationOptions } from './configuration.js';
@@ -594,9 +594,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
         serviceLocator.setConfiguration(this.configuration);
 
         if (this.isAtHome()) {
-            serviceLocator.setStorageBackend(
-                new ApifyStorageClient(this.apifyClient, this.configuration, () => this.chargingManager),
-            );
+            serviceLocator.setStorageBackend(this.createApifyStorageBackend());
             serviceLocator.setEventManager(this.eventManager);
         } else if (options.storage) {
             serviceLocator.setStorageBackend(options.storage);
@@ -2263,10 +2261,15 @@ export class Actor<Data extends Dictionary = Dictionary> {
     ) {
         return openStorage<T>(storageClass, identifier, {
             config: this.configuration,
-            client: options.forceCloud
-                ? new ApifyStorageClient(this.apifyClient, this.configuration, () => this.chargingManager)
-                : undefined,
+            backend: options.forceCloud ? this.createApifyStorageBackend() : undefined,
             purgedStorageAliases: this.purgedStorageAliases,
+        });
+    }
+
+    private createApifyStorageBackend(): ApifyStorageBackend {
+        return new ApifyStorageBackend(this.apifyClient, {
+            configuration: this.configuration,
+            getChargingManager: () => this.chargingManager,
         });
     }
 

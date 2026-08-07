@@ -93,11 +93,11 @@ The `tieredProxyUrls` and `tieredProxyConfig` options on `ProxyConfigurationOpti
 
 If you only interact with events through `Actor.on()` / `Actor.off()` / `Actor.events`, no code changes are needed.
 
-## StorageClient
+## StorageBackend
 
-The SDK's storage layer was adapted to the new Crawlee v4 `StorageClient` interface. The Apify platform client is wrapped via the `ApifyStorageClient` adapter — now exported from `apify` — which implements `createDatasetClient`, `createKeyValueStoreClient`, and `createRequestQueueClient`.
+The SDK's storage layer was adapted to the new Crawlee v4 `StorageBackend` interface. The Apify platform client is wrapped via the `ApifyStorageBackend` adapter — now exported from `apify` — which implements `createDatasetBackend`, `createKeyValueStoreBackend`, and `createRequestQueueBackend`.
 
-`Actor` wires this up for you, so most code needs no changes. But if you previously passed a raw `apify-client` `ApifyClient` straight into a Crawlee storage as its `storageClient` — which worked in v3 — it no longer does: Crawlee v4 calls `createKeyValueStoreClient()` / `createDatasetClient()`, which the raw client doesn't implement. Wrap it in `ApifyStorageClient`:
+`Actor` wires this up for you, so most code needs no changes. But if you previously passed a raw `apify-client` `ApifyClient` straight into a Crawlee storage as its `storageClient` — which worked in v3 — it no longer does: Crawlee v4 calls `createKeyValueStoreBackend()` / `createDatasetBackend()`, which the raw client doesn't implement. Wrap it in `ApifyStorageBackend`:
 
 ```ts
 // v3
@@ -107,10 +107,10 @@ const client = new ApifyClient({ token });
 const store = await KeyValueStore.open(storeId, { storageClient: client });
 
 // v4
-import { ApifyClient, ApifyStorageClient, KeyValueStore } from 'apify';
+import { ApifyClient, ApifyStorageBackend, KeyValueStore } from 'apify';
 
 const client = new ApifyClient({ token });
-const store = await KeyValueStore.open(storeId, { storageClient: new ApifyStorageClient(client) });
+const store = await KeyValueStore.open(storeId, { storageBackend: new ApifyStorageBackend(client) });
 ```
 
 `KeyValueStore.getPublicUrl()` is now asynchronous (it signs URLs server-side when running on the Apify platform). Update call sites accordingly:
