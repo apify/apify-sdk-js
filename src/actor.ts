@@ -9,7 +9,7 @@ import type {
     UseStateOptions,
 } from '@crawlee/core';
 import { Dataset, EventType, purgeDefaultStorages, RequestQueue, serviceLocator } from '@crawlee/core';
-import type { Awaitable, Constructor, Dictionary, SetStatusMessageOptions, StorageBackend } from '@crawlee/types';
+import type { Awaitable, Constructor, Dictionary, StorageBackend } from '@crawlee/types';
 import { sleep } from '@crawlee/utils';
 import type {
     ActorCallOptions,
@@ -34,6 +34,7 @@ import { decryptInputSecrets } from '@apify/input_secrets';
 import log from '@apify/log';
 import { addTimeoutToPromise } from '@apify/timeout';
 
+import type { RequestQueueAccessMode } from './apify_request_queue_backend.js';
 import {
     ApifyStorageBackend,
     type PpeAwarePushDataContext,
@@ -62,6 +63,20 @@ import {
 
 export interface InitOptions {
     storage?: StorageBackend;
+    /**
+     * Determines how request queues opened on the Apify platform are consumed.
+     *
+     * - `'single'` (default) assumes this run is the only consumer of its request queues. Requests
+     *   are not locked server-side and the queue head is estimated locally, which means fewer
+     *   (paid) API calls and better performance.
+     * - `'shared'` locks every fetched request server-side, so any number of concurrent consumers
+     *   (e.g. several Actor runs) can safely process the same queue, at the cost of roughly one
+     *   extra API call per processed request.
+     *
+     * Only applies on the Apify platform (or with `forceCloud`); local storage ignores it.
+     * @default 'single'
+     */
+    requestQueueAccess?: RequestQueueAccessMode;
     /**
      * Whether to automatically handle platform shutdown signals.
      * When enabled, `Actor.exit()` is called on `aborting` events and `Actor.reboot()` on `migrating` events.
@@ -106,6 +121,13 @@ export interface ExitOptions {
 }
 
 export interface MainOptions extends ExitOptions, InitOptions {}
+
+export interface SetStatusMessageOptions {
+    /** If `true`, the status message is treated as final and won't be overwritten by the platform. */
+    isStatusMessageTerminal?: boolean;
+    /** Log level used when the status message is also logged locally. Defaults to `INFO`. */
+    level?: 'DEBUG' | 'INFO' | 'WARNING' | 'ERROR';
+}
 
 /**
  * Parsed representation of the Apify environment variables.
@@ -451,6 +473,9 @@ export class Actor<Data extends Dictionary = Dictionary> {
      */
     purgedStorageAliases = new Set<string>();
 
+    /** How Apify platform request queues are consumed; set from {@link InitOptions.requestQueueAccess}. */
+    private requestQueueAccess: RequestQueueAccessMode = 'single';
+
     constructor(options: ActorOptions = {}) {
         const { configuration, ...configOptions } = options;
         if (configuration) {
@@ -592,6 +617,8 @@ export class Actor<Data extends Dictionary = Dictionary> {
         // the event manager resolve the same instance (`availableMemoryRatio` /
         // `disableBrowserSandbox` at-home defaults now live in `Configuration`).
         serviceLocator.setConfiguration(this.configuration);
+
+        this.requestQueueAccess = options.requestQueueAccess ?? 'single';
 
         if (this.isAtHome()) {
             serviceLocator.setStorageBackend(this.createApifyStorageBackend());
@@ -2269,6 +2296,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
     private createApifyStorageBackend(): ApifyStorageBackend {
         return new ApifyStorageBackend(this.apifyClient, {
             configuration: this.configuration,
+            requestQueueAccess: this.requestQueueAccess,
             getChargingManager: () => this.chargingManager,
         });
     }
