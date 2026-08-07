@@ -8,7 +8,7 @@ import type {
     StorageOpenOptions,
     UseStateOptions,
 } from '@crawlee/core';
-import { Dataset, EventType, purgeDefaultStorages, RequestQueue, serviceLocator } from '@crawlee/core';
+import { Dataset, EventType, KeyValueStore, purgeDefaultStorages, RequestQueue, serviceLocator } from '@crawlee/core';
 import type { Awaitable, Constructor, Dictionary, StorageBackend } from '@crawlee/types';
 import { sleep } from '@crawlee/utils';
 import type {
@@ -46,7 +46,6 @@ import { ChargingManager, pushDataAndCharge } from './charging.js';
 import type { ConfigurationOptions } from './configuration.js';
 import { Configuration } from './configuration.js';
 import { getDefaultsFromInputSchema, noActorInputSchemaDefinedMarker, readInputSchema } from './input-schemas.js';
-import { KeyValueStore } from './key_value_store.js';
 import { PlatformEventManager } from './platform_event_manager.js';
 import type { ProxyConfigurationOptions } from './proxy_configuration.js';
 import { ProxyConfiguration } from './proxy_configuration.js';
