@@ -48,9 +48,9 @@ export class PlatformEventManager extends EventManager {
     /** Websocket connection to Actor events. */
     private eventsWs?: WebSocket;
 
-    constructor(readonly config = Configuration.getGlobalConfig()) {
+    constructor(readonly configuration = Configuration.getGlobalConfiguration()) {
         super({
-            persistStateIntervalMillis: config.persistStateIntervalMillis,
+            persistStateIntervalMillis: configuration.persistStateIntervalMillis,
         });
     }
 
@@ -64,7 +64,7 @@ export class PlatformEventManager extends EventManager {
         }
 
         await super.init();
-        const eventsWsUrl = this.config.actorEventsWsUrl;
+        const eventsWsUrl = this.configuration.actorEventsWsUrl;
 
         // Locally there is no web socket to connect, so just print a log message.
         if (!eventsWsUrl) {

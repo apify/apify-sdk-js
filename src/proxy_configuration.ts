@@ -204,7 +204,7 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
      */
     constructor(
         options: ProxyConfigurationOptions = {},
-        readonly config = Configuration.getGlobalConfig(),
+        readonly configuration = Configuration.getGlobalConfiguration(),
     ) {
         const { proxyUrls, newUrlFunction, ...rest } = options;
         super({
@@ -234,14 +234,14 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
             apifyProxyCountry,
             subdivisionCode,
             apifyProxySubdivision,
-            password = config.proxyPassword,
+            password = configuration.proxyPassword,
         } = options;
 
         const groupsToUse = groups.length ? groups : apifyProxyGroups;
         const countryCodeToUse = countryCode || apifyProxyCountry;
         const subdivisionCodeToUse = subdivisionCode || apifyProxySubdivision;
-        const hostname = config.proxyHostname;
-        const port = config.proxyPort;
+        const hostname = configuration.proxyHostname;
+        const port = configuration.proxyPort;
 
         // The Apify Proxy subdivision is expressed as part of the country
         // username parameter (`country-US_CA`), so a country is required.
@@ -382,7 +382,7 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
      */
     // TODO: Make this private
     protected async _setPasswordIfToken(): Promise<void> {
-        const { token } = this.config;
+        const { token } = this.configuration;
 
         if (!token) return;
         try {
@@ -439,7 +439,7 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
      * Apify Proxy can be down for a second or a minute, but this should not crash processes.
      */
     protected async _fetchStatus(): Promise<ProxyStatus | undefined> {
-        const { proxyStatusUrl } = this.config;
+        const { proxyStatusUrl } = this.configuration;
         const statusUrl = `${proxyStatusUrl}/?format=json`;
 
         const proxyUrl = await this.newUrl();

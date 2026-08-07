@@ -28,7 +28,7 @@ Before (v3):
 ```ts
 import { Configuration } from 'apify';
 
-const config = Configuration.getGlobalConfig();
+const config = Configuration.getGlobalConfiguration();
 const token = config.get('token');
 config.set('token', 'new-token');
 ```
@@ -50,6 +50,8 @@ Empty-string environment variables are treated as unset (they fall through to th
 When a setting is exposed under several environment variables, the Apify-specific ones take precedence over Crawlee's generic one — i.e. `ACTOR_*` / `APIFY_*` are checked before `CRAWLEE_*`. For example, if both `APIFY_HEADLESS` and `CRAWLEE_HEADLESS` are set, `APIFY_HEADLESS` wins.
 
 `new Actor({ configuration })` accepts a pre-built `Configuration`, but it must be the Apify SDK's `Configuration` (imported from `apify`), not a bare Crawlee one — otherwise the `APIFY_*` / `ACTOR_*` environment variables are never resolved, so the SDK now throws if given a non-Apify instance.
+
+`Actor.config` was renamed to `Actor.configuration` (both the static getter and the instance property), and `Configuration.getGlobalConfig()` to `Configuration.getGlobalConfiguration()`, following the same renames in Crawlee v4. The public `config` properties of `ProxyConfiguration` and `PlatformEventManager` were renamed to `configuration` as well.
 
 ## ProxyConfiguration: `newUrl()` / `newProxyInfo()` no longer take `sessionId`
 
@@ -87,7 +89,7 @@ The `tieredProxyUrls` and `tieredProxyConfig` options on `ProxyConfigurationOpti
 
 ## EventManager
 
-`PlatformEventManager` now extends Crawlee v4's `EventManager` and integrates with the new service locator. Use `Configuration.getGlobalConfig()` (or pass a `Configuration` instance explicitly) when constructing it directly — the constructor no longer accepts a `config` override via the `override` keyword pattern because Crawlee's base class manages the configuration through `serviceLocator` instead of a `config` field.
+`PlatformEventManager` now extends Crawlee v4's `EventManager` and integrates with the new service locator. Use `Configuration.getGlobalConfiguration()` (or pass a `Configuration` instance explicitly) when constructing it directly — the constructor no longer accepts a `config` override via the `override` keyword pattern because Crawlee's base class manages the configuration through `serviceLocator` instead of a `config` field.
 
 If you only interact with events through `Actor.on()` / `Actor.off()` / `Actor.events`, no code changes are needed.
 

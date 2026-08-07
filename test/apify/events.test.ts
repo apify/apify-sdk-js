@@ -22,7 +22,7 @@ describe('events', () => {
         // crawlee v4's serviceLocator throws when a service is re-set, so start
         // each test from a clean locator and re-resolve the global config.
         serviceLocator.reset();
-        config = Configuration.getGlobalConfig();
+        config = Configuration.getGlobalConfiguration();
         wss = new WebSocketServer({ port: 9099 });
         events = new PlatformEventManager(config);
         serviceLocator.setEventManager(events);
