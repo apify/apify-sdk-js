@@ -12,7 +12,7 @@ import { Actor, Configuration } from 'apify';
  *
  * - `Actor._instance` — lazy default `Actor` created by `Actor.getDefaultInstance()`.
  * - `Configuration.globalConfig` — the SDK's own static singleton (its
- *   Apify-typed default fallback for `getGlobalConfig()`).
+ *   Apify-typed default fallback for `getGlobalConfiguration()`).
  * - `serviceLocator` — crawlee's cache for `Configuration` / `EventManager` /
  *   `StorageClient` / `Logger`. Dropped via `serviceLocator.reset()`.
  *
