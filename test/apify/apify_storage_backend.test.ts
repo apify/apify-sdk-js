@@ -1,5 +1,8 @@
 import type { ApifyClient, DatasetClient, KeyValueStoreClient } from 'apify-client';
+import { DatasetClient as ApifyDatasetClient } from 'apify-client';
 import { describe, expect, test, vi } from 'vitest';
+
+import { MAX_PAYLOAD_SIZE_BYTES } from '@apify/consts';
 
 import { ApifyDatasetBackend } from '../../src/apify_dataset_backend.js';
 import { ApifyKeyValueStoreBackend } from '../../src/apify_key_value_store_backend.js';
@@ -143,6 +146,46 @@ describe('ApifyStorageBackend', () => {
         expect((defaultDataset as never)[USES_PUSH_DATA_INTERCEPTION]).toBe(true);
         expect((otherDataset as never)[USES_PUSH_DATA_INTERCEPTION]).toBeUndefined();
     });
+
+    test('charges per parsed item when the backend splits a push into chunks', async () => {
+        const client = createMockApifyClient();
+        const charge = vi.fn(async ({ count }: { eventName: string; count: number }) => ({
+            eventChargeLimitReached: false,
+            chargedCount: count,
+            chargeableWithinLimit: {},
+        }));
+        const calculatePushDataLimits = vi.fn(({ items }: { items: Record<string, unknown>[] }) => ({
+            limitedItems: items,
+            eventsToCharge: { [DEFAULT_DATASET_ITEM_EVENT]: items.length },
+        }));
+        const backend = new ApifyStorageBackend(asApifyClient(client), {
+            configuration: new Configuration({ defaultDatasetId: 'default-dataset' }),
+            getChargingManager: () =>
+                ({
+                    getPricingInfo: () => ({ perEventPrices: { [DEFAULT_DATASET_ITEM_EVENT]: {} } }),
+                    calculatePushDataLimits,
+                    charge,
+                }) as never,
+        });
+        const dataset = await backend.createDatasetBackend({ id: 'default-dataset' });
+
+        // Stub out the plain-client push underneath the charging wrapper.
+        const pushSpy = vi.spyOn(ApifyDatasetClient.prototype, 'pushItems').mockResolvedValue(undefined);
+        try {
+            // Four ~3MB items arrive as multiple pre-serialized JSON chunks — the charging
+            // wrapper must still count every logical item exactly once.
+            const items = Array.from({ length: 4 }, (_, i) => ({ i, payload: 'a'.repeat(3 * 1024 * 1024) }));
+            await dataset.pushData(items);
+
+            expect(pushSpy.mock.calls.length).toBeGreaterThan(1);
+            const countedItems = calculatePushDataLimits.mock.calls.map(([{ items: counted }]) => counted);
+            expect(countedItems.flat()).toEqual(items);
+            const chargedCounts = charge.mock.calls.map(([{ count }]) => count);
+            expect(chargedCounts.reduce((sum, count) => sum + count, 0)).toBe(4);
+        } finally {
+            pushSpy.mockRestore();
+        }
+    });
 });
 
 describe('ApifyDatasetBackend', () => {
@@ -150,10 +193,13 @@ describe('ApifyDatasetBackend', () => {
         return {
             get: vi.fn(async () => ({ id: 'dataset-id', itemCount: 0 })),
             delete: vi.fn(async () => {}),
-            pushItems: vi.fn(async () => {}),
+            pushItems: vi.fn(async (_items: unknown) => {}),
             listItems: vi.fn(async () => ({ items: [{ foo: 'bar' }], total: 1, count: 1, offset: 0, limit: 10 })),
         };
     }
+
+    // Mirrors the backend's per-item ceiling: 9MB API limit - 0.01% safety buffer - 2 bytes for '[]'.
+    const maxItemBytes = MAX_PAYLOAD_SIZE_BYTES - Math.ceil(MAX_PAYLOAD_SIZE_BYTES * 0.0001) - 2;
 
     test('maps the backend interface onto the apify-client dataset client', async () => {
         const client = createMockDatasetClient();
@@ -162,7 +208,7 @@ describe('ApifyDatasetBackend', () => {
         await expect(backend.getMetadata()).resolves.toEqual({ id: 'dataset-id', itemCount: 0 });
 
         await backend.pushData([{ foo: 'bar' }]);
-        expect(client.pushItems).toHaveBeenCalledWith([{ foo: 'bar' }]);
+        expect(client.pushItems).toHaveBeenCalledWith('[{"foo":"bar"}]');
 
         await expect(backend.getData({ limit: 10 })).resolves.toEqual(
             expect.objectContaining({ items: [{ foo: 'bar' }], total: 1 }),
@@ -180,6 +226,71 @@ describe('ApifyDatasetBackend', () => {
 
         await expect(backend.getMetadata()).rejects.toThrow(/not found/);
         await expect(backend.purge()).rejects.toThrow(/not supported on the Apify platform/);
+    });
+
+    test('splits pushes exceeding the 9MB payload limit into multiple API calls', async () => {
+        const client = createMockDatasetClient();
+        const backend = new ApifyDatasetBackend(client as unknown as DatasetClient);
+
+        // Four ~3MB items (~12MB total) cannot fit into a single 9MB request.
+        const items = Array.from({ length: 4 }, (_, i) => ({ i, payload: 'a'.repeat(3 * 1024 * 1024) }));
+        await backend.pushData(items);
+
+        const chunks = client.pushItems.mock.calls.map(([chunk]) => chunk as string);
+        expect(chunks.length).toBeGreaterThan(1);
+        for (const chunk of chunks) {
+            expect(Buffer.byteLength(chunk)).toBeLessThanOrEqual(MAX_PAYLOAD_SIZE_BYTES);
+        }
+        // All items arrive, in the original order.
+        expect(chunks.flatMap((chunk) => JSON.parse(chunk))).toEqual(items);
+    });
+
+    test('pushing an empty array makes no API call', async () => {
+        const client = createMockDatasetClient();
+        const backend = new ApifyDatasetBackend(client as unknown as DatasetClient);
+
+        await backend.pushData([]);
+        expect(client.pushItems).not.toHaveBeenCalled();
+    });
+
+    test('rejects an item that alone exceeds the payload limit', async () => {
+        const client = createMockDatasetClient();
+        const backend = new ApifyDatasetBackend(client as unknown as DatasetClient);
+
+        await expect(backend.pushData([{ ok: true }, { payload: 'a'.repeat(10 * 1024 * 1024) }])).rejects.toThrow(
+            /Data item at index 1 is too large/,
+        );
+        expect(client.pushItems).not.toHaveBeenCalled();
+    });
+
+    test('accepts an item at exactly the per-item limit and rejects one byte over', async () => {
+        const client = createMockDatasetClient();
+        const backend = new ApifyDatasetBackend(client as unknown as DatasetClient);
+
+        // `{"payload":"a…a"}` serializes to n + 14 bytes.
+        const maxPayload = 'a'.repeat(maxItemBytes - 14);
+
+        await backend.pushData([{ payload: maxPayload }]);
+        expect(client.pushItems).toHaveBeenCalledTimes(1);
+        const chunk = client.pushItems.mock.calls[0][0] as string;
+        expect(Buffer.byteLength(chunk)).toBeLessThanOrEqual(MAX_PAYLOAD_SIZE_BYTES);
+
+        await expect(backend.pushData([{ payload: `${maxPayload}a` }])).rejects.toThrow(
+            /Data item at index 0 is too large/,
+        );
+    });
+
+    test('measures item size in bytes, not string characters', async () => {
+        const client = createMockDatasetClient();
+        const backend = new ApifyDatasetBackend(client as unknown as DatasetClient);
+
+        // 'é' is one character but two UTF-8 bytes — the item is far below the
+        // limit in characters, yet just over it in bytes, so it must be rejected.
+        const item = { payload: 'é'.repeat(Math.ceil(maxItemBytes / 2)) };
+        expect(JSON.stringify(item).length).toBeLessThan(maxItemBytes);
+
+        await expect(backend.pushData([item])).rejects.toThrow(/Data item at index 0 is too large/);
+        expect(client.pushItems).not.toHaveBeenCalled();
     });
 });
 

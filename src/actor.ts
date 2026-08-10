@@ -1115,7 +1115,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
         const dataset = await this.openDataset();
 
         // Two code paths for charging:
-        // 1. Intercepted client: PatchedDatasetClient intercepts pushItems() calls, handling charging
+        // 1. Intercepted client: PpeAwareDatasetClient intercepts pushItems() calls, handling charging
         //    internally. This is needed because Crawlee's Dataset may call pushItems() directly,
         //    bypassing Actor.pushData(). We propagate eventName via AsyncLocalStorage context.
         // 2. Direct charging: When using a non-patched client (e.g., forceCloud option or custom client),
@@ -2232,7 +2232,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
         item: Data | Data[],
         eventName: string | undefined,
     ): Promise<ChargeResult> {
-        // PatchedDatasetClient will handle charging and item limiting.
+        // PpeAwareDatasetClient will handle charging and item limiting.
         // We only need to propagate `eventName` and (optionally) return aggregated charge info.
         const context: PpeAwarePushDataContext = {
             eventName,
