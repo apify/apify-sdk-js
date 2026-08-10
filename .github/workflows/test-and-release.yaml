@@ -152,6 +152,9 @@ jobs:
             - name: Format check
               run: pnpm format:check
 
+            - name: Type-check tests
+              run: pnpm tsc-check-tests
+
     publish:
         name: Publish
         if: (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/v4') && !contains(github.event.head_commit.message, 'docs:')

@@ -1,6 +1,7 @@
+import type { Dictionary } from '@crawlee/types';
 import { Actor, ArgumentValidationError, ProxyConfiguration } from 'apify';
 import { UserClient } from 'apify-client';
-import { type Dictionary, sleep } from 'crawlee';
+import { sleep } from 'crawlee';
 import type { MockInstance } from 'vitest';
 
 import { APIFY_ENV_VARS, LOCAL_APIFY_ENV_VARS } from '@apify/consts';

@@ -1,5 +1,5 @@
 import { EventType, serviceLocator } from '@crawlee/core';
-import type { Dictionary } from '@crawlee/utils';
+import type { Dictionary } from '@crawlee/types';
 import { sleep } from '@crawlee/utils';
 import { Actor, Configuration, PlatformEventManager } from 'apify';
 import { WebSocketServer } from 'ws';
