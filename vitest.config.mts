@@ -19,6 +19,9 @@ export default defineConfig({
         },
         clearMocks: true,
         restoreMocks: true,
+        // Give each test file its own storage dir - parallel workers must not
+        // share (and purge) the same on-disk `./storage`.
+        setupFiles: ['./test/isolateStorageDir.ts'],
         testTimeout: 60_000,
         hookTimeout: 60_000,
         alias: [
