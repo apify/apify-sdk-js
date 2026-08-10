@@ -61,7 +61,8 @@ export const USES_PUSH_DATA_INTERCEPTION = Symbol('apify:uses-push-data-intercep
  * Context of a single `Actor.pushData()` call, shared with the intercepted
  * `pushItems()` calls so they can (1) know which event to charge and
  * (2) aggregate the {@link ChargeResult} across the multiple `pushItems()`
- * calls a single `pushData()` may trigger (Crawlee batches large pushes).
+ * calls a single `pushData()` may trigger (the backend splits pushes exceeding
+ * the API's payload size limit).
  */
 export interface PpeAwarePushDataContext {
     eventName: string | undefined;

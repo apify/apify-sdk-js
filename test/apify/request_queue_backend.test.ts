@@ -61,7 +61,7 @@ function createMockApiClient() {
             wasAlreadyPresent: true,
             wasAlreadyHandled: false,
         })),
-        getRequest: vi.fn(async () => undefined),
+        getRequest: vi.fn(async (_requestId: string) => undefined),
         deleteRequestLock: vi.fn(async () => {}),
     };
 }
