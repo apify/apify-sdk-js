@@ -32,13 +32,13 @@ importers:
         specifier: ^2.13.0
         version: 2.26.0
       '@crawlee/core':
-        specifier: 4.0.0-beta.115
+        specifier: ^4.0.0-beta.115
         version: 4.0.0-beta.115
       '@crawlee/types':
-        specifier: 4.0.0-beta.115
+        specifier: ^4.0.0-beta.115
         version: 4.0.0-beta.115
       '@crawlee/utils':
-        specifier: 4.0.0-beta.115
+        specifier: ^4.0.0-beta.115
         version: 4.0.0-beta.115
       apify-client:
         specifier: ^2.23.4
@@ -87,7 +87,7 @@ importers:
         specifier: ^21.0.0
         version: 21.0.1(@types/node@24.12.2)(conventional-commits-parser@6.4.0)(typescript@6.0.3)
       crawlee:
-        specifier: 4.0.0-beta.115
+        specifier: ^4.0.0-beta.115
         version: 4.0.0-beta.115(@types/node@24.12.2)(playwright@1.60.0)(puppeteer@25.1.0)
       globby:
         specifier: ^16.0.0
