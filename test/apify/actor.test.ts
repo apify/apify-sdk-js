@@ -951,19 +951,19 @@ describe('Actor', () => {
         test(`inherited timeout is rounded up to a whole second`, async () => {
             vi.setSystemTime(new Date(testStartTime.getTime() + usedTime + 500));
 
-            const callSpy = vitest.spyOn(ActorClient.prototype, 'call').mockReturnValue();
+            const callSpy = vitest.spyOn(ActorClient.prototype, 'call').mockReturnValue(undefined as any);
             await Actor.call(actId, input, { timeout: 'inherit' });
             expect(callSpy).toBeCalledWith(input, {
                 timeout: (actorTimeout - usedTime) / 1000,
             });
         });
 
-        test.each([{ methodName: 'call' }, { methodName: 'start' }])(
+        test.each([{ methodName: 'call' as const }, { methodName: 'start' as const }])(
             `Actor.$methodName({timeout: 'inherit'}) is clamped to 1 second when the run is already past its timeout`,
             async ({ methodName }) => {
                 vi.setSystemTime(new Date(testStartTime.getTime() + actorTimeout + 5000));
 
-                const callSpy = vitest.spyOn(ActorClient.prototype, methodName).mockReturnValue();
+                const callSpy = vitest.spyOn(ActorClient.prototype, methodName).mockReturnValue(undefined as any);
                 await Actor[methodName](actId, input, { timeout: 'inherit' });
                 expect(callSpy).toBeCalledWith(input, {
                     timeout: 1,
@@ -974,7 +974,7 @@ describe('Actor', () => {
         test(`Actor.callTask({timeout: 'inherit'}) is clamped to 1 second when the run is already past its timeout`, async () => {
             vi.setSystemTime(new Date(testStartTime.getTime() + actorTimeout + 5000));
 
-            const callSpy = vitest.spyOn(TaskClient.prototype, 'call').mockReturnValue();
+            const callSpy = vitest.spyOn(TaskClient.prototype, 'call').mockReturnValue(undefined as any);
             await Actor.callTask(actId, input, { timeout: 'inherit' });
             expect(callSpy).toBeCalledWith(input, {
                 timeout: 1,
