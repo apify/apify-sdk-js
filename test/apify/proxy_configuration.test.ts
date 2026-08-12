@@ -384,7 +384,7 @@ describe('ProxyConfiguration', () => {
                 });
                 throw new Error('wrong error');
             } catch (err) {
-                expect((err as Error).message).toMatch('Expected property array `proxyUrls` to not be empty');
+                expect((err as Error).message).toMatch('expected array to have >=1 items at `proxyUrls`');
             }
         });
 
@@ -395,7 +395,9 @@ describe('ProxyConfiguration', () => {
                 });
                 throw new Error('wrong error');
             } catch (err) {
-                expect((err as Error).message).toMatch('to be a URL, got `http://proxy.com:1111*invalid_url`');
+                expect((err as Error).message).toMatch(
+                    'Invalid URL at `proxyUrls[0]`, got `http://proxy.com:1111*invalid_url`',
+                );
             }
         });
     });
