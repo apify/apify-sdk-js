@@ -1,0 +1,59 @@
+import type { RequestOptions, RequestTransform } from '@crawlee/core';
+import { Minimatch } from 'minimatch';
+
+import { purlToRegExp } from '@apify/pseudo_url';
+
+/** Request options that the `globs` and `pseudoUrls` input editors can attach to a single URL pattern. */
+export interface UrlPatternRequestOptions extends Pick<RequestOptions, 'method' | 'payload' | 'userData' | 'headers'> {}
+
+/** A single item of an input schema array field using the `globs` editor. */
+export interface GlobInput extends UrlPatternRequestOptions {
+    glob: string;
+}
+
+/** A single item of an input schema array field using the `pseudoUrls` editor. */
+export interface PseudoUrlInput extends UrlPatternRequestOptions {
+    purl: string;
+}
+
+export interface UrlPatternFilters {
+    /** Value of an input schema field using the `globs` editor. */
+    globs?: readonly (string | GlobInput)[];
+    /** Value of an input schema field using the `pseudoUrls` editor. */
+    pseudoUrls?: readonly (string | PseudoUrlInput)[];
+}
+
+/**
+ * Turns the `globs` and `pseudoUrls` input editor values into a `transformRequestFunction` that skips requests
+ * matching no pattern (all requests pass when no pattern is given) and applies the options of the matched pattern.
+ *
+ * ```ts
+ * await enqueueLinks({ transformRequestFunction: createUrlPatternFilter({ globs: input.globs }) });
+ * ```
+ */
+export function createUrlPatternFilter({ globs = [], pseudoUrls = [] }: UrlPatternFilters): RequestTransform {
+    const patterns = [
+        ...globs.map((item) => {
+            const { glob, ...options } = typeof item === 'string' ? { glob: item } : item;
+            const minimatch = new Minimatch(glob, { nocase: true });
+
+            return { matches: (url: string) => minimatch.match(url), options };
+        }),
+        ...pseudoUrls.map((item) => {
+            const { purl, ...options } = typeof item === 'string' ? { purl: item } : item;
+            const regexp = purlToRegExp(purl);
+
+            return { matches: (url: string) => regexp.test(url), options };
+        }),
+    ];
+
+    return (request) => {
+        if (patterns.length === 0) {
+            return 'unchanged';
+        }
+
+        const matched = patterns.find(({ matches }) => matches(request.url));
+
+        return matched ? { ...request, ...matched.options } : false;
+    };
+}
