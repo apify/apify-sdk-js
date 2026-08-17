@@ -28,10 +28,10 @@ export interface UrlPatternFilters {
  * matching no pattern (all requests pass when no pattern is given) and applies the options of the matched pattern.
  *
  * ```ts
- * await enqueueLinks({ transformRequestFunction: createUrlPatternFilter({ globs: input.globs }) });
+ * await enqueueLinks({ transformRequestFunction: createTransformRequestFunction({ globs: input.globs }) });
  * ```
  */
-export function createUrlPatternFilter({ globs = [], pseudoUrls = [] }: UrlPatternFilters): RequestTransform {
+export function createTransformRequestFunction({ globs = [], pseudoUrls = [] }: UrlPatternFilters): RequestTransform {
     const patterns = [
         ...globs.map((item) => {
             const { glob, ...options } = typeof item === 'string' ? { glob: item } : item;

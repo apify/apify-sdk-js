@@ -1,22 +1,22 @@
-import { createUrlPatternFilter } from '../../src/enqueue_links_filters.js';
+import { createTransformRequestFunction } from '../../src/enqueue_links_filters.js';
 
-describe('createUrlPatternFilter()', () => {
+describe('createTransformRequestFunction()', () => {
     test('matches globs case-insensitively and skips the rest', () => {
-        const filter = createUrlPatternFilter({ globs: ['https://example.com/**'] });
+        const filter = createTransformRequestFunction({ globs: ['https://example.com/**'] });
 
         expect(filter({ url: 'https://EXAMPLE.com/foo/bar' })).toEqual({ url: 'https://EXAMPLE.com/foo/bar' });
         expect(filter({ url: 'https://other.com/foo' })).toBe(false);
     });
 
     test('matches pseudo-URLs', () => {
-        const filter = createUrlPatternFilter({ pseudoUrls: ['https://example.com/pages/[(\\w|-)+]'] });
+        const filter = createTransformRequestFunction({ pseudoUrls: ['https://example.com/pages/[(\\w|-)+]'] });
 
         expect(filter({ url: 'https://example.com/pages/my-page' })).toBeTruthy();
         expect(filter({ url: 'https://example.com/other/my-page' })).toBe(false);
     });
 
     test('applies the request options of the matched pattern', () => {
-        const filter = createUrlPatternFilter({
+        const filter = createTransformRequestFunction({
             globs: [{ glob: 'https://example.com/a/**', method: 'POST', userData: { label: 'A' } }],
             pseudoUrls: [{ purl: 'https://example.com/b/[.*]', headers: { 'x-foo': 'bar' } }],
         });
@@ -33,6 +33,6 @@ describe('createUrlPatternFilter()', () => {
     });
 
     test('passes everything through when no pattern is given', () => {
-        expect(createUrlPatternFilter({ globs: [] })({ url: 'https://example.com' })).toBe('unchanged');
+        expect(createTransformRequestFunction({ globs: [] })({ url: 'https://example.com' })).toBe('unchanged');
     });
 });

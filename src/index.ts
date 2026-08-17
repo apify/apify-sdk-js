@@ -3,7 +3,7 @@ export { ApifyStorageBackend, type ApifyStorageBackendOptions } from './apify_st
 export type { RequestQueueAccessMode } from './apify_request_queue_backend.js';
 export { ArgumentValidationError } from './utils.js';
 export {
-    createUrlPatternFilter,
+    createTransformRequestFunction,
     type GlobInput,
     type PseudoUrlInput,
     type UrlPatternFilters,
