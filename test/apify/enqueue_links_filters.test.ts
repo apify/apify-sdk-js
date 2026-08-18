@@ -45,5 +45,20 @@ describe('createTransformRequestFunction()', () => {
         expect(filter({ url: 'https://other.com/foo' })).toBe(false);
 
         expect(createTransformRequestFunction({ globs: ['   '] })({ url: 'https://example.com' })).toBe('unchanged');
+        expect(createTransformRequestFunction({ pseudoUrls: ['   '] })({ url: 'https://example.com' })).toBe(
+            'unchanged',
+        );
+    });
+
+    test('the first matching pattern wins, globs before pseudo-URLs', () => {
+        const filter = createTransformRequestFunction({
+            globs: [{ glob: 'https://example.com/**', userData: { label: 'GLOB' } }],
+            pseudoUrls: [{ purl: 'https://example.com/[.*]', userData: { label: 'PURL' } }],
+        });
+
+        expect(filter({ url: 'https://example.com/foo' })).toEqual({
+            url: 'https://example.com/foo',
+            userData: { label: 'GLOB' },
+        });
     });
 });

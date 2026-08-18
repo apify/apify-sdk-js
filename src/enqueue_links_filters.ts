@@ -26,6 +26,7 @@ export interface UrlPatternFilters {
 /**
  * Turns the `globs` and `pseudoUrls` input editor values into a `transformRequestFunction` that skips requests
  * matching no pattern (all requests pass when no pattern is given) and applies the options of the matched pattern.
+ * When a URL matches multiple patterns, the first one wins, with globs checked before pseudo-URLs.
  *
  * ```ts
  * await enqueueLinks({ transformRequestFunction: createTransformRequestFunction({ globs: input.globs }) });
@@ -45,11 +46,16 @@ export function createTransformRequestFunction({ globs = [], pseudoUrls = [] }: 
 
             return [{ matches: (url: string) => minimatch.match(url), options }];
         }),
-        ...pseudoUrls.map((item) => {
+        ...pseudoUrls.flatMap((item) => {
             const { purl, ...options } = typeof item === 'string' ? { purl: item } : item;
+
+            if (purl.trim().length === 0) {
+                return [];
+            }
+
             const regexp = purlToRegExp(purl);
 
-            return { matches: (url: string) => regexp.test(url), options };
+            return [{ matches: (url: string) => regexp.test(url), options }];
         }),
     ];
 
