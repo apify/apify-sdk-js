@@ -4,7 +4,10 @@ import { Minimatch } from 'minimatch';
 import { purlToRegExp } from '@apify/pseudo_url';
 
 /** Request options that the `globs` and `pseudoUrls` input editors can attach to a single URL pattern. */
-export interface UrlPatternRequestOptions extends Pick<RequestOptions, 'method' | 'payload' | 'userData' | 'headers'> {}
+export interface UrlPatternRequestOptions extends Pick<
+    RequestOptions,
+    'method' | 'payload' | 'label' | 'userData' | 'headers'
+> {}
 
 /** A single item of an input schema array field using the `globs` editor. */
 export interface GlobInput extends UrlPatternRequestOptions {
@@ -35,8 +38,8 @@ export interface UrlPatternFilters {
 export function createTransformRequestFunction({ globs = [], pseudoUrls = [] }: UrlPatternFilters): RequestTransform {
     const patterns = [
         ...globs.flatMap((item) => {
-            const { glob, ...options } = typeof item === 'string' ? { glob: item } : item;
-            const trimmedGlob = glob.trim();
+            const { glob, ...options } = typeof item === 'string' ? { glob: item } : (item ?? ({} as GlobInput));
+            const trimmedGlob = typeof glob === 'string' ? glob.trim() : '';
 
             if (trimmedGlob.length === 0) {
                 return [];
@@ -47,9 +50,9 @@ export function createTransformRequestFunction({ globs = [], pseudoUrls = [] }: 
             return [{ matches: (url: string) => minimatch.match(url), options }];
         }),
         ...pseudoUrls.flatMap((item) => {
-            const { purl, ...options } = typeof item === 'string' ? { purl: item } : item;
+            const { purl, ...options } = typeof item === 'string' ? { purl: item } : (item ?? ({} as PseudoUrlInput));
 
-            if (purl.trim().length === 0) {
+            if (typeof purl !== 'string' || purl.trim().length === 0) {
                 return [];
             }
 

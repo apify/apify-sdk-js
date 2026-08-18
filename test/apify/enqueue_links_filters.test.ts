@@ -50,6 +50,25 @@ describe('createTransformRequestFunction()', () => {
         );
     });
 
+    test('passes the label shortcut through', () => {
+        const filter = createTransformRequestFunction({
+            globs: [{ glob: 'https://example.com/a/**', label: 'A' }],
+            pseudoUrls: [{ purl: 'https://example.com/b/[.*]', label: 'B' }],
+        });
+
+        expect(filter({ url: 'https://example.com/a/1' })).toEqual({ url: 'https://example.com/a/1', label: 'A' });
+        expect(filter({ url: 'https://example.com/b/1' })).toEqual({ url: 'https://example.com/b/1', label: 'B' });
+    });
+
+    test('skips nullish and keyless pattern items', () => {
+        const filter = createTransformRequestFunction({
+            globs: [null, { userData: { label: 'X' } }] as any,
+            pseudoUrls: [undefined, {}] as any,
+        });
+
+        expect(filter({ url: 'https://example.com' })).toBe('unchanged');
+    });
+
     test('the first matching pattern wins, globs before pseudo-URLs', () => {
         const filter = createTransformRequestFunction({
             globs: [{ glob: 'https://example.com/**', userData: { label: 'GLOB' } }],
