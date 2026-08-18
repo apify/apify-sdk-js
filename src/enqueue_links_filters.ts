@@ -29,7 +29,8 @@ export interface UrlPatternFilters {
 /**
  * Turns the `globs` and `pseudoUrls` input editor values into a `transformRequestFunction` that skips requests
  * matching no pattern (all requests pass when no pattern is given) and applies the options of the matched pattern.
- * When a URL matches multiple patterns, the first one wins, with globs checked before pseudo-URLs.
+ * When a URL matches multiple patterns, the first one wins, with globs checked before pseudo-URLs. The matched
+ * pattern's options shallowly override the request's fields, including `userData` (no deep merge, like in v3).
  *
  * ```ts
  * await enqueueLinks({ transformRequestFunction: createTransformRequestFunction({ globs: input.globs }) });
@@ -38,7 +39,11 @@ export interface UrlPatternFilters {
 export function createTransformRequestFunction({ globs = [], pseudoUrls = [] }: UrlPatternFilters): RequestTransform {
     const patterns = [
         ...globs.flatMap((item) => {
-            const { glob, ...options } = typeof item === 'string' ? { glob: item } : (item ?? ({} as GlobInput));
+            if (item == null) {
+                return [];
+            }
+
+            const { glob, ...options } = typeof item === 'string' ? { glob: item } : item;
             const trimmedGlob = typeof glob === 'string' ? glob.trim() : '';
 
             if (trimmedGlob.length === 0) {
@@ -50,13 +55,23 @@ export function createTransformRequestFunction({ globs = [], pseudoUrls = [] }: 
             return [{ matches: (url: string) => minimatch.match(url), options }];
         }),
         ...pseudoUrls.flatMap((item) => {
-            const { purl, ...options } = typeof item === 'string' ? { purl: item } : (item ?? ({} as PseudoUrlInput));
+            if (item == null) {
+                return [];
+            }
+
+            const { purl, ...options } = typeof item === 'string' ? { purl: item } : item;
 
             if (typeof purl !== 'string' || purl.trim().length === 0) {
                 return [];
             }
 
-            const regexp = purlToRegExp(purl);
+            let regexp: RegExp;
+
+            try {
+                regexp = purlToRegExp(purl);
+            } catch (cause) {
+                throw new Error(`Invalid pseudoUrl pattern '${purl}': ${(cause as Error).message}`, { cause });
+            }
 
             return [{ matches: (url: string) => regexp.test(url), options }];
         }),

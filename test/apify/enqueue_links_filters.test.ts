@@ -69,6 +69,12 @@ describe('createTransformRequestFunction()', () => {
         expect(filter({ url: 'https://example.com' })).toBe('unchanged');
     });
 
+    test('reports which pseudo-URL pattern is invalid', () => {
+        expect(() => createTransformRequestFunction({ pseudoUrls: ['https://example.com/['] })).toThrow(
+            /Invalid pseudoUrl pattern 'https:\/\/example\.com\/\['/,
+        );
+    });
+
     test('the first matching pattern wins, globs before pseudo-URLs', () => {
         const filter = createTransformRequestFunction({
             globs: [{ glob: 'https://example.com/**', userData: { label: 'GLOB' } }],
