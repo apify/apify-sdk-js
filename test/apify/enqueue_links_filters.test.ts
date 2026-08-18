@@ -11,7 +11,9 @@ describe('createTransformRequestFunction()', () => {
     test('matches pseudo-URLs', () => {
         const filter = createTransformRequestFunction({ pseudoUrls: ['https://example.com/pages/[(\\w|-)+]'] });
 
-        expect(filter({ url: 'https://example.com/pages/my-page' })).toBeTruthy();
+        expect(filter({ url: 'https://example.com/pages/my-page' })).toEqual({
+            url: 'https://example.com/pages/my-page',
+        });
         expect(filter({ url: 'https://example.com/other/my-page' })).toBe(false);
     });
 
@@ -34,5 +36,14 @@ describe('createTransformRequestFunction()', () => {
 
     test('passes everything through when no pattern is given', () => {
         expect(createTransformRequestFunction({ globs: [] })({ url: 'https://example.com' })).toBe('unchanged');
+    });
+
+    test('trims globs and ignores empty ones', () => {
+        const filter = createTransformRequestFunction({ globs: ['  https://example.com/**  '] });
+
+        expect(filter({ url: 'https://example.com/foo' })).toEqual({ url: 'https://example.com/foo' });
+        expect(filter({ url: 'https://other.com/foo' })).toBe(false);
+
+        expect(createTransformRequestFunction({ globs: ['   '] })({ url: 'https://example.com' })).toBe('unchanged');
     });
 });

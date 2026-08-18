@@ -14,8 +14,8 @@ importers:
   .:
     dependencies:
       '@apify/consts':
-        specifier: ^2.51.0
-        version: 2.54.2
+        specifier: ^2.57.0
+        version: 2.57.0
       '@apify/datastructures':
         specifier: ^2.0.3
         version: 2.0.6
@@ -23,8 +23,8 @@ importers:
         specifier: ^1.2.0
         version: 1.2.50
       '@apify/log':
-        specifier: ^2.4.3
-        version: 2.5.44
+        specifier: ^2.5.48
+        version: 2.5.48
       '@apify/pseudo_url':
         specifier: ^2.0.89
         version: 2.0.89
@@ -349,9 +349,6 @@ packages:
   '@algolia/transporter@4.27.0':
     resolution: {integrity: sha512-PvSbELU4VjN3xSX79ki+zIdOGhTxyJXWvRDzkUjfTx2iNfPWDdTjzKbP1o+268coJztxrkuBwJz90Urek7o1Kw==}
 
-  '@apify/consts@2.54.2':
-    resolution: {integrity: sha512-ypdLZcGR0F+MwG+kOsvXar9JjZ32c7Vh086bywgNX31uVlIrnmDtOS0uWDG1VWPu4g2u0x1iA1tTtdMzRtyPpw==}
-
   '@apify/consts@2.57.0':
     resolution: {integrity: sha512-kyD+pq72+RxpPUUikk5pWyGRcbehoQSkTIgd3kqE/MCy+MGPTYBbMb4lb2C92+Zh8K5eYyTrfobHKrpqyHAWMQ==}
 
@@ -389,9 +386,6 @@ packages:
 
   '@apify/input_secrets@1.2.50':
     resolution: {integrity: sha512-8KZGgVBmWQNiQpiu5/y6uucT5YAlkwQJDVGrDv+SwFYRWYGKszDRSoYouUHk3y5s9V99C5/eMVbQDjXtfuDq/A==}
-
-  '@apify/log@2.5.44':
-    resolution: {integrity: sha512-gDB4hkNfvDDkRRCMmYpY75twdCK2rFI88WBJoSTLpMpjHtFu3IU02gmYRj47aWOBIV/362Rc0c51ZuqBEBaSrw==}
 
   '@apify/log@2.5.48':
     resolution: {integrity: sha512-3aWhBik4P1Q6hubU38XgiB0PnGR5UkIC3gbxm0LQYQd1FwfOID5CrgRkbyab3BJaspN6LToIccgHbtDgSz2Pog==}
@@ -9300,8 +9294,6 @@ snapshots:
       '@algolia/logger-common': 4.27.0
       '@algolia/requester-common': 4.27.0
 
-  '@apify/consts@2.54.2': {}
-
   '@apify/consts@2.57.0': {}
 
   '@apify/datastructures@2.0.6': {}
@@ -9399,14 +9391,9 @@ snapshots:
 
   '@apify/input_secrets@1.2.50':
     dependencies:
-      '@apify/log': 2.5.44
+      '@apify/log': 2.5.48
       '@apify/utilities': 2.35.1
       ow: 0.28.2
-
-  '@apify/log@2.5.44':
-    dependencies:
-      '@apify/consts': 2.54.2
-      ansi-colors: 4.1.3
 
   '@apify/log@2.5.48':
     dependencies:
@@ -9473,8 +9460,8 @@ snapshots:
 
   '@apify/utilities@2.35.1':
     dependencies:
-      '@apify/consts': 2.54.2
-      '@apify/log': 2.5.44
+      '@apify/consts': 2.57.0
+      '@apify/log': 2.5.48
 
   '@asamuzakjp/css-color@3.2.0':
     dependencies:
@@ -10445,9 +10432,9 @@ snapshots:
 
   '@crawlee/core@4.0.0-beta.128':
     dependencies:
-      '@apify/consts': 2.54.2
+      '@apify/consts': 2.57.0
       '@apify/datastructures': 2.0.6
-      '@apify/log': 2.5.44
+      '@apify/log': 2.5.48
       '@apify/timeout': 0.4.4
       '@apify/utilities': 2.35.1
       '@crawlee/fs-storage': 4.0.0-beta.128
@@ -14811,8 +14798,8 @@ snapshots:
 
   apify-client@2.23.4:
     dependencies:
-      '@apify/consts': 2.54.2
-      '@apify/log': 2.5.44
+      '@apify/consts': 2.57.0
+      '@apify/log': 2.5.48
       '@apify/utilities': 2.35.1
       '@crawlee/types': 3.17.0
       ansi-colors: 4.1.3

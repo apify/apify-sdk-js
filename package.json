@@ -72,10 +72,10 @@
         ]
     },
     "dependencies": {
-        "@apify/consts": "^2.51.0",
+        "@apify/consts": "^2.57.0",
         "@apify/datastructures": "^2.0.3",
         "@apify/input_secrets": "^1.2.0",
-        "@apify/log": "^2.4.3",
+        "@apify/log": "^2.5.48",
         "@apify/pseudo_url": "^2.0.89",
         "@apify/timeout": "^0.4.0",
         "@apify/utilities": "^2.13.0",

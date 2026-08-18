@@ -33,11 +33,17 @@ export interface UrlPatternFilters {
  */
 export function createTransformRequestFunction({ globs = [], pseudoUrls = [] }: UrlPatternFilters): RequestTransform {
     const patterns = [
-        ...globs.map((item) => {
+        ...globs.flatMap((item) => {
             const { glob, ...options } = typeof item === 'string' ? { glob: item } : item;
-            const minimatch = new Minimatch(glob, { nocase: true });
+            const trimmedGlob = glob.trim();
 
-            return { matches: (url: string) => minimatch.match(url), options };
+            if (trimmedGlob.length === 0) {
+                return [];
+            }
+
+            const minimatch = new Minimatch(trimmedGlob, { nocase: true });
+
+            return [{ matches: (url: string) => minimatch.match(url), options }];
         }),
         ...pseudoUrls.map((item) => {
             const { purl, ...options } = typeof item === 'string' ? { purl: item } : item;
@@ -47,11 +53,11 @@ export function createTransformRequestFunction({ globs = [], pseudoUrls = [] }: 
         }),
     ];
 
-    return (request) => {
-        if (patterns.length === 0) {
-            return 'unchanged';
-        }
+    if (patterns.length === 0) {
+        return () => 'unchanged';
+    }
 
+    return (request) => {
         const matched = patterns.find(({ matches }) => matches(request.url));
 
         return matched ? { ...request, ...matched.options } : false;
