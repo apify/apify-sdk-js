@@ -1,5 +1,5 @@
 import { existsSync } from 'node:fs';
-import { readdir } from 'node:fs/promises';
+import { readdir, readFile, rm } from 'node:fs/promises';
 import { homedir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { setTimeout } from 'node:timers/promises';
@@ -8,7 +8,6 @@ import { fileURLToPath } from 'node:url';
 import { purgeDefaultStorages } from '@crawlee/core';
 import { Configuration, KeyValueStore, log } from 'apify';
 import { sleep, URL_NO_COMMAS_REGEX } from 'crawlee';
-import fs from 'fs-extra';
 
 export const SKIPPED_TEST_CLOSE_CODE = 404;
 
@@ -43,7 +42,7 @@ export async function getStats(dirName, retries = 3) {
         return getStats(dirName, retries - 1);
     }
 
-    return fs.readJSON(path);
+    return JSON.parse(await readFile(path, 'utf8'));
 }
 
 /**
@@ -89,7 +88,7 @@ async function isFinished(dir) {
  */
 export async function clearStorage(dirName) {
     const destPackagesDir = join(dirName, 'storage');
-    await fs.remove(destPackagesDir);
+    await rm(destPackagesDir, { recursive: true, force: true });
 }
 
 export async function getApifyToken() {
@@ -101,7 +100,7 @@ export async function getApifyToken() {
         );
     }
 
-    const { token } = await fs.readJSON(authPath);
+    const { token } = JSON.parse(await readFile(authPath, 'utf8'));
     return token;
 }
 
@@ -124,7 +123,7 @@ export async function getDatasetItems(dirName) {
         if (fileName.name.includes('__metadata__')) continue;
 
         const filePath = join(datasetPath, fileName.name);
-        const datasetItem = await fs.readJSON(filePath);
+        const datasetItem = JSON.parse(await readFile(filePath, 'utf8'));
 
         if (!isItemHidden(datasetItem)) {
             datasetItems.push(datasetItem);
