@@ -1,4 +1,4 @@
-import type { RequestSchema } from '@crawlee/types';
+import type { RequestQueueBackend, RequestSchema } from '@crawlee/types';
 import type { RequestQueueClient } from 'apify-client';
 import { describe, expect, test, vi } from 'vitest';
 
@@ -212,9 +212,21 @@ describe('ApifyRequestQueueSingleBackend', () => {
         expect(api.updateRequest).not.toHaveBeenCalled();
     });
 
-    test('purge is not supported on the platform', async () => {
-        const backend = new ApifyRequestQueueSingleBackend(asApiClient(createMockApiClient()));
-        await expect(backend.purge()).rejects.toThrow(/not supported on the Apify platform/);
+    test('exposes no purge method — the signal that crawlee must drop and re-open instead', () => {
+        // Typed as the interface, exactly as crawlee sees it when probing the capability.
+        const backend: RequestQueueBackend = new ApifyRequestQueueSingleBackend(asApiClient(createMockApiClient()));
+        expect(backend.purge).toBeUndefined();
+    });
+
+    test('dropping the queue deletes it and notifies the owner', async () => {
+        const api = createMockApiClient();
+        const onDropped = vi.fn();
+        const backend = new ApifyRequestQueueSingleBackend(asApiClient(api), onDropped);
+
+        await backend.drop();
+
+        expect(api.delete).toHaveBeenCalledTimes(1);
+        expect(onDropped).toHaveBeenCalledTimes(1);
     });
 });
 

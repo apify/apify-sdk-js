@@ -18,7 +18,11 @@ const MAX_ITEM_BYTES = EFFECTIVE_LIMIT_BYTES - 2;
  * @internal
  */
 export class ApifyDatasetBackend implements DatasetBackend {
-    constructor(private readonly client: DatasetClient) {}
+    /** @param onDropped Lets the owning backend know the dataset is gone, so it never resolves to it again. */
+    constructor(
+        private readonly client: DatasetClient,
+        private readonly onDropped?: () => void,
+    ) {}
 
     async getMetadata(): Promise<DatasetInfo> {
         const metadata = await this.client.get();
@@ -30,14 +34,12 @@ export class ApifyDatasetBackend implements DatasetBackend {
 
     async drop(): Promise<void> {
         await this.client.delete();
+        this.onDropped?.();
     }
 
-    async purge(): Promise<void> {
-        throw new Error(
-            'Purging a dataset is not supported on the Apify platform. ' +
-                'Use `drop()` to delete the dataset entirely, or open a new dataset instead.',
-        );
-    }
+    // No `purge()`: datasets are append-only here — the API can delete a whole dataset but not its items —
+    // and dropping the run's default dataset would change the id the run advertises. An absent `purge` makes
+    // `Dataset.purge()` say so instead of emulating it.
 
     async pushData(items: Dictionary[]): Promise<void> {
         // The platform API rejects payloads over 9MB — split the items into chunks

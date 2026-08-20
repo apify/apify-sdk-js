@@ -56,7 +56,11 @@ export abstract class ApifyRequestQueueBackend implements RequestQueueBackend {
     protected estimatedTotalRequestCount = 0;
     protected estimatedHandledRequestCount = 0;
 
-    constructor(protected readonly client: ApifyRequestQueueApiClient) {}
+    /** @param onDropped Lets the owning backend know the queue is gone, so it never resolves to it again. */
+    constructor(
+        protected readonly client: ApifyRequestQueueApiClient,
+        private readonly onDropped?: () => void,
+    ) {}
 
     abstract addBatchOfRequests(
         requests: RequestSchema[],
@@ -101,14 +105,12 @@ export abstract class ApifyRequestQueueBackend implements RequestQueueBackend {
 
     async drop(): Promise<void> {
         await this.client.delete();
+        this.onDropped?.();
     }
 
-    async purge(): Promise<void> {
-        throw new Error(
-            'Purging a request queue is not supported on the Apify platform. ' +
-                'Use `drop()` to delete the queue entirely, or open a new queue instead.',
-        );
-    }
+    // No `purge()`: there is no purge endpoint, and emptying a queue by paginating it and batch-deleting
+    // every request costs one call per batch where a drop plus a fresh queue costs two. An absent `purge`
+    // is how crawlee is told to do the latter.
 
     protected requestIdFromUniqueKey(uniqueKey: string): string {
         return uniqueKeyToRequestId(uniqueKey);

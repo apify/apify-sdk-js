@@ -181,6 +181,9 @@ export class ApifyStorageBackend implements StorageBackend {
     /** Fallback request queue client key when the run id is unavailable — one per backend. */
     private fallbackClientKey?: string;
 
+    /** Storages this backend dropped; the run's configuration and the Actor's schema still point at them. */
+    private readonly droppedStorageIds = new Set<string>();
+
     constructor(
         private readonly client: ApifyClient,
         options: ApifyStorageBackendOptions = {},
@@ -217,7 +220,9 @@ export class ApifyStorageBackend implements StorageBackend {
     async createDatasetBackend(options?: StorageIdentifier): Promise<DatasetBackend> {
         const id = await this.resolveId(options, 'Dataset');
         const chargingClient = this.chargingDatasetClient(id);
-        const backend = new ApifyDatasetBackend(chargingClient ?? this.client.dataset(id));
+        const backend = new ApifyDatasetBackend(chargingClient ?? this.client.dataset(id), () =>
+            this.droppedStorageIds.add(id),
+        );
         if (chargingClient) {
             // `Actor.pushData()` looks for this marker on the dataset's backend to know the
             // pay-per-event charging happens inside the intercepted `pushItems()` calls.
@@ -228,15 +233,16 @@ export class ApifyStorageBackend implements StorageBackend {
 
     async createKeyValueStoreBackend(options?: StorageIdentifier): Promise<KeyValueStoreBackend> {
         const id = await this.resolveId(options, 'KeyValueStore');
-        return new ApifyKeyValueStoreBackend(this.client.keyValueStore(id));
+        return new ApifyKeyValueStoreBackend(this.client.keyValueStore(id), () => this.droppedStorageIds.add(id));
     }
 
     async createRequestQueueBackend(options?: StorageIdentifier): Promise<RequestQueueBackend> {
         const id = await this.resolveId(options, 'RequestQueue');
         const client = this.client.requestQueue(id, { clientKey: this.requestQueueClientKey() });
+        const onDropped = () => this.droppedStorageIds.add(id);
         return this.requestQueueAccess === 'shared'
-            ? new ApifyRequestQueueSharedBackend(client)
-            : new ApifyRequestQueueSingleBackend(client);
+            ? new ApifyRequestQueueSharedBackend(client, onDropped)
+            : new ApifyRequestQueueSingleBackend(client, onDropped);
     }
 
     /**
@@ -281,6 +287,9 @@ export class ApifyStorageBackend implements StorageBackend {
      * default storage, and other aliases to the storages declared in the Actor's schema (via the
      * `ACTOR_STORAGES_JSON` environment variable, maintained by the platform). Outside the
      * platform, an unnamed storage is created per alias instead (remembered for this process only).
+     *
+     * A storage this backend dropped is never resolved again — a fresh unnamed one is created for the alias
+     * instead, which is what lets a caller empty an unnamed storage by dropping and re-opening it.
      */
     private async resolveId(options: StorageIdentifier | undefined, type: StorageType): Promise<string> {
         if (options?.id) return options.id;
@@ -292,11 +301,12 @@ export class ApifyStorageBackend implements StorageBackend {
 
         if (alias === DEFAULT_STORAGE_ALIAS) {
             const defaultId = this.config?.[DEFAULT_ID_CONFIG_KEY[type]];
-            if (defaultId) return defaultId;
+            if (defaultId && !this.droppedStorageIds.has(defaultId)) return defaultId;
         } else {
             const declaredId = this.aliasFromActorStorages(alias, type);
-            if (declaredId) return declaredId;
-            if (this.config?.isAtHome) {
+            if (declaredId) {
+                if (!this.droppedStorageIds.has(declaredId)) return declaredId;
+            } else if (this.config?.isAtHome) {
                 throw new Error(
                     `Storage alias "${alias}" cannot be resolved because it is not declared in the Actor's schema storages. ` +
                         `Declare it in the Actor schema, or open the storage by name instead.`,
@@ -308,7 +318,7 @@ export class ApifyStorageBackend implements StorageBackend {
         // token) — create an unnamed storage for it, one per alias per process.
         const cacheKey = `${type}:${alias}`;
         const cachedId = this.aliasIdCache.get(cacheKey);
-        if (cachedId) return cachedId;
+        if (cachedId && !this.droppedStorageIds.has(cachedId)) return cachedId;
         const created = await this.collectionClient(type).getOrCreate();
         this.aliasIdCache.set(cacheKey, created.id);
         return created.id;

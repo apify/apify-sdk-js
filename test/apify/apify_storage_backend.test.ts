@@ -1,3 +1,4 @@
+import type { DatasetBackend, KeyValueStoreBackend } from '@crawlee/types';
 import type { ApifyClient, DatasetClient, KeyValueStoreClient } from 'apify-client';
 import { DatasetClient as ApifyDatasetClient } from 'apify-client';
 import { describe, expect, test, vi } from 'vitest';
@@ -22,9 +23,9 @@ function createMockApifyClient() {
         publicBaseUrl: 'https://api.apify.com',
         token: 'test-token',
         httpClient: {},
-        dataset: vi.fn(() => ({ get: vi.fn(async () => undefined) })),
-        keyValueStore: vi.fn(() => ({ get: vi.fn(async () => undefined) })),
-        requestQueue: vi.fn(() => ({ get: vi.fn(async () => undefined) })),
+        dataset: vi.fn(() => ({ get: vi.fn(async () => undefined), delete: vi.fn(async () => {}) })),
+        keyValueStore: vi.fn(() => ({ get: vi.fn(async () => undefined), delete: vi.fn(async () => {}) })),
+        requestQueue: vi.fn(() => ({ get: vi.fn(async () => undefined), delete: vi.fn(async () => {}) })),
         datasets: vi.fn(() => ({ getOrCreate })),
         keyValueStores: vi.fn(() => ({ getOrCreate })),
         requestQueues: vi.fn(() => ({ getOrCreate })),
@@ -110,6 +111,77 @@ describe('ApifyStorageBackend', () => {
         expect(client.dataset).toHaveBeenNthCalledWith(2, 'unnamed-1');
     });
 
+    test('re-creates a dropped default request queue instead of resolving to the dead id', async () => {
+        const client = createMockApifyClient();
+        const backend = new ApifyStorageBackend(asApifyClient(client), {
+            configuration: new Configuration({ defaultRequestQueueId: 'default-rq' }),
+        });
+
+        const queue = await backend.createRequestQueueBackend();
+        expect(client.requestQueue).toHaveBeenNthCalledWith(1, 'default-rq', expect.anything());
+
+        await queue.drop();
+
+        // This is how crawlee empties an unnamed queue on the platform: drop it, then re-open.
+        await backend.createRequestQueueBackend();
+        expect(client.requestQueue).toHaveBeenNthCalledWith(2, 'unnamed-1', expect.anything());
+        expect(client.getOrCreate).toHaveBeenCalledTimes(1);
+
+        // The alias now sticks to the freshly created queue rather than creating another one.
+        await backend.createRequestQueueBackend();
+        expect(client.requestQueue).toHaveBeenNthCalledWith(3, 'unnamed-1', expect.anything());
+        expect(client.getOrCreate).toHaveBeenCalledTimes(1);
+    });
+
+    test('re-creates a dropped declared alias instead of rejecting it as undeclared', async () => {
+        const client = createMockApifyClient();
+        const backend = new ApifyStorageBackend(asApifyClient(client), {
+            configuration: new Configuration({
+                isAtHome: true,
+                actorStoragesJson: JSON.stringify({ requestQueues: { extra: 'declared-rq-id' } }),
+            }),
+        });
+
+        const queue = await backend.createRequestQueueBackend({ alias: 'extra' });
+        expect(client.requestQueue).toHaveBeenNthCalledWith(1, 'declared-rq-id', expect.anything());
+
+        await queue.drop();
+
+        await backend.createRequestQueueBackend({ alias: 'extra' });
+        expect(client.requestQueue).toHaveBeenNthCalledWith(2, 'unnamed-1', expect.anything());
+    });
+
+    test('re-creates a dropped alias dataset instead of resolving to the dead id', async () => {
+        const client = createMockApifyClient();
+        const backend = new ApifyStorageBackend(asApifyClient(client), {
+            configuration: new Configuration({
+                isAtHome: true,
+                actorStoragesJson: JSON.stringify({ datasets: { scratch: 'declared-ds-id' } }),
+            }),
+        });
+
+        const dataset = await backend.createDatasetBackend({ alias: 'scratch' });
+        expect(client.dataset).toHaveBeenNthCalledWith(1, 'declared-ds-id');
+
+        // This is how crawlee empties an alias-opened dataset on the platform: drop it, then re-open.
+        await dataset.drop();
+
+        await backend.createDatasetBackend({ alias: 'scratch' });
+        expect(client.dataset).toHaveBeenNthCalledWith(2, 'unnamed-1');
+    });
+
+    test('re-creates a dropped alias key-value store instead of resolving to the dead id', async () => {
+        const client = createMockApifyClient();
+        const backend = new ApifyStorageBackend(asApifyClient(client));
+
+        const store = await backend.createKeyValueStoreBackend({ alias: 'scratch' });
+        expect(client.keyValueStore).toHaveBeenNthCalledWith(1, 'unnamed-1');
+
+        await store.drop();
+
+        await backend.createKeyValueStoreBackend({ alias: 'scratch' });
+        expect(client.keyValueStore).toHaveBeenNthCalledWith(2, 'unnamed-2');
+    });
     test('opens named storages via getOrCreate', async () => {
         const client = createMockApifyClient();
         const backend = new ApifyStorageBackend(asApifyClient(client));
@@ -219,13 +291,14 @@ describe('ApifyDatasetBackend', () => {
         expect(client.delete).toHaveBeenCalled();
     });
 
-    test('getMetadata throws when the dataset no longer exists, and purge is unsupported', async () => {
+    test('getMetadata throws when the dataset no longer exists, and no purge is exposed', async () => {
         const client = createMockDatasetClient();
         client.get.mockResolvedValue(undefined as never);
-        const backend = new ApifyDatasetBackend(client as unknown as DatasetClient);
+        // Typed as the interface, exactly as crawlee sees it when probing the capability.
+        const backend: DatasetBackend = new ApifyDatasetBackend(client as unknown as DatasetClient);
 
         await expect(backend.getMetadata()).rejects.toThrow(/not found/);
-        await expect(backend.purge()).rejects.toThrow(/not supported on the Apify platform/);
+        expect(backend.purge).toBeUndefined();
     });
 
     test('splits pushes exceeding the 9MB payload limit into multiple API calls', async () => {
@@ -342,12 +415,39 @@ describe('ApifyKeyValueStoreBackend', () => {
         await expect(backend.getPublicUrl('INPUT')).resolves.toBe('https://example.com/INPUT');
     });
 
-    test('getMetadata throws when the store no longer exists, and purge is unsupported', async () => {
+    test('getMetadata throws when the store no longer exists', async () => {
         const client = createMockKvsClient();
         client.get.mockResolvedValue(undefined as never);
         const backend = new ApifyKeyValueStoreBackend(client as unknown as KeyValueStoreClient);
 
         await expect(backend.getMetadata()).rejects.toThrow(/not found/);
-        await expect(backend.purge()).rejects.toThrow(/not supported on the Apify platform/);
+    });
+
+    test('purge deletes every record, following the key pagination', async () => {
+        const client = createMockKvsClient();
+        client.listKeys
+            .mockResolvedValueOnce({
+                items: [{ key: 'INPUT', size: 2, recordPublicUrl: '' }],
+                count: 1,
+                limit: 1,
+                exclusiveStartKey: undefined,
+                isTruncated: true,
+                nextExclusiveStartKey: 'INPUT',
+            } as never)
+            .mockResolvedValueOnce({
+                items: [{ key: 'OUTPUT', size: 2, recordPublicUrl: '' }],
+                count: 1,
+                limit: 1,
+                exclusiveStartKey: 'INPUT',
+                isTruncated: false,
+                nextExclusiveStartKey: undefined,
+            } as never);
+        const backend = new ApifyKeyValueStoreBackend(client as unknown as KeyValueStoreClient);
+
+        await backend.purge();
+
+        // The second page has to be asked for past the last key of the first one.
+        expect(client.listKeys).toHaveBeenNthCalledWith(2, { exclusiveStartKey: 'INPUT' });
+        expect(client.deleteRecord.mock.calls).toEqual([['INPUT'], ['OUTPUT']]);
     });
 });
