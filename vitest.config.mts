@@ -1,12 +1,13 @@
 /* eslint-disable import/no-default-export, import/extensions */
 import { resolve } from 'node:path';
 
-import tsconfigPaths from 'vite-tsconfig-paths';
 import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
-    plugins: [tsconfigPaths()],
-    esbuild: {
+    resolve: {
+        tsconfigPaths: true,
+    },
+    oxc: {
         target: 'es2022',
         keepNames: true,
     },
