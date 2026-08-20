@@ -1,7 +1,5 @@
-import { copyFileSync, readFileSync, writeFileSync } from 'node:fs';
+import { copyFileSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-
-import { globby } from 'globby';
 
 const cwd = resolve(process.cwd(), 'dist');
 const target = resolve(cwd, 'index.d.ts');
@@ -9,7 +7,9 @@ const file = readFileSync(target).toString();
 
 writeFileSync(target, file.replace(`export * from './exports';`, `// @ts-ignore\nexport * from './exports';`));
 
-const files = await globby(`${cwd}/**/*.(d.ts|js)`);
+const files = readdirSync(cwd, { recursive: true })
+    .filter((path) => path.endsWith('.d.ts') || path.endsWith('.js'))
+    .map((path) => resolve(cwd, path));
 
 // convert `@apilink` to `@link`
 for (const filepath of files) {
