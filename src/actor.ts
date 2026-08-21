@@ -50,7 +50,7 @@ import { PlatformEventManager } from './platform_event_manager.js';
 import type { ProxyConfigurationOptions } from './proxy_configuration.js';
 import { ProxyConfiguration } from './proxy_configuration.js';
 import type { OpenStorageOptions, StorageIdentifier, StorageIdentifierWithoutAlias } from './storage.js';
-import { openStorage } from './storage.js';
+import { openStorage as openStorageBase } from './storage.js';
 import {
     checkCrawleeVersion,
     getSystemInfo,
@@ -413,8 +413,7 @@ export const EXIT_CODES = {
  */
 export class Actor<Data extends Dictionary = Dictionary> {
     /** @internal */
-
-    static _instance: Actor;
+    static #instance?: Actor;
 
     /**
      * Configuration of this SDK instance (provided to its constructor). See {@apilink Configuration} for details.
@@ -443,27 +442,27 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * Set if the Actor called a method that requires the instance to be initialized, but did not do so.
      * A call to `init` after this warning is emitted is considered  an invalid state and will throw an error.
      */
-    private warnedAboutMissingInitCall = false;
+    #warnedAboutMissingInitCall = false;
 
     /**
      * Set if the Actor is currently rebooting.
      */
-    private isRebooting = false;
+    #isRebooting = false;
 
     /**
      * Set if the Actor is currently exiting. Prevents double-exit from graceful shutdown handlers.
      */
-    private isExiting = false;
+    #isExiting = false;
 
     /**
      * References to graceful shutdown handlers so they can be removed during cleanup.
      */
-    private gracefulShutdownHandlers: {
+    #gracefulShutdownHandlers: {
         aborting?: () => void;
         migrating?: () => void;
     } = {};
 
-    private chargingManager: ChargingManager;
+    #chargingManager: ChargingManager;
 
     /**
      * Tracks which aliased storages have been purged during this session,
@@ -473,7 +472,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
     purgedStorageAliases = new Set<string>();
 
     /** How Apify platform request queues are consumed; set from {@link InitOptions.requestQueueAccess}. */
-    private requestQueueAccess: RequestQueueAccessMode = 'single';
+    #requestQueueAccess: RequestQueueAccessMode = 'single';
 
     constructor(options: ActorOptions = {}) {
         const { configuration, ...configOptions } = options;
@@ -499,7 +498,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
         }
         this.apifyClient = this.newClient();
         this.eventManager = new PlatformEventManager(this.configuration);
-        this.chargingManager = new ChargingManager(this.configuration, this.apifyClient);
+        this.#chargingManager = new ChargingManager(this.configuration, this.apifyClient);
     }
 
     /**
@@ -597,7 +596,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
         }
 
         // If the warning about forgotten init call was emitted, we will not continue the init procedure.
-        if (this.warnedAboutMissingInitCall) {
+        if (this.#warnedAboutMissingInitCall) {
             throw new Error(
                 [
                     'Actor.init() was called after a method that would access a storage client was used.',
@@ -617,7 +616,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
         // `disableBrowserSandbox` at-home defaults now live in `Configuration`).
         serviceLocator.setConfiguration(this.configuration);
 
-        this.requestQueueAccess = options.requestQueueAccess ?? 'single';
+        this.#requestQueueAccess = options.requestQueueAccess ?? 'single';
 
         if (this.isAtHome()) {
             serviceLocator.setStorageBackend(this.createApifyStorageBackend());
@@ -637,23 +636,23 @@ export class Actor<Data extends Dictionary = Dictionary> {
         if (options.gracefulShutdown !== false) {
             const delay = options.gracefulShutdownDelayMillis ?? 0;
 
-            this.gracefulShutdownHandlers.aborting = () => {
+            this.#gracefulShutdownHandlers.aborting = () => {
                 setTimeout(() => {
                     this.exit().catch((err) => {
                         log.exception(err as Error, 'Failed to exit gracefully');
                     });
                 }, delay);
             };
-            this.on(ACTOR_EVENT_NAMES.ABORTING, this.gracefulShutdownHandlers.aborting);
+            this.on(ACTOR_EVENT_NAMES.ABORTING, this.#gracefulShutdownHandlers.aborting);
 
-            this.gracefulShutdownHandlers.migrating = () => {
+            this.#gracefulShutdownHandlers.migrating = () => {
                 setTimeout(() => {
                     this.reboot().catch((err) => {
                         log.exception(err as Error, 'Failed to reboot on migration');
                     });
                 }, delay);
             };
-            this.on(ACTOR_EVENT_NAMES.MIGRATING, this.gracefulShutdownHandlers.migrating);
+            this.on(ACTOR_EVENT_NAMES.MIGRATING, this.#gracefulShutdownHandlers.migrating);
         }
 
         await purgeDefaultStorages({
@@ -662,8 +661,8 @@ export class Actor<Data extends Dictionary = Dictionary> {
         });
         log.debug(`Default storages purged`);
 
-        await this.chargingManager.init();
-        log.debug(`ChargingManager initialized`, this.chargingManager.getPricingInfo());
+        await this.#chargingManager.init();
+        log.debug(`ChargingManager initialized`, this.#chargingManager.getPricingInfo());
     }
 
     /**
@@ -671,11 +670,11 @@ export class Actor<Data extends Dictionary = Dictionary> {
      */
     async exit(messageOrOptions?: string | ExitOptions, options: ExitOptions = {}): Promise<void> {
         // Prevent double-exit from graceful shutdown handlers
-        if (this.isExiting) {
+        if (this.#isExiting) {
             log.debug('Actor.exit() called while already exiting, skipping');
             return;
         }
-        this.isExiting = true;
+        this.#isExiting = true;
 
         options =
             typeof messageOrOptions === 'string'
@@ -685,17 +684,17 @@ export class Actor<Data extends Dictionary = Dictionary> {
         options.exitCode ??= EXIT_CODES.SUCCESS;
         options.timeoutSecs ??= 30;
 
-        this._ensureActorInit('exit');
+        this.ensureActorInit('exit');
 
         const client = serviceLocator.getStorageBackend();
         const events = serviceLocator.getEventManager();
 
         // Remove graceful shutdown handlers to prevent them from interfering with exit
-        if (this.gracefulShutdownHandlers.aborting) {
-            this.off(ACTOR_EVENT_NAMES.ABORTING, this.gracefulShutdownHandlers.aborting);
+        if (this.#gracefulShutdownHandlers.aborting) {
+            this.off(ACTOR_EVENT_NAMES.ABORTING, this.#gracefulShutdownHandlers.aborting);
         }
-        if (this.gracefulShutdownHandlers.migrating) {
-            this.off(ACTOR_EVENT_NAMES.MIGRATING, this.gracefulShutdownHandlers.migrating);
+        if (this.#gracefulShutdownHandlers.migrating) {
+            this.off(ACTOR_EVENT_NAMES.MIGRATING, this.#gracefulShutdownHandlers.migrating);
         }
 
         // Close the event manager and emit the final PERSIST_STATE event
@@ -752,7 +751,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
 
         // Reset the flag so the instance can be reused (e.g., in tests or when exit is false).
         // When process.exit() actually terminates the process, this line is never reached - which is fine.
-        this.isExiting = false;
+        this.#isExiting = false;
 
         if (!options.exit) {
             return;
@@ -943,19 +942,19 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @ignore
      */
     async reboot(options: RebootOptions = {}): Promise<void> {
-        this._ensureActorInit('reboot');
+        this.ensureActorInit('reboot');
 
         if (!this.isAtHome()) {
             log.warning('Actor.reboot() is only supported when running on the Apify platform.');
             return;
         }
 
-        if (this.isRebooting) {
+        if (this.#isRebooting) {
             log.debug('Actor is already rebooting, skipping the additional reboot call.');
             return;
         }
 
-        this.isRebooting = true;
+        this.#isRebooting = true;
 
         // Waiting for all the listeners to finish, as `.reboot()` kills the container.
         await Promise.all([
@@ -1043,7 +1042,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
         validate(z.string(), statusMessage);
         validate(z.boolean().optional(), isStatusMessageTerminal);
 
-        this._ensureActorInit('setStatusMessage');
+        this.ensureActorInit('setStatusMessage');
 
         const loggedStatusMessage = `[Status message]: ${statusMessage}`;
 
@@ -1106,7 +1105,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @ignore
      */
     async pushData(item: Data | Data[], eventName?: string | undefined): Promise<ChargeResult> {
-        this._ensureActorInit('pushData');
+        this.ensureActorInit('pushData');
 
         if (eventName?.startsWith('apify-')) {
             throw new Error(`Cannot charge for synthetic event '${eventName}' manually`);
@@ -1150,9 +1149,9 @@ export class Actor<Data extends Dictionary = Dictionary> {
     ): Promise<Dataset<Data>> {
         validate(z.object({ forceCloud: z.boolean().optional() }).strict(), options);
 
-        this._ensureActorInit('openDataset');
+        this.ensureActorInit('openDataset');
 
-        return this._openStorage<Dataset<Data>>(Dataset, datasetIdOrName, options);
+        return this.openStorage<Dataset<Data>>(Dataset, datasetIdOrName, options);
     }
 
     /**
@@ -1184,7 +1183,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @ignore
      */
     async getValue<T = unknown>(key: string): Promise<T | null> {
-        this._ensureActorInit('getValue');
+        this.ensureActorInit('getValue');
 
         const store = await this.openKeyValueStore();
         return store.getValue<T>(key);
@@ -1222,7 +1221,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @ignore
      */
     async setValue<T>(key: string, value: T | null, options: RecordOptions = {}): Promise<void> {
-        this._ensureActorInit('setValue');
+        this.ensureActorInit('setValue');
 
         const store = await this.openKeyValueStore();
         return store.setValue(key, value, options);
@@ -1258,7 +1257,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @ignore
      */
     async getInput<T = Dictionary | string | Buffer>(): Promise<T | null> {
-        this._ensureActorInit('getInput');
+        this.ensureActorInit('getInput');
 
         const { inputSecretsPrivateKeyFile, inputSecretsPrivateKeyPassphrase } = this.configuration;
         const rawInput = await this.getValue<T>(this.configuration.inputKey);
@@ -1317,9 +1316,9 @@ export class Actor<Data extends Dictionary = Dictionary> {
     ): Promise<KeyValueStore> {
         validate(z.object({ forceCloud: z.boolean().optional() }).strict(), options);
 
-        this._ensureActorInit('openKeyValueStore');
+        this.ensureActorInit('openKeyValueStore');
 
-        return this._openStorage(KeyValueStore, storeIdOrName, options);
+        return this.openStorage(KeyValueStore, storeIdOrName, options);
     }
 
     /**
@@ -1346,9 +1345,9 @@ export class Actor<Data extends Dictionary = Dictionary> {
     ): Promise<RequestQueue> {
         validate(z.object({ forceCloud: z.boolean().optional() }).strict(), options);
 
-        this._ensureActorInit('openRequestQueue');
+        this.ensureActorInit('openRequestQueue');
 
-        const queue = await this._openStorage(RequestQueue, queueIdOrName, options);
+        const queue = await this.openStorage(RequestQueue, queueIdOrName, options);
 
         return queue;
     }
@@ -1435,8 +1434,8 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @ignore
      */
     async charge(options: ChargeOptions): Promise<ChargeResult> {
-        this._ensureActorInit('charge');
-        return this.chargingManager.charge(options);
+        this.ensureActorInit('charge');
+        return this.#chargingManager.charge(options);
     }
 
     /**
@@ -1444,8 +1443,8 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @ignore
      */
     getChargingManager(): ChargingManager {
-        this._ensureActorInit('getChargingManager');
-        return this.chargingManager;
+        this.ensureActorInit('getChargingManager');
+        return this.#chargingManager;
     }
 
     /**
@@ -1544,7 +1543,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
         defaultValue = {} as State,
         options?: UseStateOptions,
     ) {
-        this._ensureActorInit('useState');
+        this.ensureActorInit('useState');
 
         const kvStore = await KeyValueStore.open(options?.keyValueStoreName, {
             configuration: options?.configuration || Configuration.getGlobalConfiguration(),
@@ -2219,8 +2218,16 @@ export class Actor<Data extends Dictionary = Dictionary> {
 
     /** @internal */
     static getDefaultInstance(): Actor {
-        this._instance ??= new Actor();
-        return this._instance;
+        Actor.#instance ??= new Actor();
+        return Actor.#instance;
+    }
+
+    /**
+     * Replaces or clears the cached default instance returned by {@apilink Actor.getDefaultInstance}.
+     * @internal
+     */
+    static setDefaultInstance(instance?: Actor): void {
+        Actor.#instance = instance;
     }
 
     private usesPushDataInterception(dataset: Dataset): boolean {
@@ -2270,7 +2277,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
         const isDefaultDataset = dataset.id === this.configuration.defaultDatasetId;
 
         return pushDataAndCharge({
-            chargingManager: this.chargingManager,
+            chargingManager: this.#chargingManager,
             items,
             eventName: explicitEventName,
             isDefaultDataset,
@@ -2278,14 +2285,14 @@ export class Actor<Data extends Dictionary = Dictionary> {
         });
     }
 
-    private async _openStorage<T extends IStorage>(
+    private async openStorage<T extends IStorage>(
         storageClass: Constructor<T> & {
             open(id?: string | null, options?: StorageOpenOptions): Promise<T>;
         },
         identifier?: StorageIdentifier | null,
         options: OpenStorageOptions = {},
     ) {
-        return openStorage<T>(storageClass, identifier, {
+        return openStorageBase<T>(storageClass, identifier, {
             config: this.configuration,
             backend: options.forceCloud ? this.createApifyStorageBackend() : undefined,
             purgedStorageAliases: this.purgedStorageAliases,
@@ -2295,14 +2302,14 @@ export class Actor<Data extends Dictionary = Dictionary> {
     private createApifyStorageBackend(): ApifyStorageBackend {
         return new ApifyStorageBackend(this.apifyClient, {
             configuration: this.configuration,
-            requestQueueAccess: this.requestQueueAccess,
-            getChargingManager: () => this.chargingManager,
+            requestQueueAccess: this.#requestQueueAccess,
+            getChargingManager: () => this.#chargingManager,
         });
     }
 
-    private _ensureActorInit(methodCalled: string) {
+    private ensureActorInit(methodCalled: string) {
         // If we already warned the user once, don't do it again to prevent spam
-        if (this.warnedAboutMissingInitCall) {
+        if (this.#warnedAboutMissingInitCall) {
             return;
         }
 
@@ -2310,7 +2317,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
             return;
         }
 
-        this.warnedAboutMissingInitCall = true;
+        this.#warnedAboutMissingInitCall = true;
 
         log.warning(
             [

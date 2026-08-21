@@ -172,12 +172,12 @@ export abstract class ApifyRequestQueueBackend implements RequestQueueBackend {
  * @internal
  */
 export class AsyncLock {
-    private tail: Promise<unknown> = Promise.resolve();
+    #tail: Promise<unknown> = Promise.resolve();
 
     async runExclusive<T>(fn: () => Promise<T>): Promise<T> {
-        const run = this.tail.then(fn);
+        const run = this.#tail.then(fn);
         // Keep the chain alive even when the critical section throws.
-        this.tail = run.catch(() => {});
+        this.#tail = run.catch(() => {});
         return run;
     }
 }

@@ -783,8 +783,7 @@ describe('ChargingManager', () => {
 
 describe('Actor.newClient()', () => {
     afterEach(() => {
-        // @ts-expect-error reset the singleton between tests
-        Actor._instance = undefined; // eslint-disable-line no-underscore-dangle
+        Actor.setDefaultInstance();
     });
 
     test('dataset() works without calling Actor.init()', () => {
