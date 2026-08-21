@@ -2,6 +2,7 @@ import { createPrivateKey } from 'node:crypto';
 
 import type {
     EventManager,
+    EventStatusMessageData,
     EventTypeName,
     IStorage,
     RecordOptions,
@@ -463,6 +464,11 @@ export class Actor<Data extends Dictionary = Dictionary> {
         migrating?: () => void;
     } = {};
 
+    /**
+     * Reference to the crawlee status message forwarder, so it can be removed during cleanup.
+     */
+    #statusMessageForwarder?: (data: EventStatusMessageData) => Promise<ClientActorRun>;
+
     private chargingManager: ChargingManager;
 
     /**
@@ -656,6 +662,11 @@ export class Actor<Data extends Dictionary = Dictionary> {
             this.on(ACTOR_EVENT_NAMES.MIGRATING, this.gracefulShutdownHandlers.migrating);
         }
 
+        // Crawlee crawlers, for instance, broadcast their status messages as `statusMessage` events.
+        this.#statusMessageForwarder = async ({ message, isStatusMessageTerminal }: EventStatusMessageData) =>
+            this.#updateRunStatusMessage(message, isStatusMessageTerminal);
+        this.on(EventType.STATUS_MESSAGE, this.#statusMessageForwarder);
+
         await purgeDefaultStorages({
             configuration: this.configuration,
             onlyPurgeOnce: true,
@@ -721,6 +732,12 @@ export class Actor<Data extends Dictionary = Dictionary> {
         await addTimeoutToPromise(
             async () => {
                 await events.waitForAllListenersToComplete();
+
+                // The final status messages have been forwarded by now; stop listening so
+                // that a periodic one can't overwrite the terminal message set below.
+                if (this.#statusMessageForwarder) {
+                    this.off(EventType.STATUS_MESSAGE, this.#statusMessageForwarder);
+                }
 
                 if (client.teardown) {
                     let finished = false;
@@ -1062,6 +1079,13 @@ export class Actor<Data extends Dictionary = Dictionary> {
                 break;
         }
 
+        return this.#updateRunStatusMessage(statusMessage, isStatusMessageTerminal);
+    }
+
+    /**
+     * Propagates a status message to the current run, without logging it locally.
+     */
+    async #updateRunStatusMessage(statusMessage: string, isStatusMessageTerminal?: boolean): Promise<ClientActorRun> {
         const runId = this.configuration.actorRunId!;
 
         if (runId) {
