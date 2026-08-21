@@ -783,7 +783,6 @@ describe('ChargingManager', () => {
 
 describe('Actor.newClient()', () => {
     afterEach(() => {
-        // reset the singleton between tests
         Actor.setDefaultInstance();
     });
 
