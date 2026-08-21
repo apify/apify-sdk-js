@@ -16,6 +16,7 @@ on:
                     - latest
                     - next
                     - next-v4
+                    - rc
 
 permissions:
     id-token: write # Required for OIDC
@@ -46,8 +47,17 @@ jobs:
               run: pnpm build
 
             - name: Check version consistency and bump pre-release version (pre-release tags only)
-              if: ${{ inputs.tag == 'next' || inputs.tag == 'next-v4' }}
+              if: ${{ inputs.tag != 'latest' }}
               run: node ./.github/scripts/before-beta-release.js ${{ inputs.tag }}
 
             - name: Publish to NPM
               run: pnpm publish --tag ${{ inputs.tag }} --no-git-checks
+
+            # RC releases produce no changelog and no commit on the branch, only a git
+            # tag pointing at the released commit (the version bump lives only on npm).
+            - name: Create git tag
+              if: ${{ inputs.tag == 'rc' }}
+              run: |
+                  VERSION=$(node -p "require('./package.json').version")
+                  git tag "v$VERSION"
+                  git push origin "refs/tags/v$VERSION"
