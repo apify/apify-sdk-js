@@ -80,11 +80,14 @@ export const pushDataChargingContext = new AsyncLocalStorage<PpeAwarePushDataCon
 class PpeAwareDatasetClient<
     Data extends Record<string | number, any> = Record<string | number, unknown>,
 > extends ApifyDatasetClient<Data> {
+    readonly #getChargingManager: () => ChargingManager;
+
     constructor(
         options: ConstructorParameters<typeof ApifyDatasetClient<Data>>[0],
-        private readonly getChargingManager: () => ChargingManager,
+        getChargingManager: () => ChargingManager,
     ) {
         super(options);
+        this.#getChargingManager = getChargingManager;
     }
 
     private normalizeItems(items: string | Data | string[] | Data[]): Data[] {
@@ -109,7 +112,7 @@ class PpeAwareDatasetClient<
         const normalizedItems = this.normalizeItems(items);
 
         const result = await pushDataAndCharge({
-            chargingManager: this.getChargingManager(),
+            chargingManager: this.#getChargingManager(),
             items: normalizedItems,
             eventName: context?.eventName,
             isDefaultDataset: true,
@@ -171,23 +174,22 @@ export interface ApifyStorageBackendOptions {
  * ```
  */
 export class ApifyStorageBackend implements StorageBackend {
-    private readonly config?: Configuration;
-    private readonly requestQueueAccess: RequestQueueAccessMode;
-    private readonly getChargingManager?: () => ChargingManager;
+    readonly #client: ApifyClient;
+    readonly #config?: Configuration;
+    readonly #requestQueueAccess: RequestQueueAccessMode;
+    readonly #getChargingManager?: () => ChargingManager;
 
     /** Unnamed storages created for aliases in this process, so an alias maps to one storage. */
-    private readonly aliasIdCache = new Map<string, string>();
+    readonly #aliasIdCache = new Map<string, string>();
 
     /** Fallback request queue client key when the run id is unavailable — one per backend. */
-    private fallbackClientKey?: string;
+    #fallbackClientKey?: string;
 
-    constructor(
-        private readonly client: ApifyClient,
-        options: ApifyStorageBackendOptions = {},
-    ) {
-        this.config = options.configuration;
-        this.requestQueueAccess = options.requestQueueAccess ?? 'single';
-        this.getChargingManager = options.getChargingManager;
+    constructor(client: ApifyClient, options: ApifyStorageBackendOptions = {}) {
+        this.#client = client;
+        this.#config = options.configuration;
+        this.#requestQueueAccess = options.requestQueueAccess ?? 'single';
+        this.#getChargingManager = options.getChargingManager;
     }
 
     /**
@@ -198,7 +200,7 @@ export class ApifyStorageBackend implements StorageBackend {
      */
     getStorageBackendCacheKey(): string {
         const hash = createHash('sha256')
-            .update(`${this.client.publicBaseUrl}${this.client.token ?? ''}`)
+            .update(`${this.#client.publicBaseUrl}${this.#client.token ?? ''}`)
             .digest('hex')
             .slice(0, 8);
         return `ApifyStorageBackend:${hash}`;
@@ -217,7 +219,7 @@ export class ApifyStorageBackend implements StorageBackend {
     async createDatasetBackend(options?: StorageIdentifier): Promise<DatasetBackend> {
         const id = await this.resolveId(options, 'Dataset');
         const chargingClient = this.chargingDatasetClient(id);
-        const backend = new ApifyDatasetBackend(chargingClient ?? this.client.dataset(id));
+        const backend = new ApifyDatasetBackend(chargingClient ?? this.#client.dataset(id));
         if (chargingClient) {
             // `Actor.pushData()` looks for this marker on the dataset's backend to know the
             // pay-per-event charging happens inside the intercepted `pushItems()` calls.
@@ -228,13 +230,13 @@ export class ApifyStorageBackend implements StorageBackend {
 
     async createKeyValueStoreBackend(options?: StorageIdentifier): Promise<KeyValueStoreBackend> {
         const id = await this.resolveId(options, 'KeyValueStore');
-        return new ApifyKeyValueStoreBackend(this.client.keyValueStore(id));
+        return new ApifyKeyValueStoreBackend(this.#client.keyValueStore(id));
     }
 
     async createRequestQueueBackend(options?: StorageIdentifier): Promise<RequestQueueBackend> {
         const id = await this.resolveId(options, 'RequestQueue');
-        const client = this.client.requestQueue(id, { clientKey: this.requestQueueClientKey() });
-        return this.requestQueueAccess === 'shared'
+        const client = this.#client.requestQueue(id, { clientKey: this.requestQueueClientKey() });
+        return this.#requestQueueAccess === 'shared'
             ? new ApifyRequestQueueSharedBackend(client)
             : new ApifyRequestQueueSingleBackend(client);
     }
@@ -244,7 +246,8 @@ export class ApifyStorageBackend implements StorageBackend {
      * migrated or resurrected run re-acquire the request locks of its previous incarnation.
      */
     private requestQueueClientKey(): string {
-        const key = this.config?.actorRunId ?? (this.fallbackClientKey ??= cryptoRandomObjectId(MAX_CLIENT_KEY_LENGTH));
+        const key =
+            this.#config?.actorRunId ?? (this.#fallbackClientKey ??= cryptoRandomObjectId(MAX_CLIENT_KEY_LENGTH));
         return key.slice(0, MAX_CLIENT_KEY_LENGTH);
     }
 
@@ -254,9 +257,9 @@ export class ApifyStorageBackend implements StorageBackend {
      * `undefined` (caller uses the plain client).
      */
     private chargingDatasetClient(id: string): ApifyDatasetClient | undefined {
-        const { getChargingManager } = this;
+        const getChargingManager = this.#getChargingManager;
         if (!getChargingManager) return undefined;
-        if (id !== this.config?.defaultDatasetId) return undefined;
+        if (id !== this.#config?.defaultDatasetId) return undefined;
 
         const hasDefaultDatasetItemEvent =
             DEFAULT_DATASET_ITEM_EVENT in getChargingManager().getPricingInfo().perEventPrices;
@@ -265,10 +268,10 @@ export class ApifyStorageBackend implements StorageBackend {
         return new PpeAwareDatasetClient(
             {
                 id,
-                baseUrl: this.client.baseUrl,
-                publicBaseUrl: this.client.publicBaseUrl,
-                apifyClient: this.client,
-                httpClient: this.client.httpClient,
+                baseUrl: this.#client.baseUrl,
+                publicBaseUrl: this.#client.publicBaseUrl,
+                apifyClient: this.#client,
+                httpClient: this.#client.httpClient,
             },
             getChargingManager,
         );
@@ -291,12 +294,12 @@ export class ApifyStorageBackend implements StorageBackend {
         const alias = (options && 'alias' in options && options.alias) || DEFAULT_STORAGE_ALIAS;
 
         if (alias === DEFAULT_STORAGE_ALIAS) {
-            const defaultId = this.config?.[DEFAULT_ID_CONFIG_KEY[type]];
+            const defaultId = this.#config?.[DEFAULT_ID_CONFIG_KEY[type]];
             if (defaultId) return defaultId;
         } else {
             const declaredId = this.aliasFromActorStorages(alias, type);
             if (declaredId) return declaredId;
-            if (this.config?.isAtHome) {
+            if (this.#config?.isAtHome) {
                 throw new Error(
                     `Storage alias "${alias}" cannot be resolved because it is not declared in the Actor's schema storages. ` +
                         `Declare it in the Actor schema, or open the storage by name instead.`,
@@ -307,16 +310,16 @@ export class ApifyStorageBackend implements StorageBackend {
         // No platform-provided id for this alias (e.g. cloud storage used locally via an API
         // token) — create an unnamed storage for it, one per alias per process.
         const cacheKey = `${type}:${alias}`;
-        const cachedId = this.aliasIdCache.get(cacheKey);
+        const cachedId = this.#aliasIdCache.get(cacheKey);
         if (cachedId) return cachedId;
         const created = await this.collectionClient(type).getOrCreate();
-        this.aliasIdCache.set(cacheKey, created.id);
+        this.#aliasIdCache.set(cacheKey, created.id);
         return created.id;
     }
 
     /** Looks an alias up in the Actor's schema storages (the `ACTOR_STORAGES_JSON` env var). */
     private aliasFromActorStorages(alias: string, type: StorageType): string | undefined {
-        const storagesJson = this.config?.actorStoragesJson;
+        const storagesJson = this.#config?.actorStoragesJson;
         if (!storagesJson) return undefined;
         let storages: ActorStorages;
         try {
@@ -328,14 +331,14 @@ export class ApifyStorageBackend implements StorageBackend {
     }
 
     private resourceClient(id: string, type: StorageType) {
-        if (type === 'Dataset') return this.client.dataset(id);
-        if (type === 'KeyValueStore') return this.client.keyValueStore(id);
-        return this.client.requestQueue(id);
+        if (type === 'Dataset') return this.#client.dataset(id);
+        if (type === 'KeyValueStore') return this.#client.keyValueStore(id);
+        return this.#client.requestQueue(id);
     }
 
     private collectionClient(type: StorageType) {
-        if (type === 'Dataset') return this.client.datasets();
-        if (type === 'KeyValueStore') return this.client.keyValueStores();
-        return this.client.requestQueues();
+        if (type === 'Dataset') return this.#client.datasets();
+        if (type === 'KeyValueStore') return this.#client.keyValueStores();
+        return this.#client.requestQueues();
     }
 }

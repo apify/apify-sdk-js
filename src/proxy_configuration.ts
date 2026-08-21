@@ -189,13 +189,13 @@ export interface ProxyInfo extends CoreProxyInfo {
  * @category Scaling
  */
 export class ProxyConfiguration extends CoreProxyConfiguration {
-    private groups: string[];
-    private countryCode?: string;
-    private subdivisionCode?: string;
-    private password?: string;
-    private hostname: string;
-    private port?: number;
-    private usesApifyProxy?: boolean;
+    #groups: string[];
+    #countryCode?: string;
+    #subdivisionCode?: string;
+    #password?: string;
+    #hostname: string;
+    #port?: number;
+    #usesApifyProxy?: boolean;
 
     protected readonly log = defaultLog.child({ prefix: 'ProxyConfiguration' });
 
@@ -251,17 +251,16 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
 
         // Validation
         if ((proxyUrls || newUrlFunction) && (groupsToUse.length || countryCodeToUse || subdivisionCodeToUse)) {
-            this._throwCannotCombineCustomWithApify();
+            this.throwCannotCombineCustomWithApify();
         }
-        if (proxyUrls && newUrlFunction) this._throwCannotCombineCustomMethods();
 
-        this.groups = groupsToUse;
-        this.countryCode = countryCodeToUse;
-        this.subdivisionCode = subdivisionCodeToUse;
-        this.password = password;
-        this.hostname = hostname!;
-        this.port = port;
-        this.usesApifyProxy = !proxyUrls && !newUrlFunction;
+        this.#groups = groupsToUse;
+        this.#countryCode = countryCodeToUse;
+        this.#subdivisionCode = subdivisionCodeToUse;
+        this.#password = password;
+        this.#hostname = hostname!;
+        this.#port = port;
+        this.#usesApifyProxy = !proxyUrls && !newUrlFunction;
 
         if (proxyUrls && proxyUrls.some((url) => url?.includes('apify.com'))) {
             this.log.warning(
@@ -280,12 +279,12 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
      * `ProxyConfiguration` instance instead of calling this manually.
      */
     async initialize(options?: { checkAccess?: boolean }): Promise<boolean> {
-        if (this.usesApifyProxy) {
-            if (!this.password) {
-                await this._setPasswordIfToken();
+        if (this.#usesApifyProxy) {
+            if (!this.#password) {
+                await this.setPasswordIfToken();
             }
 
-            if (!this.password) {
+            if (!this.#password) {
                 if (Actor.isAtHome()) {
                     throw new Error(
                         `Apify Proxy password must be provided using options.password or the "${APIFY_ENV_VARS.PROXY_PASSWORD}" environment variable. ` +
@@ -303,7 +302,7 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
             }
 
             if (options?.checkAccess !== false) {
-                return this._checkAccess();
+                return this.checkAccess();
             }
         }
 
@@ -327,10 +326,10 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
             hostname: parsed.hostname,
             port: parsed.port,
         };
-        if (this.usesApifyProxy) {
-            result.groups = this.groups;
-            if (this.countryCode !== undefined) result.countryCode = this.countryCode;
-            if (this.subdivisionCode !== undefined) result.subdivisionCode = this.subdivisionCode;
+        if (this.#usesApifyProxy) {
+            result.groups = this.#groups;
+            if (this.#countryCode !== undefined) result.countryCode = this.#countryCode;
+            if (this.#subdivisionCode !== undefined) result.subdivisionCode = this.#subdivisionCode;
         }
         return result;
     }
@@ -341,7 +340,7 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
      * `proxyUrls`, the URLs are rotated round-robin.
      */
     override async newUrl(options?: NewUrlOptions): Promise<string | undefined> {
-        if (!this.usesApifyProxy) {
+        if (!this.#usesApifyProxy) {
             return super.newUrl(options);
         }
         return this.composeDefaultUrl(cryptoRandomObjectId(SESSION_ID_LENGTH));
@@ -350,28 +349,27 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
     /**
      * Returns proxy username.
      */
-    protected _getUsername(sessionId: string): string {
-        const { groups, countryCode, subdivisionCode } = this;
+    protected getUsername(sessionId: string): string {
         const parts: string[] = [];
 
-        if (groups && groups.length) {
-            parts.push(`groups-${groups.join('+')}`);
+        if (this.#groups && this.#groups.length) {
+            parts.push(`groups-${this.#groups.join('+')}`);
         }
         parts.push(`session-${sessionId}`);
-        if (subdivisionCode) {
-            parts.push(`country-${countryCode}_${subdivisionCode}`);
-        } else if (countryCode) {
-            parts.push(`country-${countryCode}`);
+        if (this.#subdivisionCode) {
+            parts.push(`country-${this.#countryCode}_${this.#subdivisionCode}`);
+        } else if (this.#countryCode) {
+            parts.push(`country-${this.#countryCode}`);
         }
 
         return parts.join(',');
     }
 
     protected composeDefaultUrl(sessionId: string): string {
-        const username = this._getUsername(sessionId);
-        const url = new URL(`http://${this.hostname}:${this.port}`);
+        const username = this.getUsername(sessionId);
+        const url = new URL(`http://${this.#hostname}:${this.#port}`);
         url.username = `${username}`;
-        url.password = `${this.password}`;
+        url.password = `${this.#password}`;
         const urlString = url.toString();
 
         return urlString.substring(0, urlString.length - 1);
@@ -380,14 +378,13 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
     /**
      * Fetch & set the proxy password from Apify API if an Apify token is provided.
      */
-    // TODO: Make this private
-    protected async _setPasswordIfToken(): Promise<void> {
+    private async setPasswordIfToken(): Promise<void> {
         const { token } = this.configuration;
 
         if (!token) return;
         try {
             const user = await Actor.apifyClient.user().get();
-            this.password = user.proxy?.password;
+            this.#password = user.proxy?.password;
         } catch (error) {
             if (Actor.isAtHome()) {
                 throw error;
@@ -404,8 +401,8 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
      * If the check can not be made, it only prints a warning and allows the program to continue. This is to
      * prevent program crashes caused by short downtimes of Proxy.
      */
-    protected async _checkAccess(): Promise<boolean> {
-        const status = await this._fetchStatus();
+    protected async checkAccess(): Promise<boolean> {
+        const status = await this.fetchStatus();
 
         if (!status) {
             this.log.warning(
@@ -438,7 +435,7 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
     /**
      * Apify Proxy can be down for a second or a minute, but this should not crash processes.
      */
-    protected async _fetchStatus(): Promise<ProxyStatus | undefined> {
+    protected async fetchStatus(): Promise<ProxyStatus | undefined> {
         const { proxyStatusUrl } = this.configuration;
         const statusUrl = `${proxyStatusUrl}/?format=json`;
 
@@ -448,7 +445,7 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
 
         for (let attempt = 1; attempt <= CHECK_ACCESS_MAX_ATTEMPTS; attempt++) {
             try {
-                return await this._requestStatus(statusUrl, proxyUrl);
+                return await this.requestStatus(statusUrl, proxyUrl);
             } catch {
                 // retry connection errors
             }
@@ -465,7 +462,7 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
      * plus a `Proxy-Authorization` header — so no proxy-agent dependency is
      * needed. The status endpoint (`http://proxy.apify.com`) is plain HTTP.
      */
-    protected async _requestStatus(statusUrl: string, proxyUrl: string): Promise<ProxyStatus> {
+    protected async requestStatus(statusUrl: string, proxyUrl: string): Promise<ProxyStatus> {
         const target = new URL(statusUrl);
         const proxy = new URL(proxyUrl);
 
@@ -486,7 +483,7 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
         request.end();
 
         // `once` rejects if the request emits `error` first (connection refused,
-        // timeout/abort), so failures propagate to the retry loop in `_fetchStatus`.
+        // timeout/abort), so failures propagate to the retry loop in `fetchStatus`.
         const [response] = (await once(request, 'response')) as [IncomingMessage];
 
         const statusCode = response.statusCode ?? 0;
@@ -502,22 +499,12 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
      * Throws cannot combine custom proxies with Apify Proxy
      * @internal
      */
-    protected _throwCannotCombineCustomWithApify() {
+    protected throwCannotCombineCustomWithApify() {
         throw new Error(
             'Cannot combine custom proxies with Apify Proxy! ' +
                 'It is not allowed to set "options.proxyUrls" or "options.newUrlFunction" combined with ' +
                 '"options.groups", "options.apifyProxyGroups", "options.countryCode", "options.apifyProxyCountry", ' +
                 '"options.subdivisionCode" or "options.apifyProxySubdivision".',
-        );
-    }
-
-    /**
-     * Throws cannot combine custom proxies with custom generating function
-     * @internal
-     */
-    protected _throwCannotCombineCustomMethods() {
-        throw new Error(
-            'Cannot combine custom proxies "options.proxyUrls" with custom generating function "options.newUrlFunction".',
         );
     }
 }
