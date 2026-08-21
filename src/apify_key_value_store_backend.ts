@@ -18,7 +18,11 @@ import type { KeyValueStoreClient } from 'apify-client';
  * @internal
  */
 export class ApifyKeyValueStoreBackend implements KeyValueStoreBackend {
-    constructor(private readonly client: KeyValueStoreClient) {}
+    /** @param onDropped Lets the owning backend know the store is gone, so it never resolves to it again. */
+    constructor(
+        private readonly client: KeyValueStoreClient,
+        private readonly onDropped?: () => void,
+    ) {}
 
     async getMetadata(): Promise<KeyValueStoreInfo> {
         const metadata = await this.client.get();
@@ -30,13 +34,26 @@ export class ApifyKeyValueStoreBackend implements KeyValueStoreBackend {
 
     async drop(): Promise<void> {
         await this.client.delete();
+        this.onDropped?.();
     }
 
+    /**
+     * The API has no purge endpoint, so the records are deleted one by one. A key-value store holds few
+     * enough of them for that to be reasonable — unlike a dataset, which cannot be emptied at all.
+     */
     async purge(): Promise<void> {
-        throw new Error(
-            'Purging a key-value store is not supported on the Apify platform. ' +
-                'Use `drop()` to delete the store entirely, or open a new store instead.',
-        );
+        let exclusiveStartKey: string | undefined;
+
+        do {
+            const { items, isTruncated, nextExclusiveStartKey } = await this.client.listKeys({ exclusiveStartKey });
+
+            // Sequentially: a store with many records would otherwise fire a whole page of deletes at once.
+            for (const { key } of items) {
+                await this.client.deleteRecord(key);
+            }
+
+            exclusiveStartKey = isTruncated ? nextExclusiveStartKey : undefined;
+        } while (exclusiveStartKey);
     }
 
     async getValue(key: string): Promise<KeyValueStoreRecord | undefined> {
