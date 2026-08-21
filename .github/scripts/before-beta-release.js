@@ -13,17 +13,20 @@ const PACKAGE_NAME = pkgJson.name;
 // package.json stays on the current major (3.x) and we publish betas of the
 // *next* major (4.0.0-beta.N) under that tag. (The tag isn't a bare `v4`
 // because npm refuses dist-tags that parse as a semver range.)
+// The `rc` tag works the same way but publishes release candidates of the
+// next major (e.g. 4.0.0-rc.N).
 const distTag = process.argv[2];
 const premajorMatch = /v(\d+)$/.exec(distTag ?? '');
 const premajor = premajorMatch ? Number(premajorMatch[1]) : null;
+const preid = distTag === 'rc' ? 'rc' : 'beta';
 
-const nextVersion = computeNextBetaVersion(pkgJson.version, premajor);
+const nextVersion = computeNextPrereleaseVersion(pkgJson.version, premajor);
 console.log(`before-deploy: Setting version to ${nextVersion}`);
 pkgJson.version = nextVersion;
 
 fs.writeFileSync(PKG_JSON_PATH, `${JSON.stringify(pkgJson, null, 2)}\n`);
 
-function computeNextBetaVersion(version, premajorVersion) {
+function computeNextPrereleaseVersion(version, premajorVersion) {
     const versionsString = execSync(`npm show ${PACKAGE_NAME} versions --json`, {
         encoding: 'utf8',
     });
@@ -31,7 +34,12 @@ function computeNextBetaVersion(version, premajorVersion) {
 
     let base = version;
 
-    if (premajorVersion !== null) {
+    if (distTag === 'rc') {
+        // Release candidates of the next major: package.json stays on the
+        // current major (e.g. 3.7.2) and we publish 4.0.0-rc.N.
+        const [major] = base.split('.').map(Number);
+        base = `${major + 1}.0.0`;
+    } else if (premajorVersion !== null) {
         // Pre-major release line: keep package.json on the current major and
         // publish betas of the next major (e.g. 3.7.2 -> 4.0.0-beta.N). Only the
         // -beta.N suffix advances between publishes.
@@ -44,11 +52,13 @@ function computeNextBetaVersion(version, premajorVersion) {
         console.log(`before-deploy: Version ${version} already exists on npm, bumping to ${base}`);
     }
 
+    // Only consider the same pre-release series, so the beta and rc counters
+    // advance independently (4.0.0-rc.N must not push 4.0.0-beta.N forward).
     const prereleaseNumbers = versions
-        .filter((v) => v.startsWith(`${base}-`))
+        .filter((v) => v.startsWith(`${base}-${preid}.`))
         .map((v) => Number(v.match(/\.(\d+)$/)?.[1]))
         .filter((n) => !Number.isNaN(n));
     const lastPrereleaseNumber = Math.max(-1, ...prereleaseNumbers);
 
-    return `${base}-beta.${lastPrereleaseNumber + 1}`;
+    return `${base}-${preid}.${lastPrereleaseNumber + 1}`;
 }
