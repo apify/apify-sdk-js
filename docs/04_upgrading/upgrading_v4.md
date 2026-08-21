@@ -87,6 +87,15 @@ Session continuity (reusing the same IP across multiple requests) is now handled
 
 The `tieredProxyUrls` and `tieredProxyConfig` options on `ProxyConfigurationOptions` were dropped in Crawlee v4 ([apify/crawlee#3599](https://github.com/apify/crawlee/pull/3599)) and the SDK no longer threads them through. Migrate to named sessions via `SessionPool` if you relied on tiered rotation.
 
+The `protected` methods of `ProxyConfiguration` lost their underscore prefix, which matters only if you subclassed it and overrode one of them:
+
+- `_getUsername()` -> `getUsername()`
+- `_checkAccess()` -> `checkAccess()`
+- `_fetchStatus()` -> `fetchStatus()`
+- `_throwCannotCombineCustomWithApify()` -> `throwCannotCombineCustomWithApify()`
+
+In addition, `_setPasswordIfToken()` is now `private setPasswordIfToken()` (it was never meant to be part of the subclassing surface), and `_throwCannotCombineCustomMethods()` was removed — the Crawlee base class already performs the same validation with the same error message.
+
 ## EventManager
 
 `PlatformEventManager` now extends Crawlee v4's `EventManager` and integrates with the new service locator. Use `Configuration.getGlobalConfiguration()` (or pass a `Configuration` instance explicitly) when constructing it directly — the constructor no longer accepts a `config` override via the `override` keyword pattern because Crawlee's base class manages the configuration through `serviceLocator` instead of a `config` field.
@@ -160,6 +169,19 @@ try {
 ```
 
 The original `ZodError` is also kept on `error.cause`.
+
+## Private properties are now native `#` fields
+
+Classes across the SDK (`Actor`, `ProxyConfiguration`, `ChargingManager`, `ApifyStorageBackend`, the request queue backends, `PlatformEventManager`, ...) declare their private properties as native JavaScript `#` fields instead of TypeScript's `private` keyword. TypeScript's `private` is erased at compile time, so those properties used to be reachable at runtime — via a cast, bracket access, `Object.keys()`, or `JSON.stringify()`. Native `#` fields are not: they are invisible to enumeration and serialization, and reading one from outside the class is a syntax error. If you (or a test) reached into an SDK internal this way, use the public API instead.
+
+`protected` members keep the `protected` keyword and stay overridable in subclasses; they only lost their underscore prefixes.
+
+One internal that tests commonly reached for was the static `Actor._instance`, the cached instance behind `Actor.getDefaultInstance()`. It is now `#`-private, with an `@internal` seam for replacing or clearing it:
+
+```ts
+Actor.setDefaultInstance(myActor); // install a custom default instance
+Actor.setDefaultInstance(); // drop the cached one
+```
 
 ## Dependencies
 
