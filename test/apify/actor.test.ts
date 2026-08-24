@@ -4,8 +4,9 @@ import { EventType, MemoryStorageBackend, serviceLocator } from '@crawlee/core';
 import { sleep } from '@crawlee/utils';
 import type { ApifyEnv } from 'apify';
 import { Actor, Configuration, Dataset, KeyValueStore, ProxyConfiguration, RequestQueue } from 'apify';
-import type { WebhookUpdateData } from 'apify-client';
+import type { ActorRun, WebhookUpdateData } from 'apify-client';
 import { ActorClient, ApifyClient, RunClient, TaskClient } from 'apify-client';
+import { BasicCrawler } from 'crawlee';
 
 import {
     ACT_JOB_STATUSES,
@@ -1332,6 +1333,66 @@ describe('Actor', () => {
             ).rejects.toThrow('Environment variable ACTOR_RUN_ID is not set!');
 
             delete process.env[APIFY_ENV_VARS.IS_AT_HOME];
+        });
+    });
+
+    describe('Actor.setStatusMessage()', () => {
+        const runId = 'status-message-run-id';
+        // A `RunClient.update()` stub — the tests only assert on the payload it receives,
+        // so the resolved run is never inspected.
+        const stubRun = {} as unknown as ActorRun;
+
+        beforeEach(() => {
+            process.env[ACTOR_ENV_VARS.RUN_ID] = runId;
+        });
+
+        afterEach(() => {
+            delete process.env[ACTOR_ENV_VARS.RUN_ID];
+        });
+
+        test('updates the run', async () => {
+            const { actor } = createIsolatedActor();
+            const updateSpy = vitest.spyOn(RunClient.prototype, 'update').mockResolvedValue(stubRun);
+
+            await actor.init();
+            await actor.setStatusMessage('almost there', { isStatusMessageTerminal: true });
+
+            expect(updateSpy).toHaveBeenCalledWith({ statusMessage: 'almost there', isStatusMessageTerminal: true });
+        });
+
+        test('forwards crawlee status messages to the run', async () => {
+            const { actor, events } = createIsolatedActor();
+            const updateSpy = vitest.spyOn(RunClient.prototype, 'update').mockResolvedValue(stubRun);
+            const infoSpy = vitest.spyOn(log, 'info');
+
+            await actor.init();
+
+            const crawler = new BasicCrawler({ eventManager: events, requestHandler: async () => {} });
+            crawler.setStatusMessage('Finished! Total 10 requests', { isStatusMessageTerminal: true, level: 'INFO' });
+            await events.waitForAllListenersToComplete();
+
+            expect(updateSpy).toHaveBeenCalledWith({
+                statusMessage: 'Finished! Total 10 requests',
+                isStatusMessageTerminal: true,
+            });
+            // The crawler logs the message itself, so the SDK must not log it a second time.
+            expect(infoSpy).not.toHaveBeenCalledWith(expect.stringContaining('Finished! Total 10 requests'));
+        });
+
+        test('stops forwarding crawlee status messages once the actor exits', async () => {
+            const { actor, events } = createIsolatedActor();
+            const updateSpy = vitest.spyOn(RunClient.prototype, 'update').mockResolvedValue(stubRun);
+            const crawler = new BasicCrawler({ eventManager: events, requestHandler: async () => {} });
+
+            await actor.init();
+            await actor.exit({ exit: false, statusMessage: 'All done' });
+            updateSpy.mockClear();
+
+            // A straggling periodic message must not overwrite the terminal one.
+            crawler.setStatusMessage('Crawled 3/10 pages');
+            await events.waitForAllListenersToComplete();
+
+            expect(updateSpy).not.toHaveBeenCalledWith();
         });
     });
 
