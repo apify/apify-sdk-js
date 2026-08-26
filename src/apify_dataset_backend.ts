@@ -25,7 +25,8 @@ export class ApifyDatasetBackend implements DatasetBackend {
         if (!metadata) {
             throw new Error('Dataset not found or has been deleted.');
         }
-        return metadata;
+        // The API reports an unnamed store as `null`; crawlee spells that absence as `undefined`.
+        return { ...metadata, name: metadata.name ?? undefined };
     }
 
     async drop(): Promise<void> {
