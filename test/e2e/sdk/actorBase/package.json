@@ -9,9 +9,6 @@
     "dependencies": {
         "apify": "*"
     },
-    "overrides": {
-        "@crawlee/fs-storage-native": "^0.2.0"
-    },
     "scripts": {
         "start": "node ./src/main.mjs"
     },
