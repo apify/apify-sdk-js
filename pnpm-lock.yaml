@@ -8,32 +8,39 @@ overrides:
   fast-uri: ^3.1.2
   qs: ^6.15.2
   webpack-dev-server: ^6.0.0
+  '@apify/consts': 3.0.0-beta.2
+  '@apify/datastructures': 3.0.0-beta.2
+  '@apify/input_secrets': 2.0.0-beta.0
+  '@apify/log': 3.0.0-beta.2
+  '@apify/pseudo_url': 3.0.0-beta.2
+  '@apify/timeout': 1.0.0-beta.2
+  '@apify/utilities': 3.0.0-beta.2
 
 importers:
 
   .:
     dependencies:
       '@apify/consts':
-        specifier: ^2.57.2
-        version: 2.57.2
+        specifier: 3.0.0-beta.2
+        version: 3.0.0-beta.2
       '@apify/datastructures':
-        specifier: ^2.0.6
-        version: 2.0.6
+        specifier: 3.0.0-beta.2
+        version: 3.0.0-beta.2
       '@apify/input_secrets':
-        specifier: ^1.2.56
-        version: 1.2.56
+        specifier: 2.0.0-beta.0
+        version: 2.0.0-beta.0
       '@apify/log':
-        specifier: ^2.5.50
-        version: 2.5.50
+        specifier: 3.0.0-beta.2
+        version: 3.0.0-beta.2
       '@apify/pseudo_url':
-        specifier: ^2.0.91
-        version: 2.0.91
+        specifier: 3.0.0-beta.2
+        version: 3.0.0-beta.2
       '@apify/timeout':
-        specifier: ^0.4.10
-        version: 0.4.10
+        specifier: 1.0.0-beta.2
+        version: 1.0.0-beta.2
       '@apify/utilities':
-        specifier: ^2.35.7
-        version: 2.35.7
+        specifier: 3.0.0-beta.2
+        version: 3.0.0-beta.2
       '@crawlee/core':
         specifier: ^4.0.0-rc.0
         version: 4.0.0-rc.0
@@ -340,11 +347,13 @@ packages:
   '@algolia/transporter@4.27.0':
     resolution: {integrity: sha512-PvSbELU4VjN3xSX79ki+zIdOGhTxyJXWvRDzkUjfTx2iNfPWDdTjzKbP1o+268coJztxrkuBwJz90Urek7o1Kw==}
 
-  '@apify/consts@2.57.2':
-    resolution: {integrity: sha512-iCAltDfZqEZazrMFoGIp3EEkvd7GTlgs9y74QZ+JTz+zH3GqBvOD2DfW4WYsqI1rfKlLyo5z3S7wipWpkSNNJQ==}
+  '@apify/consts@3.0.0-beta.2':
+    resolution: {integrity: sha512-kzxZZymdGTExboOUas4ie3+wWAKvS32WQwtA1QqEk0OoMfwbtUtDLBfT4l65lHKeF7p0JkFjWy+TxbxA/RkXyQ==}
+    engines: {node: '>=22'}
 
-  '@apify/datastructures@2.0.6':
-    resolution: {integrity: sha512-hI/Q5cCjXXI/g4OPwX+/xuk+JsOtXRhKNXl2wnq/nKmdrji3nYCc9vGsAEc1iXVbs16xQMZy5uRhoY3XTABovA==}
+  '@apify/datastructures@3.0.0-beta.2':
+    resolution: {integrity: sha512-IDeKHt0bfLdrNC7UcI7by3fOlHlQrGNu4OO5LeP/d+x/QqwAusVv4Er6h3SUZu5ZTAmhaLtXMoB7WguG816aAg==}
+    engines: {node: '>=22'}
 
   '@apify/docs-search-modal@1.4.0':
     resolution: {integrity: sha512-q9ovdlOTzU0u9Ed4/zvKc9aU/2D3D6S5LBXFyVc16epff7Melkuo70JrDkdFd9VD+lZf7pOy+LHhDyrJ8ifa1A==}
@@ -375,11 +384,13 @@ packages:
       react-dom: ^18.2.0 || >=19.0.0
       typescript: ^5.0.0
 
-  '@apify/input_secrets@1.2.56':
-    resolution: {integrity: sha512-w8Hg/owIy4hZH5PoMUO47HnQ1ursMe+iVNP2kVmFQWKMyGgkd7e4rQ+5b3K8uegt9YwjN9aNeupsGQ1adTAghQ==}
+  '@apify/input_secrets@2.0.0-beta.0':
+    resolution: {integrity: sha512-7is21A087/r/wqcz8FpnJu/K7UuDZJo+yt1gFVBu5e9mimRU9aSD+oDr+DRKtgoVq16Rz2RwWqLJfJtH8XU2Ow==}
+    engines: {node: '>=22'}
 
-  '@apify/log@2.5.50':
-    resolution: {integrity: sha512-obSTa6SUP4Ywy9EqcCMoHZXL0kH4lGTgajqlqTVkkdchLKAGNv+hsNLRSXz15N5aHJXwykqdWxidWJrRNawuxA==}
+  '@apify/log@3.0.0-beta.2':
+    resolution: {integrity: sha512-ZG0gl7e61obWrcUlR3Z8vs9O/fFNt/rVq/VJdqTKLreFg7UBo1RgMLoNy8fnNJeWlqm1JpmzphlEvLZ/ywDUjQ==}
+    engines: {node: '>=22'}
 
   '@apify/oxlint-config@0.3.0':
     resolution: {integrity: sha512-njNpYIfowurrM3+TDhhb/LLADAPzozs9+hTTMB/OiRAKrUHOqF6KIsUCYI8IGZAB1hl9vXQnFmKQzTysbAJ7mA==}
@@ -391,11 +402,13 @@ packages:
     engines: {node: '>= 0.10'}
     hasBin: true
 
-  '@apify/pseudo_url@2.0.91':
-    resolution: {integrity: sha512-+jLm8hwpuFKiA+Y7hV8DkBDPeP/4TR3I10yZx43u9YZz4MYXbjBJOt1x146hxGgu4r2740csHA7x9ruZZ44cPg==}
+  '@apify/pseudo_url@3.0.0-beta.2':
+    resolution: {integrity: sha512-dyWGqVRWsSAI7m0ISR1KgTo5dBWocyw0ZkPZuPzSmF/B7SfYtBQig7cPAA6BOefVOSUASo6nfUQpifEs9aEAvg==}
+    engines: {node: '>=22'}
 
-  '@apify/timeout@0.4.10':
-    resolution: {integrity: sha512-RlsqjT47MX5W5DC8yG1sBq38qZCYRGia6gCmmqiio1Cg6TWjIRlrUfFCY3lVuxn9MOPCOcHqxsEqsVvFX5990g==}
+  '@apify/timeout@1.0.0-beta.2':
+    resolution: {integrity: sha512-xyNJvSdimm5MKooi/gawLT9uoscns6scgtbdWGl0+t8cWqSNNeTYCxeeWIxMVuzc5KW7ApAzVaq3ybz3ou5FXQ==}
+    engines: {node: '>=22'}
 
   '@apify/tsconfig@0.2.0':
     resolution: {integrity: sha512-0i6rF+hgXw6mQXhENYNTnP+Yo4WY38d698k/pk4rIpdCx/sSuEprR2N5WdtMaN628vCB+aZjff0jPN2EnQYtjQ==}
@@ -413,8 +426,13 @@ packages:
       react-dom: 17.x || 18.x || 19.x
       styled-components: ^6.1.19
 
-  '@apify/utilities@2.35.7':
-    resolution: {integrity: sha512-UUJkBCCWpOdTPpGenGtkNnnUbwmgANwxJDZoDPfa27+V23V8UfurE/lGA0LCGDH6DWYYJkQoEAtehxYJHR0U9g==}
+  '@apify/utilities@3.0.0-beta.2':
+    resolution: {integrity: sha512-/tQLog5MdAXyz/eLc+SLjJzY932K6xnVbSM4HbU44fkcpAbRdS50pWM6dRX4BNw8TLvC9m6nDZmcmFNEYCxpbQ==}
+    engines: {node: '>=22'}
+
+  '@apify/validations@1.0.0-beta.1':
+    resolution: {integrity: sha512-JuLx1yFj2swLTuB5JrN5crAeB6/QF/bn/za2nPKSJQxqN59sVBlUAtshMwFfMCb3vjVstr59qilkEphGaFU7fQ==}
+    engines: {node: '>=22'}
 
   '@asamuzakjp/css-color@3.2.0':
     resolution: {integrity: sha512-K1A6z8tS3XsmCMM86xoWdn7Fkdn9m6RSVtocUrJYIwZnFVkng/PvkEoWtOWmP+Scc6saYWHWZYbndEEXxl24jw==}
@@ -9363,9 +9381,9 @@ snapshots:
       '@algolia/logger-common': 4.27.0
       '@algolia/requester-common': 4.27.0
 
-  '@apify/consts@2.57.2': {}
+  '@apify/consts@3.0.0-beta.2': {}
 
-  '@apify/datastructures@2.0.6': {}
+  '@apify/datastructures@3.0.0-beta.2': {}
 
   '@apify/docs-search-modal@1.4.0(@algolia/client-search@5.57.0)(@babel/core@7.29.7)(@types/react@19.2.18)(react-dom@19.2.8(react@19.2.8))(react-is@16.13.1)(react@19.2.8)(search-insights@2.17.3)':
     dependencies:
@@ -9458,15 +9476,16 @@ snapshots:
       typescript: 6.0.3
       zx: 8.8.5
 
-  '@apify/input_secrets@1.2.56':
+  '@apify/input_secrets@2.0.0-beta.0':
     dependencies:
-      '@apify/log': 2.5.50
-      '@apify/utilities': 2.35.7
-      ow: 0.28.2
+      '@apify/log': 3.0.0-beta.2
+      '@apify/utilities': 3.0.0-beta.2
+      '@apify/validations': 1.0.0-beta.1
+      zod: 4.4.3
 
-  '@apify/log@2.5.50':
+  '@apify/log@3.0.0-beta.2':
     dependencies:
-      '@apify/consts': 2.57.2
+      '@apify/consts': 3.0.0-beta.2
       ansi-colors: 4.1.3
 
   '@apify/oxlint-config@0.3.0(oxlint@1.79.0(oxlint-tsgolint@7.0.2001))':
@@ -9477,11 +9496,11 @@ snapshots:
     dependencies:
       event-stream: 3.3.4
 
-  '@apify/pseudo_url@2.0.91':
+  '@apify/pseudo_url@3.0.0-beta.2':
     dependencies:
-      '@apify/log': 2.5.50
+      '@apify/log': 3.0.0-beta.2
 
-  '@apify/timeout@0.4.10': {}
+  '@apify/timeout@1.0.0-beta.2': {}
 
   '@apify/tsconfig@0.2.0': {}
 
@@ -9527,10 +9546,14 @@ snapshots:
       - '@types/react-dom'
       - supports-color
 
-  '@apify/utilities@2.35.7':
+  '@apify/utilities@3.0.0-beta.2':
     dependencies:
-      '@apify/consts': 2.57.2
-      '@apify/log': 2.5.50
+      '@apify/consts': 3.0.0-beta.2
+      '@apify/log': 3.0.0-beta.2
+
+  '@apify/validations@1.0.0-beta.1':
+    dependencies:
+      zod: 4.4.3
 
   '@asamuzakjp/css-color@3.2.0':
     dependencies:
@@ -10424,9 +10447,9 @@ snapshots:
 
   '@crawlee/basic@4.0.0-rc.0':
     dependencies:
-      '@apify/datastructures': 2.0.6
-      '@apify/timeout': 0.4.10
-      '@apify/utilities': 2.35.7
+      '@apify/datastructures': 3.0.0-beta.2
+      '@apify/timeout': 1.0.0-beta.2
+      '@apify/utilities': 3.0.0-beta.2
       '@crawlee/core': 4.0.0-rc.0
       '@crawlee/http-client': 4.0.0-rc.0
       '@crawlee/types': 4.0.0-rc.0
@@ -10443,7 +10466,7 @@ snapshots:
 
   '@crawlee/browser-pool@4.0.0-rc.0(playwright@1.62.1)(puppeteer@25.8.0)':
     dependencies:
-      '@apify/timeout': 0.4.10
+      '@apify/timeout': 1.0.0-beta.2
       '@crawlee/core': 4.0.0-rc.0
       '@crawlee/types': 4.0.0-rc.0
       fingerprint-generator: 2.1.88
@@ -10464,7 +10487,7 @@ snapshots:
 
   '@crawlee/browser@4.0.0-rc.0(playwright@1.62.1)(puppeteer@25.8.0)':
     dependencies:
-      '@apify/timeout': 0.4.10
+      '@apify/timeout': 1.0.0-beta.2
       '@crawlee/basic': 4.0.0-rc.0
       '@crawlee/browser-pool': 4.0.0-rc.0(playwright@1.62.1)(puppeteer@25.8.0)
       '@crawlee/types': 4.0.0-rc.0
@@ -10501,11 +10524,11 @@ snapshots:
 
   '@crawlee/core@4.0.0-rc.0':
     dependencies:
-      '@apify/consts': 2.57.2
-      '@apify/datastructures': 2.0.6
-      '@apify/log': 2.5.50
-      '@apify/timeout': 0.4.10
-      '@apify/utilities': 2.35.7
+      '@apify/consts': 3.0.0-beta.2
+      '@apify/datastructures': 3.0.0-beta.2
+      '@apify/log': 3.0.0-beta.2
+      '@apify/timeout': 1.0.0-beta.2
+      '@apify/utilities': 3.0.0-beta.2
       '@crawlee/fs-storage': 4.0.0-rc.0
       '@crawlee/http-client': 4.0.0-rc.0
       '@crawlee/types': 4.0.0-rc.0
@@ -10562,8 +10585,8 @@ snapshots:
 
   '@crawlee/http@4.0.0-rc.0':
     dependencies:
-      '@apify/timeout': 0.4.10
-      '@apify/utilities': 2.35.7
+      '@apify/timeout': 1.0.0-beta.2
+      '@apify/utilities': 3.0.0-beta.2
       '@crawlee/basic': 4.0.0-rc.0
       '@crawlee/core': 4.0.0-rc.0
       '@crawlee/http-client': 4.0.0-rc.0
@@ -10582,7 +10605,7 @@ snapshots:
 
   '@crawlee/impit-client@4.0.0-rc.0':
     dependencies:
-      '@apify/datastructures': 2.0.6
+      '@apify/datastructures': 3.0.0-beta.2
       '@crawlee/http-client': 4.0.0-rc.0
       '@crawlee/types': 4.0.0-rc.0
       impit: 0.14.3
@@ -10590,8 +10613,8 @@ snapshots:
 
   '@crawlee/jsdom@4.0.0-rc.0':
     dependencies:
-      '@apify/timeout': 0.4.10
-      '@apify/utilities': 2.35.7
+      '@apify/timeout': 1.0.0-beta.2
+      '@apify/utilities': 3.0.0-beta.2
       '@crawlee/http': 4.0.0-rc.0
       '@crawlee/types': 4.0.0-rc.0
       '@crawlee/utils': 4.0.0-rc.0
@@ -10608,8 +10631,8 @@ snapshots:
 
   '@crawlee/linkedom@4.0.0-rc.0':
     dependencies:
-      '@apify/timeout': 0.4.10
-      '@apify/utilities': 2.35.7
+      '@apify/timeout': 1.0.0-beta.2
+      '@apify/utilities': 3.0.0-beta.2
       '@crawlee/http': 4.0.0-rc.0
       '@crawlee/types': 4.0.0-rc.0
       '@crawlee/utils': 4.0.0-rc.0
@@ -10622,8 +10645,8 @@ snapshots:
 
   '@crawlee/playwright@4.0.0-rc.0(playwright@1.62.1)(puppeteer@25.8.0)':
     dependencies:
-      '@apify/datastructures': 2.0.6
-      '@apify/timeout': 0.4.10
+      '@apify/datastructures': 3.0.0-beta.2
+      '@apify/timeout': 1.0.0-beta.2
       '@crawlee/basic': 4.0.0-rc.0
       '@crawlee/browser': 4.0.0-rc.0(playwright@1.62.1)(puppeteer@25.8.0)
       '@crawlee/browser-pool': 4.0.0-rc.0(playwright@1.62.1)(puppeteer@25.8.0)
@@ -10647,7 +10670,7 @@ snapshots:
 
   '@crawlee/puppeteer@4.0.0-rc.0(playwright@1.62.1)(puppeteer@25.8.0)':
     dependencies:
-      '@apify/datastructures': 2.0.6
+      '@apify/datastructures': 3.0.0-beta.2
       '@crawlee/browser': 4.0.0-rc.0(playwright@1.62.1)(puppeteer@25.8.0)
       '@crawlee/browser-pool': 4.0.0-rc.0(playwright@1.62.1)(puppeteer@25.8.0)
       '@crawlee/core': 4.0.0-rc.0
@@ -14372,9 +14395,9 @@ snapshots:
 
   apify-client@2.25.0:
     dependencies:
-      '@apify/consts': 2.57.2
-      '@apify/log': 2.5.50
-      '@apify/utilities': 2.35.7
+      '@apify/consts': 3.0.0-beta.2
+      '@apify/log': 3.0.0-beta.2
+      '@apify/utilities': 3.0.0-beta.2
       '@crawlee/types': 3.18.1
       ansi-colors: 4.1.3
       async-retry: 1.3.3
