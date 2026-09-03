@@ -666,7 +666,8 @@ describe('Actor', () => {
 
                 await sdk.pushData({ foo: 'bar' });
                 expect(pushDataSpy).toBeCalledTimes(1);
-                expect(pushDataSpy).toBeCalledWith({ foo: 'bar' });
+                // A single item is normalized to a one-item array before it reaches the dataset.
+                expect(pushDataSpy).toBeCalledWith([{ foo: 'bar' }]);
             });
 
             test('openRequestQueue should open storage', async () => {
@@ -1452,7 +1453,7 @@ describe('Actor', () => {
 
             await Actor.pushData({ hello: 'apify' });
 
-            expect(pushDataSpy).toHaveBeenCalledWith({ hello: 'apify' });
+            expect(pushDataSpy).toHaveBeenCalledWith([{ hello: 'apify' }]);
         });
     });
 

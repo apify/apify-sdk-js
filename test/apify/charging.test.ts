@@ -1,11 +1,13 @@
+import { MemoryStorageBackend } from '@crawlee/core';
 import { Actor } from 'apify';
 import type { MockInstance } from 'vitest';
 import { afterEach, beforeEach, describe, expect, test } from 'vitest';
 
 import log from '@apify/log';
 
-import { mergeChargeResults } from '../../src/charging.js';
-import { initIsolatedDefaultActor, useInMemoryStorage } from '../createIsolatedActor.js';
+import { DEFAULT_DATASET_ITEM_EVENT } from '../../src/charging.js';
+import { createIsolatedActor, initIsolatedDefaultActor, useInMemoryStorage } from '../createIsolatedActor.js';
+import { resetGlobalState } from '../resetGlobalState.js';
 
 /**
  * Sets up environment variables to simulate running on the Apify platform.
@@ -59,113 +61,12 @@ function setUpLocalTestEnv(options: { maxTotalChargeUsd?: string } = {}) {
     }
 }
 
-describe('mergeChargeResults()', () => {
-    test('should sum chargedCount values', () => {
-        const a = {
-            eventChargeLimitReached: false,
-            chargedCount: 3,
-            chargeableWithinLimit: {},
-        };
-        const b = {
-            eventChargeLimitReached: false,
-            chargedCount: 5,
-            chargeableWithinLimit: {},
-        };
-        expect(mergeChargeResults(a, b).chargedCount).toBe(8);
-    });
-
-    test('should return false when both eventChargeLimitReached are false', () => {
-        const a = {
-            eventChargeLimitReached: false,
-            chargedCount: 1,
-            chargeableWithinLimit: {},
-        };
-        const b = {
-            eventChargeLimitReached: false,
-            chargedCount: 1,
-            chargeableWithinLimit: {},
-        };
-        expect(mergeChargeResults(a, b).eventChargeLimitReached).toBe(false);
-    });
-
-    test('should return true when first eventChargeLimitReached is true', () => {
-        const a = {
-            eventChargeLimitReached: true,
-            chargedCount: 1,
-            chargeableWithinLimit: {},
-        };
-        const b = {
-            eventChargeLimitReached: false,
-            chargedCount: 1,
-            chargeableWithinLimit: {},
-        };
-        expect(mergeChargeResults(a, b).eventChargeLimitReached).toBe(true);
-    });
-
-    test('should return true when second eventChargeLimitReached is true', () => {
-        const a = {
-            eventChargeLimitReached: false,
-            chargedCount: 1,
-            chargeableWithinLimit: {},
-        };
-        const b = {
-            eventChargeLimitReached: true,
-            chargedCount: 1,
-            chargeableWithinLimit: {},
-        };
-        expect(mergeChargeResults(a, b).eventChargeLimitReached).toBe(true);
-    });
-
-    test('should return true when both eventChargeLimitReached are true', () => {
-        const a = {
-            eventChargeLimitReached: true,
-            chargedCount: 1,
-            chargeableWithinLimit: {},
-        };
-        const b = {
-            eventChargeLimitReached: true,
-            chargedCount: 1,
-            chargeableWithinLimit: {},
-        };
-        expect(mergeChargeResults(a, b).eventChargeLimitReached).toBe(true);
-    });
-
-    test('should take minimum of chargeableWithinLimit for each key', () => {
-        const a = {
-            eventChargeLimitReached: false,
-            chargedCount: 1,
-            chargeableWithinLimit: { event1: 10, event2: 5 },
-        };
-        const b = {
-            eventChargeLimitReached: false,
-            chargedCount: 1,
-            chargeableWithinLimit: { event1: 3, event2: 8 },
-        };
-        const result = mergeChargeResults(a, b);
-        expect(result.chargeableWithinLimit).toEqual({ event1: 3, event2: 5 });
-    });
-
-    test('should handle empty chargeableWithinLimit objects', () => {
-        const a = {
-            eventChargeLimitReached: false,
-            chargedCount: 2,
-            chargeableWithinLimit: {},
-        };
-        const b = {
-            eventChargeLimitReached: false,
-            chargedCount: 3,
-            chargeableWithinLimit: {},
-        };
-        const result = mergeChargeResults(a, b);
-        expect(result.chargeableWithinLimit).toEqual({});
-    });
-});
-
 describe('ChargingManager', () => {
     beforeEach(() => {
         // Default to local test mode - individual tests can switch to platform mode.
-        // Each test installs its own isolated default Actor (initIsolatedDefaultActor),
-        // so no global state needs resetting between runs.
+        // The tests that assert on charging share one storage directory, and crawlee caches
+        // storage instances per directory, so the cache has to go between tests.
+        resetGlobalState();
         setUpLocalTestEnv({ maxTotalChargeUsd: '10' });
     });
 
@@ -465,24 +366,16 @@ describe('ChargingManager', () => {
         });
     });
 
-    describe('calculatePushDataLimits()', () => {
-        test('should return all items when budget allows', async () => {
+    describe('calculatePushDataLimit()', () => {
+        test('allows every item when the budget covers them', async () => {
             setUpLocalTestEnv({ maxTotalChargeUsd: '10' });
 
             await initIsolatedDefaultActor();
 
-            const chargingManager = Actor.getChargingManager();
-            const result = chargingManager.calculatePushDataLimits({
-                items: [{ a: 1 }, { b: 2 }, { c: 3 }],
-                eventName: 'test-event',
-                isDefaultDataset: false,
-            });
-
-            expect(result.limitedItems).toHaveLength(3);
-            expect(result.eventsToCharge).toEqual({ 'test-event': 3 });
+            expect(Actor.getChargingManager().calculatePushDataLimit(3, { eventName: 'test-event' })).toBe(3);
         });
 
-        test('should limit items when budget is insufficient', async () => {
+        test('caps the item count at what the budget covers', async () => {
             setUpPlatformEnv({
                 maxTotalChargeUsd: '0.15',
                 pricingInfo: {
@@ -495,23 +388,15 @@ describe('ChargingManager', () => {
 
             await initIsolatedDefaultActor();
 
-            const chargingManager = Actor.getChargingManager();
-            const result = chargingManager.calculatePushDataLimits({
-                items: [{ a: 1 }, { b: 2 }, { c: 3 }, { d: 4 }, { e: 5 }],
-                eventName: 'expensive-event',
-                isDefaultDataset: false,
-            });
-
-            // Budget allows 1 item ($0.15 / $0.1 = 1), 5 are requested → caps to 1 (no overcharge since budget is not fully depleted)
-            expect(result.limitedItems).toHaveLength(1);
-            expect(result.eventsToCharge).toEqual({ 'expensive-event': 1 });
+            // $0.15 / $0.1 = 1, and the budget is not depleted yet, so there is no overcharge.
+            expect(Actor.getChargingManager().calculatePushDataLimit(5, { eventName: 'expensive-event' })).toBe(1);
         });
 
-        test('should include synthetic event for default dataset', async () => {
+        test('counts the synthetic dataset-item event towards the price', async () => {
             setUpPlatformEnv({
-                maxTotalChargeUsd: '10',
+                maxTotalChargeUsd: '0.05',
                 pricingInfo: {
-                    'apify-default-dataset-item': {
+                    [DEFAULT_DATASET_ITEM_EVENT]: {
                         eventTitle: 'Dataset Item',
                         eventPriceUsd: 0.01,
                     },
@@ -520,68 +405,36 @@ describe('ChargingManager', () => {
 
             await initIsolatedDefaultActor();
 
-            const chargingManager = Actor.getChargingManager();
-            const result = chargingManager.calculatePushDataLimits({
-                items: [{ a: 1 }, { b: 2 }],
-                eventName: undefined,
-                isDefaultDataset: true,
-            });
-
-            expect(result.limitedItems).toHaveLength(2);
-            expect(result.eventsToCharge).toEqual({
-                'apify-default-dataset-item': 2,
-            });
+            expect(Actor.getChargingManager().calculatePushDataLimit(10, { isDefaultDataset: true })).toBe(5);
         });
 
-        test('should include both events when pushing to default dataset with explicit eventName', async () => {
+        test('adds up the explicit and synthetic prices on the default dataset', async () => {
             setUpPlatformEnv({
-                maxTotalChargeUsd: '10',
+                maxTotalChargeUsd: '0.15',
                 pricingInfo: {
-                    'apify-default-dataset-item': {
+                    [DEFAULT_DATASET_ITEM_EVENT]: {
                         eventTitle: 'Dataset Item',
                         eventPriceUsd: 0.01,
                     },
                     'custom-event': {
                         eventTitle: 'Custom',
-                        eventPriceUsd: 0.05,
+                        eventPriceUsd: 0.04,
                     },
                 },
             });
 
             await initIsolatedDefaultActor();
 
-            const chargingManager = Actor.getChargingManager();
-            const result = chargingManager.calculatePushDataLimits({
-                items: [{ a: 1 }, { b: 2 }],
-                eventName: 'custom-event',
-                isDefaultDataset: true,
-            });
-
-            expect(result.limitedItems).toHaveLength(2);
-            expect(result.eventsToCharge).toEqual({
-                'apify-default-dataset-item': 2,
-                'custom-event': 2,
-            });
+            // One item costs $0.05, not $0.04 - pushing it charges both events.
+            expect(
+                Actor.getChargingManager().calculatePushDataLimit(10, {
+                    eventName: 'custom-event',
+                    isDefaultDataset: true,
+                }),
+            ).toBe(3);
         });
 
-        test('should handle single item (non-array) input', async () => {
-            setUpLocalTestEnv({ maxTotalChargeUsd: '10' });
-
-            await initIsolatedDefaultActor();
-
-            const chargingManager = Actor.getChargingManager();
-            const result = chargingManager.calculatePushDataLimits({
-                items: { single: 'item' },
-                eventName: 'test-event',
-                isDefaultDataset: false,
-            });
-
-            expect(result.limitedItems).toHaveLength(1);
-            expect(result.limitedItems[0]).toEqual({ single: 'item' });
-            expect(result.eventsToCharge).toEqual({ 'test-event': 1 });
-        });
-
-        test('should overcharge by one item when budget is exhausted', async () => {
+        test('lets one item through to overcharge when the budget is depleted', async () => {
             setUpPlatformEnv({
                 maxTotalChargeUsd: '0.05',
                 pricingInfo: {
@@ -594,32 +447,142 @@ describe('ChargingManager', () => {
 
             await initIsolatedDefaultActor();
 
-            const chargingManager = Actor.getChargingManager();
-            const result = chargingManager.calculatePushDataLimits({
-                items: [{ a: 1 }, { b: 2 }],
-                eventName: 'expensive-event',
-                isDefaultDataset: false,
-            });
-
-            // Budget allows 0 items ($0.05 / $0.1 = 0), but 2 are requested → overcharge by 1
-            expect(result.limitedItems).toHaveLength(1);
-            expect(result.eventsToCharge).toEqual({ 'expensive-event': 1 });
+            expect(Actor.getChargingManager().calculatePushDataLimit(2, { eventName: 'expensive-event' })).toBe(1);
         });
 
-        test('should not charge for events when actor is not PPE', async () => {
+        test('lets nothing through once strictly over budget', async () => {
+            setUpPlatformEnv({
+                maxTotalChargeUsd: '0.10',
+                pricingInfo: {
+                    'my-event': {
+                        eventTitle: 'My Event',
+                        eventPriceUsd: 0.1,
+                    },
+                },
+                // $0.20 charged against a $0.10 budget - an overcharge already happened.
+                chargedEventCounts: { 'my-event': 2 },
+            });
+
+            await initIsolatedDefaultActor();
+
+            expect(Actor.getChargingManager().calculatePushDataLimit(3, { eventName: 'my-event' })).toBe(0);
+        });
+
+        test('allows every item when the Actor is not pay-per-event', async () => {
             delete process.env.ACTOR_TEST_PAY_PER_EVENT;
 
             await initIsolatedDefaultActor();
 
-            const chargingManager = Actor.getChargingManager();
-            const result = chargingManager.calculatePushDataLimits({
-                items: [{ a: 1 }, { b: 2 }, { c: 3 }],
-                eventName: undefined,
-                isDefaultDataset: true,
-            });
+            expect(Actor.getChargingManager().calculatePushDataLimit(3, { isDefaultDataset: true })).toBe(3);
+        });
+    });
 
-            expect(result.limitedItems).toHaveLength(3);
-            expect(result.eventsToCharge).toEqual({});
+    describe('synthetic dataset item event', () => {
+        // These runs push through the storage the Actor installs for itself, which is what a local
+        // `ACTOR_TEST_PAY_PER_EVENT` run does. Local pay-per-event testing prices every event at
+        // $1, so a budget in dollars is also an item count.
+        test('is charged for pushes that do not go through Actor.pushData()', async () => {
+            setUpLocalTestEnv({ maxTotalChargeUsd: '10' });
+            await initIsolatedDefaultActor();
+
+            const dataset = await Actor.openDataset();
+            await dataset.pushData([{ a: 1 }, { b: 2 }]);
+
+            expect(Actor.getChargingManager().getChargedEventCount(DEFAULT_DATASET_ITEM_EVENT)).toBe(2);
+        });
+
+        test('trims a push the remaining budget cannot cover', async () => {
+            setUpLocalTestEnv({ maxTotalChargeUsd: '2' });
+            await initIsolatedDefaultActor();
+
+            const dataset = await Actor.openDataset();
+            await dataset.pushData([{ a: 1 }, { b: 2 }, { c: 3 }, { d: 4 }]);
+
+            const { items } = await dataset.getData();
+            expect(items).toHaveLength(2);
+            expect(Actor.getChargingManager().getChargedEventCount(DEFAULT_DATASET_ITEM_EVENT)).toBe(2);
+        });
+
+        test('is not charged for a named dataset', async () => {
+            setUpLocalTestEnv({ maxTotalChargeUsd: '10' });
+            await initIsolatedDefaultActor();
+
+            const dataset = await Actor.openDataset('some-other-dataset');
+            await dataset.pushData([{ a: 1 }, { b: 2 }]);
+
+            expect(Actor.getChargingManager().getChargedEventCount(DEFAULT_DATASET_ITEM_EVENT)).toBe(0);
+        });
+
+        test('is reported by pushData() without an explicit event name', async () => {
+            setUpLocalTestEnv({ maxTotalChargeUsd: '10' });
+            // The static `Actor.pushData(item)` overload is typed as returning nothing, so the
+            // charge result is asserted through the instance the static API delegates to.
+            const { actor } = await initIsolatedDefaultActor();
+
+            const result = await actor.pushData([{ a: 1 }, { b: 2 }]);
+
+            expect(result.chargedCount).toBe(2);
+            expect(result.eventChargeLimitReached).toBe(false);
+        });
+
+        test('keeps concurrent pushes within the budget', async () => {
+            setUpLocalTestEnv({ maxTotalChargeUsd: '4' });
+            await initIsolatedDefaultActor();
+
+            // Without the charge lock all four pushes reserve against the same untouched budget and
+            // 8 items land. Serialized, they get 2 + 2 + 1 + 0: the third push finds the budget spent
+            // and pushes a single item to overcharge, the fourth is already over budget.
+            await Promise.all(Array.from({ length: 4 }, async () => Actor.pushData([{ a: 1 }, { b: 2 }])));
+
+            const dataset = await Actor.openDataset();
+            const { items } = await dataset.getData();
+
+            expect(items).toHaveLength(5);
+            expect(Actor.getChargingManager().getChargedEventCount(DEFAULT_DATASET_ITEM_EVENT)).toBe(5);
+        });
+
+        test('is not charged for a caller-supplied backend, which is left to store everything', async () => {
+            setUpPlatformEnv({
+                maxTotalChargeUsd: '0.01',
+                pricingInfo: {
+                    [DEFAULT_DATASET_ITEM_EVENT]: {
+                        eventTitle: 'Dataset Item',
+                        eventPriceUsd: 0.01,
+                    },
+                },
+            });
+            // The platform only counts items it stores itself, so a budget worth a single item must
+            // neither be spent nor trim the push.
+            const { actor } = await initIsolatedDefaultActor({ storage: new MemoryStorageBackend() });
+
+            const dataset = await actor.openDataset();
+            await dataset.pushData([{ a: 1 }, { b: 2 }, { c: 3 }]);
+
+            expect((await dataset.getData()).items).toHaveLength(3);
+            expect(actor.getChargingManager().getChargedEventCount(DEFAULT_DATASET_ITEM_EVENT)).toBe(0);
+        });
+
+        test('warns that it is not charged when the run does not use Apify storage', async () => {
+            setUpLocalTestEnv({ maxTotalChargeUsd: '10' });
+            const warnings: string[] = [];
+            vitest.spyOn(log, 'warning').mockImplementation((message) => void warnings.push(message));
+
+            const { actor } = await initIsolatedDefaultActor({ storage: new MemoryStorageBackend() });
+
+            expect(warnings.join('\n')).toContain('will not be charged for');
+
+            await actor.pushData([{ a: 1 }, { b: 2 }]);
+            expect(actor.getChargingManager().getChargedEventCount(DEFAULT_DATASET_ITEM_EVENT)).toBe(0);
+        });
+
+        test('explains the conflict when the backend is registered twice', async () => {
+            setUpLocalTestEnv({ maxTotalChargeUsd: '10' });
+            const { actor, serviceLocator } = createIsolatedActor();
+            serviceLocator.setStorageBackend(new MemoryStorageBackend());
+
+            await expect(actor.init({ storage: new MemoryStorageBackend() })).rejects.toThrow(
+                /already registered with crawlee.*Actor\.init\(\{ storage \}\)/s,
+            );
         });
     });
 
