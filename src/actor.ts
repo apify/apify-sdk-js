@@ -7,7 +7,15 @@ import type {
     RecordOptions,
     UseStateOptions,
 } from '@crawlee/core';
-import { Dataset, EventType, KeyValueStore, purgeDefaultStorages, RequestQueue, serviceLocator } from '@crawlee/core';
+import {
+    Dataset,
+    EventType,
+    KeyValueStore,
+    purgeDefaultStorages,
+    RequestQueue,
+    ServiceLocator,
+    serviceLocator,
+} from '@crawlee/core';
 import type { Awaitable, Dictionary, StorageBackend } from '@crawlee/types';
 import { sleep } from '@crawlee/utils';
 import type {
@@ -35,14 +43,10 @@ import { addTimeoutToPromise } from '@apify/timeout';
 import { parseArgument } from '@apify/validations';
 
 import type { RequestQueueAccessMode } from './apify_request_queue_backend.js';
-import {
-    ApifyStorageBackend,
-    type PpeAwarePushDataContext,
-    pushDataChargingContext,
-    USES_PUSH_DATA_INTERCEPTION,
-} from './apify_storage_backend.js';
+import { ApifyStorageBackend } from './apify_storage_backend.js';
 import type { ChargeOptions, ChargeResult } from './charging.js';
-import { ChargingManager, pushDataAndCharge } from './charging.js';
+import { ChargingManager, DEFAULT_DATASET_ITEM_EVENT } from './charging.js';
+import { ChargingDatasetBackend, ChargingStorageBackend } from './charging_storage_backend.js';
 import type { ConfigurationOptions } from './configuration.js';
 import { Configuration } from './configuration.js';
 import { getDefaultsFromInputSchema, noActorInputSchemaDefinedMarker, readInputSchema } from './input-schemas.js';
@@ -59,6 +63,14 @@ import {
 } from './utils.js';
 
 export interface InitOptions {
+    /**
+     * Storage backend to use, in place of the Apify platform storage (on the platform) or crawlee's
+     * local storage (outside of it).
+     *
+     * Items pushed to the default dataset are then not charged for under the pay-per-event pricing
+     * model: the platform counts an `apify-default-dataset-item` per item it stores itself, and a
+     * backend of your own stores them elsewhere.
+     */
     storage?: StorageBackend;
     /**
      * Determines how request queues opened on the Apify platform are consumed.
@@ -616,10 +628,13 @@ export class Actor<Data extends Dictionary = Dictionary> {
         this.requestQueueAccess = options.requestQueueAccess ?? 'single';
 
         if (this.isAtHome()) {
-            serviceLocator.setStorageBackend(this.createApifyStorageBackend());
             serviceLocator.setEventManager(this.eventManager);
+        }
+
+        if (!serviceLocator.getServicesIfSet().storageBackend) {
+            this.installStorageBackend(this.createStorageBackend(options.storage));
         } else if (options.storage) {
-            serviceLocator.setStorageBackend(options.storage);
+            this.installStorageBackend(options.storage);
         }
 
         // Init the event manager the config uses
@@ -665,6 +680,18 @@ export class Actor<Data extends Dictionary = Dictionary> {
 
         await this.chargingManager.init();
         log.debug(`ChargingManager initialized`, this.chargingManager.getPricingInfo());
+
+        // Only knowable once the pricing is loaded. Reachable with a caller-supplied backend or one
+        // registered with crawlee directly; the storages the Actor installs itself are wrapped.
+        if (
+            this.chargingManager.isPayPerEvent &&
+            !(serviceLocator.getStorageBackend() instanceof ChargingStorageBackend)
+        ) {
+            log.warning(
+                'Items pushed to the default dataset will not be charged for, because this run does not use Apify ' +
+                    'storage - the platform only counts items it stores itself.',
+            );
+        }
     }
 
     /**
@@ -1127,18 +1154,50 @@ export class Actor<Data extends Dictionary = Dictionary> {
         }
 
         const dataset = await this.openDataset();
+        const items = Array.isArray(item) ? item : [item];
 
-        // Two code paths for charging:
-        // 1. Intercepted client: PpeAwareDatasetClient intercepts pushItems() calls, handling charging
-        //    internally. This is needed because Crawlee's Dataset may call pushItems() directly,
-        //    bypassing Actor.pushData(). We propagate eventName via AsyncLocalStorage context.
-        // 2. Direct charging: When using a non-patched client (e.g., forceCloud option or custom client),
-        //    we handle charging here before delegating to the dataset.
-        if (this.usesPushDataInterception(dataset)) {
-            return await this.pushDataViaInterceptedClient(dataset, item, eventName);
+        // `Actor.pushData()` historically worked even without calling `Actor.init()`.
+        // In that case, charging isn't configured, so just push the data through.
+        if (!this.chargingManager.isInitialized) {
+            await dataset.pushData(items);
+            return { eventChargeLimitReached: false, chargedCount: 0, chargeableWithinLimit: {} };
         }
 
-        return await this.pushDataWithExplicitCharging(dataset, item, eventName);
+        // The reservation below and the charge that acts on it have to stay under one lock, so that
+        // a concurrent push cannot charge in between. The dataset backend re-enters the same lock to
+        // charge the synthetic per-item event.
+        return await this.chargingManager.withChargeLock(async () => {
+            if (eventName === undefined) {
+                // Nothing to charge here - the dataset backend charges the synthetic event for
+                // whatever it stores, so the result is read back off the charging state.
+                const chargedBefore = this.chargingManager.getChargedEventCount(DEFAULT_DATASET_ITEM_EVENT);
+                await dataset.pushData(items);
+
+                return {
+                    eventChargeLimitReached: this.chargingManager.isEventChargeLimitReached(DEFAULT_DATASET_ITEM_EVENT),
+                    chargedCount: this.chargingManager.getChargedEventCount(DEFAULT_DATASET_ITEM_EVENT) - chargedBefore,
+                    chargeableWithinLimit: this.chargingManager.calculateChargeableWithinLimit(),
+                };
+            }
+
+            const limit = this.chargingManager.calculatePushDataLimit(items.length, {
+                eventName,
+                // Pushing one item charges the synthetic per-item event too when the dataset backend
+                // is the charging one, so that price is part of what an item costs here.
+                isDefaultDataset: dataset.backend instanceof ChargingDatasetBackend,
+            });
+
+            if (limit === 0) {
+                return {
+                    eventChargeLimitReached: items.length > 0,
+                    chargedCount: 0,
+                    chargeableWithinLimit: this.chargingManager.calculateChargeableWithinLimit(),
+                };
+            }
+
+            await dataset.pushData(limit < items.length ? items.slice(0, limit) : items);
+            return await this.chargingManager.charge({ eventName, count: limit });
+        });
     }
 
     /**
@@ -2243,67 +2302,62 @@ export class Actor<Data extends Dictionary = Dictionary> {
         return this._instance;
     }
 
-    private usesPushDataInterception(dataset: Dataset): boolean {
-        return Boolean((dataset.backend as any)[USES_PUSH_DATA_INTERCEPTION]);
-    }
-
-    private async pushDataViaInterceptedClient(
-        dataset: Dataset,
-        item: Data | Data[],
-        eventName: string | undefined,
-    ): Promise<ChargeResult> {
-        // PpeAwareDatasetClient will handle charging and item limiting.
-        // We only need to propagate `eventName` and (optionally) return aggregated charge info.
-        const context: PpeAwarePushDataContext = {
-            eventName,
-        };
-
-        await pushDataChargingContext.run(context, async () => {
-            await dataset.pushData(item);
-        });
-
-        return (
-            context.chargeResult ?? {
-                eventChargeLimitReached: false,
-                chargedCount: 0,
-                chargeableWithinLimit: {},
-            }
-        );
-    }
-
-    private async pushDataWithExplicitCharging(
-        dataset: Dataset,
-        items: Data | Data[],
-        explicitEventName: string | undefined,
-    ): Promise<ChargeResult> {
-        // `Actor.pushData()` historically worked even without calling `Actor.init()`.
-        // In that case, charging isn't configured, so just push the data through.
-        if (!this.initialized && explicitEventName === undefined) {
-            await dataset.pushData(items);
-            return {
-                eventChargeLimitReached: false,
-                chargedCount: 0,
-                chargeableWithinLimit: {},
-            };
+    /**
+     * The backend the Actor installs: the caller's, the platform's, or crawlee's local default.
+     *
+     * Only the last two are wrapped for dataset-item charging. The platform counts an
+     * `apify-default-dataset-item` per item written to the run's default dataset through Apify
+     * storage, so a caller-supplied backend is billed nothing and must not be accounted for -
+     * charging for it would spend a budget nobody is consuming and trim the caller's items to fit
+     * it. crawlee's local default stands in for Apify storage, so it is wrapped to keep local
+     * pay-per-event testing faithful.
+     *
+     * Wrapping means owning the instance, which is why the local default is constructed here
+     * rather than left to be created lazily on first use.
+     */
+    private createStorageBackend(storage?: StorageBackend): StorageBackend {
+        if (storage) {
+            return storage;
         }
 
-        const isDefaultDataset = dataset.id === this.configuration.defaultDatasetId;
+        if (this.isAtHome()) {
+            return this.createApifyStorageBackend();
+        }
 
-        return pushDataAndCharge({
-            chargingManager: this.chargingManager,
-            items,
-            eventName: explicitEventName,
-            isDefaultDataset,
-            pushFn: async (limitedItems) => dataset.pushData(limitedItems),
+        return new ChargingStorageBackend(new ServiceLocator(this.configuration).getStorageBackend(), {
+            configuration: this.configuration,
+            getChargingManager: () => this.chargingManager,
         });
     }
 
-    private createApifyStorageBackend(): ApifyStorageBackend {
-        return new ApifyStorageBackend(this.apifyClient, {
+    /** Wrapped here rather than at the `init()` call site so that `forceCloud` storages are charged too. */
+    private createApifyStorageBackend(): StorageBackend {
+        const backend = new ApifyStorageBackend(this.apifyClient, {
             configuration: this.configuration,
             requestQueueAccess: this.requestQueueAccess,
+        });
+
+        return new ChargingStorageBackend(backend, {
+            configuration: this.configuration,
             getChargingManager: () => this.chargingManager,
         });
+    }
+
+    /**
+     * crawlee's service locator is set-once, so a backend registered before `init()` wins and the
+     * Actor cannot install its own over it. Replaces the resulting `ServiceConflictError` with the
+     * way out.
+     */
+    private installStorageBackend(backend: StorageBackend): void {
+        try {
+            serviceLocator.setStorageBackend(backend);
+        } catch (error) {
+            throw new Error(
+                'A storage backend is already registered with crawlee, so the Actor cannot install its own. Pass it ' +
+                    'as `Actor.init({ storage })` instead of calling `serviceLocator.setStorageBackend()`.',
+                { cause: error },
+            );
+        }
     }
 
     private _ensureActorInit(methodCalled: string) {
