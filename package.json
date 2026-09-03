@@ -73,7 +73,7 @@
         ]
     },
     "dependencies": {
-        "@apify/consts": "^2.51.0",
+        "@apify/consts": "^3.0.0",
         "@apify/input_secrets": "^1.2.0",
         "@apify/log": "^2.4.3",
         "@apify/timeout": "^0.4.0",

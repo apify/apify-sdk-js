@@ -14,8 +14,8 @@ importers:
   .:
     dependencies:
       '@apify/consts':
-        specifier: ^2.51.0
-        version: 2.58.0
+        specifier: ^3.0.0
+        version: 3.0.1
       '@apify/input_secrets':
         specifier: ^1.2.0
         version: 1.2.59
@@ -351,6 +351,10 @@ packages:
 
   '@apify/consts@2.58.0':
     resolution: {integrity: sha512-Mra7/x/STAeVSgjUdxBP7nukqvBVOXtI9xvUMB3fxT5gfedcp+Hn6ZMK54gJPo+kpAV59H+3J9e5V64ZdmCIqw==}
+
+  '@apify/consts@3.0.1':
+    resolution: {integrity: sha512-ZPmfdb4qt143R+6/jFYVCQDoHGInl24Ntz8ltEAMW7tFHSdiXnQoZtDgydZYT06vw6gOtPa/jEXgSneq8FM+uA==}
+    engines: {node: '>=22'}
 
   '@apify/datastructures@2.0.6':
     resolution: {integrity: sha512-hI/Q5cCjXXI/g4OPwX+/xuk+JsOtXRhKNXl2wnq/nKmdrji3nYCc9vGsAEc1iXVbs16xQMZy5uRhoY3XTABovA==}
@@ -9328,6 +9332,8 @@ snapshots:
       '@algolia/requester-common': 4.27.0
 
   '@apify/consts@2.58.0': {}
+
+  '@apify/consts@3.0.1': {}
 
   '@apify/datastructures@2.0.6': {}
 
