@@ -17,8 +17,8 @@ importers:
         specifier: ^2.51.0
         version: 2.58.0
       '@apify/input_secrets':
-        specifier: ^1.2.0
-        version: 1.2.59
+        specifier: ^2.0.0
+        version: 2.0.1
       '@apify/log':
         specifier: ^2.4.3
         version: 2.5.53
@@ -352,6 +352,10 @@ packages:
   '@apify/consts@2.58.0':
     resolution: {integrity: sha512-Mra7/x/STAeVSgjUdxBP7nukqvBVOXtI9xvUMB3fxT5gfedcp+Hn6ZMK54gJPo+kpAV59H+3J9e5V64ZdmCIqw==}
 
+  '@apify/consts@3.0.1':
+    resolution: {integrity: sha512-ZPmfdb4qt143R+6/jFYVCQDoHGInl24Ntz8ltEAMW7tFHSdiXnQoZtDgydZYT06vw6gOtPa/jEXgSneq8FM+uA==}
+    engines: {node: '>=22'}
+
   '@apify/datastructures@2.0.6':
     resolution: {integrity: sha512-hI/Q5cCjXXI/g4OPwX+/xuk+JsOtXRhKNXl2wnq/nKmdrji3nYCc9vGsAEc1iXVbs16xQMZy5uRhoY3XTABovA==}
 
@@ -384,11 +388,16 @@ packages:
       react-dom: ^18.2.0 || >=19.0.0
       typescript: ^5.0.0
 
-  '@apify/input_secrets@1.2.59':
-    resolution: {integrity: sha512-RT3cx4vowa8CV3HP1NJhOn1VK4njQLK3qJ24SpB1f/4Pw47Z0GRXr7eooGEzM3/SDGrEZqaxeZsRc+HB1LooeA==}
+  '@apify/input_secrets@2.0.1':
+    resolution: {integrity: sha512-DTl4iwsd661wng6nOPxuNQ9xFjZnUGsPLYYvNXdO306GqtAp1VkzZT5KeI7uldAWK9eslT9rRFRas9BP8u+ZWA==}
+    engines: {node: '>=22'}
 
   '@apify/log@2.5.53':
     resolution: {integrity: sha512-QB/33QcgbsrIBFThHYTqgy+rx/Z08ZSJnm48NgwbKEgTbWqACJlAtDxX47L9IWgKWFvW7VcL5DrXECSPfuWvlQ==}
+
+  '@apify/log@3.0.1':
+    resolution: {integrity: sha512-lZbSxqW78S5TqEtDrE9o71MtqUnpQJ96FYaEMk2RtiAPH+/ZEAf76DUaFKP5my9KxozohyQLmmg1isbySXXu0A==}
+    engines: {node: '>=22'}
 
   '@apify/oxlint-config@0.3.0':
     resolution: {integrity: sha512-njNpYIfowurrM3+TDhhb/LLADAPzozs9+hTTMB/OiRAKrUHOqF6KIsUCYI8IGZAB1hl9vXQnFmKQzTysbAJ7mA==}
@@ -424,6 +433,14 @@ packages:
 
   '@apify/utilities@2.35.10':
     resolution: {integrity: sha512-XZ04ZjYncbvEcr+Vrwml/xHWP+EpjPdNfK4xUeL5jGZYTYMoIKhP01aUSUaFM4qOdD5L6MKsnRFBsxVQoeL6Fw==}
+
+  '@apify/utilities@3.0.1':
+    resolution: {integrity: sha512-Py701iCY26eSLvdG45T9c9uJS2+xqI4j4rHwGqG84RUOmPD8T6Zua5MflSoWwZ+GM/+ABIJtsza/gqVvyJeESg==}
+    engines: {node: '>=22'}
+
+  '@apify/validations@1.0.1':
+    resolution: {integrity: sha512-ZOJD9XQtYb5CwXR3MG6PCAibzPzdBQnoPzR40ejzOzKG6tV8Z0DBEeQlcADX6DqoNFDf+jDoQKHCyy9whpB31Q==}
+    engines: {node: '>=22'}
 
   '@asamuzakjp/css-color@3.2.0':
     resolution: {integrity: sha512-K1A6z8tS3XsmCMM86xoWdn7Fkdn9m6RSVtocUrJYIwZnFVkng/PvkEoWtOWmP+Scc6saYWHWZYbndEEXxl24jw==}
@@ -9061,6 +9078,9 @@ packages:
   zod@3.25.76:
     resolution: {integrity: sha512-gzUt/qt81nXsFGKIFcC3YnfEAx5NkunCfnDlvuBSSFS02bcXu4Lmea0AFIUwbLWxWPx3d9p8S5QoaujKcNQxcQ==}
 
+  zod@4.5.4:
+    resolution: {integrity: sha512-sC95tT5iHHH9gtpj6A81kh+NEaRAUFN+qlUPDUbRfOMvNf5QCBqsb3WgvnpVtK5Y+4UfA6KqufotuTvMGiTlsA==}
+
   zwitch@2.0.4:
     resolution: {integrity: sha512-bXE4cR/kVZhKZX/RjPEflHaKVhUVl85noU3v6b8apfQEc1x4A+zBxjZ4lN8LqGd6WZ3dl98pY4o717VFmoPp+A==}
 
@@ -9329,6 +9349,8 @@ snapshots:
 
   '@apify/consts@2.58.0': {}
 
+  '@apify/consts@3.0.1': {}
+
   '@apify/datastructures@2.0.6': {}
 
   '@apify/docs-search-modal@1.4.0(@algolia/client-search@5.57.0)(@babel/core@7.29.7)(@types/react@19.2.18)(react-dom@19.2.8(react@19.2.8))(react-is@16.13.1)(react@19.2.8)(search-insights@2.17.3)':
@@ -9422,15 +9444,21 @@ snapshots:
       typescript: 6.0.3
       zx: 8.8.5
 
-  '@apify/input_secrets@1.2.59':
+  '@apify/input_secrets@2.0.1':
     dependencies:
-      '@apify/log': 2.5.53
-      '@apify/utilities': 2.35.10
-      ow: 0.28.2
+      '@apify/log': 3.0.1
+      '@apify/utilities': 3.0.1
+      '@apify/validations': 1.0.1
+      zod: 4.5.4
 
   '@apify/log@2.5.53':
     dependencies:
       '@apify/consts': 2.58.0
+      ansi-colors: 4.1.3
+
+  '@apify/log@3.0.1':
+    dependencies:
+      '@apify/consts': 3.0.1
       ansi-colors: 4.1.3
 
   '@apify/oxlint-config@0.3.0(oxlint@1.81.0(oxlint-tsgolint@0.22.0))':
@@ -9495,6 +9523,15 @@ snapshots:
     dependencies:
       '@apify/consts': 2.58.0
       '@apify/log': 2.5.53
+
+  '@apify/utilities@3.0.1':
+    dependencies:
+      '@apify/consts': 3.0.1
+      '@apify/log': 3.0.1
+
+  '@apify/validations@1.0.1':
+    dependencies:
+      zod: 4.5.4
 
   '@asamuzakjp/css-color@3.2.0':
     dependencies:
@@ -19960,6 +19997,8 @@ snapshots:
   yoctocolors-cjs@2.1.3: {}
 
   zod@3.25.76: {}
+
+  zod@4.5.4: {}
 
   zwitch@2.0.4: {}
 
