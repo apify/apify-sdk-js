@@ -15,7 +15,7 @@ const actor = new Actor({
 
 await actor.init();
 
-// Open storages by alias — locally, this should use the alias as the storage name
+// Open storages by alias — locally, an alias gets an unnamed storage of its own
 const resultsDataset = await actor.openDataset({ alias: 'results' });
 
 // Write data to the aliased storages
@@ -24,8 +24,8 @@ await resultsDataset.pushData([
     { url: 'https://example.org', title: 'Example Org' },
 ]);
 
-// Verify purge-on-first-open: open the same alias again and write more data.
-// The previously written data should still be there (no second purge).
+// Aliased storages are purged by `init()`, not on open: opening the same alias again and writing
+// more data must leave the previously written data in place.
 const resultsDatasetAgain = await actor.openDataset({ alias: 'results' });
 await resultsDatasetAgain.pushData([{ url: 'https://example.net', title: 'Example Net' }]);
 

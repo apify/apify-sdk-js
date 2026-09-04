@@ -4,13 +4,11 @@ import type {
     EventManager,
     EventStatusMessageData,
     EventTypeName,
-    IStorage,
     RecordOptions,
-    StorageOpenOptions,
     UseStateOptions,
 } from '@crawlee/core';
 import { Dataset, EventType, KeyValueStore, purgeDefaultStorages, RequestQueue, serviceLocator } from '@crawlee/core';
-import type { Awaitable, Constructor, Dictionary, StorageBackend } from '@crawlee/types';
+import type { Awaitable, Dictionary, StorageBackend } from '@crawlee/types';
 import { sleep } from '@crawlee/utils';
 import type {
     ActorCallOptions,
@@ -51,8 +49,7 @@ import { getDefaultsFromInputSchema, noActorInputSchemaDefinedMarker, readInputS
 import { PlatformEventManager } from './platform_event_manager.js';
 import type { ProxyConfigurationOptions } from './proxy_configuration.js';
 import { ProxyConfiguration } from './proxy_configuration.js';
-import type { OpenStorageOptions, StorageIdentifier, StorageIdentifierWithoutAlias } from './storage.js';
-import { openStorage } from './storage.js';
+import type { OpenStorageOptions, StorageIdentifier } from './storage.js';
 import {
     checkCrawleeVersion,
     getSystemInfo,
@@ -470,13 +467,6 @@ export class Actor<Data extends Dictionary = Dictionary> {
     #statusMessageForwarder?: (data: EventStatusMessageData) => Promise<ClientActorRun>;
 
     private chargingManager: ChargingManager;
-
-    /**
-     * Tracks which aliased storages have been purged during this session,
-     * so we only purge them once (on first open) when running locally.
-     * @internal
-     */
-    purgedStorageAliases = new Set<string>();
 
     /** How Apify platform request queues are consumed; set from {@link InitOptions.requestQueueAccess}. */
     private requestQueueAccess: RequestQueueAccessMode = 'single';
@@ -1163,8 +1153,8 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @param [datasetIdOrName]
      *   ID, name, or alias of the dataset to be opened. If `null` or `undefined`,
      *   the function returns the default dataset associated with the Actor run.
-     *   You can also pass `{ alias: 'name' }` to open a dataset defined in the Actor's schema storages,
-     *   `{ id: 'abc' }` to open by explicit ID, or `{ name: 'abc' }` to open by explicit name.
+     *   You can also pass `{ alias: 'abc' }` to open a run-scoped storage, `{ id: 'abc' }` to open by
+     *   explicit ID, or `{ name: 'abc' }` to open by explicit name.
      * @param [options]
      * @ignore
      */
@@ -1176,7 +1166,9 @@ export class Actor<Data extends Dictionary = Dictionary> {
 
         this._ensureActorInit('openDataset');
 
-        return this._openStorage<Dataset<Data>>(Dataset, datasetIdOrName, options);
+        return Dataset.open<Data>(datasetIdOrName ?? null, {
+            storageBackend: options.forceCloud ? this.createApifyStorageBackend() : undefined,
+        });
     }
 
     /**
@@ -1329,21 +1321,24 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * For more details and code examples, see the {@apilink KeyValueStore} class.
      *
      * @param [storeIdOrName]
-     *   ID or name of the key-value store to be opened. If `null` or `undefined`,
+     *   ID, name, or alias of the key-value store to be opened. If `null` or `undefined`,
      *   the function returns the default key-value store associated with the Actor run.
-     *   You can also pass `{ id: 'abc' }` to open by explicit ID, or `{ name: 'abc' }` to open by explicit name.
+     *   You can also pass `{ alias: 'abc' }` to open a run-scoped storage, `{ id: 'abc' }` to open by
+     *   explicit ID, or `{ name: 'abc' }` to open by explicit name.
      * @param [options]
      * @ignore
      */
     async openKeyValueStore(
-        storeIdOrName?: StorageIdentifierWithoutAlias | null,
+        storeIdOrName?: StorageIdentifier | null,
         options: OpenStorageOptions = {},
     ): Promise<KeyValueStore> {
         parseArgument(options, z.object({ forceCloud: z.boolean().optional() }).strict());
 
         this._ensureActorInit('openKeyValueStore');
 
-        return this._openStorage(KeyValueStore, storeIdOrName, options);
+        return KeyValueStore.open(storeIdOrName ?? null, {
+            storageBackend: options.forceCloud ? this.createApifyStorageBackend() : undefined,
+        });
     }
 
     /**
@@ -1358,23 +1353,24 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * For more details and code examples, see the {@apilink RequestQueue} class.
      *
      * @param [queueIdOrName]
-     *   ID or name of the request queue to be opened. If `null` or `undefined`,
+     *   ID, name, or alias of the request queue to be opened. If `null` or `undefined`,
      *   the function returns the default request queue associated with the Actor run.
-     *   You can also pass `{ id: 'abc' }` to open by explicit ID, or `{ name: 'abc' }` to open by explicit name.
+     *   You can also pass `{ alias: 'abc' }` to open a run-scoped storage, `{ id: 'abc' }` to open by
+     *   explicit ID, or `{ name: 'abc' }` to open by explicit name.
      * @param [options]
      * @ignore
      */
     async openRequestQueue(
-        queueIdOrName?: StorageIdentifierWithoutAlias | null,
+        queueIdOrName?: StorageIdentifier | null,
         options: OpenStorageOptions = {},
     ): Promise<RequestQueue> {
         parseArgument(options, z.object({ forceCloud: z.boolean().optional() }).strict());
 
         this._ensureActorInit('openRequestQueue');
 
-        const queue = await this._openStorage(RequestQueue, queueIdOrName, options);
-
-        return queue;
+        return RequestQueue.open(queueIdOrName ?? null, {
+            storageBackend: options.forceCloud ? this.createApifyStorageBackend() : undefined,
+        });
     }
 
     /**
@@ -1968,8 +1964,8 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @param [datasetIdOrName]
      *   ID, name, or alias of the dataset to be opened. If `null` or `undefined`,
      *   the function returns the default dataset associated with the Actor run.
-     *   You can also pass `{ alias: 'name' }` to open a dataset defined in the Actor's schema storages,
-     *   `{ id: 'abc' }` to open by explicit ID, or `{ name: 'abc' }` to open by explicit name.
+     *   You can also pass `{ alias: 'abc' }` to open a run-scoped storage, `{ id: 'abc' }` to open by
+     *   explicit ID, or `{ name: 'abc' }` to open by explicit name.
      * @param [options]
      */
     static async openDataset<Data extends Dictionary = Dictionary>(
@@ -2099,7 +2095,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @param [options]
      */
     static async openKeyValueStore(
-        storeIdOrName?: StorageIdentifierWithoutAlias | null,
+        storeIdOrName?: StorageIdentifier | null,
         options: OpenStorageOptions = {},
     ): Promise<KeyValueStore> {
         return Actor.getDefaultInstance().openKeyValueStore(storeIdOrName, options);
@@ -2123,7 +2119,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @param [options]
      */
     static async openRequestQueue(
-        queueIdOrName?: StorageIdentifierWithoutAlias | null,
+        queueIdOrName?: StorageIdentifier | null,
         options: OpenStorageOptions = {},
     ): Promise<RequestQueue> {
         return Actor.getDefaultInstance().openRequestQueue(queueIdOrName, options);
@@ -2299,20 +2295,6 @@ export class Actor<Data extends Dictionary = Dictionary> {
             eventName: explicitEventName,
             isDefaultDataset,
             pushFn: async (limitedItems) => dataset.pushData(limitedItems),
-        });
-    }
-
-    private async _openStorage<T extends IStorage>(
-        storageClass: Constructor<T> & {
-            open(id?: string | null, options?: StorageOpenOptions): Promise<T>;
-        },
-        identifier?: StorageIdentifier | null,
-        options: OpenStorageOptions = {},
-    ) {
-        return openStorage<T>(storageClass, identifier, {
-            config: this.configuration,
-            backend: options.forceCloud ? this.createApifyStorageBackend() : undefined,
-            purgedStorageAliases: this.purgedStorageAliases,
         });
     }
 
