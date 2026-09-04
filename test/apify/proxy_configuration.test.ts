@@ -237,7 +237,7 @@ describe('ProxyConfiguration', () => {
         expect(
             // @ts-expect-error invalid input
             () => new ProxyConfiguration({ countryCode: 1111 }),
-        ).toThrow('Invalid input: expected string, received number');
+        ).toThrow('Invalid input: expected string, received the number `1111` at `countryCode`');
     });
 
     test('should throw on invalid newUrlFunction', async () => {

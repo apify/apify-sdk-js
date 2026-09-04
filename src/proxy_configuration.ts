@@ -10,10 +10,10 @@ import { z } from 'zod';
 import { APIFY_ENV_VARS, APIFY_PROXY_VALUE_REGEX } from '@apify/consts';
 import defaultLog from '@apify/log';
 import { cryptoRandomObjectId } from '@apify/utilities';
+import { parseArgument } from '@apify/validations';
 
 import { Actor } from './actor.js';
 import { Configuration } from './configuration.js';
-import { validate } from './utils.js';
 
 const CHECK_ACCESS_REQUEST_TIMEOUT_MILLIS = 4_000;
 const CHECK_ACCESS_MAX_ATTEMPTS = 2;
@@ -212,7 +212,8 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
             newUrlFunction,
             ['validateRequired' as string]: false,
         });
-        validate(
+        parseArgument(
+            rest,
             z
                 .object({
                     groups: z.array(z.string().regex(APIFY_PROXY_VALUE_REGEX)).optional(),
@@ -224,7 +225,6 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
                     password: z.string().optional(),
                 })
                 .strict(),
-            rest,
         );
 
         const {
