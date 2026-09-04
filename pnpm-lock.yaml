@@ -34,6 +34,9 @@ importers:
       '@apify/utilities':
         specifier: ^3.0.1
         version: 3.0.1
+      '@apify/validations':
+        specifier: ^1.0.1
+        version: 1.0.1
       '@crawlee/core':
         specifier: ^4.0.0-rc.0
         version: 4.0.0-rc.0

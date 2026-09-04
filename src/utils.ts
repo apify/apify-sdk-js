@@ -11,6 +11,10 @@ import semver from 'semver';
 
 import type { z } from 'zod';
 
+import { parseArgument } from '@apify/validations';
+
+export { ArgumentValidationError } from '@apify/validations';
+
 import { APIFY_ENV_VARS } from '@apify/consts';
 import log from '@apify/log';
 
@@ -40,88 +44,13 @@ export function snakeCaseToCamelCase(snakeCaseStr: string): string {
         .join('');
 }
 
-/** Formats a zod issue path like `groups[0]` or `countryCode`. */
-function formatIssuePath(path: readonly PropertyKey[]): string {
-    let out = '';
-    for (const key of path) {
-        if (typeof key === 'number') out += `[${key}]`;
-        else out += out ? `.${String(key)}` : String(key);
-    }
-    return out;
-}
-
-/** Reads the value at `path` from the validated input, to include in the error. */
-function valueAtPath(root: unknown, path: readonly PropertyKey[]): unknown {
-    let current = root;
-    for (const key of path) {
-        if (current === null || typeof current !== 'object') return undefined;
-        current = (current as Record<PropertyKey, unknown>)[key];
-    }
-    return current;
-}
-
-/** Renders a primitive received value for an error; skips objects/Dates (noisy). */
-function describeReceived(value: unknown): string | undefined {
-    switch (typeof value) {
-        case 'string':
-            return value;
-        case 'number':
-        case 'boolean':
-        case 'bigint':
-            return String(value);
-        default:
-            return undefined;
-    }
-}
-
-/**
- * Formats a `ZodError` as a plain, human-readable message that names the
- * offending field *and* the value it received (e.g. ``must match pattern
- * /^[A-Z]{2}$/ at `countryCode`, got `CZE` ``) — closer to the old `ow` errors
- * than zod's default, which omits the received value.
- */
-function formatZodError(error: z.ZodError, root: unknown): string {
-    return error.issues
-        .map((issue) => {
-            const location = issue.path.length ? ` at \`${formatIssuePath(issue.path)}\`` : '';
-            const received = describeReceived(valueAtPath(root, issue.path));
-            const got = received === undefined ? '' : `, got \`${received}\``;
-            return `${issue.message}${location}${got}`;
-        })
-        .join('\n');
-}
-
-/**
- * Error thrown when an argument fails validation (e.g. by `Actor.addWebhook()`
- * or the `ProxyConfiguration` constructor).
- *
- * Its `message` is a human-readable sentence naming the offending field and the
- * value it received (see {@link formatZodError}) — not a raw JSON dump. The
- * structured zod {@link https://zod.dev | zod} issues are available on `issues`
- * (and the original `ZodError` on `cause`) for programmatic inspection.
- */
-export class ArgumentValidationError extends Error {
-    /** Structured issues from the underlying schema check. */
-    readonly issues: z.ZodError['issues'];
-
-    constructor(error: z.ZodError, value: unknown) {
-        super(formatZodError(error, value), { cause: error });
-        this.name = 'ArgumentValidationError';
-        this.issues = error.issues;
-    }
-}
-
 /**
  * Validates `value` against a zod `schema`, returning the parsed value, or
  * throwing an {@link ArgumentValidationError} if it doesn't match.
  * @internal
  */
 export function validate<Schema extends z.ZodType>(schema: Schema, value: unknown): z.infer<Schema> {
-    const result = schema.safeParse(value);
-    if (!result.success) {
-        throw new ArgumentValidationError(result.error, value);
-    }
-    return result.data;
+    return parseArgument(value, schema);
 }
 
 /**

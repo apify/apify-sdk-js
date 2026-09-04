@@ -79,6 +79,7 @@
         "@apify/pseudo_url": "^3.0.1",
         "@apify/timeout": "^1.0.1",
         "@apify/utilities": "^3.0.1",
+        "@apify/validations": "^1.0.1",
         "@crawlee/core": "^4.0.0-rc.0",
         "@crawlee/types": "^4.0.0-rc.0",
         "@crawlee/utils": "^4.0.0-rc.0",
