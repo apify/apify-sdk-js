@@ -57,8 +57,10 @@ export function createIsolatedActor(
  * Teardown is automatic (see {@link createIsolatedActor}): when the test
  * finishes, the Actor is exited and the static default instance is dropped.
  */
-export async function initIsolatedDefaultActor(options: { config?: Configuration } = {}): Promise<IsolatedActor> {
-    const isolated = createIsolatedActor(options);
+export async function initIsolatedDefaultActor(
+    options: { config?: Configuration; storage?: StorageBackend } = {},
+): Promise<IsolatedActor> {
+    const isolated = createIsolatedActor({ config: options.config });
     // eslint-disable-next-line no-underscore-dangle
     Actor._instance = isolated.actor;
 
@@ -68,7 +70,9 @@ export async function initIsolatedDefaultActor(options: { config?: Configuration
         delete (Actor as { _instance?: Actor })._instance;
     });
 
-    await isolated.actor.init();
+    // A caller-supplied backend is deliberately left unwrapped, so dataset items pushed through it
+    // are not charged for - tests that assert on charging must not pass one.
+    await isolated.actor.init({ storage: options.storage });
     return isolated;
 }
 

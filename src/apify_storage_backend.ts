@@ -1,5 +1,3 @@
-/* eslint-disable max-classes-per-file */
-import { AsyncLocalStorage } from 'node:async_hooks';
 import { createHash } from 'node:crypto';
 
 import type {
@@ -10,7 +8,6 @@ import type {
     StorageIdentifier,
 } from '@crawlee/types';
 import type { ApifyClient, KeyValueStoreClient } from 'apify-client';
-import { DatasetClient as ApifyDatasetClient } from 'apify-client';
 import log from '@apify/log';
 import { cryptoRandomObjectId } from '@apify/utilities';
 
@@ -19,19 +16,12 @@ import { ApifyKeyValueStoreBackend } from './apify_key_value_store_backend.js';
 import { AsyncLock, type RequestQueueAccessMode } from './apify_request_queue_backend.js';
 import { ApifyRequestQueueSharedBackend } from './apify_request_queue_shared_backend.js';
 import { ApifyRequestQueueSingleBackend } from './apify_request_queue_single_backend.js';
-import {
-    type ChargeResult,
-    type ChargingManager,
-    DEFAULT_DATASET_ITEM_EVENT,
-    mergeChargeResults,
-    pushDataAndCharge,
-} from './charging.js';
 import type { Configuration } from './configuration.js';
 
 type StorageType = 'Dataset' | 'KeyValueStore' | 'RequestQueue';
 
 /** The reserved alias crawlee uses for the default (unnamed) storage. */
-const DEFAULT_STORAGE_ALIAS = '__default__';
+export const DEFAULT_STORAGE_ALIAS = '__default__';
 
 /** The key of the default key-value store record holding this run's alias -> storage id mapping. */
 const ALIAS_MAPPING_RECORD_KEY = '__STORAGE_ALIASES_MAPPING';
@@ -66,77 +56,6 @@ interface ActorStorages {
     requestQueues?: Record<string, string>;
 }
 
-/** Marks a dataset backend whose underlying client charges for pushed items (pay-per-event). @internal */
-export const USES_PUSH_DATA_INTERCEPTION = Symbol('apify:uses-push-data-interception');
-
-/**
- * Context of a single `Actor.pushData()` call, shared with the intercepted
- * `pushItems()` calls so they can (1) know which event to charge and
- * (2) aggregate the {@link ChargeResult} across the multiple `pushItems()`
- * calls a single `pushData()` may trigger (the backend splits pushes exceeding
- * the API's payload size limit).
- */
-export interface PpeAwarePushDataContext {
-    eventName: string | undefined;
-    chargeResult?: ChargeResult;
-}
-
-export const pushDataChargingContext = new AsyncLocalStorage<PpeAwarePushDataContext>();
-
-/**
- * Default `DatasetClient` that charges for pushed items (pay-per-event). Used
- * only for the run's default dataset when a `apify-default-dataset-item` price
- * is configured; for everything else the plain `apify-client` dataset client is
- * used.
- */
-class PpeAwareDatasetClient<
-    Data extends Record<string | number, any> = Record<string | number, unknown>,
-> extends ApifyDatasetClient<Data> {
-    constructor(
-        options: ConstructorParameters<typeof ApifyDatasetClient<Data>>[0],
-        private readonly getChargingManager: () => ChargingManager,
-    ) {
-        super(options);
-    }
-
-    private normalizeItems(items: string | Data | string[] | Data[]): Data[] {
-        if (typeof items === 'string') {
-            const parsed = JSON.parse(items);
-            return Array.isArray(parsed) ? parsed : [parsed];
-        }
-        if (Array.isArray(items)) {
-            return items.flatMap((item) =>
-                typeof item === 'string' ? (JSON.parse(item) as Data | Data[]) : item,
-            ) as Data[];
-        }
-        return [items];
-    }
-
-    override async pushItems(items: string | Data | string[] | Data[]): Promise<void> {
-        const context = pushDataChargingContext.getStore();
-
-        // A single JSON string may encode multiple items (e.g. '[{...},{...}]'),
-        // which the charging logic would miscount — parse strings into arrays so
-        // each logical item is counted individually.
-        const normalizedItems = this.normalizeItems(items);
-
-        const result = await pushDataAndCharge({
-            chargingManager: this.getChargingManager(),
-            items: normalizedItems,
-            eventName: context?.eventName,
-            isDefaultDataset: true,
-            // stringify for faster validation in the Apify client
-            pushFn: async (limitedItems) => super.pushItems(JSON.stringify(limitedItems)),
-        });
-
-        if (!context) return;
-
-        // One `Actor.pushData()` may map to several `pushItems()` calls — aggregate.
-        context.chargeResult =
-            context.chargeResult === undefined ? result : mergeChargeResults(context.chargeResult, result);
-    }
-}
-
 export interface ApifyStorageBackendOptions {
     /**
      * SDK configuration providing the run's default storage ids and related environment values.
@@ -151,13 +70,6 @@ export interface ApifyStorageBackendOptions {
      * consumers can process the same queue safely.
      */
     requestQueueAccess?: RequestQueueAccessMode;
-
-    /**
-     * Supplies the charging manager for pay-per-event runs, enabling the charging-aware default
-     * dataset client.
-     * @internal
-     */
-    getChargingManager?: () => ChargingManager;
 }
 
 /**
@@ -165,10 +77,6 @@ export interface ApifyStorageBackendOptions {
  * `keyValueStore(id)`, `requestQueue(id, options?)`) to crawlee v4's
  * `StorageBackend` interface (async factory methods accepting an `id`,
  * a `name`, or an `alias`).
- *
- * For the run's default dataset it transparently swaps in a charging-aware
- * dataset client (pay-per-event on `Actor.pushData()`), provided a charging
- * manager is supplied and a default-dataset-item price is configured.
  *
  * `Actor` wires this up automatically; construct it directly only to use Apify
  * platform storage with crawlee's storage classes outside of `Actor` — e.g. to
@@ -185,7 +93,6 @@ export interface ApifyStorageBackendOptions {
 export class ApifyStorageBackend implements StorageBackend {
     private readonly config?: Configuration;
     private readonly requestQueueAccess: RequestQueueAccessMode;
-    private readonly getChargingManager?: () => ChargingManager;
 
     /** Unnamed storages resolved for aliases in this process, keyed like {@link AliasMapping}. */
     private readonly aliasIdCache = new Map<string, string>();
@@ -205,7 +112,6 @@ export class ApifyStorageBackend implements StorageBackend {
     ) {
         this.config = options.configuration;
         this.requestQueueAccess = options.requestQueueAccess ?? 'single';
-        this.getChargingManager = options.getChargingManager;
     }
 
     /**
@@ -238,14 +144,7 @@ export class ApifyStorageBackend implements StorageBackend {
 
     async createDatasetBackend(options?: StorageIdentifier): Promise<DatasetBackend> {
         const id = await this.resolveId(options, 'Dataset');
-        const chargingClient = this.chargingDatasetClient(id);
-        const backend = new ApifyDatasetBackend(chargingClient ?? this.client.dataset(id));
-        if (chargingClient) {
-            // `Actor.pushData()` looks for this marker on the dataset's backend to know the
-            // pay-per-event charging happens inside the intercepted `pushItems()` calls.
-            Object.assign(backend, { [USES_PUSH_DATA_INTERCEPTION]: true });
-        }
-        return backend;
+        return new ApifyDatasetBackend(this.client.dataset(id));
     }
 
     async createKeyValueStoreBackend(options?: StorageIdentifier): Promise<KeyValueStoreBackend> {
@@ -268,32 +167,6 @@ export class ApifyStorageBackend implements StorageBackend {
     private requestQueueClientKey(): string {
         const key = this.config?.actorRunId ?? (this.fallbackClientKey ??= cryptoRandomObjectId(MAX_CLIENT_KEY_LENGTH));
         return key.slice(0, MAX_CLIENT_KEY_LENGTH);
-    }
-
-    /**
-     * Returns a charging-aware dataset client when `id` is the run's default
-     * dataset and a default-dataset-item price is configured; otherwise
-     * `undefined` (caller uses the plain client).
-     */
-    private chargingDatasetClient(id: string): ApifyDatasetClient | undefined {
-        const { getChargingManager } = this;
-        if (!getChargingManager) return undefined;
-        if (id !== this.config?.defaultDatasetId) return undefined;
-
-        const hasDefaultDatasetItemEvent =
-            DEFAULT_DATASET_ITEM_EVENT in getChargingManager().getPricingInfo().perEventPrices;
-        if (!hasDefaultDatasetItemEvent) return undefined;
-
-        return new PpeAwareDatasetClient(
-            {
-                id,
-                baseUrl: this.client.baseUrl,
-                publicBaseUrl: this.client.publicBaseUrl,
-                apifyClient: this.client,
-                httpClient: this.client.httpClient,
-            },
-            getChargingManager,
-        );
     }
 
     /**
