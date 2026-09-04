@@ -34,6 +34,7 @@ import {
 import { decryptInputSecrets } from '@apify/input_secrets';
 import log from '@apify/log';
 import { addTimeoutToPromise } from '@apify/timeout';
+import { parseArgument } from '@apify/validations';
 
 import type { RequestQueueAccessMode } from './apify_request_queue_backend.js';
 import {
@@ -58,7 +59,6 @@ import {
     isNonEmptyObject,
     printOutdatedSdkWarning,
     snakeCaseToCamelCase,
-    validate,
 } from './utils.js';
 
 export interface InitOptions {
@@ -1009,7 +1009,8 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @ignore
      */
     async addWebhook(options: WebhookOptions): Promise<Webhook | undefined> {
-        validate(
+        parseArgument(
+            options,
             z
                 .object({
                     eventTypes: z.array(z.string()),
@@ -1024,7 +1025,6 @@ export class Actor<Data extends Dictionary = Dictionary> {
                     isApifyIntegration: z.boolean().optional(),
                 })
                 .strict(),
-            options,
         );
 
         if (!this.isAtHome()) {
@@ -1057,8 +1057,8 @@ export class Actor<Data extends Dictionary = Dictionary> {
      */
     async setStatusMessage(statusMessage: string, options?: SetStatusMessageOptions): Promise<ClientActorRun> {
         const { isStatusMessageTerminal, level } = options || {};
-        validate(z.string(), statusMessage);
-        validate(z.boolean().optional(), isStatusMessageTerminal);
+        parseArgument(statusMessage, z.string());
+        parseArgument(isStatusMessageTerminal, z.boolean().optional());
 
         this._ensureActorInit('setStatusMessage');
 
@@ -1172,7 +1172,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
         datasetIdOrName?: StorageIdentifier | null,
         options: OpenStorageOptions = {},
     ): Promise<Dataset<Data>> {
-        validate(z.object({ forceCloud: z.boolean().optional() }).strict(), options);
+        parseArgument(options, z.object({ forceCloud: z.boolean().optional() }).strict());
 
         this._ensureActorInit('openDataset');
 
@@ -1339,7 +1339,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
         storeIdOrName?: StorageIdentifierWithoutAlias | null,
         options: OpenStorageOptions = {},
     ): Promise<KeyValueStore> {
-        validate(z.object({ forceCloud: z.boolean().optional() }).strict(), options);
+        parseArgument(options, z.object({ forceCloud: z.boolean().optional() }).strict());
 
         this._ensureActorInit('openKeyValueStore');
 
@@ -1368,7 +1368,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
         queueIdOrName?: StorageIdentifierWithoutAlias | null,
         options: OpenStorageOptions = {},
     ): Promise<RequestQueue> {
-        validate(z.object({ forceCloud: z.boolean().optional() }).strict(), options);
+        parseArgument(options, z.object({ forceCloud: z.boolean().optional() }).strict());
 
         this._ensureActorInit('openRequestQueue');
 
