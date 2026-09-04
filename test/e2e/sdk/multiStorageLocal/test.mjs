@@ -17,11 +17,10 @@ const runActor = async (input = {}, options = {}) => {
     return await client.run(runId).get();
 };
 
-test('aliased storages work locally with purge-on-first-open across restarts', async () => {
-    // The actor runs two lifecycle processes in sequence, sharing the same filesystem.
-    // Each lifecycle creates a fresh Actor instance (resetting purgedStorageAliases),
-    // opens the aliased dataset (triggering purge on first open), writes data, and
-    // pushes a summary to the platform default dataset.
+test('aliased storages work locally and are purged on start across restarts', async () => {
+    // The actor runs two lifecycle processes in sequence, sharing the same filesystem. Each
+    // lifecycle inits a fresh Actor (purging the aliased dataset left behind by the previous one),
+    // opens the aliased dataset, writes data, and pushes a summary to the platform default dataset.
     const run = await runActor();
 
     assert.strictEqual(run.status, 'SUCCEEDED');

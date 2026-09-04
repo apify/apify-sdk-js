@@ -9,13 +9,14 @@ import type {
     StorageBackend,
     StorageIdentifier,
 } from '@crawlee/types';
-import type { ApifyClient } from 'apify-client';
+import type { ApifyClient, KeyValueStoreClient } from 'apify-client';
 import { DatasetClient as ApifyDatasetClient } from 'apify-client';
+import log from '@apify/log';
 import { cryptoRandomObjectId } from '@apify/utilities';
 
 import { ApifyDatasetBackend } from './apify_dataset_backend.js';
 import { ApifyKeyValueStoreBackend } from './apify_key_value_store_backend.js';
-import type { RequestQueueAccessMode } from './apify_request_queue_backend.js';
+import { AsyncLock, type RequestQueueAccessMode } from './apify_request_queue_backend.js';
 import { ApifyRequestQueueSharedBackend } from './apify_request_queue_shared_backend.js';
 import { ApifyRequestQueueSingleBackend } from './apify_request_queue_single_backend.js';
 import {
@@ -31,6 +32,17 @@ type StorageType = 'Dataset' | 'KeyValueStore' | 'RequestQueue';
 
 /** The reserved alias crawlee uses for the default (unnamed) storage. */
 const DEFAULT_STORAGE_ALIAS = '__default__';
+
+/** The key of the default key-value store record holding this run's alias -> storage id mapping. */
+const ALIAS_MAPPING_RECORD_KEY = '__STORAGE_ALIASES_MAPPING';
+
+/** Alias -> storage id, keyed as `<type>,<alias>,<credentials hash>` — see `resolveAliasId`. */
+type AliasMapping = Record<string, string>;
+
+async function readAliasMapping(store: KeyValueStoreClient): Promise<AliasMapping> {
+    const record = await store.getRecord(ALIAS_MAPPING_RECORD_KEY);
+    return (record?.value as AliasMapping | undefined) ?? {};
+}
 
 /** The maximum clientKey length accepted by the request queue API. */
 const MAX_CLIENT_KEY_LENGTH = 32;
@@ -175,8 +187,14 @@ export class ApifyStorageBackend implements StorageBackend {
     private readonly requestQueueAccess: RequestQueueAccessMode;
     private readonly getChargingManager?: () => ChargingManager;
 
-    /** Unnamed storages created for aliases in this process, so an alias maps to one storage. */
+    /** Unnamed storages resolved for aliases in this process, keyed like {@link AliasMapping}. */
     private readonly aliasIdCache = new Map<string, string>();
+
+    /** The alias mapping read from the run's default key-value store; `undefined` until first read. */
+    private persistedAliasIds?: AliasMapping;
+
+    /** Serializes alias resolution — see `resolveAliasId`. */
+    private readonly aliasLock = new AsyncLock();
 
     /** Fallback request queue client key when the run id is unavailable — one per backend. */
     private fallbackClientKey?: string;
@@ -197,11 +215,15 @@ export class ApifyStorageBackend implements StorageBackend {
      * and `shared` mode at once is not supported, and whichever backend opens it first wins.
      */
     getStorageBackendCacheKey(): string {
-        const hash = createHash('sha256')
+        return `ApifyStorageBackend:${this.credentialsHash()}`;
+    }
+
+    /** Short digest of the API base URL and token — identifies the credentials a storage was opened with. */
+    private credentialsHash(): string {
+        return createHash('sha256')
             .update(`${this.client.publicBaseUrl}${this.client.token ?? ''}`)
             .digest('hex')
             .slice(0, 8);
-        return `ApifyStorageBackend:${hash}`;
     }
 
     async storageExists(id: string, type: StorageType): Promise<boolean> {
@@ -278,9 +300,10 @@ export class ApifyStorageBackend implements StorageBackend {
      * Resolves a crawlee {@link StorageIdentifier} to a platform storage id.
      *
      * Aliases resolve to unnamed storages: the reserved `__default__` alias maps to the run's
-     * default storage, and other aliases to the storages declared in the Actor's schema (via the
-     * `ACTOR_STORAGES_JSON` environment variable, maintained by the platform). Outside the
-     * platform, an unnamed storage is created per alias instead (remembered for this process only).
+     * default storage, and an alias declared in the Actor's schema to the storage the platform
+     * created for it (via the `ACTOR_STORAGES_JSON` environment variable). Any other alias gets an
+     * unnamed storage of its own — crawlee mints aliases at runtime, one per extra crawler instance
+     * and one per throttled domain, so an undeclared alias is not an error.
      */
     private async resolveId(options: StorageIdentifier | undefined, type: StorageType): Promise<string> {
         if (options?.id) return options.id;
@@ -296,22 +319,62 @@ export class ApifyStorageBackend implements StorageBackend {
         } else {
             const declaredId = this.aliasFromActorStorages(alias, type);
             if (declaredId) return declaredId;
-            if (this.config?.isAtHome) {
-                throw new Error(
-                    `Storage alias "${alias}" cannot be resolved because it is not declared in the Actor's schema storages. ` +
-                        `Declare it in the Actor schema, or open the storage by name instead.`,
-                );
-            }
         }
 
-        // No platform-provided id for this alias (e.g. cloud storage used locally via an API
-        // token) — create an unnamed storage for it, one per alias per process.
-        const cacheKey = `${type}:${alias}`;
-        const cachedId = this.aliasIdCache.get(cacheKey);
-        if (cachedId) return cachedId;
-        const created = await this.collectionClient(type).getOrCreate();
-        this.aliasIdCache.set(cacheKey, created.id);
-        return created.id;
+        return this.resolveAliasId(alias, type);
+    }
+
+    /**
+     * Returns the unnamed storage backing `alias`, creating it on first use.
+     *
+     * On the platform the mapping is persisted, so a migrated run reopens the same storages rather
+     * than empty ones — aliased request queues hold live requests. Serialized, so one alias means
+     * one storage and the mapping's read-modify-write cannot drop entries.
+     */
+    private async resolveAliasId(alias: string, type: StorageType): Promise<string> {
+        // The credentials are part of the key, so the same alias opened through two
+        // differently-authenticated backends maps to two storages.
+        const key = [type, alias, this.credentialsHash()].join(',');
+
+        return this.aliasLock.runExclusive(async () => {
+            const knownId = this.aliasIdCache.get(key);
+            if (knownId) return knownId;
+
+            const store = this.aliasMappingStore();
+            this.persistedAliasIds ??= store ? await readAliasMapping(store) : {};
+
+            // A persisted id can point at a storage the user has since deleted.
+            const persistedId = this.persistedAliasIds[key];
+            if (persistedId && (await this.resourceClient(persistedId, type).get())) {
+                this.aliasIdCache.set(key, persistedId);
+                return persistedId;
+            }
+
+            const { id } = await this.collectionClient(type).getOrCreate();
+            this.aliasIdCache.set(key, id);
+            if (store) await this.persistAliasId(store, key, id);
+            return id;
+        });
+    }
+
+    /**
+     * Re-reads the record first, so a second backend in this process does not drop its entries.
+     * Logged rather than thrown: a lost entry only costs a re-created storage after a migration.
+     */
+    private async persistAliasId(store: KeyValueStoreClient, key: string, id: string): Promise<void> {
+        try {
+            const mapping = await readAliasMapping(store);
+            mapping[key] = id;
+            await store.setRecord({ key: ALIAS_MAPPING_RECORD_KEY, value: mapping });
+            this.persistedAliasIds = mapping;
+        } catch (error) {
+            log.warning(`Failed to persist the storage alias mapping: ${(error as Error).message}`);
+        }
+    }
+
+    /** The run's default key-value store, where the mapping lives — `undefined` off the platform. */
+    private aliasMappingStore(): KeyValueStoreClient | undefined {
+        return this.config?.isAtHome ? this.client.keyValueStore(this.config.defaultKeyValueStoreId) : undefined;
     }
 
     /** Looks an alias up in the Actor's schema storages (the `ACTOR_STORAGES_JSON` env var). */
