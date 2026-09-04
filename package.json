@@ -77,7 +77,7 @@
         "@apify/input_secrets": "^1.2.0",
         "@apify/log": "^2.4.3",
         "@apify/timeout": "^0.4.0",
-        "@apify/utilities": "^2.13.0",
+        "@apify/utilities": "^3.0.0",
         "@crawlee/core": "^3.14.1",
         "@crawlee/types": "^3.14.1",
         "@crawlee/utils": "^3.14.1",
