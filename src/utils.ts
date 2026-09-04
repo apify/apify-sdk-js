@@ -9,17 +9,13 @@ import crawleePkgJson from '@crawlee/core/package.json' with { type: 'json' };
 import apifyClientPkgJson from 'apify-client/package.json' with { type: 'json' };
 import semver from 'semver';
 
-import type { z } from 'zod';
-
-import { parseArgument } from '@apify/validations';
-
-export { ArgumentValidationError } from '@apify/validations';
-
 import { APIFY_ENV_VARS } from '@apify/consts';
 import log from '@apify/log';
 
 // @ts-ignore if we enable resolveJsonModule, we end up with `src` folder in `dist`
 import apifyPkgJson from '../package.json' with { type: 'json' };
+
+export { ArgumentValidationError } from '@apify/validations';
 
 const require = createRequire(import.meta.url);
 
@@ -42,15 +38,6 @@ export function snakeCaseToCamelCase(snakeCaseStr: string): string {
         .split('_')
         .map((part, index) => (index > 0 ? part.charAt(0).toUpperCase() + part.slice(1) : part))
         .join('');
-}
-
-/**
- * Validates `value` against a zod `schema`, returning the parsed value, or
- * throwing an {@link ArgumentValidationError} if it doesn't match.
- * @internal
- */
-export function validate<Schema extends z.ZodType>(schema: Schema, value: unknown): z.infer<Schema> {
-    return parseArgument(value, schema);
 }
 
 /**
