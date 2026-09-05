@@ -89,7 +89,7 @@ export abstract class ApifyRequestQueueBackend implements RequestQueueBackend {
         }
         return {
             id: metadata.id,
-            name: metadata.name,
+            name: metadata.name ?? undefined,
             createdAt: metadata.createdAt,
             modifiedAt: metadata.modifiedAt,
             accessedAt: metadata.accessedAt,

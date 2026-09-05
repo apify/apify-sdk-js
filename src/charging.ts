@@ -184,9 +184,12 @@ export class ChargingManager {
 
         // Load per-event pricing information
         if (pricingInfo?.pricingModel === 'PAY_PER_EVENT') {
-            for (const [eventName, eventPricing] of Object.entries(pricingInfo.pricingPerEvent.actorChargeEvents)) {
+            // The specification marks the event map and its per-event price optional, so an absent
+            // price counts as no charge for that event.
+            const chargeEvents = pricingInfo.pricingPerEvent.actorChargeEvents ?? {};
+            for (const [eventName, eventPricing] of Object.entries(chargeEvents)) {
                 this.pricingInfo[eventName] = {
-                    price: eventPricing.eventPriceUsd,
+                    price: eventPricing.eventPriceUsd ?? 0,
                     title: eventPricing.eventTitle,
                 };
             }

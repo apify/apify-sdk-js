@@ -15,6 +15,7 @@ minimumReleaseAgeExclude:
 onlyBuiltDependencies:
   - '@playwright/browser-chromium'
   - '@swc/core'
+  - apify-client
   - esbuild
   - playwright
   - puppeteer

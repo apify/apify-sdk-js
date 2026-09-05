@@ -83,7 +83,7 @@
         "@crawlee/core": "^4.0.0-rc.0",
         "@crawlee/types": "^4.0.0-rc.0",
         "@crawlee/utils": "^4.0.0-rc.0",
-        "apify-client": "^2.25.0",
+        "apify-client": "github:apify/apify-client-js#feat/openapi-generated-models",
         "minimatch": "^10.2.6",
         "semver": "^7.8.5",
         "tslib": "^2.8.1",
