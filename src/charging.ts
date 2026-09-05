@@ -83,38 +83,37 @@ export function mergeChargeResults(a: ChargeResult, b: ChargeResult): ChargeResu
  * Handles pay-per-event charging.
  */
 export class ChargingManager {
-    private readonly LOCAL_CHARGING_LOG_DATASET_NAME = 'charging_log';
-    private readonly PLATFORM_CHARGING_LOG_DATASET_ID_KEY = 'CHARGING_LOG_DATASET_ID';
+    readonly #LOCAL_CHARGING_LOG_DATASET_NAME = 'charging_log';
+    readonly #PLATFORM_CHARGING_LOG_DATASET_ID_KEY = 'CHARGING_LOG_DATASET_ID';
 
-    private maxTotalChargeUsd: number;
-    private isAtHome: boolean;
-    private actorRunId?: string;
-    private pricingModel?: ActorRunPricingInfo['pricingModel'];
-    private purgeChargingLogDataset: boolean;
-    private useChargingLogDataset: boolean;
-    private notPpeWarningPrinted = false;
+    #maxTotalChargeUsd: number;
+    #isAtHome: boolean;
+    #actorRunId?: string;
+    #pricingModel?: ActorRunPricingInfo['pricingModel'];
+    #purgeChargingLogDataset: boolean;
+    #useChargingLogDataset: boolean;
+    #notPpeWarningPrinted = false;
 
-    private pricingInfo: Record<string, { price: number; title: string }> = {};
-    private chargingState?: Record<string, ChargingStateItem>;
-    private chargingLogDataset?: Dataset;
+    #pricingInfo: Record<string, { price: number; title: string }> = {};
+    #chargingState?: Record<string, ChargingStateItem>;
+    #chargingLogDataset?: Dataset;
 
-    private apifyClient: ApifyClient;
+    #apifyClient: ApifyClient;
+    #configuration: Configuration;
 
-    constructor(
-        private configuration: Configuration,
-        apifyClient: ApifyClient,
-    ) {
-        this.maxTotalChargeUsd = configuration.maxTotalChargeUsd || Infinity; // convert `0` to `Infinity` in case the value is an empty string
-        this.isAtHome = configuration.isAtHome;
-        this.actorRunId = configuration.actorRunId;
-        this.purgeChargingLogDataset = configuration.purgeOnStart;
-        this.useChargingLogDataset = configuration.useChargingLogDataset;
+    constructor(configuration: Configuration, apifyClient: ApifyClient) {
+        this.#configuration = configuration;
+        this.#maxTotalChargeUsd = configuration.maxTotalChargeUsd || Infinity; // convert `0` to `Infinity` in case the value is an empty string
+        this.#isAtHome = configuration.isAtHome;
+        this.#actorRunId = configuration.actorRunId;
+        this.#purgeChargingLogDataset = configuration.purgeOnStart;
+        this.#useChargingLogDataset = configuration.useChargingLogDataset;
 
-        this.apifyClient = apifyClient;
+        this.#apifyClient = apifyClient;
     }
 
     private get isPayPerEvent() {
-        return this.pricingModel === 'PAY_PER_EVENT';
+        return this.#pricingModel === 'PAY_PER_EVENT';
     }
 
     private async fetchPricingInfo(): Promise<{
@@ -122,20 +121,20 @@ export class ChargingManager {
         chargedEventCounts?: Record<string, number>;
         maxTotalChargeUsd: number;
     }> {
-        if (this.configuration.actorPricingInfo && this.configuration.chargedEventCounts) {
+        if (this.#configuration.actorPricingInfo && this.#configuration.chargedEventCounts) {
             return {
-                pricingInfo: JSON.parse(this.configuration.actorPricingInfo) as ActorRunPricingInfo,
-                chargedEventCounts: JSON.parse(this.configuration.chargedEventCounts) as Record<string, number>,
-                maxTotalChargeUsd: this.configuration.maxTotalChargeUsd || Infinity,
+                pricingInfo: JSON.parse(this.#configuration.actorPricingInfo) as ActorRunPricingInfo,
+                chargedEventCounts: JSON.parse(this.#configuration.chargedEventCounts) as Record<string, number>,
+                maxTotalChargeUsd: this.#configuration.maxTotalChargeUsd || Infinity,
             };
         }
 
-        if (this.isAtHome) {
-            if (this.actorRunId === undefined) {
+        if (this.#isAtHome) {
+            if (this.#actorRunId === undefined) {
                 throw new Error('Actor run ID not found even though the Actor is running on Apify');
             }
 
-            const run = await this.apifyClient.run(this.actorRunId).get();
+            const run = await this.#apifyClient.run(this.#actorRunId).get();
             if (run === undefined) {
                 throw new Error('Actor run not found');
             }
@@ -150,7 +149,7 @@ export class ChargingManager {
         return {
             pricingInfo: undefined,
             chargedEventCounts: {},
-            maxTotalChargeUsd: this.configuration.maxTotalChargeUsd || Infinity,
+            maxTotalChargeUsd: this.#configuration.maxTotalChargeUsd || Infinity,
         };
     }
 
@@ -159,14 +158,14 @@ export class ChargingManager {
      */
     async init(): Promise<void> {
         // Validate config - it may have changed since the instantiation
-        if (this.useChargingLogDataset && this.isAtHome) {
+        if (this.#useChargingLogDataset && this.#isAtHome) {
             throw new Error(
                 'Using the ACTOR_USE_CHARGING_LOG_DATASET environment variable is only supported in a local development environment',
             );
         }
 
-        if (this.configuration.testPayPerEvent) {
-            if (this.isAtHome) {
+        if (this.#configuration.testPayPerEvent) {
+            if (this.#isAtHome) {
                 throw new Error(
                     'Using the ACTOR_TEST_PAY_PER_EVENT environment variable is only supported in a local development environment',
                 );
@@ -176,62 +175,62 @@ export class ChargingManager {
         // Retrieve pricing information
         const { pricingInfo, chargedEventCounts, maxTotalChargeUsd } = await this.fetchPricingInfo();
 
-        if (this.configuration.testPayPerEvent) {
-            this.pricingModel = 'PAY_PER_EVENT';
+        if (this.#configuration.testPayPerEvent) {
+            this.#pricingModel = 'PAY_PER_EVENT';
         } else {
-            this.pricingModel ??= pricingInfo?.pricingModel;
+            this.#pricingModel ??= pricingInfo?.pricingModel;
         }
 
         // Load per-event pricing information
         if (pricingInfo?.pricingModel === 'PAY_PER_EVENT') {
             for (const [eventName, eventPricing] of Object.entries(pricingInfo.pricingPerEvent.actorChargeEvents)) {
-                this.pricingInfo[eventName] = {
+                this.#pricingInfo[eventName] = {
                     price: eventPricing.eventPriceUsd,
                     title: eventPricing.eventTitle,
                 };
             }
 
-            this.maxTotalChargeUsd = maxTotalChargeUsd;
+            this.#maxTotalChargeUsd = maxTotalChargeUsd;
         }
 
-        this.chargingState = {};
+        this.#chargingState = {};
 
         for (const [eventName, chargeCount] of Object.entries(chargedEventCounts ?? {})) {
-            this.chargingState[eventName] = {
+            this.#chargingState[eventName] = {
                 chargeCount,
-                totalChargedAmount: chargeCount * (this.pricingInfo[eventName]?.price ?? 0),
+                totalChargedAmount: chargeCount * (this.#pricingInfo[eventName]?.price ?? 0),
             };
         }
 
-        if (!this.isPayPerEvent || !this.useChargingLogDataset) {
+        if (!this.isPayPerEvent || !this.#useChargingLogDataset) {
             return;
         }
 
         // Set up charging log dataset
-        if (this.isAtHome) {
+        if (this.#isAtHome) {
             const datasetId = await this.ensureChargingLogDatasetOnPlatform();
 
-            this.chargingLogDataset = await Dataset.open(datasetId);
+            this.#chargingLogDataset = await Dataset.open(datasetId);
         } else {
-            if (this.purgeChargingLogDataset) {
-                const dataset = await Dataset.open(this.LOCAL_CHARGING_LOG_DATASET_NAME);
+            if (this.#purgeChargingLogDataset) {
+                const dataset = await Dataset.open(this.#LOCAL_CHARGING_LOG_DATASET_NAME);
                 await dataset.drop();
             }
 
-            this.chargingLogDataset = await Dataset.open(this.LOCAL_CHARGING_LOG_DATASET_NAME);
+            this.#chargingLogDataset = await Dataset.open(this.#LOCAL_CHARGING_LOG_DATASET_NAME);
         }
     }
 
     private async ensureChargingLogDatasetOnPlatform(): Promise<string> {
         const defaultStore = await KeyValueStore.open();
 
-        const storedDatasetId = await defaultStore.getValue<string>(this.PLATFORM_CHARGING_LOG_DATASET_ID_KEY);
+        const storedDatasetId = await defaultStore.getValue<string>(this.#PLATFORM_CHARGING_LOG_DATASET_ID_KEY);
         if (storedDatasetId !== null) {
             return storedDatasetId;
         }
 
-        const dataset = await this.apifyClient.datasets().getOrCreate();
-        await defaultStore.setValue(this.PLATFORM_CHARGING_LOG_DATASET_ID_KEY, dataset.id);
+        const dataset = await this.#apifyClient.datasets().getOrCreate();
+        await defaultStore.setValue(this.#PLATFORM_CHARGING_LOG_DATASET_ID_KEY, dataset.id);
         return dataset.id;
     }
 
@@ -240,23 +239,23 @@ export class ChargingManager {
      * {@link ChargingManager.getPricingInfo}) require an initialized manager.
      */
     get isInitialized(): boolean {
-        return this.chargingState !== undefined;
+        return this.#chargingState !== undefined;
     }
 
     /**
      * Get information about the pricing for this Actor.
      */
     getPricingInfo(): ActorPricingInfo {
-        if (this.chargingState === undefined) {
+        if (this.#chargingState === undefined) {
             throw new Error('ChargingManager is not initialized');
         }
 
         return {
-            pricingModel: this.pricingModel,
+            pricingModel: this.#pricingModel,
             isPayPerEvent: this.isPayPerEvent,
-            maxTotalChargeUsd: this.maxTotalChargeUsd,
+            maxTotalChargeUsd: this.#maxTotalChargeUsd,
             perEventPrices: Object.fromEntries(
-                Object.entries(this.pricingInfo).map(([eventName, { price }]) => [eventName, price]),
+                Object.entries(this.#pricingInfo).map(([eventName, { price }]) => [eventName, price]),
             ),
         };
     }
@@ -280,15 +279,18 @@ export class ChargingManager {
     async charge({ eventName, count = 1 }: ChargeOptions): Promise<ChargeResult> {
         const calculateChargeableWithinLimit = () =>
             Object.fromEntries(
-                Object.keys(this.pricingInfo).map((name) => [name, this.calculateMaxEventChargeCountWithinLimit(name)]),
+                Object.keys(this.#pricingInfo).map((name) => [
+                    name,
+                    this.calculateMaxEventChargeCountWithinLimit(name),
+                ]),
             );
 
         if (!this.isPayPerEvent) {
-            if (!this.notPpeWarningPrinted) {
+            if (!this.#notPpeWarningPrinted) {
                 log.warning(
                     'Ignored attempt to charge for an event - the Actor does not use the pay-per-event pricing',
                 );
-                this.notPpeWarningPrinted = true;
+                this.#notPpeWarningPrinted = true;
             }
 
             return {
@@ -298,7 +300,7 @@ export class ChargingManager {
             };
         }
 
-        if (this.chargingState === undefined) {
+        if (this.#chargingState === undefined) {
             throw new Error('ChargingManager is not initialized');
         }
 
@@ -313,7 +315,7 @@ export class ChargingManager {
             // If the caller tries to charge more than the budget allows, overcharge by one event
             // so that the Actor is detected by the platform and terminated.
             // But don't do this if already strictly over the budget - no point piling on charges.
-            if (this.calculateTotalChargedAmount() <= this.maxTotalChargeUsd) {
+            if (this.calculateTotalChargedAmount() <= this.#maxTotalChargeUsd) {
                 return maxEventChargeCount + 1;
             }
 
@@ -328,26 +330,26 @@ export class ChargingManager {
             };
         }
 
-        const pricingInfo = this.pricingInfo[eventName] ?? {
-            price: this.isAtHome ? 0 : 1, // Use a nonzero price for local development so that the maximum budget can be reached
+        const pricingInfo = this.#pricingInfo[eventName] ?? {
+            price: this.#isAtHome ? 0 : 1, // Use a nonzero price for local development so that the maximum budget can be reached
             title: `Unknown event '${eventName}'`,
         };
 
-        this.chargingState[eventName] ??= {
+        this.#chargingState[eventName] ??= {
             chargeCount: 0,
             totalChargedAmount: 0,
         };
-        this.chargingState[eventName].chargeCount += chargedCount;
-        this.chargingState[eventName].totalChargedAmount += chargedCount * pricingInfo.price;
+        this.#chargingState[eventName].chargeCount += chargedCount;
+        this.#chargingState[eventName].totalChargedAmount += chargedCount * pricingInfo.price;
 
         /* END OF CRITICAL SECTION */
 
-        if (this.isAtHome) {
+        if (this.#isAtHome) {
             if (eventName.startsWith('apify-')) {
                 // Synthetic events (e.g. apify-default-dataset-item) are tracked locally only,
                 // the platform handles them automatically based on dataset writes.
-            } else if (this.pricingInfo[eventName] !== undefined) {
-                await this.apifyClient.run(this.actorRunId!).charge({ eventName, count: chargedCount });
+            } else if (this.#pricingInfo[eventName] !== undefined) {
+                await this.#apifyClient.run(this.#actorRunId!).charge({ eventName, count: chargedCount });
             } else {
                 log.warning(`Attempting to charge for an unknown event '${eventName}'`);
             }
@@ -355,8 +357,8 @@ export class ChargingManager {
 
         const timestamp = new Date().toISOString();
 
-        if (this.chargingLogDataset !== undefined) {
-            await this.chargingLogDataset.pushData({
+        if (this.#chargingLogDataset !== undefined) {
+            await this.#chargingLogDataset.pushData({
                 eventName,
                 eventTitle: pricingInfo.title,
                 eventPriceUsd: pricingInfo.price,
@@ -383,30 +385,30 @@ export class ChargingManager {
      * Get the number of events with given name that the Actor has charged for so far.
      */
     getChargedEventCount(eventName: string): number {
-        if (this.chargingState === undefined) {
+        if (this.#chargingState === undefined) {
             throw new Error('ChargingManager is not initialized');
         }
 
-        return this.chargingState[eventName]?.chargeCount ?? 0;
+        return this.#chargingState[eventName]?.chargeCount ?? 0;
     }
 
     /**
      * Get the maximum amount of money that the Actor is allowed to charge.
      */
     getMaxTotalChargeUsd(): number {
-        if (this.chargingState === undefined) {
+        if (this.#chargingState === undefined) {
             throw new Error('ChargingManager is not initialized');
         }
 
-        return this.maxTotalChargeUsd;
+        return this.#maxTotalChargeUsd;
     }
 
     private calculateTotalChargedAmount(): number {
-        if (this.chargingState === undefined) {
+        if (this.#chargingState === undefined) {
             throw new Error('ChargingManager is not initialized');
         }
 
-        const result = Object.values(this.chargingState)
+        const result = Object.values(this.#chargingState)
             .map(({ totalChargedAmount }) => totalChargedAmount)
             .reduce((sum, inc) => sum + inc, 0);
 
@@ -419,7 +421,7 @@ export class ChargingManager {
      * If the event is not registered, returns Infinity (free of charge)
      */
     calculateMaxEventChargeCountWithinLimit(eventName: string): number {
-        if (this.chargingState === undefined) {
+        if (this.#chargingState === undefined) {
             throw new Error('ChargingManager is not initialized');
         }
 
@@ -433,12 +435,12 @@ export class ChargingManager {
     }
 
     private calculateEventPrice(eventName: string): number | undefined {
-        return this.isAtHome ? this.pricingInfo[eventName]?.price : 1; // Use a nonzero price for local development so that the maximum budget can be reached
+        return this.#isAtHome ? this.#pricingInfo[eventName]?.price : 1; // Use a nonzero price for local development so that the maximum budget can be reached
     }
 
     private calculateMaxChargesByPrice(price: number): number {
         // The raw number of events allowed by the budget
-        const unroundedResult = (this.maxTotalChargeUsd - this.calculateTotalChargedAmount()) / price;
+        const unroundedResult = (this.#maxTotalChargeUsd - this.calculateTotalChargedAmount()) / price;
 
         // First round as Math.floor(4.9999999999999999) will incorrectly return 5
         const roundedResult = Math.floor(Number(unroundedResult.toFixed(4)));
@@ -459,7 +461,7 @@ export class ChargingManager {
         eventName: string | undefined;
         isDefaultDataset: boolean;
     }): { limitedItems: T[]; eventsToCharge: Record<string, number> } {
-        if (this.chargingState === undefined) {
+        if (this.#chargingState === undefined) {
             throw new Error('ChargingManager is not initialized');
         }
 
@@ -489,7 +491,7 @@ export class ChargingManager {
             if (
                 itemsArray.length > 0 &&
                 maxChargedCount === 0 &&
-                this.calculateTotalChargedAmount() <= this.maxTotalChargeUsd
+                this.calculateTotalChargedAmount() <= this.#maxTotalChargeUsd
             ) {
                 return 1;
             }

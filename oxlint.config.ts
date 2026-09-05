@@ -7,6 +7,7 @@ export default defineConfig({
         'typescript/ban-ts-comment': 'off',
         'no-param-reassign': 'off',
         'no-void': 'off',
+        'no-underscore-dangle': ['error', { enforceInClassFields: true, enforceInMethodNames: true }],
     },
     overrides: [
         {
@@ -20,6 +21,7 @@ export default defineConfig({
             files: ['test/**'],
             rules: {
                 'no-console': 'off',
+                'no-underscore-dangle': 'off',
                 'no-useless-constructor': 'off',
                 'typescript/no-empty-function': 'off',
                 'typescript/no-unused-vars': 'off',

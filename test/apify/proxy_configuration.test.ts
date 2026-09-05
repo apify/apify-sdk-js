@@ -24,7 +24,7 @@ const apifyProxyUrlPattern =
     /^http:\/\/groups-GROUP1\+GROUP2,session-[A-Za-z0-9]+,country-CZ:test12345@proxy\.apify\.com:8000$/;
 
 // The proxy status check is a `node:http` request through the proxy, encapsulated
-// in `_requestStatus(statusUrl, proxyUrl)`. Spy on it to stub the status response
+// in `requestStatus(statusUrl, proxyUrl)`. Spy on it to stub the status response
 // and to assert the (session/groups/country) proxy URL the request is routed
 // through — without touching the network.
 //
@@ -35,7 +35,7 @@ const apifyProxyUrlPattern =
 let requestStatusSpy: MockInstance;
 
 beforeEach(() => {
-    requestStatusSpy = vitest.spyOn(ProxyConfiguration.prototype as never, '_requestStatus');
+    requestStatusSpy = vitest.spyOn(ProxyConfiguration.prototype as never, 'requestStatus');
     requestStatusSpy.mockRejectedValue(new Error('Proxy status unavailable in tests'));
 });
 
@@ -48,20 +48,16 @@ afterEach(() => {
 });
 
 describe('ProxyConfiguration', () => {
-    test('should accept all options', () => {
+    test('should accept all options', async () => {
         const proxyConfiguration = new ProxyConfiguration(basicOpts);
 
         expect(proxyConfiguration).toBeInstanceOf(ProxyConfiguration);
-        // @ts-expect-error private property
-        expect(proxyConfiguration.groups).toBe(groups);
-        // @ts-expect-error private property
-        expect(proxyConfiguration.countryCode).toBe(countryCode);
-        // @ts-expect-error private property
-        expect(proxyConfiguration.password).toBe(password);
-        // @ts-expect-error private property
-        expect(proxyConfiguration.hostname).toBe(hostname);
-        // @ts-expect-error private property
-        expect(proxyConfiguration.port).toBe(port);
+        const info = (await proxyConfiguration.newProxyInfo())!;
+        expect(info.groups).toBe(groups);
+        expect(info.countryCode).toBe(countryCode);
+        expect(info.password).toBe(password);
+        expect(info.hostname).toBe(hostname);
+        expect(info.port).toBe(String(port));
     });
 
     test('newUrl() returns an Apify Proxy URL with a random session id', async () => {
@@ -103,7 +99,7 @@ describe('ProxyConfiguration', () => {
         });
     });
 
-    test('actor UI input schema should work', () => {
+    test('actor UI input schema should work', async () => {
         const apifyProxyGroups = ['GROUP1', 'GROUP2'];
         const apifyProxyCountry = 'CZ';
 
@@ -114,10 +110,9 @@ describe('ProxyConfiguration', () => {
 
         const proxyConfiguration = new ProxyConfiguration(input);
 
-        // @ts-expect-error
-        expect(proxyConfiguration.groups).toStrictEqual(apifyProxyGroups);
-        // @ts-expect-error
-        expect(proxyConfiguration.countryCode).toStrictEqual(apifyProxyCountry);
+        const info = (await proxyConfiguration.newProxyInfo())!;
+        expect(info.groups).toStrictEqual(apifyProxyGroups);
+        expect(info.countryCode).toStrictEqual(apifyProxyCountry);
     });
 
     describe('subdivisionCode', () => {
@@ -134,7 +129,7 @@ describe('ProxyConfiguration', () => {
             expect(info.username).toMatch(/^groups-GROUP1\+GROUP2,session-[A-Za-z0-9]+,country-US_CA$/);
         });
 
-        test('can be supplied via the apifyProxySubdivision alias', () => {
+        test('can be supplied via the apifyProxySubdivision alias', async () => {
             const proxyConfiguration = new ProxyConfiguration({
                 groups,
                 apifyProxyCountry: 'US',
@@ -142,8 +137,7 @@ describe('ProxyConfiguration', () => {
                 password,
             });
 
-            // @ts-expect-error private
-            expect(proxyConfiguration.subdivisionCode).toBe('TX');
+            expect((await proxyConfiguration.newProxyInfo())!.subdivisionCode).toBe('TX');
         });
 
         test('requires countryCode to be set', () => {
@@ -418,16 +412,12 @@ describe('Actor.createProxyConfiguration()', () => {
         const proxyConfiguration = await Actor.createProxyConfiguration(basicOpts);
 
         expect(proxyConfiguration).toBeInstanceOf(ProxyConfiguration);
-        // @ts-expect-error private property
-        expect(proxyConfiguration.groups).toBe(groups);
-        // @ts-expect-error private property
-        expect(proxyConfiguration.countryCode).toBe(countryCode);
-        // @ts-expect-error private property
-        expect(proxyConfiguration.password).toBe(password);
-        // @ts-expect-error private property
-        expect(proxyConfiguration.hostname).toBe(hostname);
-        // @ts-expect-error private property
-        expect(proxyConfiguration.port).toBe(port);
+        const info = (await proxyConfiguration!.newProxyInfo())!;
+        expect(info.groups).toBe(groups);
+        expect(info.countryCode).toBe(countryCode);
+        expect(info.password).toBe(password);
+        expect(info.hostname).toBe(hostname);
+        expect(info.port).toBe(String(port));
 
         // The status endpoint is fetched through a proxy whose URL carries the
         // groups/country/session built from the options.
@@ -459,14 +449,13 @@ describe('Actor.createProxyConfiguration()', () => {
         const proxyConfiguration = await Actor.createProxyConfiguration(opts);
 
         expect(proxyConfiguration).toBeInstanceOf(ProxyConfiguration);
-        // @ts-expect-error private property
-        expect(proxyConfiguration.groups).toBe(groups);
-        // @ts-expect-error private property
-        expect(proxyConfiguration.countryCode).toBe(countryCode);
-        // @ts-expect-error private property
-        expect(proxyConfiguration.hostname).toBe(hostname);
-        // @ts-expect-error private property
-        expect(proxyConfiguration.port).toBe(port);
+        const info = (await proxyConfiguration!.newProxyInfo())!;
+        expect(info.groups).toBe(groups);
+        expect(info.countryCode).toBe(countryCode);
+        expect(info.hostname).toBe(hostname);
+        expect(info.port).toBe(String(port));
+        // The password was fetched from the API via the token.
+        expect(info.password).toBe(password);
 
         getUserSpy.mockRestore();
     });
