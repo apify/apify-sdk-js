@@ -13,6 +13,7 @@ import CodeBlock from '@theme/CodeBlock';
 
 import MainSource from '!!raw-loader!./apify_platform_main.ts';
 import InitExitSource from '!!raw-loader!./apify_platform_init_exit.ts';
+import StatusMessageSource from '!!raw-loader!./code/status_message.ts';
 
 [Apify](https://apify.com) is a platform built to serve large-scale and high-performance web scraping
 and automation needs. It provides easy access to compute instances (_Actors_),
@@ -241,6 +242,18 @@ When the <ApiLink to="class/Dataset">`Dataset`</ApiLink> is stored on the [Apify
 - [Key-value stores API reference](https://apify.com/docs/api/v2#/reference/key-value-stores)
 - [Datasets API reference](https://docs.apify.com/api/v2#/reference/datasets)
 - [Request queues API reference](https://docs.apify.com/api/v2#/reference/request-queues)
+
+## Status messages
+
+[Status messages](https://docs.apify.com//platform/actors/development/programming-interface/status-messages) are lightweight, human-readable progress indicators displayed with the Actor run in the Apify Console (separate from logs). Use them to communicate high-level phases or milestones, such as "Fetching list", "Processed 120/500 pages", or "Uploading results".
+
+Update the status only when the user's understanding of progress changes - avoid frequent updates for every processed item. Detailed information should go to logs or storages (Dataset, Key-value store) instead.
+
+Use <ApiLink to="class/Actor#setStatusMessage">`Actor.setStatusMessage()`</ApiLink> to set the message:
+
+<CodeBlock language="js">{StatusMessageSource}</CodeBlock>
+
+The SDK only sends an API request when the message text changes, so repeating the same message incurs no additional cost.
 
 ## Environment variables
 
