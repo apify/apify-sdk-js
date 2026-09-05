@@ -2190,8 +2190,17 @@ export class Actor<Data extends Dictionary = Dictionary> {
 
     /**
      * Returns `true` when code is running on Apify platform and `false` otherwise (for example locally).
+     *
+     * @deprecated Use {@link isRunningOnApify} instead.
      */
     static isAtHome(): boolean {
+        return Actor.getDefaultInstance().isAtHome();
+    }
+
+    /**
+     * Returns `true` when code is running on the Apify platform and `false` otherwise (for example locally).
+     */
+    static isRunningOnApify(): boolean {
         return Actor.getDefaultInstance().isAtHome();
     }
 
