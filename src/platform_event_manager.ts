@@ -46,7 +46,7 @@ import { Configuration } from './configuration.js';
  */
 export class PlatformEventManager extends EventManager {
     /** Websocket connection to Actor events. */
-    private eventsWs?: WebSocket;
+    #eventsWs?: WebSocket;
 
     constructor(readonly configuration = Configuration.getGlobalConfiguration()) {
         super({
@@ -78,8 +78,8 @@ export class PlatformEventManager extends EventManager {
     }
 
     private createWebSocketConnection(eventsWsUrl: string) {
-        this.eventsWs = new WebSocket(eventsWsUrl);
-        this.eventsWs.on('message', (message) => {
+        this.#eventsWs = new WebSocket(eventsWsUrl);
+        this.#eventsWs.on('message', (message) => {
             if (!message) return;
 
             try {
@@ -96,15 +96,15 @@ export class PlatformEventManager extends EventManager {
                 this.log.exception(err as Error, 'Cannot parse Actor event');
             }
         });
-        this.eventsWs.on('error', (err) => {
+        this.#eventsWs.on('error', (err) => {
             // Don't print this error as this happens in the case of very short Actor.main().
             if (err.message === 'WebSocket was closed before the connection was established') return;
 
             this.log.exception(err, 'web socket connection failed');
         });
-        this.eventsWs.on('close', () => {
+        this.#eventsWs.on('close', () => {
             this.log.debug('web socket has been closed');
-            this.eventsWs = undefined;
+            this.#eventsWs = undefined;
         });
     }
 
@@ -119,6 +119,6 @@ export class PlatformEventManager extends EventManager {
         }
 
         await super.close();
-        this.eventsWs?.close();
+        this.#eventsWs?.close();
     }
 }

@@ -18,10 +18,14 @@ const MAX_ITEM_BYTES = EFFECTIVE_LIMIT_BYTES - 2;
  * @internal
  */
 export class ApifyDatasetBackend implements DatasetBackend {
-    constructor(private readonly client: DatasetClient) {}
+    readonly #client: DatasetClient;
+
+    constructor(client: DatasetClient) {
+        this.#client = client;
+    }
 
     async getMetadata(): Promise<DatasetInfo> {
-        const metadata = await this.client.get();
+        const metadata = await this.#client.get();
         if (!metadata) {
             throw new Error('Dataset not found or has been deleted.');
         }
@@ -29,7 +33,7 @@ export class ApifyDatasetBackend implements DatasetBackend {
     }
 
     async drop(): Promise<void> {
-        await this.client.delete();
+        await this.#client.delete();
     }
 
     async purge(): Promise<void> {
@@ -44,12 +48,12 @@ export class ApifyDatasetBackend implements DatasetBackend {
         // that fit, pushed sequentially to preserve item order.
         const payloads = items.map((item, index) => serializeToSizeLimit(item, index));
         for (const chunk of chunkBySize(payloads, EFFECTIVE_LIMIT_BYTES)) {
-            await this.client.pushItems(chunk);
+            await this.#client.pushItems(chunk);
         }
     }
 
     async getData(options?: DatasetBackendListOptions): Promise<PaginatedList<Dictionary>> {
-        return await this.client.listItems(options);
+        return await this.#client.listItems(options);
     }
 }
 

@@ -10,7 +10,8 @@ import { Actor, Configuration } from 'apify';
  * cached instance is dropped. Three caches need clearing for that to work
  * end-to-end:
  *
- * - `Actor._instance` — lazy default `Actor` created by `Actor.getDefaultInstance()`.
+ * - The cached default `Actor` created by `Actor.getDefaultInstance()`, dropped via
+ *   `Actor.setDefaultInstance()`.
  * - `Configuration.globalConfig` — the SDK's own static singleton (its
  *   Apify-typed default fallback for `getGlobalConfiguration()`).
  * - `serviceLocator` — crawlee's cache for `Configuration` / `EventManager` /
@@ -20,9 +21,8 @@ import { Actor, Configuration } from 'apify';
  * per-instance. Kept in the test tree so it doesn't pollute the public SDK
  * surface.
  */
-/* eslint-disable no-underscore-dangle */
 export function resetGlobalState(): void {
-    delete (Actor as { _instance?: Actor })._instance;
+    Actor.setDefaultInstance();
     delete (Configuration as unknown as { globalConfig?: Configuration }).globalConfig;
     serviceLocator.reset();
 }

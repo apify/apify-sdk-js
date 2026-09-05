@@ -46,26 +46,26 @@ const INIT_CACHES_REQUEST_LIMIT = 10_000;
  */
 export class ApifyRequestQueueSingleBackend extends ApifyRequestQueueBackend {
     /** Local estimate of the queue head — request ids in the order they should be fetched. */
-    private readonly headIds: string[] = [];
+    readonly #headIds: string[] = [];
 
     /** Unhandled full request objects added by (or fetched through) this client, keyed by id. */
-    private readonly cachedRequests = new LruCache<UpdateRequestSchema>({ maxLength: MAX_CACHED_REQUESTS });
+    readonly #cachedRequests = new LruCache<UpdateRequestSchema>({ maxLength: MAX_CACHED_REQUESTS });
 
     /** Ids of requests known to be already handled — cheap dedup without caching full objects. */
-    private readonly handledIds = new Set<string>();
+    readonly #handledIds = new Set<string>();
 
     /** Ids of requests currently being processed by this client. */
-    private readonly inProgressIds = new Set<string>();
+    readonly #inProgressIds = new Set<string>();
 
     /** Memoized one-time prefetch of existing queue contents into the local caches. */
-    private initCachesPromise?: Promise<void>;
+    #initCachesPromise?: Promise<void>;
 
     async addBatchOfRequests(
         requests: RequestSchema[],
         options: RequestQueueOperationOptions = {},
     ): Promise<BatchAddRequestsResult> {
         const { forefront = false } = options;
-        await (this.initCachesPromise ??= this.initCaches());
+        await (this.#initCachesPromise ??= this.initCaches());
 
         // Split the batch into requests we already know about (dedup them locally — a platform
         // write costs an API call and a paid write operation) and genuinely new ones.
@@ -73,14 +73,14 @@ export class ApifyRequestQueueSingleBackend extends ApifyRequestQueueBackend {
         const newRequests: RequestSchema[] = [];
         for (const request of requests) {
             const id = this.requestIdFromUniqueKey(request.uniqueKey);
-            if (this.handledIds.has(id)) {
+            if (this.#handledIds.has(id)) {
                 alreadyPresent.push({
                     requestId: id,
                     uniqueKey: request.uniqueKey,
                     wasAlreadyPresent: true,
                     wasAlreadyHandled: true,
                 });
-            } else if (this.cachedRequests.get(id)) {
+            } else if (this.#cachedRequests.get(id)) {
                 alreadyPresent.push({
                     requestId: id,
                     uniqueKey: request.uniqueKey,
@@ -107,14 +107,14 @@ export class ApifyRequestQueueSingleBackend extends ApifyRequestQueueBackend {
                 const processed = processedByKey.get(request.uniqueKey);
                 if (!processed) continue; // rejected by the platform, reported in `unprocessedRequests`
                 if (processed.wasAlreadyHandled) {
-                    this.handledIds.add(processed.requestId);
+                    this.#handledIds.add(processed.requestId);
                     continue;
                 }
                 this.cacheRequest({ ...request, id: processed.requestId });
                 if (forefront) {
-                    this.headIds.unshift(processed.requestId);
+                    this.#headIds.unshift(processed.requestId);
                 } else {
-                    this.headIds.push(processed.requestId);
+                    this.#headIds.push(processed.requestId);
                 }
             }
         }
@@ -126,16 +126,16 @@ export class ApifyRequestQueueSingleBackend extends ApifyRequestQueueBackend {
 
     async getRequest(uniqueKey: string): Promise<UpdateRequestSchema | undefined> {
         const id = this.requestIdFromUniqueKey(uniqueKey);
-        const cached = this.cachedRequests.get(id);
+        const cached = this.#cachedRequests.get(id);
         if (cached) return cached;
 
         const request = await this.getRequestById(id);
         if (!request) return undefined;
 
         // Requests already in progress are ones the client knows about — no caching needed.
-        if (!this.inProgressIds.has(id)) {
+        if (!this.#inProgressIds.has(id)) {
             if (request.handledAt) {
-                this.handledIds.add(id);
+                this.#handledIds.add(id);
             } else {
                 this.cacheRequest(request);
             }
@@ -146,24 +146,24 @@ export class ApifyRequestQueueSingleBackend extends ApifyRequestQueueBackend {
     async fetchNextRequest(): Promise<UpdateRequestSchema | undefined> {
         await this.ensureHeadIsNonEmpty();
 
-        while (this.headIds.length > 0) {
-            const id = this.headIds.shift()!;
-            if (this.inProgressIds.has(id) || this.handledIds.has(id)) {
+        while (this.#headIds.length > 0) {
+            const id = this.#headIds.shift()!;
+            if (this.#inProgressIds.has(id) || this.#handledIds.has(id)) {
                 continue;
             }
-            this.inProgressIds.add(id);
+            this.#inProgressIds.add(id);
             // Requests added by this client are served straight from the cache; only requests
             // discovered via `listHead` (added by another producer) need a round-trip.
-            const request = this.cachedRequests.get(id) ?? (await this.getRequestById(id));
+            const request = this.#cachedRequests.get(id) ?? (await this.getRequestById(id));
             if (!request) {
-                this.inProgressIds.delete(id);
+                this.#inProgressIds.delete(id);
                 continue;
             }
             if (request.handledAt) {
                 // Handled elsewhere in the meantime — skip it and remember the outcome.
-                this.inProgressIds.delete(id);
-                this.handledIds.add(id);
-                this.cachedRequests.remove(id);
+                this.#inProgressIds.delete(id);
+                this.#handledIds.add(id);
+                this.#cachedRequests.remove(id);
                 continue;
             }
             return request;
@@ -176,16 +176,16 @@ export class ApifyRequestQueueSingleBackend extends ApifyRequestQueueBackend {
         // Contract: marking a request that does not exist in the queue is a no-op — it must not be
         // added as a side effect (the platform update endpoint would upsert it).
         if (!(await this.isKnownOrExists(id))) {
-            this.inProgressIds.delete(id);
+            this.#inProgressIds.delete(id);
             return undefined;
         }
 
         const handledAt = request.handledAt ?? new Date().toISOString();
         const info = await this.updateRequestOnPlatform({ ...request, id, handledAt });
 
-        this.inProgressIds.delete(id);
-        this.handledIds.add(id);
-        this.cachedRequests.remove(id);
+        this.#inProgressIds.delete(id);
+        this.#handledIds.add(id);
+        this.#cachedRequests.remove(id);
         if (!info.wasAlreadyHandled) {
             this.estimatedHandledRequestCount += 1;
         }
@@ -200,7 +200,7 @@ export class ApifyRequestQueueSingleBackend extends ApifyRequestQueueBackend {
         const id = this.requestIdFromUniqueKey(request.uniqueKey);
         // Same contract as `markRequestAsHandled` — never insert as a side effect.
         if (!(await this.isKnownOrExists(id))) {
-            this.inProgressIds.delete(id);
+            this.#inProgressIds.delete(id);
             return undefined;
         }
 
@@ -208,17 +208,17 @@ export class ApifyRequestQueueSingleBackend extends ApifyRequestQueueBackend {
         const reclaimed: UpdateRequestSchema = { ...request, id, handledAt: undefined };
         const info = await this.updateRequestOnPlatform(reclaimed, forefront);
 
-        this.inProgressIds.delete(id);
-        this.handledIds.delete(id);
+        this.#inProgressIds.delete(id);
+        this.#handledIds.delete(id);
         this.cacheRequest(reclaimed);
         // Return the id to the local head estimate right away — the platform head read can lag a
         // few seconds behind the update, and `isFinished` must never report `true` while a
         // reclaimed request is still waiting to be reprocessed.
-        if (!this.headIds.includes(id)) {
+        if (!this.#headIds.includes(id)) {
             if (forefront) {
-                this.headIds.unshift(id);
+                this.#headIds.unshift(id);
             } else {
-                this.headIds.push(id);
+                this.#headIds.push(id);
             }
         }
         if (info.wasAlreadyHandled) {
@@ -229,31 +229,31 @@ export class ApifyRequestQueueSingleBackend extends ApifyRequestQueueBackend {
 
     async isEmpty(): Promise<boolean> {
         await this.ensureHeadIsNonEmpty();
-        return this.headIds.length === 0;
+        return this.#headIds.length === 0;
     }
 
     async isFinished(): Promise<boolean> {
-        return (await this.isEmpty()) && this.inProgressIds.size === 0;
+        return (await this.isEmpty()) && this.#inProgressIds.size === 0;
     }
 
     private async ensureHeadIsNonEmpty(): Promise<void> {
-        if (this.headIds.length <= 1) {
+        if (this.#headIds.length <= 1) {
             await this.listHead();
         }
     }
 
     private async listHead(): Promise<void> {
         // The head read returns in-progress requests too, so fetch enough to find new ones.
-        const limit = Math.min(MAX_HEAD_ITEMS, DESIRED_NEW_HEAD_ITEMS + this.inProgressIds.size);
+        const limit = Math.min(MAX_HEAD_ITEMS, DESIRED_NEW_HEAD_ITEMS + this.#inProgressIds.size);
         const head = await this.client.listHead({ limit });
         for (const item of head.items) {
-            if (this.inProgressIds.has(item.id) || this.handledIds.has(item.id)) {
+            if (this.#inProgressIds.has(item.id) || this.#handledIds.has(item.id)) {
                 continue;
             }
             // `headIds` is nearly drained whenever this runs (see `ensureHeadIsNonEmpty`), so the
             // linear dedup scan stays cheap.
-            if (!this.headIds.includes(item.id)) {
-                this.headIds.push(item.id);
+            if (!this.#headIds.includes(item.id)) {
+                this.#headIds.push(item.id);
             }
         }
     }
@@ -268,7 +268,7 @@ export class ApifyRequestQueueSingleBackend extends ApifyRequestQueueBackend {
             const response = await this.client.listRequests({ limit: INIT_CACHES_REQUEST_LIMIT });
             for (const request of response.items) {
                 if (request.handledAt) {
-                    this.handledIds.add(request.id);
+                    this.#handledIds.add(request.id);
                 } else {
                     this.cacheRequest(request as unknown as UpdateRequestSchema);
                 }
@@ -283,7 +283,7 @@ export class ApifyRequestQueueSingleBackend extends ApifyRequestQueueBackend {
     }
 
     private async isKnownOrExists(id: string): Promise<boolean> {
-        if (this.inProgressIds.has(id) || this.handledIds.has(id) || this.cachedRequests.get(id)) {
+        if (this.#inProgressIds.has(id) || this.#handledIds.has(id) || this.#cachedRequests.get(id)) {
             return true;
         }
         return (await this.getRequestById(id)) !== undefined;
@@ -291,7 +291,7 @@ export class ApifyRequestQueueSingleBackend extends ApifyRequestQueueBackend {
 
     private cacheRequest(request: UpdateRequestSchema): void {
         // `LruCache.add` does not overwrite existing entries, so remove first.
-        this.cachedRequests.remove(request.id);
-        this.cachedRequests.add(request.id, request);
+        this.#cachedRequests.remove(request.id);
+        this.#cachedRequests.add(request.id, request);
     }
 }
