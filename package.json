@@ -74,12 +74,12 @@
     "dependencies": {
         "@apify/consts": "^3.0.1",
         "@apify/datastructures": "^3.0.1",
-        "@apify/input_secrets": "^2.0.1",
+        "@apify/input_secrets": "^2.0.3",
         "@apify/log": "^3.0.1",
         "@apify/pseudo_url": "^3.0.1",
         "@apify/timeout": "^1.0.1",
         "@apify/utilities": "^3.0.1",
-        "@apify/validations": "^1.0.1",
+        "@apify/validations": "^1.1.0",
         "@crawlee/core": "^4.0.0-rc.0",
         "@crawlee/types": "^4.0.0-rc.0",
         "@crawlee/utils": "^4.0.0-rc.0",
@@ -88,7 +88,7 @@
         "semver": "^7.8.5",
         "tslib": "^2.8.1",
         "ws": "^8.21.3",
-        "zod": "^4.4.3"
+        "zod": "^4.5.4"
     },
     "devDependencies": {
         "@apify/oxlint-config": "^0.3.0",
