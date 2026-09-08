@@ -24,6 +24,11 @@ export interface ChargeOptions {
      * @default 1
      */
     count?: number;
+
+    /**
+     * An idempotency key to prevent multiple unintended charges.
+     */
+    idempotencyKey?: string;
 }
 
 export interface ChargeResult {
@@ -277,7 +282,7 @@ export class ChargingManager {
      *
      * @param options The name of the event to charge for and the number of events to be charged.
      */
-    async charge({ eventName, count = 1 }: ChargeOptions): Promise<ChargeResult> {
+    async charge({ eventName, count = 1, idempotencyKey }: ChargeOptions): Promise<ChargeResult> {
         const calculateChargeableWithinLimit = () =>
             Object.fromEntries(
                 Object.keys(this.pricingInfo).map((name) => [name, this.calculateMaxEventChargeCountWithinLimit(name)]),
@@ -347,7 +352,7 @@ export class ChargingManager {
                 // Synthetic events (e.g. apify-default-dataset-item) are tracked locally only,
                 // the platform handles them automatically based on dataset writes.
             } else if (this.pricingInfo[eventName] !== undefined) {
-                await this.apifyClient.run(this.actorRunId!).charge({ eventName, count: chargedCount });
+                await this.apifyClient.run(this.actorRunId!).charge({ eventName, count: chargedCount, idempotencyKey });
             } else {
                 log.warning(`Attempting to charge for an unknown event '${eventName}'`);
             }
