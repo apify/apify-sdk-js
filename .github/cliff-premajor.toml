@@ -1,0 +1,10 @@
+# The `v4` branch has no stable tag of its own - `master` still ships 3.x, and everything
+# published from here is a pre-release of the next major. Hiding the v3 tags leaves git-cliff
+# with no tag to bump, so it falls back to `initial_tag` and `git-cliff-release` resolves
+# pre-release numbers against 4.0.0 instead of the next 3.x patch. Once v4.0.0 is tagged the
+# pattern starts matching it and the base moves on by itself.
+[git]
+tag_pattern = "v4\\.[0-9]+\\."
+
+[bump]
+initial_tag = "v4.0.0"

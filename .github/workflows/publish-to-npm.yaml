@@ -46,9 +46,26 @@ jobs:
             - name: Build module
               run: pnpm build
 
-            - name: Check version consistency and bump pre-release version (pre-release tags only)
+            # Only the pre-release version outputs are used here, so changelog generation and
+            # its GitHub API lookups are dead weight.
+            - name: Resolve pre-release version
+              id: prerelease
               if: ${{ inputs.tag != 'latest' }}
-              run: node ./.github/scripts/before-beta-release.js ${{ inputs.tag }}
+              uses: apify/actions/git-cliff-release@v1.5.0
+              with:
+                  release_type: prerelease
+                  prerelease_id: ${{ inputs.tag == 'rc' && 'rc' || 'beta' }}
+                  prerelease_registry: npm
+                  prerelease_package: apify
+                  add-github-links: false
+                  cliff_config_path: >-
+                      ${{ (inputs.tag == 'next-v4' || inputs.tag == 'rc')
+                      && format('{0}/.github/cliff-premajor.toml', github.workspace)
+                      || 'cliff.toml' }}
+
+            - name: Set pre-release version
+              if: ${{ inputs.tag != 'latest' }}
+              run: pnpm version --no-git-tag-version --allow-same-version ${{ steps.prerelease.outputs.prerelease_version }}
 
             - name: Publish to NPM
               run: pnpm publish --tag ${{ inputs.tag }} --no-git-checks
