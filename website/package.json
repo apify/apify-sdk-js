@@ -1,9 +1,6 @@
 {
     "name": "apify-sdk-website",
     "private": true,
-    "overrides": {
-        "@rspack/core": "2.2.2"
-    },
     "scripts": {
         "examples": "docusaurus-examples",
         "start": "rimraf .docusaurus && CRAWLEE_DOCS_FAST=1 docusaurus start",
