@@ -105,7 +105,7 @@
         "globby": "^16.2.4",
         "husky": "^9.1.7",
         "lint-staged": "^17.5.0",
-        "oxfmt": "0.66.0",
+        "oxfmt": "0.67.0",
         "oxlint": "1.82.0",
         "oxlint-tsgolint": "0.22.0",
         "playwright": "^1.63.0",
