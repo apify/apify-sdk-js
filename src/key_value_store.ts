@@ -16,6 +16,8 @@ export class KeyValueStore extends CoreKeyValueStore {
     /**
      * Returns a URL for the given key that may be used to publicly
      * access the value in the remote key-value store.
+     *
+     * @deprecated Use {@link getRecordPublicUrl} instead.
      */
     override getPublicUrl(key: string): string {
         const config = this.config as Configuration;
@@ -39,6 +41,26 @@ export class KeyValueStore extends CoreKeyValueStore {
         }
 
         return publicUrl.toString();
+    }
+
+    /**
+     * Returns a URL for the given key that may be used to publicly
+     * access the value in the remote key-value store.
+     *
+     * Unlike {@link getPublicUrl}, this method uses the API client to
+     * generate signed URLs for remote stores.
+     */
+    async getRecordPublicUrl(key: string): Promise<string> {
+        const isLocalStore = !(
+            // eslint-disable-next-line dot-notation
+            (this['client'] instanceof RemoteKeyValueStoreClient)
+        );
+
+        if (isLocalStore) {
+            return getPublicUrl.call(this, key);
+        }
+
+        return this['client'].getRecordPublicUrl(key);
     }
 
     /**
