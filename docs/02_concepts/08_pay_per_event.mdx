@@ -60,13 +60,15 @@ The user spending limit for the run is available in your Actor code as the `ACTO
 
 When the charge limit is reached, <ApiLink to="class/Actor#charge">`Actor.charge`</ApiLink> stops charging and <ApiLink to="class/Actor#pushData">`Actor.pushData`</ApiLink> stops pushing data. The platform then aborts the run automatically. However, the run keeps consuming platform resources for a short time before it stops. For details, see [Handle graceful shutdown](https://docs.apify.com/platform/actors/publishing/monetize/pay-per-event#handle-graceful-shutdown).
 
-### Charging inside a request handler
+### Charge inside a request handler
 
-By default, crawlee runs each request handler in a storage transaction: dataset writes are buffered and applied when the handler finishes. Charging for dataset items follows the items, so a push inside a handler is billed at commit, and a handler that throws is retried without being billed for the items it discarded.
+By default, crawlee runs each request handler in a storage transaction: dataset writes are buffered and applied when the handler finishes. Charging for dataset items follows the items. If you push items in a handler, crawlee makes the charge at the commit. If the handler throws an error, crawlee retries the request. Crawlee doesn't charge for the items that it discarded.
 
-<ApiLink to="class/Actor#charge">`Actor.charge`</ApiLink> is not part of the transaction and takes effect immediately. It therefore consumes budget that dataset items buffered by the handler would otherwise be charged for - those items are dropped at commit if the budget no longer covers them.
+<ApiLink to="class/Actor#charge">`Actor.charge`</ApiLink> isn't part of the transaction and takes effect immediately. It therefore consumes budget that dataset items buffered by the handler would otherwise be charged for. If the budget isn't large enough to cover these items, crawlee discards them at the commit.
 
-For the same reason, <ApiLink to="class/Actor#pushData">`Actor.pushData`</ApiLink> with an event name throws inside a transaction: the charge cannot wait for the commit. Either wrap the call in crawlee's `withDirectStorageAccess()` to store and charge right away, accepting that a retried request pushes the items again, or push without an event name and charge separately.
+For the same reason, <ApiLink to="class/Actor#pushData">`Actor.pushData`</ApiLink> with an event name throws inside a transaction: the charge cannot wait for the commit. You have two options:
+- Wrap the call in crawlee's `withDirectStorageAccess()` function. It stores the items and charges immediately. However,  if crawlee retries the request, it pushes the items again.
+- Push the items without an event name. Then, make the charge separately.
 
 ## Test monetization locally
 
