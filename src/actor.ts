@@ -12,6 +12,7 @@ import {
     EventType,
     KeyValueStore,
     purgeDefaultStorages,
+    rejectOperationInTransaction,
     RequestQueue,
     ServiceLocator,
     serviceLocator,
@@ -1140,6 +1141,9 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * **IMPORTANT**: Make sure to use the `await` keyword when calling `pushData()`,
      * otherwise the Actor process might finish before the data are stored!
      *
+     * Inside a crawlee storage transaction, the items are stored - and charged for - at commit time,
+     * so the returned counts are zero and charging for an explicit `eventName` is rejected outright.
+     *
      * @param item Object or array of objects containing data to be stored in the default dataset.
      * The objects must be serializable to JSON and the JSON representation of each object must be smaller than 9MB.
      * @param eventName If provided, the method will attempt to charge for the event for each pushed item.
@@ -1150,6 +1154,14 @@ export class Actor<Data extends Dictionary = Dictionary> {
 
         if (eventName?.startsWith('apify-')) {
             throw new Error(`Cannot charge for synthetic event '${eventName}' manually`);
+        }
+
+        if (eventName !== undefined) {
+            rejectOperationInTransaction(
+                `Actor.pushData() with the event name '${eventName}'`,
+                'the items are stored when the transaction commits, but the charge happens right away, ' +
+                    'so a rolled-back request would be billed for items that were never stored.',
+            );
         }
 
         const dataset = await this.openDataset();
@@ -1968,6 +1980,10 @@ export class Actor<Data extends Dictionary = Dictionary> {
      *
      * **IMPORTANT**: Make sure to use the `await` keyword when calling `pushData()`,
      * otherwise the Actor process might finish before the data are stored!
+     *
+     * Charging is rejected inside a crawlee storage transaction, where the items would only be stored
+     * at commit while the charge happens immediately - use `withDirectStorageAccess()` to opt out of
+     * the transaction, or push without an event name and charge separately.
      *
      * @param item Object or array of objects containing data to be stored in the default dataset.
      * The objects must be serializable to JSON and the JSON representation of each object must be smaller than 9MB.

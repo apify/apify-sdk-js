@@ -1,4 +1,9 @@
-import { MemoryStorageBackend } from '@crawlee/core';
+import {
+    createStorageTransaction,
+    MemoryStorageBackend,
+    withDirectStorageAccess,
+    withStorageTransaction,
+} from '@crawlee/core';
 import { Actor } from 'apify';
 import type { MockInstance } from 'vitest';
 import { afterEach, beforeEach, describe, expect, test } from 'vitest';
@@ -583,6 +588,68 @@ describe('ChargingManager', () => {
             await expect(actor.init({ storage: new MemoryStorageBackend() })).rejects.toThrow(
                 /already registered with crawlee.*Actor\.init\(\{ storage \}\)/s,
             );
+        });
+    });
+
+    describe('storage transactions', () => {
+        test('charges the synthetic event once, at commit, for every push the transaction buffered', async () => {
+            setUpLocalTestEnv({ maxTotalChargeUsd: '10' });
+            await initIsolatedDefaultActor();
+            const chargingManager = Actor.getChargingManager();
+
+            let chargedInsideTransaction: number | undefined;
+
+            await withStorageTransaction(async () => {
+                await Actor.pushData([{ a: 1 }, { b: 2 }]);
+                await Actor.pushData([{ c: 3 }]);
+                chargedInsideTransaction = chargingManager.getChargedEventCount(DEFAULT_DATASET_ITEM_EVENT);
+            });
+
+            expect(chargedInsideTransaction).toBe(0);
+            expect(chargingManager.getChargedEventCount(DEFAULT_DATASET_ITEM_EVENT)).toBe(3);
+        });
+
+        test('charges nothing for a rolled back transaction', async () => {
+            setUpLocalTestEnv({ maxTotalChargeUsd: '10' });
+            await initIsolatedDefaultActor();
+
+            // The shape of a request handler that threw: the crawler rolls its transaction back and
+            // retries the request, which must not pay for the discarded items twice.
+            const transaction = createStorageTransaction();
+            await transaction.run(async () => {
+                await Actor.pushData([{ a: 1 }, { b: 2 }]);
+            });
+            transaction.rollback();
+            transaction.dispose();
+
+            const dataset = await Actor.openDataset();
+            expect((await dataset.getData()).items).toHaveLength(0);
+            expect(Actor.getChargingManager().getChargedEventCount(DEFAULT_DATASET_ITEM_EVENT)).toBe(0);
+        });
+
+        test('rejects pushing with an event name inside a transaction', async () => {
+            setUpLocalTestEnv({ maxTotalChargeUsd: '10' });
+            const { actor } = await initIsolatedDefaultActor();
+
+            await withStorageTransaction(async () => {
+                await expect(actor.pushData([{ a: 1 }], 'my-event')).rejects.toThrow(
+                    /cannot be used inside a storage transaction/,
+                );
+            });
+
+            expect(actor.getChargingManager().getChargedEventCount('my-event')).toBe(0);
+        });
+
+        test('charges for an event name when direct storage access opts out of the transaction', async () => {
+            setUpLocalTestEnv({ maxTotalChargeUsd: '10' });
+            const { actor } = await initIsolatedDefaultActor();
+
+            const result = await withStorageTransaction(async () =>
+                withDirectStorageAccess(async () => actor.pushData([{ a: 1 }, { b: 2 }], 'my-event')),
+            );
+
+            expect(result.chargedCount).toBe(2);
+            expect(actor.getChargingManager().getChargedEventCount(DEFAULT_DATASET_ITEM_EVENT)).toBe(2);
         });
     });
 
