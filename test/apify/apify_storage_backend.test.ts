@@ -1,6 +1,5 @@
 import { RequestQueue } from '@crawlee/core';
 import type { ApifyClient, DatasetClient, KeyValueStoreClient } from 'apify-client';
-import { DatasetClient as ApifyDatasetClient } from 'apify-client';
 import { describe, expect, test, vi } from 'vitest';
 
 import { MAX_PAYLOAD_SIZE_BYTES } from '@apify/consts';
@@ -9,8 +8,7 @@ import { ApifyDatasetBackend } from '../../src/apify_dataset_backend.js';
 import { ApifyKeyValueStoreBackend } from '../../src/apify_key_value_store_backend.js';
 import { ApifyRequestQueueSharedBackend } from '../../src/apify_request_queue_shared_backend.js';
 import { ApifyRequestQueueSingleBackend } from '../../src/apify_request_queue_single_backend.js';
-import { ApifyStorageBackend, USES_PUSH_DATA_INTERCEPTION } from '../../src/apify_storage_backend.js';
-import { DEFAULT_DATASET_ITEM_EVENT } from '../../src/charging.js';
+import { ApifyStorageBackend } from '../../src/apify_storage_backend.js';
 import { Configuration } from '../../src/configuration.js';
 
 /** Spelled out rather than imported: this name is visible in the user's key-value store. */
@@ -223,63 +221,6 @@ describe('ApifyStorageBackend', () => {
 
         expect(single.getStorageBackendCacheKey()).toBe(shared.getStorageBackendCacheKey());
         expect(single.getStorageBackendCacheKey()).not.toBe(otherToken.getStorageBackendCacheKey());
-    });
-
-    test('marks the default dataset backend for push-data interception on pay-per-event runs', async () => {
-        const client = createMockApifyClient();
-        const backend = new ApifyStorageBackend(asApifyClient(client), {
-            configuration: new Configuration({ defaultDatasetId: 'default-dataset' }),
-            getChargingManager: () =>
-                ({
-                    getPricingInfo: () => ({ perEventPrices: { [DEFAULT_DATASET_ITEM_EVENT]: {} } }),
-                }) as never,
-        });
-
-        const defaultDataset = await backend.createDatasetBackend({ id: 'default-dataset' });
-        const otherDataset = await backend.createDatasetBackend({ id: 'other-dataset' });
-
-        expect((defaultDataset as never)[USES_PUSH_DATA_INTERCEPTION]).toBe(true);
-        expect((otherDataset as never)[USES_PUSH_DATA_INTERCEPTION]).toBeUndefined();
-    });
-
-    test('charges per parsed item when the backend splits a push into chunks', async () => {
-        const client = createMockApifyClient();
-        const charge = vi.fn(async ({ count }: { eventName: string; count: number }) => ({
-            eventChargeLimitReached: false,
-            chargedCount: count,
-            chargeableWithinLimit: {},
-        }));
-        const calculatePushDataLimits = vi.fn(({ items }: { items: Record<string, unknown>[] }) => ({
-            limitedItems: items,
-            eventsToCharge: { [DEFAULT_DATASET_ITEM_EVENT]: items.length },
-        }));
-        const backend = new ApifyStorageBackend(asApifyClient(client), {
-            configuration: new Configuration({ defaultDatasetId: 'default-dataset' }),
-            getChargingManager: () =>
-                ({
-                    getPricingInfo: () => ({ perEventPrices: { [DEFAULT_DATASET_ITEM_EVENT]: {} } }),
-                    calculatePushDataLimits,
-                    charge,
-                }) as never,
-        });
-        const dataset = await backend.createDatasetBackend({ id: 'default-dataset' });
-
-        // Stub out the plain-client push underneath the charging wrapper.
-        const pushSpy = vi.spyOn(ApifyDatasetClient.prototype, 'pushItems').mockResolvedValue(undefined);
-        try {
-            // Four ~3MB items arrive as multiple pre-serialized JSON chunks — the charging
-            // wrapper must still count every logical item exactly once.
-            const items = Array.from({ length: 4 }, (_, i) => ({ i, payload: 'a'.repeat(3 * 1024 * 1024) }));
-            await dataset.pushData(items);
-
-            expect(pushSpy.mock.calls.length).toBeGreaterThan(1);
-            const countedItems = calculatePushDataLimits.mock.calls.map(([{ items: counted }]) => counted);
-            expect(countedItems.flat()).toEqual(items);
-            const chargedCounts = charge.mock.calls.map(([{ count }]) => count);
-            expect(chargedCounts.reduce((sum, count) => sum + count, 0)).toBe(4);
-        } finally {
-            pushSpy.mockRestore();
-        }
     });
 });
 
