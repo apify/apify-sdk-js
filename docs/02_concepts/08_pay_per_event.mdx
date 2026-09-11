@@ -9,6 +9,7 @@ import ConditionalActorChargeSource from '!!raw-loader!./code/conditional_actor_
 import ChargeLimitCheckSource from '!!raw-loader!./code/charge_limit_check.ts';
 import PerUnitChargingSource from '!!raw-loader!./code/per_unit_charging.ts';
 import ChargingManagerSource from '!!raw-loader!./code/charging_manager.ts';
+import ChargeInRequestHandlerSource from '!!raw-loader!./code/charge_in_request_handler.ts';
 import ApiLink from '@site/src/components/ApiLink';
 import CodeBlock from '@theme/CodeBlock';
 
@@ -68,7 +69,9 @@ By default, crawlee runs each request handler in a storage transaction: dataset 
 
 For the same reason, <ApiLink to="class/Actor#pushData">`Actor.pushData`</ApiLink> with an event name throws inside a transaction: the charge cannot wait for the commit. You have two options:
 - Wrap the call in crawlee's `withDirectStorageAccess()` function. It stores the items and charges immediately. However,  if crawlee retries the request, it pushes the items again.
-- Push the items without an event name. Then, make the charge separately.
+- Push the items without an event name and charge separately. <ApiLink to="class/Actor#charge">`Actor.charge`</ApiLink> takes effect immediately and isn't rolled back, so pass an `idempotencyKey` that a retry reproduces. The platform then bills the event once.
+
+<CodeBlock language="typescript">{ChargeInRequestHandlerSource}</CodeBlock>
 
 ## Test monetization locally
 

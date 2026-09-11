@@ -26,6 +26,12 @@ export interface ChargeOptions {
      * @default 1
      */
     count?: number;
+
+    /**
+     * Repeated charges sharing a key are billed once - e.g. a request handler rerun by a retry.
+     * Local accounting still counts every call, so the remaining budget comes out underestimated.
+     */
+    idempotencyKey?: string;
 }
 
 export interface ChargeResult {
@@ -288,7 +294,7 @@ export class ChargingManager {
      *
      * @param options The name of the event to charge for and the number of events to be charged.
      */
-    async charge({ eventName, count = 1 }: ChargeOptions): Promise<ChargeResult> {
+    async charge({ eventName, count = 1, idempotencyKey }: ChargeOptions): Promise<ChargeResult> {
         if (!this.isPayPerEvent) {
             if (!this.#notPpeWarningPrinted) {
                 log.warning(
@@ -353,7 +359,11 @@ export class ChargingManager {
                     // Synthetic events (e.g. apify-default-dataset-item) are tracked locally only,
                     // the platform handles them automatically based on dataset writes.
                 } else if (this.#pricingInfo[eventName] !== undefined) {
-                    await this.#apifyClient.run(this.#actorRunId!).charge({ eventName, count: chargedCount });
+                    await this.#apifyClient.run(this.#actorRunId!).charge({
+                        eventName,
+                        count: chargedCount,
+                        idempotencyKey,
+                    });
                 } else {
                     log.warning(`Attempting to charge for an unknown event '${eventName}'`);
                 }

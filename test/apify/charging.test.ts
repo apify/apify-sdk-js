@@ -5,6 +5,7 @@ import {
     withStorageTransaction,
 } from '@crawlee/core';
 import { Actor } from 'apify';
+import type { RunClient } from 'apify-client';
 import type { MockInstance } from 'vitest';
 import { afterEach, beforeEach, describe, expect, test } from 'vitest';
 
@@ -275,6 +276,33 @@ describe('ChargingManager', () => {
                 count: 1,
             });
             expect(result2.chargedCount).toBe(1);
+        });
+
+        test('forwards the idempotency key the platform deduplicates on', async () => {
+            setUpPlatformEnv({
+                maxTotalChargeUsd: '10.0',
+                pricingInfo: {
+                    'test-event': {
+                        eventTitle: 'Test Event',
+                        eventPriceUsd: 1.0,
+                    },
+                },
+            });
+
+            const { serviceLocator } = await initIsolatedDefaultActor();
+            useInMemoryStorage(serviceLocator);
+
+            const chargeSpy = vitest.fn().mockResolvedValue(undefined);
+            // Only `charge()` is exercised, so a partial stand-in is enough for the whole run client.
+            vitest.spyOn(Actor.apifyClient, 'run').mockReturnValue({ charge: chargeSpy } as unknown as RunClient);
+
+            await Actor.charge({ eventName: 'test-event', count: 2, idempotencyKey: 'request-42-test-event' });
+
+            expect(chargeSpy).toHaveBeenCalledWith({
+                eventName: 'test-event',
+                count: 2,
+                idempotencyKey: 'request-42-test-event',
+            });
         });
 
         describe('with an unknown event', () => {
