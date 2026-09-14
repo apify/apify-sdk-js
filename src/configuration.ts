@@ -50,21 +50,6 @@ export const apifyConfigFields = {
     // take precedence; crawlee's own CRAWLEE_* var is reused as the fallback,
     // never re-typed). A schema is passed only where the SDK needs a different
     // default than crawlee's.
-    defaultDatasetId: withApifyEnv(
-        crawleeConfigFields.defaultDatasetId,
-        [ACTOR_ENV_VARS.DEFAULT_DATASET_ID, APIFY_ENV_VARS.DEFAULT_DATASET_ID],
-        z.string().default(LOCAL_ACTOR_ENV_VARS[ACTOR_ENV_VARS.DEFAULT_DATASET_ID]),
-    ),
-    defaultKeyValueStoreId: withApifyEnv(
-        crawleeConfigFields.defaultKeyValueStoreId,
-        [ACTOR_ENV_VARS.DEFAULT_KEY_VALUE_STORE_ID, APIFY_ENV_VARS.DEFAULT_KEY_VALUE_STORE_ID],
-        z.string().default(LOCAL_ACTOR_ENV_VARS[ACTOR_ENV_VARS.DEFAULT_KEY_VALUE_STORE_ID]),
-    ),
-    defaultRequestQueueId: withApifyEnv(
-        crawleeConfigFields.defaultRequestQueueId,
-        [ACTOR_ENV_VARS.DEFAULT_REQUEST_QUEUE_ID, APIFY_ENV_VARS.DEFAULT_REQUEST_QUEUE_ID],
-        z.string().default(LOCAL_ACTOR_ENV_VARS[ACTOR_ENV_VARS.DEFAULT_REQUEST_QUEUE_ID]),
-    ),
     inputKey: withApifyEnv(crawleeConfigFields.inputKey, [ACTOR_ENV_VARS.INPUT_KEY, APIFY_ENV_VARS.INPUT_KEY]),
     memoryMbytes: withApifyEnv(crawleeConfigFields.memoryMbytes, [
         ACTOR_ENV_VARS.MEMORY_MBYTES,
@@ -89,6 +74,21 @@ export const apifyConfigFields = {
     chromeExecutablePath: withApifyEnv(crawleeConfigFields.chromeExecutablePath, APIFY_ENV_VARS.CHROME_EXECUTABLE_PATH),
     defaultBrowserPath: withApifyEnv(crawleeConfigFields.defaultBrowserPath, 'APIFY_DEFAULT_BROWSER_PATH'),
     purgeOnStart: withApifyEnv(crawleeConfigFields.purgeOnStart, APIFY_ENV_VARS.PURGE_ON_START),
+
+    // Crawlee addresses the default storage by a reserved alias; on the platform
+    // each run gets real storage IDs, which the API calls need.
+    defaultDatasetId: field(z.string().default(LOCAL_ACTOR_ENV_VARS[ACTOR_ENV_VARS.DEFAULT_DATASET_ID]), [
+        ACTOR_ENV_VARS.DEFAULT_DATASET_ID,
+        APIFY_ENV_VARS.DEFAULT_DATASET_ID,
+    ]),
+    defaultKeyValueStoreId: field(z.string().default(LOCAL_ACTOR_ENV_VARS[ACTOR_ENV_VARS.DEFAULT_KEY_VALUE_STORE_ID]), [
+        ACTOR_ENV_VARS.DEFAULT_KEY_VALUE_STORE_ID,
+        APIFY_ENV_VARS.DEFAULT_KEY_VALUE_STORE_ID,
+    ]),
+    defaultRequestQueueId: field(z.string().default(LOCAL_ACTOR_ENV_VARS[ACTOR_ENV_VARS.DEFAULT_REQUEST_QUEUE_ID]), [
+        ACTOR_ENV_VARS.DEFAULT_REQUEST_QUEUE_ID,
+        APIFY_ENV_VARS.DEFAULT_REQUEST_QUEUE_ID,
+    ]),
 
     // Apify-specific fields
     metamorphAfterSleepMillis: field(coerceNumber.default(300_000), APIFY_ENV_VARS.METAMORPH_AFTER_SLEEP_MILLIS),
