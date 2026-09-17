@@ -2346,16 +2346,12 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * aliases this one has already resolved.
      */
     get #storageBackend(): SmartApifyStorageBackend {
-        if (this.#cachedStorageBackend) {
-            return this.#cachedStorageBackend;
-        }
-
         const charging = {
             configuration: this.configuration,
             getChargingManager: () => this.#chargingManager,
         };
 
-        this.#cachedStorageBackend = new SmartApifyStorageBackend({
+        return (this.#cachedStorageBackend ??= new SmartApifyStorageBackend({
             cloudStorageBackend: new ChargingStorageBackend(
                 new ApifyStorageBackend(this.apifyClient, {
                     configuration: this.configuration,
@@ -2368,18 +2364,13 @@ export class Actor<Data extends Dictionary = Dictionary> {
                 charging,
             ),
             configuration: this.configuration,
-        });
-
-        return this.#cachedStorageBackend;
+        }));
     }
 
     /** Whether items reaching the run's default dataset are counted for pay-per-event charging. */
     #chargesDefaultDatasetItems(): boolean {
         const installed = serviceLocator.getStorageBackend();
-        const effective =
-            installed instanceof SmartApifyStorageBackend ? installed.getSuitableStorageBackend() : installed;
-
-        return effective instanceof ChargingStorageBackend;
+        return installed instanceof SmartApifyStorageBackend || installed instanceof ChargingStorageBackend;
     }
 
     /**
