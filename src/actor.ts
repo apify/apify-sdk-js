@@ -54,6 +54,7 @@ import { getDefaultsFromInputSchema, noActorInputSchemaDefinedMarker, readInputS
 import { PlatformEventManager } from './platform_event_manager.js';
 import type { ProxyConfigurationOptions } from './proxy_configuration.js';
 import { ProxyConfiguration } from './proxy_configuration.js';
+import { SmartApifyStorageBackend } from './smart_apify_storage_backend.js';
 import type { OpenStorageOptions, StorageIdentifier } from './storage.js';
 import {
     checkCrawleeVersion,
@@ -483,6 +484,9 @@ export class Actor<Data extends Dictionary = Dictionary> {
     /** How Apify platform request queues are consumed; set from {@link InitOptions.requestQueueAccess}. */
     #requestQueueAccess: RequestQueueAccessMode = 'single';
 
+    /** Lazily built by the `#storageBackend` getter. */
+    #cachedStorageBackend?: SmartApifyStorageBackend;
+
     constructor(options: ActorOptions = {}) {
         const { configuration, ...configOptions } = options;
         if (configuration) {
@@ -632,7 +636,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
         }
 
         if (!serviceLocator.getServicesIfSet().storageBackend) {
-            this.installStorageBackend(this.createStorageBackend(options.storage));
+            this.installStorageBackend(options.storage ?? this.#storageBackend);
         } else if (options.storage) {
             this.installStorageBackend(options.storage);
         }
@@ -683,10 +687,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
 
         // Only knowable once the pricing is loaded. Reachable with a caller-supplied backend or one
         // registered with crawlee directly; the storages the Actor installs itself are wrapped.
-        if (
-            this.#chargingManager.isPayPerEvent &&
-            !(serviceLocator.getStorageBackend() instanceof ChargingStorageBackend)
-        ) {
+        if (this.#chargingManager.isPayPerEvent && !this.#chargesDefaultDatasetItems()) {
             log.warning(
                 'Items pushed to the default dataset will not be charged for, because this run does not use Apify ' +
                     'storage - the platform only counts items it stores itself.',
@@ -1239,7 +1240,9 @@ export class Actor<Data extends Dictionary = Dictionary> {
         this.ensureActorInit('openDataset');
 
         return Dataset.open<Data>(datasetIdOrName ?? null, {
-            storageBackend: options.forceCloud ? this.createApifyStorageBackend() : undefined,
+            storageBackend: options.forceCloud
+                ? this.#storageBackend.getSuitableStorageBackend({ forceCloud: true })
+                : undefined,
         });
     }
 
@@ -1409,7 +1412,9 @@ export class Actor<Data extends Dictionary = Dictionary> {
         this.ensureActorInit('openKeyValueStore');
 
         return KeyValueStore.open(storeIdOrName ?? null, {
-            storageBackend: options.forceCloud ? this.createApifyStorageBackend() : undefined,
+            storageBackend: options.forceCloud
+                ? this.#storageBackend.getSuitableStorageBackend({ forceCloud: true })
+                : undefined,
         });
     }
 
@@ -1441,7 +1446,9 @@ export class Actor<Data extends Dictionary = Dictionary> {
         this.ensureActorInit('openRequestQueue');
 
         return RequestQueue.open(queueIdOrName ?? null, {
-            storageBackend: options.forceCloud ? this.createApifyStorageBackend() : undefined,
+            storageBackend: options.forceCloud
+                ? this.#storageBackend.getSuitableStorageBackend({ forceCloud: true })
+                : undefined,
         });
     }
 
@@ -2328,44 +2335,42 @@ export class Actor<Data extends Dictionary = Dictionary> {
     }
 
     /**
-     * The backend the Actor installs: the caller's, the platform's, or crawlee's local default.
+     * The backend the Actor installs unless the caller brings one: Apify platform storage on the
+     * platform, crawlee's local default outside of it.
      *
-     * Only the last two are wrapped for dataset-item charging. The platform counts an
-     * `apify-default-dataset-item` per item written to the run's default dataset through Apify
-     * storage, so a caller-supplied backend is billed nothing and must not be accounted for -
-     * charging for it would spend a budget nobody is consuming and trim the caller's items to fit
-     * it. crawlee's local default stands in for Apify storage, so it is wrapped to keep local
-     * pay-per-event testing faithful.
+     * Both sides are wrapped for dataset-item charging - crawlee's local default stands in for
+     * Apify storage, so local pay-per-event testing stays faithful. A caller-supplied backend
+     * (`Actor.init({ storage })`) is billed nothing and is installed unwrapped, in place of this.
      *
-     * Wrapping means owning the instance, which is why the local default is constructed here
-     * rather than left to be created lazily on first use.
+     * One instance per Actor: a second platform backend would mint unnamed storages of its own for
+     * aliases this one has already resolved.
      */
-    private createStorageBackend(storage?: StorageBackend): StorageBackend {
-        if (storage) {
-            return storage;
-        }
-
-        if (this.isAtHome()) {
-            return this.createApifyStorageBackend();
-        }
-
-        return new ChargingStorageBackend(new ServiceLocator(this.configuration).getStorageBackend(), {
+    get #storageBackend(): SmartApifyStorageBackend {
+        const charging = {
             configuration: this.configuration,
             getChargingManager: () => this.#chargingManager,
-        });
+        };
+
+        return (this.#cachedStorageBackend ??= new SmartApifyStorageBackend({
+            cloudStorageBackend: new ChargingStorageBackend(
+                new ApifyStorageBackend(this.apifyClient, {
+                    configuration: this.configuration,
+                    requestQueueAccess: this.#requestQueueAccess,
+                }),
+                charging,
+            ),
+            localStorageBackend: new ChargingStorageBackend(
+                new ServiceLocator(this.configuration).getStorageBackend(),
+                charging,
+            ),
+            configuration: this.configuration,
+        }));
     }
 
-    /** Wrapped here rather than at the `init()` call site so that `forceCloud` storages are charged too. */
-    private createApifyStorageBackend(): StorageBackend {
-        const backend = new ApifyStorageBackend(this.apifyClient, {
-            configuration: this.configuration,
-            requestQueueAccess: this.#requestQueueAccess,
-        });
-
-        return new ChargingStorageBackend(backend, {
-            configuration: this.configuration,
-            getChargingManager: () => this.#chargingManager,
-        });
+    /** Whether items reaching the run's default dataset are counted for pay-per-event charging. */
+    #chargesDefaultDatasetItems(): boolean {
+        const installed = serviceLocator.getStorageBackend();
+        return installed instanceof SmartApifyStorageBackend || installed instanceof ChargingStorageBackend;
     }
 
     /**
