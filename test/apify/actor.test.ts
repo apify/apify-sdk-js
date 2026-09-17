@@ -615,7 +615,11 @@ describe('Actor', () => {
 
             beforeEach(() => {
                 storageBackend = new MemoryStorageBackend();
-                sdk = createIsolatedActor({ storageClient: storageBackend }).actor as Actor<{ foo: string }>;
+                sdk = createIsolatedActor({
+                    // `forceCloud` needs a token, which the environment running the tests may not have.
+                    config: new Configuration({ token: 'some-token' }),
+                    storageClient: storageBackend,
+                }).actor as Actor<{ foo: string }>;
             });
 
             test('getInput()', async () => {
@@ -693,6 +697,17 @@ describe('Actor', () => {
                 expect(openSpy).toBeCalledTimes(1);
                 expect(openSpy.mock.calls[0][0]).toBe(datasetName);
                 expect(openSpy.mock.calls[0][1]?.storageBackend).toBeDefined();
+            });
+
+            test('forceCloud storages share one backend instance', async () => {
+                // Each instance resolves run-scoped aliases to unnamed storages of its own, so a
+                // second one would hand out different storages for the same alias.
+                const openSpy = vitest.spyOn(Dataset, 'open').mockResolvedValue({} as Dataset);
+
+                await sdk.openDataset({ alias: 'cloudy' }, { forceCloud: true });
+                await sdk.openDataset({ alias: 'cloudy' }, { forceCloud: true });
+
+                expect(openSpy.mock.calls[0][1]?.storageBackend).toBe(openSpy.mock.calls[1][1]?.storageBackend);
             });
 
             describe('StorageIdentifier support', () => {

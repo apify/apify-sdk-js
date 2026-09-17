@@ -18,7 +18,7 @@ import { ApifyRequestQueueSharedBackend } from './apify_request_queue_shared_bac
 import { ApifyRequestQueueSingleBackend } from './apify_request_queue_single_backend.js';
 import type { Configuration } from './configuration.js';
 
-type StorageType = 'Dataset' | 'KeyValueStore' | 'RequestQueue';
+export type StorageType = 'Dataset' | 'KeyValueStore' | 'RequestQueue';
 
 /** The reserved alias crawlee uses for the default (unnamed) storage. */
 export const DEFAULT_STORAGE_ALIAS = '__default__';
