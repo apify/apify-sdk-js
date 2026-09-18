@@ -51,17 +51,14 @@ jobs:
             - name: Resolve pre-release version
               id: prerelease
               if: ${{ inputs.tag != 'latest' }}
-              uses: apify/actions/git-cliff-release@v1.5.0
+              uses: apify/actions/git-cliff-release@v1.6.0
               with:
                   release_type: prerelease
                   prerelease_id: ${{ inputs.tag == 'rc' && 'rc' || 'beta' }}
                   prerelease_registry: npm
                   prerelease_package: apify
+                  premajor_version: ${{ (inputs.tag == 'next-v4' || inputs.tag == 'rc') && '4' || '' }}
                   add-github-links: false
-                  cliff_config_path: >-
-                      ${{ (inputs.tag == 'next-v4' || inputs.tag == 'rc')
-                      && format('{0}/.github/cliff-premajor.toml', github.workspace)
-                      || 'cliff.toml' }}
 
             - name: Set pre-release version
               if: ${{ inputs.tag != 'latest' }}
