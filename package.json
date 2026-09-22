@@ -129,6 +129,9 @@
             "fast-uri": "^3.1.2",
             "qs": "^6.15.2",
             "webpack-dev-server": "^6.0.0"
+        },
+        "patchedDependencies": {
+            "@signalwire/docusaurus-plugin-llms-txt@1.2.2": "patches/@signalwire__docusaurus-plugin-llms-txt@1.2.2.patch"
         }
     }
 }
