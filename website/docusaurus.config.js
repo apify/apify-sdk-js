@@ -186,6 +186,7 @@ module.exports = {
                     includePages: true,
                     relativePaths: false,
                     excludeRoutes: [
+                        '/sdk/js/',
                         '/sdk/js/reference/3.*/**',
                         '/sdk/js/reference/3.*',
                         '/sdk/js/reference/next/**',
