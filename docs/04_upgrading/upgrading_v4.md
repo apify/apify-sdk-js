@@ -177,7 +177,7 @@ When running locally and the default key-value store holds no input record, `Act
 
 ### Input key configuration
 
-`Configuration.inputKey` is resolved from `ACTOR_INPUT_KEY`, then `APIFY_INPUT_KEY`, then `CRAWLEE_INPUT_KEY`, defaulting to `INPUT`. The last one is kept for compatibility with the Apify CLI, which sets all three; Crawlee itself no longer reads it. The SDK also passes the key to Crawlee's `FileSystemStorageBackend`, which adopts a bare `<inputKey>` or `<inputKey>.json` file in the default store as the input record and spares it when the store is purged on start. See [Out-of-band key-value files](https://crawlee.dev/js/docs/upgrading/upgrading-to-v4#out-of-band-key-value-files-eg-a-hand-placed-inputjson) in the Crawlee upgrading guide for the adoption rules.
+`Configuration.inputKey` is resolved from `ACTOR_INPUT_KEY`, then `APIFY_INPUT_KEY`, then `CRAWLEE_INPUT_KEY`, defaulting to `INPUT`. The last one is kept for compatibility with the Apify CLI, which sets all three; Crawlee itself no longer reads it. The SDK passes `INPUT` and the configured key as the `preservedKeys` of Crawlee's `FileSystemStorageBackend`, which adopts a bare `<key>` or `<key>.json` file in the default store as the record `<key>` and spares it when the store is purged on start. Plain Crawlee preserves nothing, so this only happens under the SDK. See [Out-of-band key-value files](https://crawlee.dev/js/docs/upgrading/upgrading-to-v4#out-of-band-key-value-files-eg-a-hand-placed-inputjson) in the Crawlee upgrading guide for the adoption rules.
 
 ## Argument validation (`ow` → `zod`)
 

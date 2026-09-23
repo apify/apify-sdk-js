@@ -41,6 +41,7 @@ import {
     type ACTOR_PERMISSION_LEVEL,
     APIFY_ENV_VARS,
     INTEGER_ENV_VARS,
+    KEY_VALUE_STORE_KEYS,
 } from '@apify/consts';
 import { decryptInputSecrets } from '@apify/input_secrets';
 import log from '@apify/log';
@@ -2393,7 +2394,9 @@ export class Actor<Data extends Dictionary = Dictionary> {
 
     /**
      * The same choice crawlee's `ServiceLocator` makes for its implicit default backend, made here so
-     * that the file-system backend learns the SDK's input key — crawlee has no notion of a run input.
+     * that the file-system backend learns the run-input keys — crawlee has no notion of a run input.
+     * Preserved keys survive the purge on start, and a bare `<key>` / `<key>.json` file in the default
+     * store (what the Apify CLI and the templates write) is adopted as the record `<key>`.
      */
     private createLocalStorageBackend(): StorageBackend {
         const { persistStorage, storageDir, inputKey } = this.configuration;
@@ -2405,7 +2408,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
 
         return new FileSystemStorageBackend({
             localDataDirectory: storageDir,
-            inputKey,
+            preservedKeys: [KEY_VALUE_STORE_KEYS.INPUT, inputKey],
             logger: logger.child({ prefix: 'FileSystemStorageBackend' }),
         });
     }
