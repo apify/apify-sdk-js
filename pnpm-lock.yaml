@@ -420,8 +420,8 @@ packages:
       react: 17.x || 18.x || 19.x
       react-dom: 17.x || 18.x || 19.x
 
-  '@apify/ui-library@1.165.15':
-    resolution: {integrity: sha512-g+8vEcQrUNTD8rTKT6ygUHruW9r/pe8yDMygsRtox+FvIsISJBncRGhwV77uMawHHzRrZbU4DY7/vc1nk6256Q==}
+  '@apify/ui-library@1.165.16':
+    resolution: {integrity: sha512-i8On6PE2t5M3+9m5BguIF6a0tr2buYPF3cx12jxOgkd2XpySOBBN+j4Ym5DkEDqVcGfCkV7jUYx0gVkDMNdrSg==}
     peerDependencies:
       react: 17.x || 18.x || 19.x
       react-dom: 17.x || 18.x || 19.x
@@ -3804,9 +3804,6 @@ packages:
   '@types/node@24.13.6':
     resolution: {integrity: sha512-SGrw/h3KPFshy3OE6ZL53LMBG5vGQQ8/gIpiqz/kRZhPJ7HgwCEs8LBuNtWLa8dvGZVpSF7+Bf+c11HUrCb/yg==}
 
-  '@types/node@26.6.2':
-    resolution: {integrity: sha512-X1P21scMv4zGKLYqjdGjaKa7COa0RKVYYZZN/NfvLQ1JegxFhdhpZG/Lyn8AXx6CDUavKAd11v6BvfpkDByK8g==}
-
   '@types/parse-json@4.0.2':
     resolution: {integrity: sha512-dISoDXWWQwUquiKsyZ4Ng+HX2KsPL7LyHKHQwgGFEA3IaKac4Obd+h2a/a6waisAoepJlBcx9paWqjA8/HVjCw==}
 
@@ -4951,8 +4948,8 @@ packages:
   devtools-protocol@0.0.1680125:
     resolution: {integrity: sha512-rVARKAvOFJCFkvgX01VLvYqKIvt+cRCqvUxIhB2oAqVGPalxk3w3sb5TUGDagpow/EFblBpm/Zl/29QA2dd+jA==}
 
-  devtools-protocol@0.0.1701330:
-    resolution: {integrity: sha512-tW4EY+Bepb69wjD7qTRo7LgbvecLcxCiK0cpV2oZZlvRSys9O77rJoUBdSZU17YIuGLewxKRAfxV2IgMuwjLeQ==}
+  devtools-protocol@0.0.1702366:
+    resolution: {integrity: sha512-4soaeiRt7KK6qZfbhBCxxJzFOxXQrBWu0U+yXSF/Eumh9qyk8gjDPVcJWD4/0wykyb9DHCR/37S1b781sIH1EQ==}
 
   dir-glob@3.0.1:
     resolution: {integrity: sha512-WkrWp9GR4KXfKGYzOLmTuGVi1UWFfws377n9cc55/tb6DuqyF6pcQ5AbiHEshaDpY9v6oaSr2XCDidGmMwdzIA==}
@@ -5038,8 +5035,8 @@ packages:
   ee-first@1.1.1:
     resolution: {integrity: sha512-WMwm9LhRUo+WUaRN+vRuETqG89IgZphVSNkdFgeb6sS/E4OrDIN7t48CAewSHXc6C8lefD8KKfr5vY61brQlow==}
 
-  electron-to-chromium@1.5.433:
-    resolution: {integrity: sha512-5lCAbyZBjtmUt/RAGHRqrL2q0oEFRThDAsZHHDn9XHa89Qw7gMYOeSicBTy+AHfvo0r6vwsZvqNJTQIQy1BLzA==}
+  electron-to-chromium@1.5.434:
+    resolution: {integrity: sha512-7EeFW9OLf1NN9NKQP9xdOE/XKqjxv7JDPP6AEAkHli11+Fae1OaLoNuAf13hQv1PPNtuES0pLQSPk2+fS3s8ww==}
 
   emoji-regex-xs@1.0.0:
     resolution: {integrity: sha512-LRlerrMYoIDrT6jgpeZ2YYl/L8EulRTt5hQcYjy5AInh7HWXKimpqx68aknBFpGL2+/IcogTcaydJEgaTmOpDg==}
@@ -8577,9 +8574,6 @@ packages:
   undici-types@7.18.2:
     resolution: {integrity: sha512-AsuCzffGHJybSaRrmr5eHr81mwJU3kjw6M+uprWvCXiNeN9SOGwQ3Jn8jb8m3Z6izVgknn1R0FTCEAP2QrLY/w==}
 
-  undici-types@8.9.0:
-    resolution: {integrity: sha512-KTDyRTYX8sWmKXAikPHHSyc63CRPETMctyjKFupcC6OBLXT3xsN0e9aF7m+mIXutFWpUXuedtowG7iLOzp0kQg==}
-
   undici@7.29.1:
     resolution: {integrity: sha512-RYONW2MeafgYlkVOKYKkA/Ag7BmXqgIWCa8t1m0JcxrQg9pI9lEqRhAOruOBCbAohOa/gkCF+iPi9hrgvTzu6Q==}
     engines: {node: '>=20.18.1'}
@@ -9319,7 +9313,7 @@ snapshots:
     dependencies:
       '@algolia/autocomplete-js': 1.19.10(@algolia/client-search@5.59.0)(algoliasearch@4.27.0)(search-insights@2.17.3)
       '@algolia/autocomplete-theme-classic': 1.19.10
-      '@apify/ui-library': 1.165.15(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(styled-components@5.3.11(@babel/core@7.29.7)(react-dom@19.3.0(react@19.3.0))(react-is@16.13.1)(react@19.3.0))
+      '@apify/ui-library': 1.165.16(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(styled-components@5.3.11(@babel/core@7.29.7)(react-dom@19.3.0(react@19.3.0))(react-is@16.13.1)(react@19.3.0))
       algoliasearch: 4.27.0
       html-entities: 2.6.0
       react: 19.3.0
@@ -9341,7 +9335,7 @@ snapshots:
     dependencies:
       '@apify/docs-search-modal': 1.4.0(@algolia/client-search@5.59.0)(@babel/core@7.29.7)(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react-is@16.13.1)(react@19.3.0)(search-insights@2.17.3)
       '@apify/ui-icons': 1.52.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
-      '@apify/ui-library': 1.165.15(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(styled-components@5.3.11(@babel/core@7.29.7)(react-dom@19.3.0(react@19.3.0))(react-is@16.13.1)(react@19.3.0))
+      '@apify/ui-library': 1.165.16(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(styled-components@5.3.11(@babel/core@7.29.7)(react-dom@19.3.0(react@19.3.0))(react-is@16.13.1)(react@19.3.0))
       '@docusaurus/theme-common': 3.10.2(@docusaurus/plugin-content-docs@3.10.2(@docusaurus/faster@3.10.2(@docusaurus/types@3.10.2(@swc/core@1.16.2)(esbuild@0.28.2)(postcss@8.5.28)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(esbuild@0.28.2)(postcss@8.5.28))(@mdx-js/react@3.1.1(@types/react@19.3.0)(react@19.3.0))(@rspack/core@1.7.12)(@swc/core@1.16.2)(esbuild@0.28.2)(postcss@8.5.28)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(typescript@6.0.3))(@swc/core@1.16.2)(esbuild@0.28.2)(postcss@8.5.28)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
       '@stackql/docusaurus-plugin-hubspot': 1.1.0
       algoliasearch: 5.59.0
@@ -9443,7 +9437,7 @@ snapshots:
       react: 19.3.0
       react-dom: 19.3.0(react@19.3.0)
 
-  '@apify/ui-library@1.165.15(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(styled-components@5.3.11(@babel/core@7.29.7)(react-dom@19.3.0(react@19.3.0))(react-is@16.13.1)(react@19.3.0))':
+  '@apify/ui-library@1.165.16(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(styled-components@5.3.11(@babel/core@7.29.7)(react-dom@19.3.0(react@19.3.0))(react-is@16.13.1)(react@19.3.0))':
     dependencies:
       '@apify/ui-icons': 1.52.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
       '@floating-ui/react': 0.27.20(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
@@ -10583,7 +10577,7 @@ snapshots:
       '@crawlee/types': 3.18.1
       '@crawlee/utils': 3.18.1
       cheerio: 1.0.0-rc.12
-      devtools-protocol: 0.0.1701330
+      devtools-protocol: 0.0.1702366
       jquery: 3.7.1
       ow: 0.28.2
       tslib: 2.8.1
@@ -12573,7 +12567,7 @@ snapshots:
       '@jest/schemas': 29.6.3
       '@types/istanbul-lib-coverage': 2.0.6
       '@types/istanbul-reports': 3.0.4
-      '@types/node': 26.6.2
+      '@types/node': 24.13.6
       '@types/yargs': 17.0.35
       chalk: 4.1.2
 
@@ -13803,11 +13797,11 @@ snapshots:
   '@types/body-parser@1.19.6':
     dependencies:
       '@types/connect': 3.4.38
-      '@types/node': 26.6.2
+      '@types/node': 24.13.6
 
   '@types/bonjour@3.5.13':
     dependencies:
-      '@types/node': 26.6.2
+      '@types/node': 24.13.6
 
   '@types/chai@5.2.3':
     dependencies:
@@ -13817,11 +13811,11 @@ snapshots:
   '@types/connect-history-api-fallback@1.5.4':
     dependencies:
       '@types/express-serve-static-core': 5.1.3
-      '@types/node': 26.6.2
+      '@types/node': 24.13.6
 
   '@types/connect@3.4.38':
     dependencies:
-      '@types/node': 26.6.2
+      '@types/node': 24.13.6
 
   '@types/content-type@1.1.9': {}
 
@@ -13839,7 +13833,7 @@ snapshots:
 
   '@types/express-serve-static-core@5.1.3':
     dependencies:
-      '@types/node': 26.6.2
+      '@types/node': 24.13.6
       '@types/qs': 6.15.1
       '@types/range-parser': 1.2.7
       '@types/send': 1.2.1
@@ -13903,10 +13897,6 @@ snapshots:
     dependencies:
       undici-types: 7.18.2
 
-  '@types/node@26.6.2':
-    dependencies:
-      undici-types: 8.9.0
-
   '@types/parse-json@4.0.2': {}
 
   '@types/prismjs@1.26.6': {}
@@ -13948,7 +13938,7 @@ snapshots:
 
   '@types/send@1.2.1':
     dependencies:
-      '@types/node': 26.6.2
+      '@types/node': 24.13.6
 
   '@types/serve-index@1.9.4':
     dependencies:
@@ -13957,7 +13947,7 @@ snapshots:
   '@types/serve-static@2.2.0':
     dependencies:
       '@types/http-errors': 2.0.5
-      '@types/node': 26.6.2
+      '@types/node': 24.13.6
 
   '@types/tough-cookie@4.0.5': {}
 
@@ -14445,7 +14435,7 @@ snapshots:
     dependencies:
       baseline-browser-mapping: 2.11.25
       caniuse-lite: 1.0.30001810
-      electron-to-chromium: 1.5.433
+      electron-to-chromium: 1.5.434
       node-releases: 2.0.56
       update-browserslist-db: 1.3.3(browserslist@4.29.0)
 
@@ -15147,7 +15137,7 @@ snapshots:
 
   devtools-protocol@0.0.1680125: {}
 
-  devtools-protocol@0.0.1701330: {}
+  devtools-protocol@0.0.1702366: {}
 
   dir-glob@3.0.1:
     dependencies:
@@ -15247,7 +15237,7 @@ snapshots:
 
   ee-first@1.1.1: {}
 
-  electron-to-chromium@1.5.433: {}
+  electron-to-chromium@1.5.434: {}
 
   emoji-regex-xs@1.0.0: {}
 
@@ -15422,7 +15412,7 @@ snapshots:
 
   eval@0.1.8:
     dependencies:
-      '@types/node': 26.6.2
+      '@types/node': 24.13.6
       require-like: 0.1.2
 
   event-stream@3.3.4:
@@ -16398,7 +16388,7 @@ snapshots:
   jest-util@29.7.0:
     dependencies:
       '@jest/types': 29.6.3
-      '@types/node': 26.6.2
+      '@types/node': 24.13.6
       chalk: 4.1.2
       ci-info: 3.9.0
       graceful-fs: 4.2.11
@@ -16406,13 +16396,13 @@ snapshots:
 
   jest-worker@27.5.1:
     dependencies:
-      '@types/node': 26.6.2
+      '@types/node': 24.13.6
       merge-stream: 2.0.0
       supports-color: 8.1.1
 
   jest-worker@29.7.0:
     dependencies:
-      '@types/node': 26.6.2
+      '@types/node': 24.13.6
       jest-util: 29.7.0
       merge-stream: 2.0.0
       supports-color: 8.1.1
@@ -19495,8 +19485,6 @@ snapshots:
   uint8array-extras@1.5.0: {}
 
   undici-types@7.18.2: {}
-
-  undici-types@8.9.0: {}
 
   undici@7.29.1: {}
 
