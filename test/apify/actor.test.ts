@@ -1,4 +1,8 @@
 import { createPublicKey } from 'node:crypto';
+import { existsSync } from 'node:fs';
+import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 
 import { EventType, MemoryStorageBackend, serviceLocator } from '@crawlee/core';
 import { sleep } from '@crawlee/utils';
@@ -18,7 +22,7 @@ import {
 import { encryptInputSecrets } from '@apify/input_secrets';
 import log from '@apify/log';
 
-import { createIsolatedActor } from '../createIsolatedActor.js';
+import { createIsolatedActor, initIsolatedDefaultActor } from '../createIsolatedActor.js';
 import { resetGlobalState } from '../resetGlobalState.js';
 
 const getEmptyEnv = () => {
@@ -623,25 +627,31 @@ describe('Actor', () => {
             });
 
             test('getInput()', async () => {
-                const getValueSpy = vitest.spyOn(KeyValueStore.prototype, 'getValue');
-                getValueSpy.mockImplementation(async () => 123);
+                await expect(sdk.getInput()).rejects.toThrowError('Input does not exist');
 
-                // Uses default value.
-                const val1 = await sdk.getInput();
-                expect(getValueSpy).toBeCalledTimes(1);
-                expect(getValueSpy).toBeCalledWith(KEY_VALUE_STORE_KEYS.INPUT);
-                expect(val1).toBe(123);
+                await sdk.setValue(KEY_VALUE_STORE_KEYS.INPUT, { foo: 'bar' });
+                await expect(sdk.getInput()).resolves.toEqual({ foo: 'bar' });
 
                 // Uses value from config. crawlee v4's Configuration is
                 // immutable, so a different input key is supplied through a
                 // fresh Actor instance instead of mutating the existing config.
-                const sdkWithInputKey = new Actor({
-                    configuration: new Configuration({ inputKey: 'some-value' }),
+                const sdkWithInputKey = createIsolatedActor({
+                    config: new Configuration({ inputKey: 'some-value' }),
+                    storageClient: storageBackend,
+                }).actor;
+                await sdkWithInputKey.setValue('some-value', { key: 'custom' });
+                await expect(sdkWithInputKey.getInput()).resolves.toEqual({ key: 'custom' });
+            });
+
+            test('getInput() parses an octet-stream record as JSON when it is one', async () => {
+                await sdk.setValue(KEY_VALUE_STORE_KEYS.INPUT, Buffer.from('{ "foo": "bar" }'), {
+                    contentType: 'application/octet-stream',
                 });
-                const val2 = await sdkWithInputKey.getInput();
-                expect(getValueSpy).toBeCalledTimes(2);
-                expect(getValueSpy).toBeCalledWith('some-value');
-                expect(val2).toBe(123);
+                await expect(sdk.getInput()).resolves.toEqual({ foo: 'bar' });
+
+                const bytes = Buffer.from([0xde, 0xad, 0xbe, 0xef]);
+                await sdk.setValue(KEY_VALUE_STORE_KEYS.INPUT, bytes, { contentType: 'application/octet-stream' });
+                await expect(sdk.getInput()).resolves.toEqual(bytes);
             });
 
             test('setValue()', async () => {
@@ -1373,29 +1383,96 @@ describe('Actor', () => {
     });
 
     describe('Actor.getInput', () => {
-        const TestingActor = new Actor();
+        test('throws when there is no input', async () => {
+            const { actor } = createIsolatedActor({ storageClient: new MemoryStorageBackend() });
+            await expect(actor.getInput()).rejects.toThrowError('Input does not exist');
+        });
 
-        test('should work', async () => {
-            await expect(TestingActor.getInput()).resolves.toBeNull();
-            await expect(TestingActor.getInputOrThrow()).rejects.toThrowError('Input does not exist');
-
-            const mockGetValue = vitest.spyOn(TestingActor, 'getValue');
-            mockGetValue.mockImplementation(async (key) => expect(key).toEqual(KEY_VALUE_STORE_KEYS.INPUT));
-
-            await TestingActor.getInput();
-            mockGetValue.mockRestore();
-
-            // Uses value from env var. crawlee v4's Configuration snapshots env
-            // vars at construction, so a fresh Actor is needed to pick up the
-            // newly-set input key.
+        test('reads the input key from the environment', async () => {
+            // crawlee v4's Configuration snapshots env vars at construction, so
+            // the Actor is built after setting the key.
             process.env[ACTOR_ENV_VARS.INPUT_KEY] = 'some-value';
-            const actorWithInputKey = new Actor({ configuration: new Configuration() });
-            const mockGetValue2 = vitest.spyOn(actorWithInputKey, 'getValue');
-            mockGetValue2.mockImplementation(async (key) => expect(key).toBe('some-value'));
-            await actorWithInputKey.getInput();
-
+            const { actor } = createIsolatedActor({
+                config: new Configuration(),
+                storageClient: new MemoryStorageBackend(),
+            });
             delete process.env[ACTOR_ENV_VARS.INPUT_KEY];
-            mockGetValue2.mockRestore();
+
+            await actor.setValue('some-value', { hello: 'world' });
+            await expect(actor.getInput()).resolves.toEqual({ hello: 'world' });
+        });
+
+        describe('working directory fallback', () => {
+            const originalCwd = process.cwd();
+            let cwd: string;
+
+            beforeEach(async () => {
+                cwd = await mkdtemp(join(tmpdir(), 'apify-sdk-input-'));
+                process.chdir(cwd);
+            });
+
+            afterEach(async () => {
+                process.chdir(originalCwd);
+                await rm(cwd, { recursive: true, force: true });
+            });
+
+            const isolatedActor = (config = new Configuration()) =>
+                createIsolatedActor({ config, storageClient: new MemoryStorageBackend() }).actor;
+
+            test('reads <inputKey>.json when the store has no input', async () => {
+                await writeFile(join(cwd, 'INPUT.json'), '{ "from": "file" }');
+                await expect(isolatedActor().getInput()).resolves.toEqual({ from: 'file' });
+            });
+
+            test('reads a bare <inputKey> file as JSON when it is one, as bytes otherwise', async () => {
+                await writeFile(join(cwd, 'INPUT'), '{ "from": "bare file" }');
+                await expect(isolatedActor().getInput()).resolves.toEqual({ from: 'bare file' });
+
+                const bytes = Buffer.from([0xde, 0xad, 0xbe, 0xef]);
+                await writeFile(join(cwd, 'INPUT'), bytes);
+                await expect(isolatedActor().getInput()).resolves.toEqual(bytes);
+            });
+
+            test('honors the configured input key', async () => {
+                await writeFile(join(cwd, '__CLI_INPUT.json'), '{ "from": "cli" }');
+                const actor = isolatedActor(new Configuration({ inputKey: '__CLI_INPUT' }));
+                await expect(actor.getInput()).resolves.toEqual({ from: 'cli' });
+            });
+
+            test('prefers the store record over the file', async () => {
+                await writeFile(join(cwd, 'INPUT.json'), '{ "from": "file" }');
+                const actor = isolatedActor();
+                await actor.setValue(KEY_VALUE_STORE_KEYS.INPUT, { from: 'store' });
+                await expect(actor.getInput()).resolves.toEqual({ from: 'store' });
+            });
+
+            test('throws when both INPUT and INPUT.json exist', async () => {
+                await writeFile(join(cwd, 'INPUT'), '{}');
+                await writeFile(join(cwd, 'INPUT.json'), '{}');
+                await expect(isolatedActor().getInput()).rejects.toThrowError(/multiple input files/);
+            });
+
+            test('is skipped on the platform', async () => {
+                await writeFile(join(cwd, 'INPUT.json'), '{ "from": "file" }');
+                const actor = isolatedActor(new Configuration({ isAtHome: true }));
+                await expect(actor.getInput()).rejects.toThrowError('Input does not exist');
+            });
+        });
+
+        test('reads a bare input file the file-system storage adopts under the configured key', async () => {
+            // What `apify run` produces: the effective input in `__CLI_INPUT.json`, no metadata sidecar,
+            // and the input key pointed at it. The file has to survive the purge on start.
+            const storageDir = join(process.env.CRAWLEE_STORAGE_DIR!, 'adopted-input');
+            const storeDir = join(storageDir, 'key_value_stores', 'default');
+            await mkdir(storeDir, { recursive: true });
+            await writeFile(join(storeDir, '__CLI_INPUT.json'), '{ "from": "cli" }');
+            await writeFile(join(storeDir, 'stale.json'), '{}');
+
+            await initIsolatedDefaultActor({ config: new Configuration({ storageDir, inputKey: '__CLI_INPUT' }) });
+
+            await expect(Actor.getInput()).resolves.toEqual({ from: 'cli' });
+            expect(existsSync(join(storeDir, '__CLI_INPUT.json'))).toBe(true);
+            expect(existsSync(join(storeDir, 'stale.json'))).toBe(false);
         });
 
         test('should work with input secrets', async () => {
@@ -1418,17 +1495,17 @@ describe('Actor', () => {
             // setting them.
             process.env[APIFY_ENV_VARS.INPUT_SECRETS_PRIVATE_KEY_FILE] = testingPrivateKeyFile;
             process.env[APIFY_ENV_VARS.INPUT_SECRETS_PRIVATE_KEY_PASSPHRASE] = testingPrivateKeyPassphrase;
-            const secretsActor = new Actor({ configuration: new Configuration() });
-            const mockGetValue = vitest.spyOn(secretsActor, 'getValue');
-            mockGetValue.mockImplementation(async () => encryptedInput);
+            const { actor: secretsActor } = createIsolatedActor({
+                config: new Configuration(),
+                storageClient: new MemoryStorageBackend(),
+            });
+            delete process.env[APIFY_ENV_VARS.INPUT_SECRETS_PRIVATE_KEY_FILE];
+            delete process.env[APIFY_ENV_VARS.INPUT_SECRETS_PRIVATE_KEY_PASSPHRASE];
 
+            await secretsActor.setValue(KEY_VALUE_STORE_KEYS.INPUT, encryptedInput);
             const input = await secretsActor.getInput();
 
             expect(input).toStrictEqual(originalInput);
-
-            delete process.env[APIFY_ENV_VARS.INPUT_SECRETS_PRIVATE_KEY_FILE];
-            delete process.env[APIFY_ENV_VARS.INPUT_SECRETS_PRIVATE_KEY_PASSPHRASE];
-            mockGetValue.mockRestore();
         });
     });
 

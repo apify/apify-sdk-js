@@ -67,7 +67,7 @@ await Actor.exit();
 ### Key methods
 
 - **`Actor.init()`** - Initializes the Actor runtime, sets up storage, and prepares the environment
-- **`Actor.getInput()`** - Retrieves input data passed to the Actor
+- **`Actor.getInput()`** - Retrieves the input passed to the Actor, and throws when there is none
 - **`Actor.pushData()`** - Stores data in the default dataset
 - **`Actor.exit()`** - Gracefully shuts down the Actor and saves its state
 

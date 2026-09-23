@@ -1,4 +1,6 @@
 import { createPrivateKey } from 'node:crypto';
+import { readFile, stat } from 'node:fs/promises';
+import { join } from 'node:path';
 
 import type {
     EventManager,
@@ -11,12 +13,13 @@ import {
     Dataset,
     EventType,
     KeyValueStore,
+    MemoryStorageBackend,
     purgeDefaultStorages,
     rejectOperationInTransaction,
     RequestQueue,
-    ServiceLocator,
     serviceLocator,
 } from '@crawlee/core';
+import { FileSystemStorageBackend } from '@crawlee/fs-storage';
 import type { Awaitable, Dictionary, StorageBackend } from '@crawlee/types';
 import { sleep } from '@crawlee/utils';
 import type {
@@ -61,6 +64,7 @@ import {
     checkCrawleeVersion,
     getSystemInfo,
     isNonEmptyObject,
+    parseInputValue,
     printOutdatedSdkWarning,
     snakeCaseToCamelCase,
 } from './utils.js';
@@ -1320,17 +1324,14 @@ export class Actor<Data extends Dictionary = Dictionary> {
     /**
      * Gets the Actor input value from the default {@apilink KeyValueStore} associated with the current Actor run.
      *
-     * This is just a convenient shortcut for [`keyValueStore.getValue('INPUT')`](core/class/KeyValueStore#getValue).
-     * For example, calling the following code:
-     * ```js
-     * const input = await Actor.getInput();
-     * ```
+     * The input is the record stored under the configured input key (`ACTOR_INPUT_KEY`, default `INPUT`).
+     * A record stored as `application/octet-stream` — which is what a local input file without an
+     * extension is read as — is parsed as JSON when it is valid JSON, and returned as a `Buffer` otherwise.
      *
-     * is equivalent to:
-     * ```js
-     * const store = await Actor.openKeyValueStore();
-     * await store.getValue('INPUT');
-     * ```
+     * When running locally and the store holds no such record, the input is read from a `<inputKey>` or
+     * `<inputKey>.json` file in the current working directory instead.
+     *
+     * Throws when no input is found. If your Actor can run without input, catch the error.
      *
      * Note that the `getInput()` function does not cache the value read from the key-value store.
      * If you need to use the input multiple times in your Actor,
@@ -1342,15 +1343,27 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @returns
      *   Returns a promise that resolves to an object, string
      *   or [`Buffer`](https://nodejs.org/api/buffer.html), depending
-     *   on the MIME content type of the record, or `null`
-     *   if the record is missing.
+     *   on the MIME content type of the record.
      * @ignore
      */
-    async getInput<T = Dictionary | string | Buffer>(): Promise<T | null> {
+    async getInput<T = Dictionary | string | Buffer>(): Promise<T> {
         this.ensureActorInit('getInput');
 
-        const { inputSecretsPrivateKeyFile, inputSecretsPrivateKeyPassphrase } = this.configuration;
-        const rawInput = await this.getValue<T>(this.configuration.inputKey);
+        const { inputKey, inputSecretsPrivateKeyFile, inputSecretsPrivateKeyPassphrase } = this.configuration;
+
+        const store = await this.openKeyValueStore();
+        const record = await store.getRecord(inputKey);
+        const rawInput = record
+            ? parseInputValue(record.value, record.contentType)
+            : await this.readInputFile(inputKey);
+
+        if (rawInput === undefined) {
+            const locations = [`the "${inputKey}" record of the default key-value store`];
+            if (!this.configuration.isAtHome) {
+                locations.push(`a "${inputKey}.json" file in the working directory`);
+            }
+            throw new Error(`Input does not exist. Expected ${locations.join(' or ')}.`);
+        }
 
         let input = rawInput as T;
 
@@ -1360,7 +1373,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
                 passphrase: inputSecretsPrivateKeyPassphrase,
             });
 
-            input = decryptInputSecrets({ input: rawInput, privateKey });
+            input = decryptInputSecrets({ input: rawInput, privateKey }) as T;
         }
 
         if (isNonEmptyObject(input) && !Buffer.isBuffer(input)) {
@@ -1371,17 +1384,44 @@ export class Actor<Data extends Dictionary = Dictionary> {
     }
 
     /**
-     * Gets the Actor input value just like the {@apilink Actor.getInput} method,
-     * but throws if it is not found.
+     * Reads the input from a `<inputKey>` or `<inputKey>.json` file in the working directory, for local runs
+     * whose default key-value store holds no input record. Mirrors how `FileSystemStorageBackend` adopts
+     * such files inside the store directory: the `.json` file is JSON, the bare one is bytes that
+     * {@link parseInputValue} tries as JSON. Both files present is an error rather than a guess.
+     *
+     * @returns `undefined` when running on the platform or when neither file exists.
      */
-    async getInputOrThrow<T = Dictionary | string | Buffer>(): Promise<T> {
-        const input = await this.getInput<T>();
-
-        if (input == null) {
-            throw new Error('Input does not exist');
+    private async readInputFile(inputKey: string): Promise<unknown> {
+        if (this.configuration.isAtHome) {
+            return undefined;
         }
 
-        return input;
+        const candidates = [
+            { filename: inputKey, contentType: 'application/octet-stream' },
+            { filename: `${inputKey}.json`, contentType: 'application/json; charset=utf-8' },
+        ];
+
+        const found = [];
+        for (const candidate of candidates) {
+            const path = join(process.cwd(), candidate.filename);
+            const stats = await stat(path).catch(() => null);
+            if (stats?.isFile()) {
+                found.push({ ...candidate, path });
+            }
+        }
+
+        if (found.length > 1) {
+            throw new Error(
+                `Found multiple input files in the working directory: ${found.map((file) => `"${file.filename}"`).join(', ')}. Keep only one of them.`,
+            );
+        }
+
+        if (found.length === 0) {
+            return undefined;
+        }
+
+        const [file] = found;
+        return parseInputValue(await readFile(file.path), file.contentType);
     }
 
     /**
@@ -2121,17 +2161,18 @@ export class Actor<Data extends Dictionary = Dictionary> {
     /**
      * Gets the Actor input value from the default {@apilink KeyValueStore} associated with the current Actor run.
      *
-     * This is just a convenient shortcut for {@apilink KeyValueStore.getValue | `keyValueStore.getValue('INPUT')`}.
-     * For example, calling the following code:
+     * The input is the record stored under the configured input key (`ACTOR_INPUT_KEY`, default `INPUT`):
      * ```js
      * const input = await Actor.getInput();
      * ```
      *
-     * is equivalent to:
-     * ```js
-     * const store = await Actor.openKeyValueStore();
-     * await store.getValue('INPUT');
-     * ```
+     * A record stored as `application/octet-stream` — which is what a local input file without an
+     * extension is read as — is parsed as JSON when it is valid JSON, and returned as a `Buffer` otherwise.
+     *
+     * When running locally and the store holds no such record, the input is read from a `<inputKey>` or
+     * `<inputKey>.json` file in the current working directory instead.
+     *
+     * Throws when no input is found. If your Actor can run without input, catch the error.
      *
      * Note that the `getInput()` function does not cache the value read from the key-value store.
      * If you need to use the input multiple times in your Actor,
@@ -2142,19 +2183,10 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @returns
      *   Returns a promise that resolves to an object, string
      *   or [`Buffer`](https://nodejs.org/api/buffer.html), depending
-     *   on the MIME content type of the record, or `null`
-     *   if the record is missing.
+     *   on the MIME content type of the record.
      */
-    static async getInput<T = Dictionary | string | Buffer>(): Promise<T | null> {
-        return Actor.getDefaultInstance().getInput();
-    }
-
-    /**
-     * Gets the Actor input value just like the {@apilink Actor.getInput} method,
-     * but throws if it is not found.
-     */
-    static async getInputOrThrow<T = Dictionary | string | Buffer>(): Promise<T> {
-        return Actor.getDefaultInstance().getInputOrThrow<T>();
+    static async getInput<T = Dictionary | string | Buffer>(): Promise<T> {
+        return Actor.getDefaultInstance().getInput<T>();
     }
 
     /**
@@ -2354,12 +2386,28 @@ export class Actor<Data extends Dictionary = Dictionary> {
                 }),
                 charging,
             ),
-            localStorageBackend: new ChargingStorageBackend(
-                new ServiceLocator(this.configuration).getStorageBackend(),
-                charging,
-            ),
+            localStorageBackend: new ChargingStorageBackend(this.createLocalStorageBackend(), charging),
             configuration: this.configuration,
         }));
+    }
+
+    /**
+     * The same choice crawlee's `ServiceLocator` makes for its implicit default backend, made here so
+     * that the file-system backend learns the SDK's input key — crawlee has no notion of a run input.
+     */
+    private createLocalStorageBackend(): StorageBackend {
+        const { persistStorage, storageDir, inputKey } = this.configuration;
+        const logger = serviceLocator.getLogger();
+
+        if (!persistStorage) {
+            return new MemoryStorageBackend({ logger: logger.child({ prefix: 'MemoryStorageBackend' }) });
+        }
+
+        return new FileSystemStorageBackend({
+            localDataDirectory: storageDir,
+            inputKey,
+            logger: logger.child({ prefix: 'FileSystemStorageBackend' }),
+        });
     }
 
     /** Whether items reaching the run's default dataset are counted for pay-per-event charging. */

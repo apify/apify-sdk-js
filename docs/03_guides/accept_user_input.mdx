@@ -16,6 +16,6 @@ To provide the actor with input, create a `INPUT.json` file inside the "default"
 {PROJECT_FOLDER}/storage/key_value_stores/default/INPUT.json
 ```
 
-Anything in this file will be available to the actor when it runs.
+Anything in this file will be available to the actor when it runs. If the default key-value store holds no input record, `Actor.getInput()` also looks for an `INPUT.json` (or a bare `INPUT`) file in the current working directory, so you can keep the input next to your code. Either way, `Actor.getInput()` throws when it finds no input.
 
 To learn about other ways to provide an actor with input, refer to the [Apify Platform Documentation](https://apify.com/docs/actor#run).

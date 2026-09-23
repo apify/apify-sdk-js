@@ -81,6 +81,7 @@
         "@apify/utilities": "^3.0.1",
         "@apify/validations": "^1.1.0",
         "@crawlee/core": ">=4.0.0-beta.194 <4.0.0-rc.0 || >4.0.0-rc.0 <5.0.0",
+        "@crawlee/fs-storage": ">=4.0.0-beta.194 <4.0.0-rc.0 || >4.0.0-rc.0 <5.0.0",
         "@crawlee/types": ">=4.0.0-beta.194 <4.0.0-rc.0 || >4.0.0-rc.0 <5.0.0",
         "@crawlee/utils": ">=4.0.0-beta.194 <4.0.0-rc.0 || >4.0.0-rc.0 <5.0.0",
         "apify-client": "^3.0.0-beta.26",
