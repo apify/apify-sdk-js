@@ -19,7 +19,6 @@ import {
     RequestQueue,
     serviceLocator,
 } from '@crawlee/core';
-import { FileSystemStorageBackend } from '@crawlee/fs-storage';
 import type { Awaitable, Dictionary, StorageBackend } from '@crawlee/types';
 import { sleep } from '@crawlee/utils';
 import type {
@@ -41,13 +40,13 @@ import {
     type ACTOR_PERMISSION_LEVEL,
     APIFY_ENV_VARS,
     INTEGER_ENV_VARS,
-    KEY_VALUE_STORE_KEYS,
 } from '@apify/consts';
 import { decryptInputSecrets } from '@apify/input_secrets';
 import log from '@apify/log';
 import { addTimeoutToPromise } from '@apify/timeout';
 import { parseArgument } from '@apify/validations';
 
+import { ApifyFileSystemStorageBackend } from './apify_file_system_storage_backend.js';
 import type { RequestQueueAccessMode } from './apify_request_queue_backend.js';
 import { ApifyStorageBackend } from './apify_storage_backend.js';
 import type { ChargeOptions, ChargeResult } from './charging.js';
@@ -1386,7 +1385,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
 
     /**
      * Reads the input from a `<inputKey>` or `<inputKey>.json` file in the working directory, for local runs
-     * whose default key-value store holds no input record. Mirrors how `FileSystemStorageBackend` adopts
+     * whose default key-value store holds no input record. Mirrors how `ApifyFileSystemStorageBackend` adopts
      * such files inside the store directory: the `.json` file is JSON, the bare one is bytes that
      * {@link parseInputValue} tries as JSON. Both files present is an error rather than a guess.
      *
@@ -2393,10 +2392,9 @@ export class Actor<Data extends Dictionary = Dictionary> {
     }
 
     /**
-     * The same choice crawlee's `ServiceLocator` makes for its implicit default backend, made here so
-     * that the file-system backend learns the run-input keys — crawlee has no notion of a run input.
-     * Preserved keys survive the purge on start, and a bare `<key>` / `<key>.json` file in the default
-     * store (what the Apify CLI and the templates write) is adopted as the record `<key>`.
+     * The same choice crawlee's `ServiceLocator` makes for its implicit default backend, with the
+     * input-aware {@apilink ApifyFileSystemStorageBackend} in place of crawlee's — crawlee has no
+     * notion of a run input.
      */
     private createLocalStorageBackend(): StorageBackend {
         const { persistStorage, storageDir, inputKey } = this.configuration;
@@ -2406,10 +2404,10 @@ export class Actor<Data extends Dictionary = Dictionary> {
             return new MemoryStorageBackend({ logger: logger.child({ prefix: 'MemoryStorageBackend' }) });
         }
 
-        return new FileSystemStorageBackend({
+        return new ApifyFileSystemStorageBackend({
             localDataDirectory: storageDir,
-            preservedKeys: [KEY_VALUE_STORE_KEYS.INPUT, inputKey],
-            logger: logger.child({ prefix: 'FileSystemStorageBackend' }),
+            inputKey,
+            logger: logger.child({ prefix: 'ApifyFileSystemStorageBackend' }),
         });
     }
 
