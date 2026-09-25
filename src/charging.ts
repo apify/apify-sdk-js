@@ -201,9 +201,11 @@ export class ChargingManager {
 
         // Load per-event pricing information
         if (pricingInfo?.pricingModel === 'PAY_PER_EVENT') {
-            for (const [eventName, eventPricing] of Object.entries(pricingInfo.pricingPerEvent.actorChargeEvents)) {
+            for (const [eventName, eventPricing] of Object.entries(
+                pricingInfo.pricingPerEvent.actorChargeEvents ?? {},
+            )) {
                 this.#pricingInfo[eventName] = {
-                    price: eventPricing.eventPriceUsd,
+                    price: eventPricing.eventPriceUsd ?? 0,
                     title: eventPricing.eventTitle,
                 };
             }

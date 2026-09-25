@@ -47,8 +47,8 @@ importers:
         specifier: '>=4.0.0-beta.151 <4.0.0-rc.0'
         version: 4.0.0-beta.151
       apify-client:
-        specifier: ^2.25.0
-        version: 2.25.0
+        specifier: ^3.0.0-beta.26
+        version: 3.0.0-beta.26
       minimatch:
         specifier: ^10.2.6
         version: 10.2.6
@@ -94,7 +94,7 @@ importers:
         version: 21.2.2(@types/node@26.2.0)(conventional-commits-parser@7.1.2)(typescript@7.0.2)
       crawlee:
         specifier: '>=4.0.0-beta.151 <4.0.0-rc.0'
-        version: 4.0.0-beta.151(@types/node@26.2.0)(playwright@1.62.1)(puppeteer@25.8.0)
+        version: 4.0.0-beta.151(@types/node@26.2.0)(playwright@1.62.1)(puppeteer@25.8.0(proxy-agent@8.0.2))
       husky:
         specifier: ^9.1.7
         version: 9.1.7
@@ -115,7 +115,7 @@ importers:
         version: 1.62.1
       puppeteer:
         specifier: ^25.8.0
-        version: 25.8.0
+        version: 25.8.0(proxy-agent@8.0.2)
       rimraf:
         specifier: ^6.1.3
         version: 6.1.3
@@ -3896,9 +3896,6 @@ packages:
   '@tokenizer/token@0.3.0':
     resolution: {integrity: sha512-OvjF+z51L3ov0OyAU0duzsYuvO01PH7x4t6DJx+guahgTnBHkhJdG7soQeTSFLWN3efnHyibZ4Z8l2EuWwJN3A==}
 
-  '@tootallnate/quickjs-emscripten@0.23.0':
-    resolution: {integrity: sha512-C5Mc6rdnsaJDjO3UpGW/CQTHtCKaYlScZTly4JIu97Jxo/odCiH0ITnDXSJPTOrEKk/ycSZ0AOgTmkDtkOsvIA==}
-
   '@tybys/wasm-util@0.10.3':
     resolution: {integrity: sha512-F3fo1MYrRJYL3zER0OUOmkutjr1Vp23m7OsSgp7nq4SP6OqX6C/56XFIPAl5bt3zaBRjmW7SGz3u/6LwFpYcOg==}
 
@@ -4296,6 +4293,10 @@ packages:
     resolution: {integrity: sha512-MnA+YT8fwfJPgBx3m60MNqakm30XOkyIoH1y6huTQvC0PwZG7ki8NacLBcrPbNoo8vEZy7Jpuk7+jMO+CUovTQ==}
     engines: {node: '>= 14'}
 
+  agent-base@9.0.0:
+    resolution: {integrity: sha512-TQf59BsZnytt8GdJKLPfUZ54g/iaUL2OWDSFCCvMOhsHduDQxO8xC4PNeyIkVcA5KwL2phPSv0douC0fgWzmnA==}
+    engines: {node: '>= 20'}
+
   aggregate-error@3.1.0:
     resolution: {integrity: sha512-4I7Td01quW/RpocfNayFdFVk1qSuoh0E7JrbRJ16nH01HhKFQ88INq9Sd+nd72zqRySlr9BmDA8xlEJ6vJMrYA==}
     engines: {node: '>=8'}
@@ -4372,8 +4373,9 @@ packages:
     resolution: {integrity: sha512-KMReFUr0B4t+D+OBkjR3KYqvocp2XaSzO55UcB6mgQMd3KbcE+mWTyvVV7D/zsdEbNnV6acZUutkiHQXvTr1Rw==}
     engines: {node: '>= 8'}
 
-  apify-client@2.25.0:
-    resolution: {integrity: sha512-g6ttHJ4Au/Gg0iDHIevN3CvTbJfey9DUXUXJxe0ORF6JIYaVVfKdyJjINGb6/49gOpt/62ZFPw+HSEVIzrwR5w==}
+  apify-client@3.0.0-beta.26:
+    resolution: {integrity: sha512-WS7vji2sseOjk02izVFq2hwoMKLkHXeL1oDvHP9zR5LH9X7MhS6x1/QzyApuMgU5FoPMl5VOaDta4aoKMnJhSA==}
+    engines: {node: '>=22.0.0'}
 
   arg@5.0.2:
     resolution: {integrity: sha512-PYjyFOLKQ9y57JvQ6QLo8dAgNqswh8M1RMJYdQduT6xbWSgK36P/Z/v+p888pM69jMMfS8Xd8F6I1kQ/I9HUGg==}
@@ -4409,9 +4411,6 @@ packages:
     resolution: {integrity: sha512-LElXdjswlqjWrPpJFg1Fx4wpkOCxj1TDHlSV4PlaRxHGWko024xICaa97ZkMfs6DRKlCguiAI+rbXv5GWwXIkg==}
     hasBin: true
 
-  async-retry@1.3.3:
-    resolution: {integrity: sha512-wfr/jstw9xNi/0teMHrRW7dsz3Lt5ARhYNZ2ewpadnhaIp5mbALhOAP+EAdsC7t4Z6wqsDVv9+W6gm1Dk9mEyw==}
-
   asynckit@0.4.0:
     resolution: {integrity: sha512-Oei9OH4tRh0YqU3GxhX79dM/mwVgvbZJaSNaRk+bshkj0S5cfHcgYakreBjrHwatXKbz+IoIdYLxrKim2MjW0Q==}
 
@@ -4422,8 +4421,8 @@ packages:
     peerDependencies:
       postcss: ^8.1.0
 
-  axios@1.19.0:
-    resolution: {integrity: sha512-ht/iuYZXEjFxLH/Hkezgd7m6JKlHHXEUSneaDz8uZe1Gj5QZtCnpyDsckvAiEnT89OEbCLmnte4R4sn7P0EKFw==}
+  axios@1.20.0:
+    resolution: {integrity: sha512-r8aOh8j9cGKpgQAqpzrUHnSIc6a59Y3Xf/cv8sy1DrHCkZHzQGEuoq1tARk6qSyDdtQGSDgpb9kFlruzPvrgwg==}
 
   babel-loader@10.1.1:
     resolution: {integrity: sha512-JwKSzk2kjIe7mgPK+/lyZ2QAaJcpahNAdM+hgR2HI8D0OJVkdj8Rl6J3kaLYki9pwF7P2iWnD8qVv80Lq1ABtg==}
@@ -5065,9 +5064,9 @@ packages:
   csv-stringify@6.8.3:
     resolution: {integrity: sha512-gIeSCvq5F4VtXV3naV3VAewLhBkiZBz+PPhTOA8H3Y8h/ELa+R1ml0GZck/4/Nzo9ep2lvOluilJ6MJlbZsKMA==}
 
-  data-uri-to-buffer@6.0.2:
-    resolution: {integrity: sha512-7hvf7/GW8e86rW0ptuwS3OcBGDjIi6SZva7hCyWC0yYry2cOPmLIjXAUHI6DK2HsnwJd9ifmt57i8eV2n4YNpw==}
-    engines: {node: '>= 14'}
+  data-uri-to-buffer@8.0.0:
+    resolution: {integrity: sha512-6UHfyCux51b8PTGDgveqtz1tvphBku5DrMKKJbFAZAJOI2zsjDpDoYE1+QGj7FOMS4BdTFNJsJiR3zEB0xH0yQ==}
+    engines: {node: '>= 20'}
 
   data-urls@5.0.0:
     resolution: {integrity: sha512-ZYP5VBHshaDAiVZxjbRVcFJpc+4xGgT0bK3vzy1HLN8jTO975HEbuYzZJcHoQEY5K1a0z8YayJkyVETa08eNTg==}
@@ -5146,9 +5145,11 @@ packages:
     resolution: {integrity: sha512-8QmQKqEASLd5nx0U1B1okLElbUuuttJ/AnYmRXbbbGDWh6uS208EjD4Xqq/I9wK7u0v6O08XhTWnt5XtEbR6Dg==}
     engines: {node: '>= 0.4'}
 
-  degenerator@5.0.1:
-    resolution: {integrity: sha512-TllpMR/t0M5sqCXfj85i4XaAzxmS5tVA16dqvdkMwGmzI+dXLXnw3J+3Vdv7VKw+ThlTMboK6i9rnZ6Nntj5CQ==}
-    engines: {node: '>= 14'}
+  degenerator@7.0.1:
+    resolution: {integrity: sha512-ABErK0IefDSyHjlPH7WUEenIAX2rPPnrDcDM+TS3z3+zu9TfyKKi07BQM+8rmxpdE2y1v5fjjdoAS/x4D2U60w==}
+    engines: {node: '>= 20'}
+    peerDependencies:
+      quickjs-wasi: ^2.2.0
 
   delayed-stream@1.0.0:
     resolution: {integrity: sha512-ZySD7Nf91aLB0RxL4KGrKHBXl7Eds1DAmEdcoVawXnLD7SDhpNgtuII2aAkg7a7QS41jxPSZ17p4VdGnMHk3MQ==}
@@ -5659,9 +5660,9 @@ packages:
     resolution: {integrity: sha512-ts6Wi+2j3jQjqi70w5AlN8DFnkSwC+MqmxEzdEALB2qXZYV3X/b1CTfgPLGJNMeAWxdPfU8FO1ms3NUfaHCPYg==}
     engines: {node: '>=10'}
 
-  get-uri@6.0.5:
-    resolution: {integrity: sha512-b1O07XYq8eRuVzBNgJLstU6FYc1tS6wnMtF1I1D9lE8LxZSOGZ7LhxN54yPP6mGw5f2CkXY2BQUL9Fx41qvcIg==}
-    engines: {node: '>= 14'}
+  get-uri@8.0.1:
+    resolution: {integrity: sha512-/5N/P4Lrh0p/mDwlDRi7Y1+P2o/OyzZI3l6Iz1Ov6XXwwm1y3RlZLuo3gVgML99djrEDtV980bBxSuOeHLk8ww==}
+    engines: {node: '>= 20'}
 
   github-slugger@1.5.0:
     resolution: {integrity: sha512-wIh+gKBI9Nshz2o46B0B3f5k/W+WI9ZAv6y5Dn5WJ5SK1t0TnDimB4WE5rmTD05ZAIn8HALCZVmCsvj0w0v0lw==}
@@ -5903,6 +5904,10 @@ packages:
     resolution: {integrity: sha512-T1gkAiYYDWYx3V5Bmyu7HcfcvL7mUrTWiM6yOfa3PIphViJ/gFPbvidQ+veqSOHci/PxBcDabeUNCzpOODJZig==}
     engines: {node: '>= 14'}
 
+  http-proxy-agent@9.1.0:
+    resolution: {integrity: sha512-2NxoveTT58mjYT4n3RPTEfCZGLMbidoO8XEieXfpSYxu+PQJ1qpx4ypwH6N+uF9twBPIvRRgvkvW5HUTYWENig==}
+    engines: {node: '>= 20'}
+
   http-proxy-middleware@4.2.0:
     resolution: {integrity: sha512-ZA+oNOoM+GLoFTIzhkJptVQov73Srep2LBqhF8hG8CIPKO3nam1jonXVQ/QUH8RbwsmaaVz2SOJdzBNBHNtKbw==}
     engines: {node: ^22.15.0 || ^24.0.0 || >=26.0.0}
@@ -5918,6 +5923,10 @@ packages:
   https-proxy-agent@7.0.6:
     resolution: {integrity: sha512-vK9P5/iUfdl95AI+JVyUuIcVtd4ofvtrOr3HNtM2yxC9bnMbEdp3x01OhQNnjb8IJYi38VlTE3mBXwcfvywuSw==}
     engines: {node: '>= 14'}
+
+  https-proxy-agent@9.1.0:
+    resolution: {integrity: sha512-ag87y7cJJ9/3+GxFr8Oy4O5faDsGRGnBGsJj/YjOSsSx/5eadKLYTMPlzuR6obgoCDDm0abAAZitXXQkMOPSpA==}
+    engines: {node: '>= 20'}
 
   httpxy@0.5.5:
     resolution: {integrity: sha512-uDjmnPyp1q4Sgzf3w+J/Fc6UqcCEj0x4Wjp7OqK5dGhNeDgpyrAmnS6ey8QWrX3SWDon2DMKf9sBa5X9+CVyMA==}
@@ -7070,13 +7079,15 @@ packages:
     resolution: {integrity: sha512-R4nPAVTAU0B9D35/Gk3uJf/7XYbQcyohSKdvAxIRSNghFl4e71hVoGnBNQz9cWaXxO2I10KTC+3jMdvvoKw6dQ==}
     engines: {node: '>=6'}
 
-  pac-proxy-agent@7.2.0:
-    resolution: {integrity: sha512-TEB8ESquiLMc0lV8vcd5Ql/JAKAoyzHFXaStwjkzpOpC5Yv+pIzLfHvjTSdf3vpa2bMiUQrg9i6276yn8666aA==}
-    engines: {node: '>= 14'}
+  pac-proxy-agent@9.1.0:
+    resolution: {integrity: sha512-1aU+1mpj3DrQPfo3gh+3Gap3G5x+axnMx1P/y0ZF2ch7kb2meyOCAH8K2k9d27ROsTE7TnAerzxqF9aon2jqnA==}
+    engines: {node: '>= 20'}
 
-  pac-resolver@7.0.1:
-    resolution: {integrity: sha512-5NPgf87AT2STgwa2ntRMr45jTKrYBGkVU36yT0ig/n/GMAa3oPqhZfIQ2kMEimReg0+t9kZViDVZ83qfVUlckg==}
-    engines: {node: '>= 14'}
+  pac-resolver@9.0.1:
+    resolution: {integrity: sha512-lJbS008tmkj08VhoM8Hzuv/VE5tK9MS0OIQ/7+s0lIF+BYhiQWFYzkSpML7lXs9iBu2jfmzBTLzhe9n6BX+dYw==}
+    engines: {node: '>= 20'}
+    peerDependencies:
+      quickjs-wasi: ^2.2.0
 
   package-json-from-dist@1.0.1:
     resolution: {integrity: sha512-UEZIS3/by4OC8vL3P2dTXRETpebLI2NiI5vIrjaD/5UtrkFX/tNbwjTSRAGC/+7CAo2pIcBaRgWmcBBHcsaCIw==}
@@ -7761,16 +7772,22 @@ packages:
     resolution: {integrity: sha512-llQsMLSUDUPT44jdrU/O37qlnifitDP+ZwrmmZcoSKyLKvtZxpyV0n2/bD/N4tBAAZ/gJEdZU7KMraoK1+XYAg==}
     engines: {node: '>= 0.10'}
 
-  proxy-agent@6.5.0:
-    resolution: {integrity: sha512-TmatMXdr2KlRiA2CyDu8GqR8EjahTG3aY3nXjdzFyoZbmB8hrBsTyMezhULIXKnC0jpfjlmiZ3+EaCzoInSu/A==}
-    engines: {node: '>= 14'}
+  proxy-agent-negotiate@1.1.0:
+    resolution: {integrity: sha512-N8IBcM3UgCVzz2L2Lqv8DVntDnnC8/hiV4nEDUPkqq72TPUgYWjQc+bdZlBPZK9LzPAvOY//gAt0S0DApoOXWQ==}
+    engines: {node: '>= 20'}
+    peerDependencies:
+      kerberos: ^2.0.0
+    peerDependenciesMeta:
+      kerberos:
+        optional: true
+
+  proxy-agent@8.0.2:
+    resolution: {integrity: sha512-idLLRewuemWd7GH/BDJzGiB0dWGfT2SQs3jy6NtZtGWU9uPTTSdeC1/cdbqLwgzhfv027daGFuXX426e2Eg20A==}
+    engines: {node: '>= 20'}
 
   proxy-chain@2.7.1:
     resolution: {integrity: sha512-LtXu0miohJYrHWJxv8wA6EoGreRcX1hxKb7qlE1pMFH+BXE7bqMvpyhzR/JvR6M5SzYKzyHFpvfmYJrZeMtwAg==}
     engines: {node: '>=14'}
-
-  proxy-from-env@1.1.0:
-    resolution: {integrity: sha512-D+zkORCbA9f1tdWRK0RaCR3GPv50cMxcrz4X8k5LTSUD1Dkw47mKJEZQNunItRTkWwgtaUSo1RVFRIG9ZXiFYg==}
 
   proxy-from-env@2.1.0:
     resolution: {integrity: sha512-cJ+oHTW1VAEa8cJslgmUZrc+sjRKgAKl3Zyse6+PV38hZe/V6Z14TbCuXcan9F9ghlz4QrFr2c92TNF82UkYHA==}
@@ -7822,6 +7839,9 @@ packages:
   quick-lru@7.3.0:
     resolution: {integrity: sha512-k9lSsjl36EJdK7I06v7APZCbyGT2vMTsYSRX1Q2nbYmnkBqgUhRkAuzH08Ciotteu/PLJmIF2+tti7o3C/ts2g==}
     engines: {node: '>=18'}
+
+  quickjs-wasi@2.2.0:
+    resolution: {integrity: sha512-zQxXmQMrEoD3S+jQdYsloq4qAuaxKFHZj6hHqOYGwB2iQZH+q9e/lf5zQPXCKOk0WJuAjzRFbO4KwHIp2D05Iw==}
 
   randombytes@2.1.0:
     resolution: {integrity: sha512-vYl3iOX+4CKUWuxGi9Ukhie6fsqXqS9FE2Zaic4tNFD2N2QQaXOMFbuKK4QmDHC0JO6B1Zp41J0LpT0oR68amQ==}
@@ -8104,10 +8124,6 @@ packages:
     resolution: {integrity: sha512-40yHxbNcl2+rzXvZuVkrYohathsSJlMTXKryG5y8uciHv1+xDLHQpgjG64JUO9nrEq2jGLH6IZ8BcZyw3wrweg==}
     engines: {node: '>=14.16'}
 
-  retry@0.13.1:
-    resolution: {integrity: sha512-XQBQ3I8W1Cge0Seh+6gjj03LbmRFWuoszgK9ooCpwYIrhhoO80pfq4cUkU5DkknwfOfFteRwlZ56PYOGYyFWdg==}
-    engines: {node: '>= 4'}
-
   reusify@1.1.0:
     resolution: {integrity: sha512-g6QUff04oZpHs0eG5p83rFLhHeV00ug/Yf9nZM6fLeUrPguBTkTQOdpAWWspMh55TZfVQDPaN3NQJfbVRAxdIw==}
     engines: {iojs: '>=1.0.0', node: '>=0.10.0'}
@@ -8308,6 +8324,10 @@ packages:
 
   snake-case@3.0.4:
     resolution: {integrity: sha512-LAOh4z89bGQvl9pFfNF8V146i7o7/CqFPbqzYgP+yYzDIDeS9HaNFtXABamRW+AQzEVODcvE79ljJ+8a9YSdMg==}
+
+  socks-proxy-agent@10.1.0:
+    resolution: {integrity: sha512-WlMj/67cEJ6MDI1OcsnjuYKDNDoyPCCYZ249kuuXPiMDw9F8PXkVaQ7YWu3siTydfQ/4BEZcvGzu+aYvz7dDCQ==}
+    engines: {node: '>= 20'}
 
   socks-proxy-agent@8.0.5:
     resolution: {integrity: sha512-HehCEsotFqbPW9sJ8WVYB6UbmIMv7kUUORIF2Nncq4VQvBfNBLibW9YZR5dlYCSUhwcD628pRllm7n+E+YTzJw==}
@@ -10521,14 +10541,14 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@crawlee/browser-pool@4.0.0-beta.151(playwright@1.62.1)(puppeteer@25.8.0)':
+  '@crawlee/browser-pool@4.0.0-beta.151(playwright@1.62.1)(puppeteer@25.8.0(proxy-agent@8.0.2))':
     dependencies:
       '@apify/timeout': 0.4.10
       '@crawlee/core': 4.0.0-beta.151
       '@crawlee/types': 4.0.0-beta.151
       '@crawlee/utils': 4.0.0-beta.151
       fingerprint-generator: 2.1.88
-      fingerprint-injector: 2.1.88(playwright@1.62.1)(puppeteer@25.8.0)
+      fingerprint-injector: 2.1.88(playwright@1.62.1)(puppeteer@25.8.0(proxy-agent@8.0.2))
       lodash.merge: 4.6.2
       nanoid: 5.1.16
       p-limit: 6.2.0
@@ -10539,15 +10559,15 @@ snapshots:
       zod: 4.6.5
     optionalDependencies:
       playwright: 1.62.1
-      puppeteer: 25.8.0
+      puppeteer: 25.8.0(proxy-agent@8.0.2)
     transitivePeerDependencies:
       - supports-color
 
-  '@crawlee/browser@4.0.0-beta.151(playwright@1.62.1)(puppeteer@25.8.0)':
+  '@crawlee/browser@4.0.0-beta.151(playwright@1.62.1)(puppeteer@25.8.0(proxy-agent@8.0.2))':
     dependencies:
       '@apify/timeout': 0.4.10
       '@crawlee/basic': 4.0.0-beta.151
-      '@crawlee/browser-pool': 4.0.0-beta.151(playwright@1.62.1)(puppeteer@25.8.0)
+      '@crawlee/browser-pool': 4.0.0-beta.151(playwright@1.62.1)(puppeteer@25.8.0(proxy-agent@8.0.2))
       '@crawlee/types': 4.0.0-beta.151
       '@crawlee/utils': 4.0.0-beta.151
       tslib: 2.8.1
@@ -10555,7 +10575,7 @@ snapshots:
       zod: 4.6.5
     optionalDependencies:
       playwright: 1.62.1
-      puppeteer: 25.8.0
+      puppeteer: 25.8.0(proxy-agent@8.0.2)
     transitivePeerDependencies:
       - supports-color
 
@@ -10732,13 +10752,13 @@ snapshots:
       - canvas
       - supports-color
 
-  '@crawlee/playwright@4.0.0-beta.151(playwright@1.62.1)(puppeteer@25.8.0)':
+  '@crawlee/playwright@4.0.0-beta.151(playwright@1.62.1)(puppeteer@25.8.0(proxy-agent@8.0.2))':
     dependencies:
       '@apify/datastructures': 2.0.6
       '@apify/timeout': 0.4.10
       '@crawlee/basic': 4.0.0-beta.151
-      '@crawlee/browser': 4.0.0-beta.151(playwright@1.62.1)(puppeteer@25.8.0)
-      '@crawlee/browser-pool': 4.0.0-beta.151(playwright@1.62.1)(puppeteer@25.8.0)
+      '@crawlee/browser': 4.0.0-beta.151(playwright@1.62.1)(puppeteer@25.8.0(proxy-agent@8.0.2))
+      '@crawlee/browser-pool': 4.0.0-beta.151(playwright@1.62.1)(puppeteer@25.8.0(proxy-agent@8.0.2))
       '@crawlee/cheerio': 4.0.0-beta.151
       '@crawlee/core': 4.0.0-beta.151
       '@crawlee/types': 4.0.0-beta.151
@@ -10757,11 +10777,11 @@ snapshots:
       - puppeteer
       - supports-color
 
-  '@crawlee/puppeteer@4.0.0-beta.151(playwright@1.62.1)(puppeteer@25.8.0)':
+  '@crawlee/puppeteer@4.0.0-beta.151(playwright@1.62.1)(puppeteer@25.8.0(proxy-agent@8.0.2))':
     dependencies:
       '@apify/datastructures': 2.0.6
-      '@crawlee/browser': 4.0.0-beta.151(playwright@1.62.1)(puppeteer@25.8.0)
-      '@crawlee/browser-pool': 4.0.0-beta.151(playwright@1.62.1)(puppeteer@25.8.0)
+      '@crawlee/browser': 4.0.0-beta.151(playwright@1.62.1)(puppeteer@25.8.0(proxy-agent@8.0.2))
+      '@crawlee/browser-pool': 4.0.0-beta.151(playwright@1.62.1)(puppeteer@25.8.0(proxy-agent@8.0.2))
       '@crawlee/core': 4.0.0-beta.151
       '@crawlee/types': 4.0.0-beta.151
       '@crawlee/utils': 4.0.0-beta.151
@@ -10771,7 +10791,7 @@ snapshots:
       tslib: 2.8.1
       zod: 4.6.5
     optionalDependencies:
-      puppeteer: 25.8.0
+      puppeteer: 25.8.0(proxy-agent@8.0.2)
     transitivePeerDependencies:
       - playwright
       - supports-color
@@ -13275,10 +13295,12 @@ snapshots:
 
   '@polka/url@1.0.0-next.29': {}
 
-  '@puppeteer/browsers@3.2.1':
+  '@puppeteer/browsers@3.2.1(proxy-agent@8.0.2)':
     dependencies:
       modern-tar: 0.8.4
       yargs: 18.1.0
+    optionalDependencies:
+      proxy-agent: 8.0.2
 
   '@radix-ui/primitive@1.1.7': {}
 
@@ -14000,8 +14022,6 @@ snapshots:
 
   '@tokenizer/token@0.3.0': {}
 
-  '@tootallnate/quickjs-emscripten@0.23.0': {}
-
   '@tybys/wasm-util@0.10.3':
     dependencies:
       tslib: 2.8.1
@@ -14390,6 +14410,8 @@ snapshots:
 
   agent-base@7.1.4: {}
 
+  agent-base@9.0.0: {}
+
   aggregate-error@3.1.0:
     dependencies:
       clean-stack: 2.2.0
@@ -14487,22 +14509,23 @@ snapshots:
       normalize-path: 3.0.0
       picomatch: 2.3.2
 
-  apify-client@2.25.0:
+  apify-client@3.0.0-beta.26:
     dependencies:
-      '@apify/consts': 2.57.2
-      '@apify/log': 2.5.50
-      '@apify/utilities': 2.35.7
+      '@apify/consts': 3.0.1
+      '@apify/log': 3.0.1
+      '@apify/utilities': 3.1.0
+      '@apify/validations': 1.1.1
       '@crawlee/types': 3.18.1
       ansi-colors: 4.1.3
-      async-retry: 1.3.3
-      axios: 1.19.0
+      axios: 1.20.0
       content-type: 1.0.5
-      ow: 0.28.2
-      proxy-agent: 6.5.0
+      proxy-agent: 8.0.2
       tslib: 2.8.1
       type-fest: 4.41.0
+      zod: 4.6.5
     transitivePeerDependencies:
       - debug
+      - kerberos
       - supports-color
 
   arg@5.0.2: {}
@@ -14531,10 +14554,6 @@ snapshots:
 
   astring@1.9.0: {}
 
-  async-retry@1.3.3:
-    dependencies:
-      retry: 0.13.1
-
   asynckit@0.4.0: {}
 
   autoprefixer@10.5.4(postcss@8.5.26):
@@ -14546,7 +14565,7 @@ snapshots:
       postcss: 8.5.26
       postcss-value-parser: 4.2.0
 
-  axios@1.19.0:
+  axios@1.20.0:
     dependencies:
       follow-redirects: 1.16.0
       form-data: 4.0.6
@@ -15042,11 +15061,11 @@ snapshots:
     optionalDependencies:
       typescript: 7.0.2
 
-  crawlee@4.0.0-beta.151(@types/node@26.2.0)(playwright@1.62.1)(puppeteer@25.8.0):
+  crawlee@4.0.0-beta.151(@types/node@26.2.0)(playwright@1.62.1)(puppeteer@25.8.0(proxy-agent@8.0.2)):
     dependencies:
       '@crawlee/basic': 4.0.0-beta.151
-      '@crawlee/browser': 4.0.0-beta.151(playwright@1.62.1)(puppeteer@25.8.0)
-      '@crawlee/browser-pool': 4.0.0-beta.151(playwright@1.62.1)(puppeteer@25.8.0)
+      '@crawlee/browser': 4.0.0-beta.151(playwright@1.62.1)(puppeteer@25.8.0(proxy-agent@8.0.2))
+      '@crawlee/browser-pool': 4.0.0-beta.151(playwright@1.62.1)(puppeteer@25.8.0(proxy-agent@8.0.2))
       '@crawlee/cheerio': 4.0.0-beta.151
       '@crawlee/cli': 4.0.0-beta.151(@types/node@26.2.0)
       '@crawlee/core': 4.0.0-beta.151
@@ -15055,14 +15074,14 @@ snapshots:
       '@crawlee/impit-client': 4.0.0-beta.151
       '@crawlee/jsdom': 4.0.0-beta.151
       '@crawlee/linkedom': 4.0.0-beta.151
-      '@crawlee/playwright': 4.0.0-beta.151(playwright@1.62.1)(puppeteer@25.8.0)
-      '@crawlee/puppeteer': 4.0.0-beta.151(playwright@1.62.1)(puppeteer@25.8.0)
+      '@crawlee/playwright': 4.0.0-beta.151(playwright@1.62.1)(puppeteer@25.8.0(proxy-agent@8.0.2))
+      '@crawlee/puppeteer': 4.0.0-beta.151(playwright@1.62.1)(puppeteer@25.8.0(proxy-agent@8.0.2))
       '@crawlee/utils': 4.0.0-beta.151
       import-local: 3.2.0
       tslib: 2.8.1
     optionalDependencies:
       playwright: 1.62.1
-      puppeteer: 25.8.0
+      puppeteer: 25.8.0(proxy-agent@8.0.2)
     transitivePeerDependencies:
       - '@types/node'
       - bufferutil
@@ -15265,7 +15284,7 @@ snapshots:
 
   csv-stringify@6.8.3: {}
 
-  data-uri-to-buffer@6.0.2: {}
+  data-uri-to-buffer@8.0.0: {}
 
   data-urls@5.0.0:
     dependencies:
@@ -15327,11 +15346,12 @@ snapshots:
       has-property-descriptors: 1.0.2
       object-keys: 1.1.1
 
-  degenerator@5.0.1:
+  degenerator@7.0.1(quickjs-wasi@2.2.0):
     dependencies:
       ast-types: 0.13.4
       escodegen: 2.1.0
       esprima: 4.0.1
+      quickjs-wasi: 2.2.0
 
   delayed-stream@1.0.0: {}
 
@@ -15797,13 +15817,13 @@ snapshots:
       header-generator: 2.1.88
       tslib: 2.8.1
 
-  fingerprint-injector@2.1.88(playwright@1.62.1)(puppeteer@25.8.0):
+  fingerprint-injector@2.1.88(playwright@1.62.1)(puppeteer@25.8.0(proxy-agent@8.0.2)):
     dependencies:
       fingerprint-generator: 2.1.88
       tslib: 2.8.1
     optionalDependencies:
       playwright: 1.62.1
-      puppeteer: 25.8.0
+      puppeteer: 25.8.0(proxy-agent@8.0.2)
 
   flat@5.0.2: {}
 
@@ -15878,10 +15898,10 @@ snapshots:
 
   get-stream@6.0.1: {}
 
-  get-uri@6.0.5:
+  get-uri@8.0.1:
     dependencies:
       basic-ftp: 5.3.1
-      data-uri-to-buffer: 6.0.2
+      data-uri-to-buffer: 8.0.0
       debug: 4.4.3(supports-color@5.5.0)
     transitivePeerDependencies:
       - supports-color
@@ -16302,6 +16322,15 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
+  http-proxy-agent@9.1.0:
+    dependencies:
+      agent-base: 9.0.0
+      debug: 4.4.3(supports-color@5.5.0)
+      proxy-agent-negotiate: 1.1.0
+    transitivePeerDependencies:
+      - kerberos
+      - supports-color
+
   http-proxy-middleware@4.2.0:
     dependencies:
       debug: 4.4.3(supports-color@5.5.0)
@@ -16329,6 +16358,15 @@ snapshots:
       agent-base: 7.1.4
       debug: 4.4.3(supports-color@5.5.0)
     transitivePeerDependencies:
+      - supports-color
+
+  https-proxy-agent@9.1.0:
+    dependencies:
+      agent-base: 9.0.0
+      debug: 4.4.3(supports-color@5.5.0)
+      proxy-agent-negotiate: 1.1.0
+    transitivePeerDependencies:
+      - kerberos
       - supports-color
 
   httpxy@0.5.5: {}
@@ -17658,23 +17696,25 @@ snapshots:
 
   p-try@2.2.0: {}
 
-  pac-proxy-agent@7.2.0:
+  pac-proxy-agent@9.1.0:
     dependencies:
-      '@tootallnate/quickjs-emscripten': 0.23.0
-      agent-base: 7.1.4
+      agent-base: 9.0.0
       debug: 4.4.3(supports-color@5.5.0)
-      get-uri: 6.0.5
-      http-proxy-agent: 7.0.2
-      https-proxy-agent: 7.0.6
-      pac-resolver: 7.0.1
-      socks-proxy-agent: 8.0.5
+      get-uri: 8.0.1
+      http-proxy-agent: 9.1.0
+      https-proxy-agent: 9.1.0
+      pac-resolver: 9.0.1(quickjs-wasi@2.2.0)
+      quickjs-wasi: 2.2.0
+      socks-proxy-agent: 10.1.0
     transitivePeerDependencies:
+      - kerberos
       - supports-color
 
-  pac-resolver@7.0.1:
+  pac-resolver@9.0.1(quickjs-wasi@2.2.0):
     dependencies:
-      degenerator: 5.0.1
+      degenerator: 7.0.1(quickjs-wasi@2.2.0)
       netmask: 2.1.1
+      quickjs-wasi: 2.2.0
 
   package-json-from-dist@1.0.1: {}
 
@@ -18482,17 +18522,20 @@ snapshots:
       forwarded: 0.2.0
       ipaddr.js: 1.9.1
 
-  proxy-agent@6.5.0:
+  proxy-agent-negotiate@1.1.0: {}
+
+  proxy-agent@8.0.2:
     dependencies:
-      agent-base: 7.1.4
+      agent-base: 9.0.0
       debug: 4.4.3(supports-color@5.5.0)
-      http-proxy-agent: 7.0.2
-      https-proxy-agent: 7.0.6
+      http-proxy-agent: 9.1.0
+      https-proxy-agent: 9.1.0
       lru-cache: 7.18.3
-      pac-proxy-agent: 7.2.0
-      proxy-from-env: 1.1.0
-      socks-proxy-agent: 8.0.5
+      pac-proxy-agent: 9.1.0
+      proxy-from-env: 2.1.0
+      socks-proxy-agent: 10.1.0
     transitivePeerDependencies:
+      - kerberos
       - supports-color
 
   proxy-chain@2.7.1:
@@ -18502,8 +18545,6 @@ snapshots:
       tslib: 2.8.1
     transitivePeerDependencies:
       - supports-color
-
-  proxy-from-env@1.1.0: {}
 
   proxy-from-env@2.1.0: {}
 
@@ -18515,9 +18556,9 @@ snapshots:
     dependencies:
       escape-goat: 4.0.0
 
-  puppeteer-core@25.8.0:
+  puppeteer-core@25.8.0(proxy-agent@8.0.2):
     dependencies:
-      '@puppeteer/browsers': 3.2.1
+      '@puppeteer/browsers': 3.2.1(proxy-agent@8.0.2)
       chromium-bidi: 17.0.2(devtools-protocol@0.0.1666840)
       devtools-protocol: 0.0.1666840
       typed-query-selector: 2.12.2
@@ -18529,13 +18570,13 @@ snapshots:
       - utf-8-validate
       - yauzl
 
-  puppeteer@25.8.0:
+  puppeteer@25.8.0(proxy-agent@8.0.2):
     dependencies:
-      '@puppeteer/browsers': 3.2.1
+      '@puppeteer/browsers': 3.2.1(proxy-agent@8.0.2)
       chromium-bidi: 17.0.2(devtools-protocol@0.0.1666840)
       devtools-protocol: 0.0.1666840
       lilconfig: 3.1.3
-      puppeteer-core: 25.8.0
+      puppeteer-core: 25.8.0(proxy-agent@8.0.2)
       typed-query-selector: 2.12.2
     transitivePeerDependencies:
       - bufferutil
@@ -18565,6 +18606,8 @@ snapshots:
   quick-lru@5.1.1: {}
 
   quick-lru@7.3.0: {}
+
+  quickjs-wasi@2.2.0: {}
 
   randombytes@2.1.0:
     dependencies:
@@ -18954,8 +18997,6 @@ snapshots:
     dependencies:
       lowercase-keys: 3.0.0
 
-  retry@0.13.1: {}
-
   reusify@1.1.0: {}
 
   rimraf@6.1.3:
@@ -19212,6 +19253,14 @@ snapshots:
     dependencies:
       dot-case: 3.0.4
       tslib: 2.8.1
+
+  socks-proxy-agent@10.1.0:
+    dependencies:
+      agent-base: 9.0.0
+      debug: 4.4.3(supports-color@5.5.0)
+      socks: 2.8.9
+    transitivePeerDependencies:
+      - supports-color
 
   socks-proxy-agent@8.0.5:
     dependencies:

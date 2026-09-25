@@ -21,6 +21,7 @@ import type { Awaitable, Dictionary, StorageBackend } from '@crawlee/types';
 import { sleep } from '@crawlee/utils';
 import type {
     ActorCallOptions,
+    ActorInput,
     ActorStartOptions,
     ApifyClientOptions,
     RunAbortOptions,
@@ -305,9 +306,9 @@ export interface Timeout {
     timeout?: number | 'inherit';
 }
 
-export interface CallOptions extends Omit<ActorCallOptions, 'timeout'>, Token, Timeout {}
-export interface StartOptions extends Omit<ActorStartOptions, 'waitForFinish' | 'timeout'>, Token, Timeout {}
-export interface CallTaskOptions extends Omit<TaskCallOptions, 'timeout'>, Token, Timeout {}
+export interface CallOptions extends Omit<ActorCallOptions, 'runTimeoutSecs'>, Token, Timeout {}
+export interface StartOptions extends Omit<ActorStartOptions, 'waitForFinish' | 'runTimeoutSecs'>, Token, Timeout {}
+export interface CallTaskOptions extends Omit<TaskCallOptions, 'runTimeoutSecs'>, Token, Timeout {}
 
 export interface AbortOptions extends RunAbortOptions, Token {
     /** Exit with given status message */
@@ -385,7 +386,7 @@ export interface MetamorphOptions {
      * Content type for the `input`. If not specified,
      * `input` is expected to be an object that will be stringified to JSON and content type set to
      * `application/json; charset=utf-8`. If `options.contentType` is specified, then `input` must be a
-     * `String` or `Buffer`.
+     * `Buffer`.
      */
     contentType?: string;
 
@@ -835,17 +836,16 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @param actorId
      *  Allowed formats are `username/actor-name`, `userId/actor-name` or Actor ID.
      * @param [input]
-     *  Input for the Actor. If it is an object, it will be stringified to
-     *  JSON and its content type set to `application/json; charset=utf-8`.
-     *  Otherwise the `options.contentType` parameter must be provided.
+     *  Input for the Actor. A plain object is stringified to JSON with content type
+     *  `application/json; charset=utf-8`. A `Buffer` is sent as-is and needs `options.contentType`.
      * @param [options]
      * @ignore
      */
-    async call(actorId: string, input?: unknown, options: CallOptions = {}): Promise<ClientActorRun> {
-        const timeout = options.timeout === 'inherit' ? this.getRemainingTimeSecs() : options.timeout;
-        const { token, ...rest } = options;
+    async call(actorId: string, input?: ActorInput, options: CallOptions = {}): Promise<ClientActorRun> {
+        const runTimeoutSecs = options.timeout === 'inherit' ? this.getRemainingTimeSecs() : options.timeout;
+        const { token, timeout: _timeout, ...rest } = options;
         const client = token ? this.newClient({ token }) : this.apifyClient;
-        return client.actor(actorId).call(input, { ...rest, timeout });
+        return client.actor(actorId).call(input, { ...rest, runTimeoutSecs });
     }
 
     /**
@@ -866,18 +866,17 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @param actorId
      *  Allowed formats are `username/actor-name`, `userId/actor-name` or Actor ID.
      * @param [input]
-     *  Input for the Actor. If it is an object, it will be stringified to
-     *  JSON and its content type set to `application/json; charset=utf-8`.
-     *  Otherwise the `options.contentType` parameter must be provided.
+     *  Input for the Actor. A plain object is stringified to JSON with content type
+     *  `application/json; charset=utf-8`. A `Buffer` is sent as-is and needs `options.contentType`.
      * @param [options]
      * @ignore
      */
-    async start(actorId: string, input?: unknown, options: StartOptions = {}): Promise<ClientActorRun> {
-        const timeout = options.timeout === 'inherit' ? this.getRemainingTimeSecs() : options.timeout;
-        const { token, ...rest } = options;
+    async start(actorId: string, input?: ActorInput, options: StartOptions = {}): Promise<ClientActorRun> {
+        const runTimeoutSecs = options.timeout === 'inherit' ? this.getRemainingTimeSecs() : options.timeout;
+        const { token, timeout: _timeout, ...rest } = options;
         const client = token ? this.newClient({ token }) : this.apifyClient;
 
-        return client.actor(actorId).start(input, { ...rest, timeout });
+        return client.actor(actorId).start(input, { ...rest, runTimeoutSecs });
     }
 
     /**
@@ -935,11 +934,11 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @ignore
      */
     async callTask(taskId: string, input?: Dictionary, options: CallTaskOptions = {}): Promise<ClientActorRun> {
-        const timeout = options.timeout === 'inherit' ? this.getRemainingTimeSecs() : options.timeout;
-        const { token, ...rest } = options;
+        const runTimeoutSecs = options.timeout === 'inherit' ? this.getRemainingTimeSecs() : options.timeout;
+        const { token, timeout: _timeout, ...rest } = options;
         const client = token ? this.newClient({ token }) : this.apifyClient;
 
-        return client.task(taskId).call(input, { ...rest, timeout });
+        return client.task(taskId).call(input, { ...rest, runTimeoutSecs });
     }
 
     /**
@@ -950,13 +949,12 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @param targetActorId
      *  Either `username/actor-name` or Actor ID of an Actor to which we want to metamorph.
      * @param [input]
-     *  Input for the Actor. If it is an object, it will be stringified to
-     *  JSON and its content type set to `application/json; charset=utf-8`.
-     *  Otherwise, the `options.contentType` parameter must be provided.
+     *  Input for the Actor. A plain object is stringified to JSON with content type
+     *  `application/json; charset=utf-8`. A `Buffer` is sent as-is and needs `options.contentType`.
      * @param [options]
      * @ignore
      */
-    async metamorph(targetActorId: string, input?: unknown, options: MetamorphOptions = {}): Promise<void> {
+    async metamorph(targetActorId: string, input?: ActorInput, options: MetamorphOptions = {}): Promise<void> {
         if (!this.isAtHome()) {
             log.warning('Actor.metamorph() is only supported when running on the Apify platform.');
             return;
@@ -1805,12 +1803,11 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @param actorId
      *  Allowed formats are `username/actor-name`, `userId/actor-name` or Actor ID.
      * @param [input]
-     *  Input for the Actor. If it is an object, it will be stringified to
-     *  JSON and its content type set to `application/json; charset=utf-8`.
-     *  Otherwise the `options.contentType` parameter must be provided.
+     *  Input for the Actor. A plain object is stringified to JSON with content type
+     *  `application/json; charset=utf-8`. A `Buffer` is sent as-is and needs `options.contentType`.
      * @param [options]
      */
-    static async call(actorId: string, input?: unknown, options: CallOptions = {}): Promise<ClientActorRun> {
+    static async call(actorId: string, input?: ActorInput, options: CallOptions = {}): Promise<ClientActorRun> {
         return Actor.getDefaultInstance().call(actorId, input, options);
     }
 
@@ -1861,9 +1858,8 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @param actorId
      *  Allowed formats are `username/actor-name`, `userId/actor-name` or Actor ID.
      * @param [input]
-     *  Input for the Actor. If it is an object, it will be stringified to
-     *  JSON and its content type set to `application/json; charset=utf-8`.
-     *  Otherwise the `options.contentType` parameter must be provided.
+     *  Input for the Actor. A plain object is stringified to JSON with content type
+     *  `application/json; charset=utf-8`. A `Buffer` is sent as-is and needs `options.contentType`.
      * @param [options]
      */
     static async start(actorId: string, input?: Dictionary, options: StartOptions = {}): Promise<ClientActorRun> {
@@ -1896,12 +1892,11 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @param targetActorId
      *  Either `username/actor-name` or Actor ID of an Actor to which we want to metamorph.
      * @param [input]
-     *  Input for the Actor. If it is an object, it will be stringified to
-     *  JSON and its content type set to `application/json; charset=utf-8`.
-     *  Otherwise, the `options.contentType` parameter must be provided.
+     *  Input for the Actor. A plain object is stringified to JSON with content type
+     *  `application/json; charset=utf-8`. A `Buffer` is sent as-is and needs `options.contentType`.
      * @param [options]
      */
-    static async metamorph(targetActorId: string, input?: unknown, options: MetamorphOptions = {}): Promise<void> {
+    static async metamorph(targetActorId: string, input?: ActorInput, options: MetamorphOptions = {}): Promise<void> {
         return Actor.getDefaultInstance().metamorph(targetActorId, input, options);
     }
 
