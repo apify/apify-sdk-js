@@ -61,9 +61,11 @@ import { ProxyConfiguration } from './proxy_configuration.js';
 import { SmartApifyStorageBackend } from './smart_apify_storage_backend.js';
 import type { OpenStorageOptions, StorageIdentifier } from './storage.js';
 import {
+    BINARY_CONTENT_TYPE,
     checkCrawleeVersion,
     getSystemInfo,
     isNonEmptyObject,
+    JSON_CONTENT_TYPE,
     parseInputValue,
     printOutdatedSdkWarning,
     snakeCaseToCamelCase,
@@ -1355,7 +1357,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
         const record = await store.getRecord(inputKey);
         const rawInput = record
             ? parseInputValue(record.value, record.contentType)
-            : await this.readInputFile(inputKey);
+            : await this.readInputFromWorkingDirectory(inputKey);
 
         if (rawInput === undefined) {
             const locations = [`the "${inputKey}" record of the default key-value store`];
@@ -1391,14 +1393,14 @@ export class Actor<Data extends Dictionary = Dictionary> {
      *
      * @returns `undefined` when running on the platform or when neither file exists.
      */
-    private async readInputFile(inputKey: string): Promise<unknown> {
+    private async readInputFromWorkingDirectory(inputKey: string): Promise<unknown> {
         if (this.configuration.isAtHome) {
             return undefined;
         }
 
         const candidates = [
-            { filename: inputKey, contentType: 'application/octet-stream' },
-            { filename: `${inputKey}.json`, contentType: 'application/json; charset=utf-8' },
+            { filename: inputKey, contentType: BINARY_CONTENT_TYPE },
+            { filename: `${inputKey}.json`, contentType: JSON_CONTENT_TYPE },
         ];
 
         const found = [];

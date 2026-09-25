@@ -163,7 +163,7 @@ let optionalInput = {};
 try {
     optionalInput = await Actor.getInput();
 } catch {
-    // the Actor runs without input
+    // no input, e.g. an Actor without an input schema started with none
 }
 ```
 

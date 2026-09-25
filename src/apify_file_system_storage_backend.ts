@@ -1,10 +1,14 @@
-import type { AdoptionCandidate, FileSystemStorageOptions, KeyValueStoreBackend } from '@crawlee/fs-storage';
+import type {
+    AdoptionCandidate,
+    FileSystemStorageOptions,
+    KeyValueStoreHookOptions,
+    PurgeableKeyValueStoreBackend,
+} from '@crawlee/fs-storage';
 import { FileSystemStorageBackend } from '@crawlee/fs-storage';
 
 import { KEY_VALUE_STORE_KEYS } from '@apify/consts';
 
-const JSON_CONTENT_TYPE = 'application/json; charset=utf-8';
-const BINARY_CONTENT_TYPE = 'application/octet-stream';
+import { BINARY_CONTENT_TYPE, JSON_CONTENT_TYPE } from './utils.js';
 
 export interface ApifyFileSystemStorageOptions extends FileSystemStorageOptions {
     /**
@@ -41,8 +45,8 @@ export class ApifyFileSystemStorageBackend extends FileSystemStorageBackend {
     }
 
     /** Claims a bare `<key>` or `<key>.json` in the default store for each input key, ahead of the generic sweep. */
-    protected override keyValueStoreAdoptionCandidates(isDefaultStore: boolean): AdoptionCandidate[] {
-        const inputCandidates: AdoptionCandidate[] = isDefaultStore
+    protected override keyValueStoreAdoptionCandidates(options: KeyValueStoreHookOptions): AdoptionCandidate[] {
+        const inputCandidates: AdoptionCandidate[] = options.isDefaultStore
             ? this.inputKeys.map((key) => ({
                   key,
                   files: [
@@ -52,11 +56,14 @@ export class ApifyFileSystemStorageBackend extends FileSystemStorageBackend {
               }))
             : [];
 
-        return [...inputCandidates, ...super.keyValueStoreAdoptionCandidates(isDefaultStore)];
+        return [...inputCandidates, ...super.keyValueStoreAdoptionCandidates(options)];
     }
 
     /** Spares the input keys in the default store; every other run-scoped store is emptied. */
-    protected override async purgeKeyValueStore(store: KeyValueStoreBackend, isDefaultStore: boolean): Promise<void> {
-        await (isDefaultStore ? store.purgeExcept([...this.inputKeys]) : store.purge());
+    protected override async purgeKeyValueStore(
+        store: PurgeableKeyValueStoreBackend,
+        options: KeyValueStoreHookOptions,
+    ): Promise<void> {
+        await (options.isDefaultStore ? store.purgeExcept([...this.inputKeys]) : store.purge());
     }
 }

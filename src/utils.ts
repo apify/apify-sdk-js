@@ -29,7 +29,10 @@ export function isNonEmptyObject(value: unknown): value is Record<string, unknow
     return typeof value === 'object' && value !== null && !Array.isArray(value) && Object.keys(value).length > 0;
 }
 
-const JSON_CONTENT_TYPE = 'application/json; charset=utf-8';
+/** Content type of a JSON record, as `KeyValueStore` and the file-system adoption write it. */
+export const JSON_CONTENT_TYPE = 'application/json; charset=utf-8';
+/** Content type of raw bytes, which is what a local input file without an extension is adopted as. */
+export const BINARY_CONTENT_TYPE = 'application/octet-stream';
 
 /**
  * Parses a raw input record the way `KeyValueStore.getValue` would, with one exception:
@@ -40,7 +43,7 @@ const JSON_CONTENT_TYPE = 'application/json; charset=utf-8';
 export function parseInputValue(value: Buffer | ArrayBuffer, contentType: string | null): unknown {
     const mediaType = contentType?.split(';')[0].trim().toLowerCase();
 
-    if (mediaType === 'application/octet-stream') {
+    if (mediaType === BINARY_CONTENT_TYPE) {
         try {
             return parseValue(value, JSON_CONTENT_TYPE);
         } catch {
