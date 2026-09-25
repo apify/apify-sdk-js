@@ -104,7 +104,7 @@ interface MySchema {
     expectedParam2?: number;
 }
 
-const input: MySchema = (await Actor.getInput()) as any; // getInput returns Promise<Object<string, *>|string|Buffer|null> here
+const input: MySchema = (await Actor.getInput()) as any; // getInput returns Promise<Object<string, *>|string|Buffer> here
 
 if (!input?.expectedParam1) {
     // input is MySchema now and you can check in a type-safe way

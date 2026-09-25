@@ -3,6 +3,7 @@ import { createRequire } from 'node:module';
 import { type } from 'node:os';
 import { normalize } from 'node:path';
 
+import { parseValue } from '@crawlee/core';
 // @ts-ignore if we enable resolveJsonModule, we end up with `src` folder in `dist`
 import crawleePkgJson from '@crawlee/core/package.json' with { type: 'json' };
 // @ts-ignore if we enable resolveJsonModule, we end up with `src` folder in `dist`
@@ -26,6 +27,31 @@ const require = createRequire(import.meta.url);
  */
 export function isNonEmptyObject(value: unknown): value is Record<string, unknown> {
     return typeof value === 'object' && value !== null && !Array.isArray(value) && Object.keys(value).length > 0;
+}
+
+/** Content type of a JSON record, as `KeyValueStore` and the file-system adoption write it. */
+export const JSON_CONTENT_TYPE = 'application/json; charset=utf-8';
+/** Content type of raw bytes, which is what a local input file without an extension is adopted as. */
+export const BINARY_CONTENT_TYPE = 'application/octet-stream';
+
+/**
+ * Parses a raw input record the way `KeyValueStore.getValue` would, with one exception:
+ * `application/octet-stream` — the type a local input file without an extension is adopted as — is
+ * tried as JSON first, so such a file still yields an object. Bytes that are not JSON come back as they are.
+ * @internal
+ */
+export function parseInputValue(value: Buffer | ArrayBuffer, contentType: string | null): unknown {
+    const mediaType = contentType?.split(';')[0].trim().toLowerCase();
+
+    if (mediaType === BINARY_CONTENT_TYPE) {
+        try {
+            return parseValue(value, JSON_CONTENT_TYPE);
+        } catch {
+            return value;
+        }
+    }
+
+    return parseValue(value, contentType);
 }
 
 /**
