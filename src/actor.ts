@@ -4,13 +4,20 @@ import type {
     EventManager,
     EventStatusMessageData,
     EventTypeName,
-    IStorage,
     RecordOptions,
-    StorageOpenOptions,
     UseStateOptions,
 } from '@crawlee/core';
-import { Dataset, EventType, KeyValueStore, purgeDefaultStorages, RequestQueue, serviceLocator } from '@crawlee/core';
-import type { Awaitable, Constructor, Dictionary, StorageBackend } from '@crawlee/types';
+import {
+    Dataset,
+    EventType,
+    KeyValueStore,
+    purgeDefaultStorages,
+    rejectOperationInTransaction,
+    RequestQueue,
+    ServiceLocator,
+    serviceLocator,
+} from '@crawlee/core';
+import type { Awaitable, Dictionary, StorageBackend } from '@crawlee/types';
 import { sleep } from '@crawlee/utils';
 import type {
     ActorCallOptions,
@@ -34,34 +41,38 @@ import {
 import { decryptInputSecrets } from '@apify/input_secrets';
 import log from '@apify/log';
 import { addTimeoutToPromise } from '@apify/timeout';
+import { parseArgument } from '@apify/validations';
 
 import type { RequestQueueAccessMode } from './apify_request_queue_backend.js';
-import {
-    ApifyStorageBackend,
-    type PpeAwarePushDataContext,
-    pushDataChargingContext,
-    USES_PUSH_DATA_INTERCEPTION,
-} from './apify_storage_backend.js';
+import { ApifyStorageBackend } from './apify_storage_backend.js';
 import type { ChargeOptions, ChargeResult } from './charging.js';
-import { ChargingManager, pushDataAndCharge } from './charging.js';
+import { ChargingManager, DEFAULT_DATASET_ITEM_EVENT } from './charging.js';
+import { ChargingDatasetBackend, ChargingStorageBackend } from './charging_storage_backend.js';
 import type { ConfigurationOptions } from './configuration.js';
 import { Configuration } from './configuration.js';
 import { getDefaultsFromInputSchema, noActorInputSchemaDefinedMarker, readInputSchema } from './input-schemas.js';
 import { PlatformEventManager } from './platform_event_manager.js';
 import type { ProxyConfigurationOptions } from './proxy_configuration.js';
 import { ProxyConfiguration } from './proxy_configuration.js';
-import type { OpenStorageOptions, StorageIdentifier, StorageIdentifierWithoutAlias } from './storage.js';
-import { openStorage } from './storage.js';
+import { SmartApifyStorageBackend } from './smart_apify_storage_backend.js';
+import type { OpenStorageOptions, StorageIdentifier } from './storage.js';
 import {
     checkCrawleeVersion,
     getSystemInfo,
     isNonEmptyObject,
     printOutdatedSdkWarning,
     snakeCaseToCamelCase,
-    validate,
 } from './utils.js';
 
 export interface InitOptions {
+    /**
+     * Storage backend to use, in place of the Apify platform storage (on the platform) or crawlee's
+     * local storage (outside of it).
+     *
+     * Items pushed to the default dataset are then not charged for under the pay-per-event pricing
+     * model: the platform counts an `apify-default-dataset-item` per item it stores itself, and a
+     * backend of your own stores them elsewhere.
+     */
     storage?: StorageBackend;
     /**
      * Determines how request queues opened on the Apify platform are consumed.
@@ -414,8 +425,7 @@ export const EXIT_CODES = {
  */
 export class Actor<Data extends Dictionary = Dictionary> {
     /** @internal */
-
-    static _instance: Actor;
+    static #instance?: Actor;
 
     /**
      * Configuration of this SDK instance (provided to its constructor). See {@apilink Configuration} for details.
@@ -444,22 +454,22 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * Set if the Actor called a method that requires the instance to be initialized, but did not do so.
      * A call to `init` after this warning is emitted is considered  an invalid state and will throw an error.
      */
-    private warnedAboutMissingInitCall = false;
+    #warnedAboutMissingInitCall = false;
 
     /**
      * Set if the Actor is currently rebooting.
      */
-    private isRebooting = false;
+    #isRebooting = false;
 
     /**
      * Set if the Actor is currently exiting. Prevents double-exit from graceful shutdown handlers.
      */
-    private isExiting = false;
+    #isExiting = false;
 
     /**
      * References to graceful shutdown handlers so they can be removed during cleanup.
      */
-    private gracefulShutdownHandlers: {
+    #gracefulShutdownHandlers: {
         aborting?: () => void;
         migrating?: () => void;
     } = {};
@@ -469,17 +479,13 @@ export class Actor<Data extends Dictionary = Dictionary> {
      */
     #statusMessageForwarder?: (data: EventStatusMessageData) => Promise<ClientActorRun>;
 
-    private chargingManager: ChargingManager;
-
-    /**
-     * Tracks which aliased storages have been purged during this session,
-     * so we only purge them once (on first open) when running locally.
-     * @internal
-     */
-    purgedStorageAliases = new Set<string>();
+    #chargingManager: ChargingManager;
 
     /** How Apify platform request queues are consumed; set from {@link InitOptions.requestQueueAccess}. */
-    private requestQueueAccess: RequestQueueAccessMode = 'single';
+    #requestQueueAccess: RequestQueueAccessMode = 'single';
+
+    /** Lazily built by the `#storageBackend` getter. */
+    #cachedStorageBackend?: SmartApifyStorageBackend;
 
     constructor(options: ActorOptions = {}) {
         const { configuration, ...configOptions } = options;
@@ -505,7 +511,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
         }
         this.apifyClient = this.newClient();
         this.eventManager = new PlatformEventManager(this.configuration);
-        this.chargingManager = new ChargingManager(this.configuration, this.apifyClient);
+        this.#chargingManager = new ChargingManager(this.configuration, this.apifyClient);
     }
 
     /**
@@ -603,7 +609,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
         }
 
         // If the warning about forgotten init call was emitted, we will not continue the init procedure.
-        if (this.warnedAboutMissingInitCall) {
+        if (this.#warnedAboutMissingInitCall) {
             throw new Error(
                 [
                     'Actor.init() was called after a method that would access a storage client was used.',
@@ -623,13 +629,16 @@ export class Actor<Data extends Dictionary = Dictionary> {
         // `disableBrowserSandbox` at-home defaults now live in `Configuration`).
         serviceLocator.setConfiguration(this.configuration);
 
-        this.requestQueueAccess = options.requestQueueAccess ?? 'single';
+        this.#requestQueueAccess = options.requestQueueAccess ?? 'single';
 
         if (this.isAtHome()) {
-            serviceLocator.setStorageBackend(this.createApifyStorageBackend());
             serviceLocator.setEventManager(this.eventManager);
+        }
+
+        if (!serviceLocator.getServicesIfSet().storageBackend) {
+            this.installStorageBackend(options.storage ?? this.#storageBackend);
         } else if (options.storage) {
-            serviceLocator.setStorageBackend(options.storage);
+            this.installStorageBackend(options.storage);
         }
 
         // Init the event manager the config uses
@@ -643,23 +652,23 @@ export class Actor<Data extends Dictionary = Dictionary> {
         if (options.gracefulShutdown !== false) {
             const delay = options.gracefulShutdownDelayMillis ?? 0;
 
-            this.gracefulShutdownHandlers.aborting = () => {
+            this.#gracefulShutdownHandlers.aborting = () => {
                 setTimeout(() => {
                     this.exit().catch((err) => {
                         log.exception(err as Error, 'Failed to exit gracefully');
                     });
                 }, delay);
             };
-            this.on(ACTOR_EVENT_NAMES.ABORTING, this.gracefulShutdownHandlers.aborting);
+            this.on(ACTOR_EVENT_NAMES.ABORTING, this.#gracefulShutdownHandlers.aborting);
 
-            this.gracefulShutdownHandlers.migrating = () => {
+            this.#gracefulShutdownHandlers.migrating = () => {
                 setTimeout(() => {
                     this.reboot().catch((err) => {
                         log.exception(err as Error, 'Failed to reboot on migration');
                     });
                 }, delay);
             };
-            this.on(ACTOR_EVENT_NAMES.MIGRATING, this.gracefulShutdownHandlers.migrating);
+            this.on(ACTOR_EVENT_NAMES.MIGRATING, this.#gracefulShutdownHandlers.migrating);
         }
 
         // Crawlee crawlers, for instance, broadcast their status messages as `statusMessage` events.
@@ -673,8 +682,17 @@ export class Actor<Data extends Dictionary = Dictionary> {
         });
         log.debug(`Default storages purged`);
 
-        await this.chargingManager.init();
-        log.debug(`ChargingManager initialized`, this.chargingManager.getPricingInfo());
+        await this.#chargingManager.init();
+        log.debug(`ChargingManager initialized`, this.#chargingManager.getPricingInfo());
+
+        // Only knowable once the pricing is loaded. Reachable with a caller-supplied backend or one
+        // registered with crawlee directly; the storages the Actor installs itself are wrapped.
+        if (this.#chargingManager.isPayPerEvent && !this.#chargesDefaultDatasetItems()) {
+            log.warning(
+                'Items pushed to the default dataset will not be charged for, because this run does not use Apify ' +
+                    'storage - the platform only counts items it stores itself.',
+            );
+        }
     }
 
     /**
@@ -682,11 +700,11 @@ export class Actor<Data extends Dictionary = Dictionary> {
      */
     async exit(messageOrOptions?: string | ExitOptions, options: ExitOptions = {}): Promise<void> {
         // Prevent double-exit from graceful shutdown handlers
-        if (this.isExiting) {
+        if (this.#isExiting) {
             log.debug('Actor.exit() called while already exiting, skipping');
             return;
         }
-        this.isExiting = true;
+        this.#isExiting = true;
 
         options =
             typeof messageOrOptions === 'string'
@@ -696,17 +714,17 @@ export class Actor<Data extends Dictionary = Dictionary> {
         options.exitCode ??= EXIT_CODES.SUCCESS;
         options.timeoutSecs ??= 30;
 
-        this._ensureActorInit('exit');
+        this.ensureActorInit('exit');
 
         const client = serviceLocator.getStorageBackend();
         const events = serviceLocator.getEventManager();
 
         // Remove graceful shutdown handlers to prevent them from interfering with exit
-        if (this.gracefulShutdownHandlers.aborting) {
-            this.off(ACTOR_EVENT_NAMES.ABORTING, this.gracefulShutdownHandlers.aborting);
+        if (this.#gracefulShutdownHandlers.aborting) {
+            this.off(ACTOR_EVENT_NAMES.ABORTING, this.#gracefulShutdownHandlers.aborting);
         }
-        if (this.gracefulShutdownHandlers.migrating) {
-            this.off(ACTOR_EVENT_NAMES.MIGRATING, this.gracefulShutdownHandlers.migrating);
+        if (this.#gracefulShutdownHandlers.migrating) {
+            this.off(ACTOR_EVENT_NAMES.MIGRATING, this.#gracefulShutdownHandlers.migrating);
         }
 
         // Close the event manager and emit the final PERSIST_STATE event
@@ -769,7 +787,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
 
         // Reset the flag so the instance can be reused (e.g., in tests or when exit is false).
         // When process.exit() actually terminates the process, this line is never reached - which is fine.
-        this.isExiting = false;
+        this.#isExiting = false;
 
         if (!options.exit) {
             return;
@@ -960,19 +978,19 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @ignore
      */
     async reboot(options: RebootOptions = {}): Promise<void> {
-        this._ensureActorInit('reboot');
+        this.ensureActorInit('reboot');
 
         if (!this.isAtHome()) {
             log.warning('Actor.reboot() is only supported when running on the Apify platform.');
             return;
         }
 
-        if (this.isRebooting) {
+        if (this.#isRebooting) {
             log.debug('Actor is already rebooting, skipping the additional reboot call.');
             return;
         }
 
-        this.isRebooting = true;
+        this.#isRebooting = true;
 
         // Waiting for all the listeners to finish, as `.reboot()` kills the container.
         await Promise.all([
@@ -1009,7 +1027,8 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @ignore
      */
     async addWebhook(options: WebhookOptions): Promise<Webhook | undefined> {
-        validate(
+        parseArgument(
+            options,
             z
                 .object({
                     eventTypes: z.array(z.string()),
@@ -1024,7 +1043,6 @@ export class Actor<Data extends Dictionary = Dictionary> {
                     isApifyIntegration: z.boolean().optional(),
                 })
                 .strict(),
-            options,
         );
 
         if (!this.isAtHome()) {
@@ -1057,10 +1075,10 @@ export class Actor<Data extends Dictionary = Dictionary> {
      */
     async setStatusMessage(statusMessage: string, options?: SetStatusMessageOptions): Promise<ClientActorRun> {
         const { isStatusMessageTerminal, level } = options || {};
-        validate(z.string(), statusMessage);
-        validate(z.boolean().optional(), isStatusMessageTerminal);
+        parseArgument(statusMessage, z.string());
+        parseArgument(isStatusMessageTerminal, z.boolean().optional());
 
-        this._ensureActorInit('setStatusMessage');
+        this.ensureActorInit('setStatusMessage');
 
         const loggedStatusMessage = `[Status message]: ${statusMessage}`;
 
@@ -1124,31 +1142,76 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * **IMPORTANT**: Make sure to use the `await` keyword when calling `pushData()`,
      * otherwise the Actor process might finish before the data are stored!
      *
+     * Inside a crawlee storage transaction, the items are stored - and charged for - at commit time,
+     * so the returned counts are zero and charging for an explicit `eventName` is rejected outright.
+     *
      * @param item Object or array of objects containing data to be stored in the default dataset.
      * The objects must be serializable to JSON and the JSON representation of each object must be smaller than 9MB.
      * @param eventName If provided, the method will attempt to charge for the event for each pushed item.
      * @ignore
      */
     async pushData(item: Data | Data[], eventName?: string | undefined): Promise<ChargeResult> {
-        this._ensureActorInit('pushData');
+        this.ensureActorInit('pushData');
 
         if (eventName?.startsWith('apify-')) {
             throw new Error(`Cannot charge for synthetic event '${eventName}' manually`);
         }
 
-        const dataset = await this.openDataset();
-
-        // Two code paths for charging:
-        // 1. Intercepted client: PpeAwareDatasetClient intercepts pushItems() calls, handling charging
-        //    internally. This is needed because Crawlee's Dataset may call pushItems() directly,
-        //    bypassing Actor.pushData(). We propagate eventName via AsyncLocalStorage context.
-        // 2. Direct charging: When using a non-patched client (e.g., forceCloud option or custom client),
-        //    we handle charging here before delegating to the dataset.
-        if (this.usesPushDataInterception(dataset)) {
-            return await this.pushDataViaInterceptedClient(dataset, item, eventName);
+        if (eventName !== undefined) {
+            rejectOperationInTransaction(
+                `Actor.pushData() with the event name '${eventName}'`,
+                'the items are stored when the transaction commits, but the charge happens right away, ' +
+                    'so a rolled-back request would be billed for items that were never stored.',
+            );
         }
 
-        return await this.pushDataWithExplicitCharging(dataset, item, eventName);
+        const dataset = await this.openDataset();
+        const items = Array.isArray(item) ? item : [item];
+
+        // `Actor.pushData()` historically worked even without calling `Actor.init()`.
+        // In that case, charging isn't configured, so just push the data through.
+        if (!this.#chargingManager.isInitialized) {
+            await dataset.pushData(items);
+            return { eventChargeLimitReached: false, chargedCount: 0, chargeableWithinLimit: {} };
+        }
+
+        // The reservation below and the charge that acts on it have to stay under one lock, so that
+        // a concurrent push cannot charge in between. The dataset backend re-enters the same lock to
+        // charge the synthetic per-item event.
+        return await this.#chargingManager.withChargeLock(async () => {
+            if (eventName === undefined) {
+                // Nothing to charge here - the dataset backend charges the synthetic event for
+                // whatever it stores, so the result is read back off the charging state.
+                const chargedBefore = this.#chargingManager.getChargedEventCount(DEFAULT_DATASET_ITEM_EVENT);
+                await dataset.pushData(items);
+
+                return {
+                    eventChargeLimitReached:
+                        this.#chargingManager.isEventChargeLimitReached(DEFAULT_DATASET_ITEM_EVENT),
+                    chargedCount:
+                        this.#chargingManager.getChargedEventCount(DEFAULT_DATASET_ITEM_EVENT) - chargedBefore,
+                    chargeableWithinLimit: this.#chargingManager.calculateChargeableWithinLimit(),
+                };
+            }
+
+            const limit = this.#chargingManager.calculatePushDataLimit(items.length, {
+                eventName,
+                // Pushing one item charges the synthetic per-item event too when the dataset backend
+                // is the charging one, so that price is part of what an item costs here.
+                isDefaultDataset: dataset.backend instanceof ChargingDatasetBackend,
+            });
+
+            if (limit === 0) {
+                return {
+                    eventChargeLimitReached: items.length > 0,
+                    chargedCount: 0,
+                    chargeableWithinLimit: this.#chargingManager.calculateChargeableWithinLimit(),
+                };
+            }
+
+            await dataset.pushData(limit < items.length ? items.slice(0, limit) : items);
+            return await this.#chargingManager.charge({ eventName, count: limit });
+        });
     }
 
     /**
@@ -1163,8 +1226,8 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @param [datasetIdOrName]
      *   ID, name, or alias of the dataset to be opened. If `null` or `undefined`,
      *   the function returns the default dataset associated with the Actor run.
-     *   You can also pass `{ alias: 'name' }` to open a dataset defined in the Actor's schema storages,
-     *   `{ id: 'abc' }` to open by explicit ID, or `{ name: 'abc' }` to open by explicit name.
+     *   You can also pass `{ alias: 'abc' }` to open a run-scoped storage, `{ id: 'abc' }` to open by
+     *   explicit ID, or `{ name: 'abc' }` to open by explicit name.
      * @param [options]
      * @ignore
      */
@@ -1172,11 +1235,15 @@ export class Actor<Data extends Dictionary = Dictionary> {
         datasetIdOrName?: StorageIdentifier | null,
         options: OpenStorageOptions = {},
     ): Promise<Dataset<Data>> {
-        validate(z.object({ forceCloud: z.boolean().optional() }).strict(), options);
+        parseArgument(options, z.object({ forceCloud: z.boolean().optional() }).strict());
 
-        this._ensureActorInit('openDataset');
+        this.ensureActorInit('openDataset');
 
-        return this._openStorage<Dataset<Data>>(Dataset, datasetIdOrName, options);
+        return Dataset.open<Data>(datasetIdOrName ?? null, {
+            storageBackend: options.forceCloud
+                ? this.#storageBackend.getSuitableStorageBackend({ forceCloud: true })
+                : undefined,
+        });
     }
 
     /**
@@ -1208,7 +1275,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @ignore
      */
     async getValue<T = unknown>(key: string): Promise<T | null> {
-        this._ensureActorInit('getValue');
+        this.ensureActorInit('getValue');
 
         const store = await this.openKeyValueStore();
         return store.getValue<T>(key);
@@ -1246,7 +1313,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @ignore
      */
     async setValue<T>(key: string, value: T | null, options: RecordOptions = {}): Promise<void> {
-        this._ensureActorInit('setValue');
+        this.ensureActorInit('setValue');
 
         const store = await this.openKeyValueStore();
         return store.setValue(key, value, options);
@@ -1282,7 +1349,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @ignore
      */
     async getInput<T = Dictionary | string | Buffer>(): Promise<T | null> {
-        this._ensureActorInit('getInput');
+        this.ensureActorInit('getInput');
 
         const { inputSecretsPrivateKeyFile, inputSecretsPrivateKeyPassphrase } = this.configuration;
         const rawInput = await this.getValue<T>(this.configuration.inputKey);
@@ -1329,21 +1396,26 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * For more details and code examples, see the {@apilink KeyValueStore} class.
      *
      * @param [storeIdOrName]
-     *   ID or name of the key-value store to be opened. If `null` or `undefined`,
+     *   ID, name, or alias of the key-value store to be opened. If `null` or `undefined`,
      *   the function returns the default key-value store associated with the Actor run.
-     *   You can also pass `{ id: 'abc' }` to open by explicit ID, or `{ name: 'abc' }` to open by explicit name.
+     *   You can also pass `{ alias: 'abc' }` to open a run-scoped storage, `{ id: 'abc' }` to open by
+     *   explicit ID, or `{ name: 'abc' }` to open by explicit name.
      * @param [options]
      * @ignore
      */
     async openKeyValueStore(
-        storeIdOrName?: StorageIdentifierWithoutAlias | null,
+        storeIdOrName?: StorageIdentifier | null,
         options: OpenStorageOptions = {},
     ): Promise<KeyValueStore> {
-        validate(z.object({ forceCloud: z.boolean().optional() }).strict(), options);
+        parseArgument(options, z.object({ forceCloud: z.boolean().optional() }).strict());
 
-        this._ensureActorInit('openKeyValueStore');
+        this.ensureActorInit('openKeyValueStore');
 
-        return this._openStorage(KeyValueStore, storeIdOrName, options);
+        return KeyValueStore.open(storeIdOrName ?? null, {
+            storageBackend: options.forceCloud
+                ? this.#storageBackend.getSuitableStorageBackend({ forceCloud: true })
+                : undefined,
+        });
     }
 
     /**
@@ -1358,23 +1430,26 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * For more details and code examples, see the {@apilink RequestQueue} class.
      *
      * @param [queueIdOrName]
-     *   ID or name of the request queue to be opened. If `null` or `undefined`,
+     *   ID, name, or alias of the request queue to be opened. If `null` or `undefined`,
      *   the function returns the default request queue associated with the Actor run.
-     *   You can also pass `{ id: 'abc' }` to open by explicit ID, or `{ name: 'abc' }` to open by explicit name.
+     *   You can also pass `{ alias: 'abc' }` to open a run-scoped storage, `{ id: 'abc' }` to open by
+     *   explicit ID, or `{ name: 'abc' }` to open by explicit name.
      * @param [options]
      * @ignore
      */
     async openRequestQueue(
-        queueIdOrName?: StorageIdentifierWithoutAlias | null,
+        queueIdOrName?: StorageIdentifier | null,
         options: OpenStorageOptions = {},
     ): Promise<RequestQueue> {
-        validate(z.object({ forceCloud: z.boolean().optional() }).strict(), options);
+        parseArgument(options, z.object({ forceCloud: z.boolean().optional() }).strict());
 
-        this._ensureActorInit('openRequestQueue');
+        this.ensureActorInit('openRequestQueue');
 
-        const queue = await this._openStorage(RequestQueue, queueIdOrName, options);
-
-        return queue;
+        return RequestQueue.open(queueIdOrName ?? null, {
+            storageBackend: options.forceCloud
+                ? this.#storageBackend.getSuitableStorageBackend({ forceCloud: true })
+                : undefined,
+        });
     }
 
     /**
@@ -1459,8 +1534,8 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @ignore
      */
     async charge(options: ChargeOptions): Promise<ChargeResult> {
-        this._ensureActorInit('charge');
-        return this.chargingManager.charge(options);
+        this.ensureActorInit('charge');
+        return this.#chargingManager.charge(options);
     }
 
     /**
@@ -1468,8 +1543,8 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @ignore
      */
     getChargingManager(): ChargingManager {
-        this._ensureActorInit('getChargingManager');
-        return this.chargingManager;
+        this.ensureActorInit('getChargingManager');
+        return this.#chargingManager;
     }
 
     /**
@@ -1568,7 +1643,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
         defaultValue = {} as State,
         options?: UseStateOptions,
     ) {
-        this._ensureActorInit('useState');
+        this.ensureActorInit('useState');
 
         const kvStore = await KeyValueStore.open(options?.keyValueStoreName, {
             configuration: options?.configuration || Configuration.getGlobalConfiguration(),
@@ -1913,6 +1988,10 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * **IMPORTANT**: Make sure to use the `await` keyword when calling `pushData()`,
      * otherwise the Actor process might finish before the data are stored!
      *
+     * Charging is rejected inside a crawlee storage transaction, where the items would only be stored
+     * at commit while the charge happens immediately - use `withDirectStorageAccess()` to opt out of
+     * the transaction, or push without an event name and charge separately.
+     *
      * @param item Object or array of objects containing data to be stored in the default dataset.
      * The objects must be serializable to JSON and the JSON representation of each object must be smaller than 9MB.
      * @param eventName If provided, the method will attempt to charge for the event for each pushed item.
@@ -1968,8 +2047,8 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @param [datasetIdOrName]
      *   ID, name, or alias of the dataset to be opened. If `null` or `undefined`,
      *   the function returns the default dataset associated with the Actor run.
-     *   You can also pass `{ alias: 'name' }` to open a dataset defined in the Actor's schema storages,
-     *   `{ id: 'abc' }` to open by explicit ID, or `{ name: 'abc' }` to open by explicit name.
+     *   You can also pass `{ alias: 'abc' }` to open a run-scoped storage, `{ id: 'abc' }` to open by
+     *   explicit ID, or `{ name: 'abc' }` to open by explicit name.
      * @param [options]
      */
     static async openDataset<Data extends Dictionary = Dictionary>(
@@ -2099,7 +2178,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @param [options]
      */
     static async openKeyValueStore(
-        storeIdOrName?: StorageIdentifierWithoutAlias | null,
+        storeIdOrName?: StorageIdentifier | null,
         options: OpenStorageOptions = {},
     ): Promise<KeyValueStore> {
         return Actor.getDefaultInstance().openKeyValueStore(storeIdOrName, options);
@@ -2123,7 +2202,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @param [options]
      */
     static async openRequestQueue(
-        queueIdOrName?: StorageIdentifierWithoutAlias | null,
+        queueIdOrName?: StorageIdentifier | null,
         options: OpenStorageOptions = {},
     ): Promise<RequestQueue> {
         return Actor.getDefaultInstance().openRequestQueue(queueIdOrName, options);
@@ -2243,90 +2322,77 @@ export class Actor<Data extends Dictionary = Dictionary> {
 
     /** @internal */
     static getDefaultInstance(): Actor {
-        this._instance ??= new Actor();
-        return this._instance;
+        Actor.#instance ??= new Actor();
+        return Actor.#instance;
     }
 
-    private usesPushDataInterception(dataset: Dataset): boolean {
-        return Boolean((dataset.backend as any)[USES_PUSH_DATA_INTERCEPTION]);
+    /**
+     * Replaces or clears the cached default instance returned by {@apilink Actor.getDefaultInstance}.
+     * @internal
+     */
+    static setDefaultInstance(instance?: Actor): void {
+        Actor.#instance = instance;
     }
 
-    private async pushDataViaInterceptedClient(
-        dataset: Dataset,
-        item: Data | Data[],
-        eventName: string | undefined,
-    ): Promise<ChargeResult> {
-        // PpeAwareDatasetClient will handle charging and item limiting.
-        // We only need to propagate `eventName` and (optionally) return aggregated charge info.
-        const context: PpeAwarePushDataContext = {
-            eventName,
+    /**
+     * The backend the Actor installs unless the caller brings one: Apify platform storage on the
+     * platform, crawlee's local default outside of it.
+     *
+     * Both sides are wrapped for dataset-item charging - crawlee's local default stands in for
+     * Apify storage, so local pay-per-event testing stays faithful. A caller-supplied backend
+     * (`Actor.init({ storage })`) is billed nothing and is installed unwrapped, in place of this.
+     *
+     * One instance per Actor: a second platform backend would mint unnamed storages of its own for
+     * aliases this one has already resolved.
+     */
+    get #storageBackend(): SmartApifyStorageBackend {
+        const charging = {
+            configuration: this.configuration,
+            getChargingManager: () => this.#chargingManager,
         };
 
-        await pushDataChargingContext.run(context, async () => {
-            await dataset.pushData(item);
-        });
-
-        return (
-            context.chargeResult ?? {
-                eventChargeLimitReached: false,
-                chargedCount: 0,
-                chargeableWithinLimit: {},
-            }
-        );
-    }
-
-    private async pushDataWithExplicitCharging(
-        dataset: Dataset,
-        items: Data | Data[],
-        explicitEventName: string | undefined,
-    ): Promise<ChargeResult> {
-        // `Actor.pushData()` historically worked even without calling `Actor.init()`.
-        // In that case, charging isn't configured, so just push the data through.
-        if (!this.initialized && explicitEventName === undefined) {
-            await dataset.pushData(items);
-            return {
-                eventChargeLimitReached: false,
-                chargedCount: 0,
-                chargeableWithinLimit: {},
-            };
-        }
-
-        const isDefaultDataset = dataset.id === this.configuration.defaultDatasetId;
-
-        return pushDataAndCharge({
-            chargingManager: this.chargingManager,
-            items,
-            eventName: explicitEventName,
-            isDefaultDataset,
-            pushFn: async (limitedItems) => dataset.pushData(limitedItems),
-        });
-    }
-
-    private async _openStorage<T extends IStorage>(
-        storageClass: Constructor<T> & {
-            open(id?: string | null, options?: StorageOpenOptions): Promise<T>;
-        },
-        identifier?: StorageIdentifier | null,
-        options: OpenStorageOptions = {},
-    ) {
-        return openStorage<T>(storageClass, identifier, {
-            config: this.configuration,
-            backend: options.forceCloud ? this.createApifyStorageBackend() : undefined,
-            purgedStorageAliases: this.purgedStorageAliases,
-        });
-    }
-
-    private createApifyStorageBackend(): ApifyStorageBackend {
-        return new ApifyStorageBackend(this.apifyClient, {
+        return (this.#cachedStorageBackend ??= new SmartApifyStorageBackend({
+            cloudStorageBackend: new ChargingStorageBackend(
+                new ApifyStorageBackend(this.apifyClient, {
+                    configuration: this.configuration,
+                    requestQueueAccess: this.#requestQueueAccess,
+                }),
+                charging,
+            ),
+            localStorageBackend: new ChargingStorageBackend(
+                new ServiceLocator(this.configuration).getStorageBackend(),
+                charging,
+            ),
             configuration: this.configuration,
-            requestQueueAccess: this.requestQueueAccess,
-            getChargingManager: () => this.chargingManager,
-        });
+        }));
     }
 
-    private _ensureActorInit(methodCalled: string) {
+    /** Whether items reaching the run's default dataset are counted for pay-per-event charging. */
+    #chargesDefaultDatasetItems(): boolean {
+        const installed = serviceLocator.getStorageBackend();
+        return installed instanceof SmartApifyStorageBackend || installed instanceof ChargingStorageBackend;
+    }
+
+    /**
+     * crawlee's service locator is set-once, so a backend registered before `init()` wins and the
+     * Actor cannot install its own over it. Replaces the resulting `ServiceConflictError` with the
+     * way out.
+     */
+    private installStorageBackend(backend: StorageBackend): void {
+        try {
+            serviceLocator.setStorageBackend(backend);
+        } catch (error) {
+            throw new Error(
+                'A storage backend is already registered with crawlee, so the Actor cannot install its own. Pass it ' +
+                    'as `Actor.init({ storage })` instead of calling `serviceLocator.setStorageBackend()`.',
+                { cause: error },
+            );
+        }
+    }
+
+    private ensureActorInit(methodCalled: string) {
         // If we already warned the user once, don't do it again to prevent spam
-        if (this.warnedAboutMissingInitCall) {
+        if (this.#warnedAboutMissingInitCall) {
             return;
         }
 
@@ -2334,7 +2400,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
             return;
         }
 
-        this.warnedAboutMissingInitCall = true;
+        this.#warnedAboutMissingInitCall = true;
 
         log.warning(
             [

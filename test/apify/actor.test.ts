@@ -611,10 +611,14 @@ describe('Actor', () => {
 
         describe('Storage API', () => {
             let sdk: Actor<{ foo: string }>;
+            let storageBackend: MemoryStorageBackend;
 
             beforeEach(() => {
+                storageBackend = new MemoryStorageBackend();
                 sdk = createIsolatedActor({
-                    storageClient: new MemoryStorageBackend(),
+                    // `forceCloud` needs a token, which the environment running the tests may not have.
+                    config: new Configuration({ token: 'some-token' }),
+                    storageClient: storageBackend,
                 }).actor as Actor<{ foo: string }>;
             });
 
@@ -666,7 +670,8 @@ describe('Actor', () => {
 
                 await sdk.pushData({ foo: 'bar' });
                 expect(pushDataSpy).toBeCalledTimes(1);
-                expect(pushDataSpy).toBeCalledWith({ foo: 'bar' });
+                // A single item is normalized to a one-item array before it reaches the dataset.
+                expect(pushDataSpy).toBeCalledWith([{ foo: 'bar' }]);
             });
 
             test('openRequestQueue should open storage', async () => {
@@ -694,96 +699,74 @@ describe('Actor', () => {
                 expect(openSpy.mock.calls[0][1]?.storageBackend).toBeDefined();
             });
 
+            test('forceCloud storages share one backend instance', async () => {
+                // Each instance resolves run-scoped aliases to unnamed storages of its own, so a
+                // second one would hand out different storages for the same alias.
+                const openSpy = vitest.spyOn(Dataset, 'open').mockResolvedValue({} as Dataset);
+
+                await sdk.openDataset({ alias: 'cloudy' }, { forceCloud: true });
+                await sdk.openDataset({ alias: 'cloudy' }, { forceCloud: true });
+
+                expect(openSpy.mock.calls[0][1]?.storageBackend).toBe(openSpy.mock.calls[1][1]?.storageBackend);
+            });
+
             describe('StorageIdentifier support', () => {
-                const STORAGES_JSON = JSON.stringify({
-                    datasets: {
-                        custom: 'dataset-id-123',
-                        default: 'default-ds-id',
-                    },
-                    keyValueStores: {
-                        custom: 'kvs-id-456',
-                        default: 'default-kvs-id',
-                    },
-                    requestQueues: {
-                        custom: 'rq-id-789',
-                        default: 'default-rq-id',
-                    },
+                test('openDataset with { alias } opens the storage crawlee would open', async () => {
+                    const viaActor = await sdk.openDataset({ alias: 'results' });
+                    const viaCrawlee = await Dataset.open({ alias: 'results' }, { storageBackend });
+
+                    expect(viaCrawlee).toBe(viaActor);
                 });
 
-                // crawlee v4's Configuration is immutable, so the platform alias
-                // map is supplied through a fresh Actor instance instead of
-                // mutating the existing config. `isAtHome` is resolved from the
-                // env var at construction.
-                const atHomeAliasActor = (actorStoragesJson: string) => {
+                test('openDataset with { alias } forwards the alias instead of resolving it', async () => {
+                    // Aliases are the storage backend's business — it is the only place that knows the
+                    // Actor's schema storages, so the alias must reach it unresolved.
                     process.env[APIFY_ENV_VARS.IS_AT_HOME] = '1';
+                    let sdk2: Actor;
                     try {
-                        return new Actor({
-                            configuration: new Configuration({ actorStoragesJson }),
+                        // crawlee v4's Configuration is immutable, so the platform alias map is supplied
+                        // through a fresh Actor instance. `isAtHome` is resolved at construction.
+                        sdk2 = new Actor({
+                            configuration: new Configuration({
+                                actorStoragesJson: JSON.stringify({ datasets: { custom: 'dataset-id-123' } }),
+                            }),
                         });
                     } finally {
                         delete process.env[APIFY_ENV_VARS.IS_AT_HOME];
                     }
-                };
-
-                test('openDataset with { alias } resolves from ACTOR_STORAGES_JSON', async () => {
-                    const sdk2 = atHomeAliasActor(STORAGES_JSON);
                     const openSpy = vitest.spyOn(Dataset, 'open').mockResolvedValueOnce({} as Dataset);
+
                     await sdk2.openDataset({ alias: 'custom' });
-                    expect(openSpy).toBeCalledTimes(1);
-                    expect(openSpy.mock.calls[0][0]).toBe('dataset-id-123');
+
+                    expect(openSpy.mock.calls[0][0]).toEqual({ alias: 'custom' });
                 });
 
-                test('openDataset with { alias } throws when alias not found in ACTOR_STORAGES_JSON', async () => {
-                    const sdk2 = atHomeAliasActor(STORAGES_JSON);
-                    await expect(sdk2.openDataset({ alias: 'nonexistent' })).rejects.toThrow(
-                        /Storage alias "nonexistent" not found in ACTOR_STORAGES_JSON/,
-                    );
+                test('key-value stores and request queues take aliases as well', async () => {
+                    await expect(sdk.openKeyValueStore({ alias: 'store' })).resolves.toBeInstanceOf(KeyValueStore);
+                    await expect(sdk.openRequestQueue({ alias: 'queue' })).resolves.toBeInstanceOf(RequestQueue);
                 });
 
-                test('openDataset with { alias } uses alias as name when ACTOR_STORAGES_JSON not set', async () => {
-                    // No actorStoragesJson set — should use alias as a name for local storage
-                    const openSpy = vitest.spyOn(Dataset, 'open');
-                    // First call is for the purge (drop), second for re-open
-                    const mockStorage = { drop: vitest.fn() } as unknown as Dataset;
-                    openSpy.mockResolvedValueOnce(mockStorage);
-                    openSpy.mockResolvedValueOnce({} as Dataset);
-                    await sdk.openDataset({ alias: 'my-local-ds' });
-                    // First open + drop, then re-open
-                    expect(openSpy).toBeCalledTimes(2);
-                    expect(openSpy.mock.calls[1][0]).toBe('my-local-ds');
-                    expect((mockStorage as unknown as { drop: ReturnType<typeof vitest.fn> }).drop).toBeCalledTimes(1);
+                test('openDataset with { alias } and forceCloud works outside the platform', async () => {
+                    const openSpy = vitest.spyOn(Dataset, 'open').mockResolvedValueOnce({} as Dataset);
+
+                    await sdk.openDataset({ alias: 'cloudy' }, { forceCloud: true });
+
+                    expect(openSpy.mock.calls[0][0]).toEqual({ alias: 'cloudy' });
+                    expect(openSpy.mock.calls[0][1]?.storageBackend).toBeDefined();
                 });
 
-                test('openDataset with { alias } locally only purges once per alias', async () => {
-                    const openSpy = vitest.spyOn(Dataset, 'open');
-                    const drop = vitest.fn();
-                    const mockStorage = { drop } as unknown as Dataset;
-                    // First call: purge open, second: re-open after drop, third: second open (no purge)
-                    openSpy.mockResolvedValue(mockStorage);
-                    await sdk.openDataset({ alias: 'once-only' });
-                    expect(drop).toBeCalledTimes(1);
-                    expect(openSpy).toBeCalledTimes(2);
-
-                    openSpy.mockClear();
-                    drop.mockClear();
-                    await sdk.openDataset({ alias: 'once-only' });
-                    // Second time: no purge, just one open call
-                    expect(drop).not.toBeCalled();
-                    expect(openSpy).toBeCalledTimes(1);
-                });
-
-                test('openDataset with { id } passes ID directly', async () => {
+                test('openDataset with { id } passes the identifier on', async () => {
                     const openSpy = vitest.spyOn(Dataset, 'open').mockResolvedValueOnce({} as Dataset);
                     await sdk.openDataset({ id: 'explicit-id' });
                     expect(openSpy).toBeCalledTimes(1);
-                    expect(openSpy.mock.calls[0][0]).toBe('explicit-id');
+                    expect(openSpy.mock.calls[0][0]).toEqual({ id: 'explicit-id' });
                 });
 
-                test('openDataset with { name } passes name directly', async () => {
+                test('openDataset with { name } passes the identifier on', async () => {
                     const openSpy = vitest.spyOn(Dataset, 'open').mockResolvedValueOnce({} as Dataset);
                     await sdk.openDataset({ name: 'explicit-name' });
                     expect(openSpy).toBeCalledTimes(1);
-                    expect(openSpy.mock.calls[0][0]).toBe('explicit-name');
+                    expect(openSpy.mock.calls[0][0]).toEqual({ name: 'explicit-name' });
                 });
 
                 test('openDataset with plain string (backward compat) passes through', async () => {
@@ -798,13 +781,6 @@ describe('Actor', () => {
                     await sdk.openDataset();
                     expect(openSpy).toBeCalledTimes(1);
                     expect(openSpy.mock.calls[0][0]).toBe(null);
-                });
-
-                test('throws on malformed ACTOR_STORAGES_JSON', async () => {
-                    const sdk2 = atHomeAliasActor('{not valid json');
-                    await expect(sdk2.openDataset({ alias: 'custom' })).rejects.toThrow(
-                        /Failed to parse ACTOR_STORAGES_JSON/,
-                    );
                 });
             });
         });
@@ -1492,7 +1468,7 @@ describe('Actor', () => {
 
             await Actor.pushData({ hello: 'apify' });
 
-            expect(pushDataSpy).toHaveBeenCalledWith({ hello: 'apify' });
+            expect(pushDataSpy).toHaveBeenCalledWith([{ hello: 'apify' }]);
         });
     });
 

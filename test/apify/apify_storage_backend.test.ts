@@ -1,5 +1,5 @@
+import { RequestQueue } from '@crawlee/core';
 import type { ApifyClient, DatasetClient, KeyValueStoreClient } from 'apify-client';
-import { DatasetClient as ApifyDatasetClient } from 'apify-client';
 import { describe, expect, test, vi } from 'vitest';
 
 import { MAX_PAYLOAD_SIZE_BYTES } from '@apify/consts';
@@ -8,27 +8,59 @@ import { ApifyDatasetBackend } from '../../src/apify_dataset_backend.js';
 import { ApifyKeyValueStoreBackend } from '../../src/apify_key_value_store_backend.js';
 import { ApifyRequestQueueSharedBackend } from '../../src/apify_request_queue_shared_backend.js';
 import { ApifyRequestQueueSingleBackend } from '../../src/apify_request_queue_single_backend.js';
-import { ApifyStorageBackend, USES_PUSH_DATA_INTERCEPTION } from '../../src/apify_storage_backend.js';
-import { DEFAULT_DATASET_ITEM_EVENT } from '../../src/charging.js';
+import { ApifyStorageBackend } from '../../src/apify_storage_backend.js';
 import { Configuration } from '../../src/configuration.js';
+
+/** Spelled out rather than imported: this name is visible in the user's key-value store. */
+const ALIAS_MAPPING_RECORD_KEY = '__STORAGE_ALIASES_MAPPING';
 
 function createMockApifyClient() {
     let unnamedCounter = 0;
     const getOrCreate = vi.fn(async (name?: string) => ({
         id: name ? `id-of-${name}` : `unnamed-${++unnamedCounter}`,
     }));
+    // Records of the run's default key-value store, shared by every `keyValueStore()` client.
+    const records = new Map<string, unknown>();
+    const getRecord = vi.fn(async (key: string) => (records.has(key) ? { key, value: records.get(key) } : undefined));
+    const setRecord = vi.fn(async (record: { key: string; value: unknown }) => {
+        records.set(record.key, record.value);
+    });
+    // Storages the platform reports as gone, so a stale alias mapping can be exercised.
+    const deletedIds = new Set<string>();
+    const resourceClient = (id: string) => ({
+        // Full metadata, because crawlee's storage frontends read it when they open a storage.
+        get: vi.fn(async () =>
+            deletedIds.has(id)
+                ? undefined
+                : {
+                      id,
+                      createdAt: new Date(0),
+                      modifiedAt: new Date(0),
+                      accessedAt: new Date(0),
+                      totalRequestCount: 0,
+                      handledRequestCount: 0,
+                      pendingRequestCount: 0,
+                  },
+        ),
+        getRecord,
+        setRecord,
+    });
+    const collectionClient = { getOrCreate };
     return {
         baseUrl: 'https://api.apify.com/v2',
         publicBaseUrl: 'https://api.apify.com',
         token: 'test-token',
         httpClient: {},
-        dataset: vi.fn(() => ({ get: vi.fn(async () => undefined) })),
-        keyValueStore: vi.fn(() => ({ get: vi.fn(async () => undefined) })),
-        requestQueue: vi.fn(() => ({ get: vi.fn(async () => undefined) })),
-        datasets: vi.fn(() => ({ getOrCreate })),
-        keyValueStores: vi.fn(() => ({ getOrCreate })),
-        requestQueues: vi.fn(() => ({ getOrCreate })),
+        dataset: vi.fn(resourceClient),
+        keyValueStore: vi.fn(resourceClient),
+        requestQueue: vi.fn(resourceClient),
+        datasets: vi.fn(() => collectionClient),
+        keyValueStores: vi.fn(() => collectionClient),
+        requestQueues: vi.fn(() => collectionClient),
         getOrCreate,
+        setRecord,
+        records,
+        deletedIds,
     };
 }
 
@@ -85,18 +117,77 @@ describe('ApifyStorageBackend', () => {
         expect(client.dataset).toHaveBeenCalledWith('declared-dataset-id');
     });
 
-    test('rejects undeclared aliases on the platform', async () => {
+    test('rejects malformed Actor schema storages', async () => {
         const client = createMockApifyClient();
         const backend = new ApifyStorageBackend(asApifyClient(client), {
-            configuration: new Configuration({ isAtHome: true }),
+            configuration: new Configuration({ isAtHome: true, actorStoragesJson: '{not valid json' }),
         });
 
-        await expect(backend.createDatasetBackend({ alias: 'unknown' })).rejects.toThrow(
-            /alias "unknown" cannot be resolved/,
+        await expect(backend.createDatasetBackend({ alias: 'results' })).rejects.toThrow(
+            /Failed to parse ACTOR_STORAGES_JSON/,
         );
     });
 
-    test('creates one unnamed storage per alias outside the platform', async () => {
+    test('opens a crawlee request queue for an alias the Actor schema does not declare', async () => {
+        const client = createMockApifyClient();
+        const backend = new ApifyStorageBackend(asApifyClient(client), {
+            configuration: new Configuration({ isAtHome: true, defaultKeyValueStoreId: 'default-kvs' }),
+        });
+
+        // Crawlee mints aliases as a crawl runs, so they can never be declared up front. Opened
+        // through crawlee rather than the backend directly, because that is the path that threw.
+        const queue = await RequestQueue.open({ alias: 'scratch' }, { storageBackend: backend });
+
+        // `<type>,<alias>,<credentials hash>`; the hash is not the test's to compute.
+        const aliasKey = /^RequestQueue,scratch,[0-9a-f]{8}$/;
+        const recordedAliases = Object.entries(client.records.get(ALIAS_MAPPING_RECORD_KEY) as object);
+
+        expect(queue.id).toBe('unnamed-1');
+        expect(recordedAliases).toEqual([[expect.stringMatching(aliasKey), 'unnamed-1']]);
+    });
+
+    test('reuses the storage recorded for an alias when the run migrates', async () => {
+        const client = createMockApifyClient();
+        const configuration = new Configuration({ isAtHome: true, defaultKeyValueStoreId: 'default-kvs' });
+        const alias = { alias: 'scratch' };
+
+        // A migrated run is a new process, hence a new backend with an empty in-memory mapping —
+        // but the same run, hence the same default key-value store.
+        await new ApifyStorageBackend(asApifyClient(client), { configuration }).createRequestQueueBackend(alias);
+        await new ApifyStorageBackend(asApifyClient(client), { configuration }).createRequestQueueBackend(alias);
+
+        expect(client.getOrCreate).toHaveBeenCalledTimes(1);
+        expect(client.requestQueue).toHaveBeenLastCalledWith('unnamed-1', expect.anything());
+    });
+
+    test('replaces a recorded storage that has since been deleted', async () => {
+        const client = createMockApifyClient();
+        const configuration = new Configuration({ isAtHome: true, defaultKeyValueStoreId: 'default-kvs' });
+        const alias = { alias: 'scratch' };
+        await new ApifyStorageBackend(asApifyClient(client), { configuration }).createDatasetBackend(alias);
+
+        client.deletedIds.add('unnamed-1');
+        await new ApifyStorageBackend(asApifyClient(client), { configuration }).createDatasetBackend(alias);
+
+        expect(client.dataset).toHaveBeenLastCalledWith('unnamed-2');
+        expect(Object.values(client.records.get(ALIAS_MAPPING_RECORD_KEY) as object)).toEqual(['unnamed-2']);
+    });
+
+    test('opens a single storage when one alias is resolved concurrently', async () => {
+        const client = createMockApifyClient();
+        const backend = new ApifyStorageBackend(asApifyClient(client), {
+            configuration: new Configuration({ isAtHome: true, defaultKeyValueStoreId: 'default-kvs' }),
+        });
+
+        await Promise.all([
+            backend.createDatasetBackend({ alias: 'scratch' }),
+            backend.createDatasetBackend({ alias: 'scratch' }),
+        ]);
+
+        expect(client.getOrCreate).toHaveBeenCalledTimes(1);
+    });
+
+    test('creates one unnamed storage per alias outside the platform, recording nothing', async () => {
         const client = createMockApifyClient();
         const backend = new ApifyStorageBackend(asApifyClient(client), {
             configuration: new Configuration({ isAtHome: false }),
@@ -108,6 +199,8 @@ describe('ApifyStorageBackend', () => {
         expect(client.getOrCreate).toHaveBeenCalledTimes(1);
         expect(client.dataset).toHaveBeenNthCalledWith(1, 'unnamed-1');
         expect(client.dataset).toHaveBeenNthCalledWith(2, 'unnamed-1');
+        // There is no run for the mapping to outlive, so it never reaches the platform.
+        expect(client.setRecord).not.toHaveBeenCalled();
     });
 
     test('opens named storages via getOrCreate', async () => {
@@ -128,63 +221,6 @@ describe('ApifyStorageBackend', () => {
 
         expect(single.getStorageBackendCacheKey()).toBe(shared.getStorageBackendCacheKey());
         expect(single.getStorageBackendCacheKey()).not.toBe(otherToken.getStorageBackendCacheKey());
-    });
-
-    test('marks the default dataset backend for push-data interception on pay-per-event runs', async () => {
-        const client = createMockApifyClient();
-        const backend = new ApifyStorageBackend(asApifyClient(client), {
-            configuration: new Configuration({ defaultDatasetId: 'default-dataset' }),
-            getChargingManager: () =>
-                ({
-                    getPricingInfo: () => ({ perEventPrices: { [DEFAULT_DATASET_ITEM_EVENT]: {} } }),
-                }) as never,
-        });
-
-        const defaultDataset = await backend.createDatasetBackend({ id: 'default-dataset' });
-        const otherDataset = await backend.createDatasetBackend({ id: 'other-dataset' });
-
-        expect((defaultDataset as never)[USES_PUSH_DATA_INTERCEPTION]).toBe(true);
-        expect((otherDataset as never)[USES_PUSH_DATA_INTERCEPTION]).toBeUndefined();
-    });
-
-    test('charges per parsed item when the backend splits a push into chunks', async () => {
-        const client = createMockApifyClient();
-        const charge = vi.fn(async ({ count }: { eventName: string; count: number }) => ({
-            eventChargeLimitReached: false,
-            chargedCount: count,
-            chargeableWithinLimit: {},
-        }));
-        const calculatePushDataLimits = vi.fn(({ items }: { items: Record<string, unknown>[] }) => ({
-            limitedItems: items,
-            eventsToCharge: { [DEFAULT_DATASET_ITEM_EVENT]: items.length },
-        }));
-        const backend = new ApifyStorageBackend(asApifyClient(client), {
-            configuration: new Configuration({ defaultDatasetId: 'default-dataset' }),
-            getChargingManager: () =>
-                ({
-                    getPricingInfo: () => ({ perEventPrices: { [DEFAULT_DATASET_ITEM_EVENT]: {} } }),
-                    calculatePushDataLimits,
-                    charge,
-                }) as never,
-        });
-        const dataset = await backend.createDatasetBackend({ id: 'default-dataset' });
-
-        // Stub out the plain-client push underneath the charging wrapper.
-        const pushSpy = vi.spyOn(ApifyDatasetClient.prototype, 'pushItems').mockResolvedValue(undefined);
-        try {
-            // Four ~3MB items arrive as multiple pre-serialized JSON chunks — the charging
-            // wrapper must still count every logical item exactly once.
-            const items = Array.from({ length: 4 }, (_, i) => ({ i, payload: 'a'.repeat(3 * 1024 * 1024) }));
-            await dataset.pushData(items);
-
-            expect(pushSpy.mock.calls.length).toBeGreaterThan(1);
-            const countedItems = calculatePushDataLimits.mock.calls.map(([{ items: counted }]) => counted);
-            expect(countedItems.flat()).toEqual(items);
-            const chargedCounts = charge.mock.calls.map(([{ count }]) => count);
-            expect(chargedCounts.reduce((sum, count) => sum + count, 0)).toBe(4);
-        } finally {
-            pushSpy.mockRestore();
-        }
     });
 });
 

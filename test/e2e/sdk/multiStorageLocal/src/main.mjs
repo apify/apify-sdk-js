@@ -8,8 +8,8 @@ const dir = dirname(fileURLToPath(import.meta.url));
 const lifecyclePath = join(dir, 'lifecycle.mjs');
 
 // Run two separate "lifecycle" processes that share the same filesystem.
-// The second process should purge the aliased dataset on first open,
-// proving that purge-on-first-open works across Actor restarts.
+// The second process should purge the aliased dataset left behind by the first one,
+// proving that purge-on-start covers aliased storages across Actor restarts.
 for (const phase of ['first', 'second']) {
     log.info(`--- Running ${phase} lifecycle ---`);
     execFileSync('node', [lifecyclePath], {

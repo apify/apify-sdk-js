@@ -18,10 +18,14 @@ import type { KeyValueStoreClient } from 'apify-client';
  * @internal
  */
 export class ApifyKeyValueStoreBackend implements KeyValueStoreBackend {
-    constructor(private readonly client: KeyValueStoreClient) {}
+    readonly #client: KeyValueStoreClient;
+
+    constructor(client: KeyValueStoreClient) {
+        this.#client = client;
+    }
 
     async getMetadata(): Promise<KeyValueStoreInfo> {
-        const metadata = await this.client.get();
+        const metadata = await this.#client.get();
         if (!metadata) {
             throw new Error('Key-value store not found or has been deleted.');
         }
@@ -29,7 +33,7 @@ export class ApifyKeyValueStoreBackend implements KeyValueStoreBackend {
     }
 
     async drop(): Promise<void> {
-        await this.client.delete();
+        await this.#client.delete();
     }
 
     async purge(): Promise<void> {
@@ -42,19 +46,19 @@ export class ApifyKeyValueStoreBackend implements KeyValueStoreBackend {
     async getValue(key: string): Promise<KeyValueStoreRecord | undefined> {
         // Storage backends are byte transports — the KeyValueStore frontend parses values
         // according to their content type, so the record must be returned unparsed.
-        return this.client.getRecord(key, { buffer: true });
+        return this.#client.getRecord(key, { buffer: true });
     }
 
     async setValue(record: KeyValueStoreInputRecord): Promise<void> {
-        await this.client.setRecord(record as Parameters<KeyValueStoreClient['setRecord']>[0]);
+        await this.#client.setRecord(record as Parameters<KeyValueStoreClient['setRecord']>[0]);
     }
 
     async deleteValue(key: string): Promise<void> {
-        await this.client.deleteRecord(key);
+        await this.#client.deleteRecord(key);
     }
 
     async listKeys(options?: KeyValueStoreListKeysOptions): Promise<KeyValueStoreListKeysResult> {
-        const result = await this.client.listKeys(options);
+        const result = await this.#client.listKeys(options);
         // The API does not report a content type for listed keys; crawlee's item shape
         // requires the field, so it is left undefined via the cast.
         return {
@@ -64,10 +68,10 @@ export class ApifyKeyValueStoreBackend implements KeyValueStoreBackend {
     }
 
     async getPublicUrl(key: string): Promise<string | undefined> {
-        return this.client.getRecordPublicUrl(key);
+        return this.#client.getRecordPublicUrl(key);
     }
 
     async recordExists(key: string): Promise<boolean> {
-        return this.client.recordExists(key);
+        return this.#client.recordExists(key);
     }
 }
