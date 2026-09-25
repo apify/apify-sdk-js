@@ -29,7 +29,7 @@ export class ApifyDatasetBackend implements DatasetBackend {
         if (!metadata) {
             throw new Error('Dataset not found or has been deleted.');
         }
-        return metadata;
+        return { ...metadata, name: metadata.name ?? undefined };
     }
 
     async drop(): Promise<void> {

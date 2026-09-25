@@ -6,8 +6,9 @@ import { setTimeout } from 'node:timers/promises';
 import { fileURLToPath } from 'node:url';
 
 import { purgeDefaultStorages } from '@crawlee/core';
+import { URL_NO_COMMAS_REGEX } from '@crawlee/utils/internal';
 import { Configuration, KeyValueStore, log } from 'apify';
-import { sleep, URL_NO_COMMAS_REGEX } from 'crawlee';
+import { sleep } from 'crawlee';
 
 export const SKIPPED_TEST_CLOSE_CODE = 404;
 

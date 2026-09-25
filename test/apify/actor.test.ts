@@ -166,7 +166,7 @@ describe('Actor', () => {
             const token = 'some-token';
             const actId = 'some-act-id';
             const defaultKeyValueStoreId = 'some-store-id';
-            const input = 'something';
+            const input = Buffer.from('something');
             const contentType = 'text/plain';
             const outputKey = 'OUTPUT';
             const outputValue = 'some-output';
@@ -393,7 +393,7 @@ describe('Actor', () => {
                     token,
                     build,
                     memory,
-                    timeout,
+                    runTimeoutSecs: timeout,
                     webhooks,
                 });
                 expect(keyValueStoreSpy).toBeCalledWith(run.defaultKeyValueStoreId);
@@ -464,7 +464,7 @@ describe('Actor', () => {
             const actorId = 'some-actor-id';
             const targetActorId = 'some-target-actor-id';
             const contentType = 'application/json';
-            const input = '{ "foo": "bar" }';
+            const input = Buffer.from('{ "foo": "bar" }');
             const build = 'beta';
             const run = { id: runId, actorId };
 
@@ -910,7 +910,7 @@ describe('Actor', () => {
                 await Actor[methodName](actId, input, options);
                 expect(callSpy).toBeCalledWith(input, {
                     // The client expects the timeout in seconds, while the remaining time is computed in milliseconds.
-                    timeout: (actorTimeout - usedTime) / 1000,
+                    runTimeoutSecs: (actorTimeout - usedTime) / 1000,
                 });
             },
         );
@@ -921,7 +921,7 @@ describe('Actor', () => {
             const callSpy = vitest.spyOn(TaskClient.prototype, 'call').mockReturnValue(undefined as any);
             await Actor.callTask(actId, input, options);
             expect(callSpy).toBeCalledWith(input, {
-                timeout: (actorTimeout - usedTime) / 1000,
+                runTimeoutSecs: (actorTimeout - usedTime) / 1000,
             });
         });
 
@@ -931,7 +931,7 @@ describe('Actor', () => {
             const callSpy = vitest.spyOn(ActorClient.prototype, 'call').mockReturnValue(undefined as any);
             await Actor.call(actId, input, { timeout: 'inherit' });
             expect(callSpy).toBeCalledWith(input, {
-                timeout: (actorTimeout - usedTime) / 1000,
+                runTimeoutSecs: (actorTimeout - usedTime) / 1000,
             });
         });
 
@@ -943,7 +943,7 @@ describe('Actor', () => {
                 const callSpy = vitest.spyOn(ActorClient.prototype, methodName).mockReturnValue(undefined as any);
                 await Actor[methodName](actId, input, { timeout: 'inherit' });
                 expect(callSpy).toBeCalledWith(input, {
-                    timeout: 1,
+                    runTimeoutSecs: 1,
                 });
             },
         );
@@ -954,7 +954,7 @@ describe('Actor', () => {
             const callSpy = vitest.spyOn(TaskClient.prototype, 'call').mockReturnValue(undefined as any);
             await Actor.callTask(actId, input, { timeout: 'inherit' });
             expect(callSpy).toBeCalledWith(input, {
-                timeout: 1,
+                runTimeoutSecs: 1,
             });
         });
     });
@@ -975,7 +975,7 @@ describe('Actor', () => {
             await Actor.call(actId, input, options);
 
             expect(actorSpy).toBeCalledWith(actId);
-            expect(callSpy).toBeCalledWith(input, options);
+            expect(callSpy).toBeCalledWith(input, { contentType, build, memory, runTimeoutSecs: timeout, webhooks });
         });
 
         test('works with token', async () => {
@@ -1001,7 +1001,7 @@ describe('Actor', () => {
                 build,
                 contentType,
                 memory,
-                timeout,
+                runTimeoutSecs: timeout,
                 webhooks,
             });
         });
@@ -1029,7 +1029,7 @@ describe('Actor', () => {
             expect(taskSpy).toBeCalledWith(taskId);
 
             expect(callSpy).toBeCalledTimes(1);
-            expect(callSpy).toBeCalledWith(input, options);
+            expect(callSpy).toBeCalledWith(input, { memory, runTimeoutSecs: timeout, build, webhooks });
         });
 
         test('works with token', async () => {
@@ -1045,7 +1045,7 @@ describe('Actor', () => {
 
             expect(newClientSpy).toBeCalledWith({ token });
             expect(taskSpy).toBeCalledWith(taskId);
-            expect(callSpy).toBeCalledWith(input, options);
+            expect(callSpy).toBeCalledWith(input, { memory, runTimeoutSecs: timeout, build, webhooks });
 
             expect(callOutput).toEqual(finishedRun);
         });
