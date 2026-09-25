@@ -33,8 +33,6 @@ interface ProxyStatus {
     isManInTheMiddle: boolean;
 }
 
-type NewUrlOptions = Parameters<CoreProxyConfiguration['newProxyInfo']>[0];
-
 export interface ProxyConfigurationOptions extends CoreProxyConfigurationOptions {
     /**
      * User's password for the proxy. By default, it is taken from the `APIFY_PROXY_PASSWORD`
@@ -314,8 +312,8 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
      * independent URL; for Apify Proxy a random session id is embedded so consecutive
      * calls resolve to different IPs.
      */
-    override async newProxyInfo(options?: NewUrlOptions): Promise<ProxyInfo | undefined> {
-        const url = await this.newUrl(options);
+    override async newProxyInfo(): Promise<ProxyInfo | undefined> {
+        const url = await this.newUrl();
         if (!url) return undefined;
 
         const parsed = new URL(url);
@@ -339,9 +337,9 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
      * random session id, so consecutive calls return independent URLs. For custom
      * `proxyUrls`, the URLs are rotated round-robin.
      */
-    override async newUrl(options?: NewUrlOptions): Promise<string | undefined> {
+    override async newUrl(): Promise<string | undefined> {
         if (!this.#usesApifyProxy) {
-            return super.newUrl(options);
+            return super.newUrl();
         }
         return this.composeDefaultUrl(cryptoRandomObjectId(SESSION_ID_LENGTH));
     }

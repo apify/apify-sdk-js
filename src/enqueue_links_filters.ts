@@ -1,4 +1,4 @@
-import type { RequestOptions, RequestTransform } from '@crawlee/core';
+import type { RequestOptions } from '@crawlee/core';
 import { Minimatch } from 'minimatch';
 
 import { purlToRegExp } from '@apify/pseudo_url';
@@ -36,7 +36,10 @@ export interface UrlPatternFilters {
  * await enqueueLinks({ transformRequestFunction: createTransformRequestFunction({ globs: input.globs }) });
  * ```
  */
-export function createTransformRequestFunction({ globs = [], pseudoUrls = [] }: UrlPatternFilters): RequestTransform {
+export function createTransformRequestFunction({
+    globs = [],
+    pseudoUrls = [],
+}: UrlPatternFilters): (request: RequestOptions) => RequestOptions | false | 'unchanged' {
     const patterns = [
         ...globs.flatMap((item) => {
             if (item == null) {
