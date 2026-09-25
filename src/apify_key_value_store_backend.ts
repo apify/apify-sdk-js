@@ -29,7 +29,7 @@ export class ApifyKeyValueStoreBackend implements KeyValueStoreBackend {
         if (!metadata) {
             throw new Error('Key-value store not found or has been deleted.');
         }
-        return metadata;
+        return { ...metadata, name: metadata.name ?? undefined };
     }
 
     async drop(): Promise<void> {
@@ -63,6 +63,8 @@ export class ApifyKeyValueStoreBackend implements KeyValueStoreBackend {
         // requires the field, so it is left undefined via the cast.
         return {
             ...result,
+            exclusiveStartKey: result.exclusiveStartKey ?? undefined,
+            nextExclusiveStartKey: result.nextExclusiveStartKey ?? undefined,
             items: result.items.map(({ key, size }) => ({ key, size }) as KeyValueStoreItemData),
         };
     }
