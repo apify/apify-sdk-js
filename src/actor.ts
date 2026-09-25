@@ -18,6 +18,7 @@ import {
     rejectOperationInTransaction,
     RequestQueue,
     serviceLocator,
+    withDirectStorageAccess,
 } from '@crawlee/core';
 import type { Awaitable, Dictionary, StorageBackend } from '@crawlee/types';
 import { sleep } from '@crawlee/utils';
@@ -325,9 +326,18 @@ export interface Timeout {
     timeout?: number | 'inherit';
 }
 
-export interface CallOptions extends Omit<ActorCallOptions, 'runTimeoutSecs'>, Token, Timeout {}
-export interface StartOptions extends Omit<ActorStartOptions, 'waitForFinish' | 'runTimeoutSecs'>, Token, Timeout {}
-export interface CallTaskOptions extends Omit<TaskCallOptions, 'runTimeoutSecs'>, Token, Timeout {}
+export interface ChildRunOptions {
+    /**
+     * Local name for the child run. This serves as a way to identify the child run in case of a migration.
+     * The name must be unique across all Actors and tasks started by this run.
+     */
+    runName?: string;
+}
+
+export interface CallOptions extends Omit<ActorCallOptions, 'runTimeoutSecs'>, Token, Timeout, ChildRunOptions {}
+export interface StartOptions
+    extends Omit<ActorStartOptions, 'waitForFinish' | 'runTimeoutSecs'>, Token, Timeout, ChildRunOptions {}
+export interface CallTaskOptions extends Omit<TaskCallOptions, 'runTimeoutSecs'>, Token, Timeout, ChildRunOptions {}
 
 export interface AbortOptions extends RunAbortOptions, Token {
     /** Exit with given status message */
@@ -438,6 +448,39 @@ export const EXIT_CODES = {
     ERROR_UNKNOWN: 92,
 };
 
+class ChildRunTracker {
+    private CHILD_RUN_TRACKER_KVS_KEY = 'CHILD_RUN_IDS';
+    private childRunIds?: Promise<Record<string, string>>;
+    private lastWrite: Promise<void> = Promise.resolve();
+
+    async set(runName: string, runId: string) {
+        const childRunIds = await this.load();
+        childRunIds[runName] = runId;
+
+        const write = this.lastWrite.then(async () =>
+            withDirectStorageAccess(async () => {
+                const defaultStore = await KeyValueStore.open();
+                await defaultStore.setValue(this.CHILD_RUN_TRACKER_KVS_KEY, childRunIds);
+            }),
+        );
+        this.lastWrite = write.catch(() => {});
+        await write;
+    }
+
+    async get(runName: string) {
+        const childRunIds = await this.load();
+        return childRunIds[runName];
+    }
+
+    private async load() {
+        this.childRunIds ??= KeyValueStore.open()
+            .then(async (defaultStore) => defaultStore.getValue<Record<string, string>>(this.CHILD_RUN_TRACKER_KVS_KEY))
+            .then((storedChildIds) => storedChildIds ?? {});
+
+        return this.childRunIds;
+    }
+}
+
 /**
  * `Actor` class serves as an alternative approach to the static helpers exported from the package. It allows to pass configuration
  * that will be used on the instance methods. Environment variables will have precedence over this configuration.
@@ -446,6 +489,11 @@ export const EXIT_CODES = {
 export class Actor<Data extends Dictionary = Dictionary> {
     /** @internal */
     static #instance?: Actor;
+
+    /**
+     * Tracks child runs of this Actor instance.
+     */
+    #childRunTracker: ChildRunTracker;
 
     /**
      * Configuration of this SDK instance (provided to its constructor). See {@apilink Configuration} for details.
@@ -532,6 +580,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
         this.apifyClient = this.newClient();
         this.eventManager = new PlatformEventManager(this.configuration);
         this.#chargingManager = new ChargingManager(this.configuration, this.apifyClient);
+        this.#childRunTracker = new ChildRunTracker();
     }
 
     /**
@@ -862,9 +911,24 @@ export class Actor<Data extends Dictionary = Dictionary> {
      */
     async call(actorId: string, input?: ActorInput, options: CallOptions = {}): Promise<ClientActorRun> {
         const runTimeoutSecs = options.timeout === 'inherit' ? this.getRemainingTimeSecs() : options.timeout;
-        const { token, timeout: _timeout, ...rest } = options;
+        const { token, timeout: _timeout, runName, ...rest } = options;
         const client = token ? this.newClient({ token }) : this.apifyClient;
-        return client.actor(actorId).call(input, { ...rest, runTimeoutSecs });
+
+        if (!runName) return client.actor(actorId).call(input, { ...rest, runTimeoutSecs });
+
+        const { waitSecs, log, ...startOptions } = rest;
+        const { run, resumed } = await this.#startOrResumeChildRun(client, runName, async () =>
+            client.actor(actorId).start(input, { ...startOptions, runTimeoutSecs }),
+        );
+
+        // The earlier part of a resumed run's log was already redirected before the migration.
+        const streamedLog = await client.run(run.id).getStreamedLog({ toLog: log, fromStart: !resumed });
+        streamedLog?.start();
+        try {
+            return await client.run(run.id).waitForFinish({ waitSecs });
+        } finally {
+            await streamedLog?.stop();
+        }
     }
 
     /**
@@ -892,10 +956,15 @@ export class Actor<Data extends Dictionary = Dictionary> {
      */
     async start(actorId: string, input?: ActorInput, options: StartOptions = {}): Promise<ClientActorRun> {
         const runTimeoutSecs = options.timeout === 'inherit' ? this.getRemainingTimeSecs() : options.timeout;
-        const { token, timeout: _timeout, ...rest } = options;
+        const { token, timeout: _timeout, runName, ...rest } = options;
         const client = token ? this.newClient({ token }) : this.apifyClient;
 
-        return client.actor(actorId).start(input, { ...rest, runTimeoutSecs });
+        if (!runName) return client.actor(actorId).start(input, { ...rest, runTimeoutSecs });
+
+        const { run } = await this.#startOrResumeChildRun(client, runName, async () =>
+            client.actor(actorId).start(input, { ...rest, runTimeoutSecs }),
+        );
+        return run;
     }
 
     /**
@@ -954,10 +1023,43 @@ export class Actor<Data extends Dictionary = Dictionary> {
      */
     async callTask(taskId: string, input?: Dictionary, options: CallTaskOptions = {}): Promise<ClientActorRun> {
         const runTimeoutSecs = options.timeout === 'inherit' ? this.getRemainingTimeSecs() : options.timeout;
-        const { token, timeout: _timeout, ...rest } = options;
+        const { token, timeout: _timeout, runName, ...rest } = options;
         const client = token ? this.newClient({ token }) : this.apifyClient;
 
-        return client.task(taskId).call(input, { ...rest, runTimeoutSecs });
+        if (!runName) return client.task(taskId).call(input, { ...rest, runTimeoutSecs });
+
+        const { waitSecs, ...startOptions } = rest;
+        const { run } = await this.#startOrResumeChildRun(client, runName, async () =>
+            client.task(taskId).start(input, { ...startOptions, runTimeoutSecs }),
+        );
+        return client.run(run.id).waitForFinish({ waitSecs });
+    }
+
+    /**
+     * Returns the child run tracked under `runName` if it is still in progress or has succeeded,
+     * otherwise starts a new one using `start` and tracks it under `runName`.
+     */
+    async #startOrResumeChildRun(
+        client: ApifyClient,
+        runName: string,
+        start: () => Promise<ClientActorRun>,
+    ): Promise<{ run: ClientActorRun; resumed: boolean }> {
+        const trackedRunId = await this.#childRunTracker.get(runName);
+        const trackedRun = trackedRunId ? await client.run(trackedRunId).get() : undefined;
+
+        switch (trackedRun?.status) {
+            case 'SUCCEEDED':
+            case 'READY':
+            case 'RUNNING':
+            case 'TIMING-OUT':
+            case 'ABORTING':
+                return { run: trackedRun, resumed: true };
+            default: {
+                const run = await start();
+                await this.#childRunTracker.set(runName, run.id);
+                return { run, resumed: false };
+            }
+        }
     }
 
     /**
