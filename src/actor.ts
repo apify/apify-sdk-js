@@ -1328,7 +1328,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      *
      * The input is the record stored under the configured input key (`ACTOR_INPUT_KEY`, default `INPUT`).
      * A record stored as `application/octet-stream` — which is what a local input file without an
-     * extension is read as — is parsed as JSON when it is valid JSON, and returned as a `Buffer` otherwise.
+     * extension is read as — is parsed with JSON5 when it parses, and returned as a `Buffer` otherwise.
      *
      * When running locally and the store holds no such record, the input is read from a `<inputKey>` or
      * `<inputKey>.json` file in the current working directory instead.
@@ -1389,7 +1389,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * Reads the input from a `<inputKey>` or `<inputKey>.json` file in the working directory, for local runs
      * whose default key-value store holds no input record. Mirrors how `ApifyFileSystemStorageBackend` adopts
      * such files inside the store directory: the `.json` file is JSON, the bare one is bytes that
-     * {@link parseInputValue} tries as JSON. Both files present is an error rather than a guess.
+     * {@link parseInputValue} tries as JSON5. Both files present is an error rather than a guess.
      *
      * @returns `undefined` when running on the platform or when neither file exists.
      */
@@ -2169,7 +2169,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * ```
      *
      * A record stored as `application/octet-stream` — which is what a local input file without an
-     * extension is read as — is parsed as JSON when it is valid JSON, and returned as a `Buffer` otherwise.
+     * extension is read as — is parsed with JSON5 when it parses, and returned as a `Buffer` otherwise.
      *
      * When running locally and the store holds no such record, the input is read from a `<inputKey>` or
      * `<inputKey>.json` file in the current working directory instead.

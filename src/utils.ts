@@ -37,7 +37,7 @@ export const BINARY_CONTENT_TYPE = 'application/octet-stream';
 /**
  * Parses a raw input record the way `KeyValueStore.getValue` would, with one exception:
  * `application/octet-stream` — the type a local input file without an extension is adopted as — is
- * tried as JSON first, so such a file still yields an object. Bytes that are not JSON come back as they are.
+ * tried as JSON5 first, so such a file still yields an object. Bytes that do not parse come back as they are.
  * @internal
  */
 export function parseInputValue(value: Buffer | ArrayBuffer, contentType: string | null): unknown {

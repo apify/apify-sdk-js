@@ -169,11 +169,11 @@ try {
 
 ### Input without an extension is parsed as JSON
 
-A local input file without an extension (a bare `INPUT` in `storage/key_value_stores/default`) is read as `application/octet-stream`. `Actor.getInput()` parses such a record as JSON when it is valid JSON and returns the raw `Buffer` otherwise. Records with any other content type are parsed exactly as `KeyValueStore.getValue()` parses them.
+A local input file without an extension (a bare `INPUT` in `storage/key_value_stores/default`) is read as `application/octet-stream`. `Actor.getInput()` parses such a record with JSON5 (the parser `KeyValueStore.getValue()` uses for JSON records, so plain JSON works too) and returns the raw `Buffer` when it does not parse. Records with any other content type are parsed exactly as `KeyValueStore.getValue()` parses them.
 
 ### Input file in the working directory
 
-When running locally and the default key-value store holds no input record, `Actor.getInput()` falls back to an `INPUT` or `INPUT.json` file in the current working directory (the file name follows the configured input key). The bare file follows the octet-stream rule above; the `.json` file must contain valid JSON. If both files are present, `getInput()` throws instead of picking one. This fallback never runs on the Apify platform. It is new to the SDK — v3's `Actor.getInput()` only ever read the key-value store.
+When running locally and the default key-value store holds no input record, `Actor.getInput()` falls back to an `INPUT` or `INPUT.json` file in the current working directory (the file name follows the configured input key). The bare file follows the octet-stream rule above; the `.json` file is parsed with JSON5 like any JSON record. If both files are present, `getInput()` throws instead of picking one. This fallback never runs on the Apify platform. It is new to the SDK — v3's `Actor.getInput()` only ever read the key-value store.
 
 ### Input key configuration
 
