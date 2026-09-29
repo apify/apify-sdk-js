@@ -50,7 +50,6 @@ export const apifyConfigFields = {
     // take precedence; crawlee's own CRAWLEE_* var is reused as the fallback,
     // never re-typed). A schema is passed only where the SDK needs a different
     // default than crawlee's.
-    inputKey: withApifyEnv(crawleeConfigFields.inputKey, [ACTOR_ENV_VARS.INPUT_KEY, APIFY_ENV_VARS.INPUT_KEY]),
     memoryMbytes: withApifyEnv(crawleeConfigFields.memoryMbytes, [
         ACTOR_ENV_VARS.MEMORY_MBYTES,
         APIFY_ENV_VARS.MEMORY_MBYTES,
@@ -91,6 +90,13 @@ export const apifyConfigFields = {
     ]),
 
     // Apify-specific fields
+    // Crawlee has no notion of a run input; `CRAWLEE_INPUT_KEY` stays as the
+    // lowest-priority alias because the Apify CLI sets all three variables.
+    inputKey: field(z.string().default('INPUT'), [
+        ACTOR_ENV_VARS.INPUT_KEY,
+        APIFY_ENV_VARS.INPUT_KEY,
+        'CRAWLEE_INPUT_KEY',
+    ]),
     metamorphAfterSleepMillis: field(coerceNumber.default(300_000), APIFY_ENV_VARS.METAMORPH_AFTER_SLEEP_MILLIS),
     actorEventsWsUrl: field(z.string().optional(), [
         ACTOR_ENV_VARS.EVENTS_WEBSOCKET_URL,

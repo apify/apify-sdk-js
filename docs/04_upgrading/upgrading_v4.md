@@ -143,6 +143,47 @@ const url = store.getPublicUrl('myKey');
 const url = await store.getPublicUrl('myKey');
 ```
 
+## Actor input
+
+Reading the run input now lives entirely in the SDK; Crawlee v4 dropped `KeyValueStore.getInput()` and its `inputKey` configuration option, so the SDK owns the whole path from the input key to the parsed value.
+
+### `Actor.getInput()` throws when there is no input
+
+`Actor.getInput()` no longer resolves to `null` for a missing input. It throws an `ActorInputError` with `code: 'NOT_FOUND'` instead, and its return type is `Promise<T>` rather than `Promise<T | null>`. `Actor.getInputOrThrow()` is removed — it did exactly what `getInput()` does now.
+
+`ActorInputError` (exported from `apify`) is also thrown when both `INPUT` and `INPUT.json` exist in the working directory (`'MULTIPLE_FILES'`), when a JSON input does not parse (`'PARSE_FAILED'`, parser error in `cause`) and when the input's secret fields cannot be decrypted (`'DECRYPTION_FAILED'`, original error in `cause`). Anything else `getInput()` throws, such as an Apify API error, is not an input problem — rethrow it.
+
+```ts
+// v3
+const input = await Actor.getInputOrThrow();
+const optionalInput = (await Actor.getInput()) ?? {};
+
+// v4
+import { Actor, ActorInputError } from 'apify';
+
+const input = await Actor.getInput();
+
+let optionalInput = {};
+try {
+    optionalInput = await Actor.getInput();
+} catch (error) {
+    // no input, e.g. an Actor without an input schema started with none
+    if (!(error instanceof ActorInputError) || error.code !== 'NOT_FOUND') throw error;
+}
+```
+
+### Input without an extension is parsed as JSON
+
+A local input file without an extension (a bare `INPUT` in `storage/key_value_stores/default`) is read as `application/octet-stream`. `Actor.getInput()` parses such a record with JSON5 (the parser `KeyValueStore.getValue()` uses for JSON records, so plain JSON works too) and returns the raw `Buffer` when it does not parse. Records with any other content type are parsed exactly as `KeyValueStore.getValue()` parses them.
+
+### Input file in the working directory
+
+When running locally and the default key-value store holds no input record, `Actor.getInput()` falls back to an `INPUT` or `INPUT.json` file in the current working directory (the file name follows the configured input key). The bare file follows the octet-stream rule above; the `.json` file is parsed with JSON5 like any JSON record. If both files are present, `getInput()` throws instead of picking one. This fallback never runs on the Apify platform. It is new to the SDK — v3's `Actor.getInput()` only ever read the key-value store.
+
+### Input key configuration
+
+`Configuration.inputKey` is resolved from `ACTOR_INPUT_KEY`, then `APIFY_INPUT_KEY`, then `CRAWLEE_INPUT_KEY`, defaulting to `INPUT`. The last one is kept for compatibility with the Apify CLI, which sets all three; Crawlee itself no longer reads it. Locally the Actor stores data through `ApifyFileSystemStorageBackend`, a new export that extends Crawlee's `FileSystemStorageBackend`: it adopts a bare `INPUT` / `INPUT.json` in the default store as the record `INPUT` (and likewise a file named after the configured key as that key's record), and spares those keys when the store is purged on start. Plain Crawlee's backend does neither, so an `Actor.init({ storage })` with a plain `FileSystemStorageBackend` reads no hand-placed input and purges it. See [Out-of-band key-value files](https://crawlee.dev/js/docs/upgrading/upgrading-to-v4#out-of-band-key-value-files-eg-a-hand-placed-inputjson) in the Crawlee upgrading guide for the adoption rules.
+
 ## Argument validation (`ow` → `zod`)
 
 Runtime argument validation (e.g. `Actor.addWebhook()`, `Actor.setStatusMessage()`, `Actor.openDataset()` / `openKeyValueStore()` / `openRequestQueue()`, and the `ProxyConfiguration` constructor) now uses [`zod`](https://zod.dev) instead of `ow`. Validation is just as strict — invalid arguments still throw synchronously, before any work is done — but the **error messages changed**.
