@@ -1359,10 +1359,10 @@ export class Actor<Data extends Dictionary = Dictionary> {
             ? parseInputValue(record.value, record.contentType)
             : await this.readInputFromWorkingDirectory(inputKey);
 
-        if (rawInput === undefined) {
+        if (rawInput == null) {
             const locations = [`the "${inputKey}" record of the default key-value store`];
             if (!this.configuration.isAtHome) {
-                locations.push(`a "${inputKey}.json" file in the working directory`);
+                locations.push(`a "${inputKey}" or "${inputKey}.json" file in the working directory`);
             }
             throw new Error(`Input does not exist. Expected ${locations.join(' or ')}.`);
         }

@@ -36,7 +36,7 @@ export interface ApifyFileSystemStorageOptions extends FileSystemStorageOptions 
  */
 export class ApifyFileSystemStorageBackend extends FileSystemStorageBackend {
     /** `INPUT` plus the configured input key, deduplicated. */
-    readonly inputKeys: readonly string[];
+    private readonly inputKeys: readonly string[];
 
     constructor(options: ApifyFileSystemStorageOptions) {
         const { inputKey = KEY_VALUE_STORE_KEYS.INPUT, ...fileSystemOptions } = options;

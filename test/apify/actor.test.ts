@@ -1433,6 +1433,11 @@ describe('Actor', () => {
                 await expect(isolatedActor().getInput()).resolves.toEqual(bytes);
             });
 
+            test('throws when the input is null', async () => {
+                await writeFile(join(cwd, 'INPUT'), 'null');
+                await expect(isolatedActor().getInput()).rejects.toThrowError('Input does not exist');
+            });
+
             test('honors the configured input key', async () => {
                 await writeFile(join(cwd, '__CLI_INPUT.json'), '{ "from": "cli" }');
                 const actor = isolatedActor(new Configuration({ inputKey: '__CLI_INPUT' }));
