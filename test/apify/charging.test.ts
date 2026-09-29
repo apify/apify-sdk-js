@@ -558,6 +558,28 @@ describe('ChargingManager', () => {
             expect(result.eventChargeLimitReached).toBe(false);
         });
 
+        test('is priced into a pushData() with an explicit event name', async () => {
+            setUpLocalTestEnv({ maxTotalChargeUsd: '4' });
+            const { actor } = await initIsolatedDefaultActor();
+
+            // Each item costs $2 here, the explicit event plus the synthetic one.
+            const result = await actor.pushData([{ a: 1 }, { b: 2 }, { c: 3 }, { d: 4 }], 'my-event');
+
+            expect(result.chargedCount).toBe(2);
+            expect((await (await actor.openDataset()).getData()).items).toHaveLength(2);
+            expect(actor.getChargingManager().getChargedEventCount(DEFAULT_DATASET_ITEM_EVENT)).toBe(2);
+        });
+
+        test('is not priced into a pushData() with an explicit event name on a caller-supplied backend', async () => {
+            setUpLocalTestEnv({ maxTotalChargeUsd: '4' });
+            const { actor } = await initIsolatedDefaultActor({ storage: new MemoryStorageBackend() });
+
+            const result = await actor.pushData([{ a: 1 }, { b: 2 }, { c: 3 }, { d: 4 }, { e: 5 }], 'my-event');
+
+            expect(result.chargedCount).toBe(4);
+            expect(actor.getChargingManager().getChargedEventCount(DEFAULT_DATASET_ITEM_EVENT)).toBe(0);
+        });
+
         test('keeps concurrent pushes within the budget', async () => {
             setUpLocalTestEnv({ maxTotalChargeUsd: '4' });
             await initIsolatedDefaultActor();

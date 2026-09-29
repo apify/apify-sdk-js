@@ -51,7 +51,7 @@ import type { RequestQueueAccessMode } from './apify_request_queue_backend.js';
 import { ApifyStorageBackend } from './apify_storage_backend.js';
 import type { ChargeOptions, ChargeResult } from './charging.js';
 import { ChargingManager, DEFAULT_DATASET_ITEM_EVENT } from './charging.js';
-import { ChargingDatasetBackend, ChargingStorageBackend } from './charging_storage_backend.js';
+import { ChargingStorageBackend } from './charging_storage_backend.js';
 import type { ConfigurationOptions } from './configuration.js';
 import { Configuration } from './configuration.js';
 import { ActorInputError } from './errors.js';
@@ -1214,8 +1214,9 @@ export class Actor<Data extends Dictionary = Dictionary> {
             const limit = this.#chargingManager.calculatePushDataLimit(items.length, {
                 eventName,
                 // Pushing one item charges the synthetic per-item event too when the dataset backend
-                // is the charging one, so that price is part of what an item costs here.
-                isDefaultDataset: dataset.backend instanceof ChargingDatasetBackend,
+                // is the charging one, so that price is part of what an item costs here. Only the Actor's
+                // own backend wraps the default dataset for charging, a caller-supplied one is left as is.
+                isDefaultDataset: serviceLocator.getStorageBackend() === this.#cachedStorageBackend,
             });
 
             if (limit === 0) {
