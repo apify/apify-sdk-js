@@ -26,7 +26,7 @@ import { Actor } from 'apify';
 
 await Actor.init();
 
-const input = (await Actor.getInput()) ?? {};
+const input = await Actor.getInput();
 await Actor.setValue('OUTPUT', {
     message: 'Hello from Apify SDK!',
     input,
