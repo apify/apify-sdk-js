@@ -12,12 +12,19 @@ minimumReleaseAgeExclude:
   # Renovate security update: vitest@4.1.0
   - vitest@4.1.0
 
-onlyBuiltDependencies:
-  - '@playwright/browser-chromium'
-  - '@swc/core'
-  - esbuild
-  - playwright
-  - puppeteer
+allowBuilds:
+  '@apify/ui-icons': false
+  '@playwright/browser-chromium': true
+  '@swc/core': true
+  core-js: false
+  esbuild: true
+  playwright: true
+  puppeteer: true
+
+overrides:
+  fast-uri: ^3.1.2
+  qs: ^6.15.2
+  webpack-dev-server: ^6.0.0
 
 nodeLinker: hoisted
 linkWorkspacePackages: true

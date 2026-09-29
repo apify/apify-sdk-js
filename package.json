@@ -114,19 +114,12 @@
         "typescript": "~7.0.2",
         "vitest": "^4.1.11"
     },
-    "packageManager": "pnpm@10.33.4",
+    "packageManager": "pnpm@12.6.0",
     "devEngines": {
         "packageManager": {
             "name": "pnpm",
-            "version": "10.33.4",
+            "version": "12.6.0",
             "onFail": "warn"
-        }
-    },
-    "pnpm": {
-        "overrides": {
-            "fast-uri": "^3.1.2",
-            "qs": "^6.15.2",
-            "webpack-dev-server": "^6.0.0"
         }
     }
 }

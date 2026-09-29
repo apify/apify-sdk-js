@@ -62,7 +62,7 @@ jobs:
 
             - name: Set pre-release version
               if: ${{ inputs.tag != 'latest' }}
-              run: pnpm version --no-git-tag-version --allow-same-version ${{ steps.prerelease.outputs.prerelease_version }}
+              run: pnpm version --no-git-tag-version --no-git-checks --allow-same-version ${{ steps.prerelease.outputs.prerelease_version }}
 
             - name: Publish to NPM
               run: pnpm publish --tag ${{ inputs.tag }} --no-git-checks
