@@ -6,6 +6,7 @@ export {
 } from './apify_file_system_storage_backend.js';
 export type { RequestQueueAccessMode } from './apify_request_queue_backend.js';
 export { ArgumentValidationError } from './utils.js';
+export { ActorInputError, type ActorInputErrorCode } from './errors.js';
 export {
     createTransformRequestFunction,
     type GlobInput,

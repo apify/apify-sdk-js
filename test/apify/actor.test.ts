@@ -7,7 +7,7 @@ import { join } from 'node:path';
 import { EventType, MemoryStorageBackend, serviceLocator } from '@crawlee/core';
 import { sleep } from '@crawlee/utils';
 import type { ApifyEnv } from 'apify';
-import { Actor, Configuration, Dataset, KeyValueStore, ProxyConfiguration, RequestQueue } from 'apify';
+import { Actor, ActorInputError, Configuration, Dataset, KeyValueStore, ProxyConfiguration, RequestQueue } from 'apify';
 import type { ActorRun, WebhookUpdateData } from 'apify-client';
 import { ActorClient, ApifyClient, RunClient, TaskClient } from 'apify-client';
 import { BasicCrawler } from 'crawlee';
@@ -1386,6 +1386,24 @@ describe('Actor', () => {
         test('throws when there is no input', async () => {
             const { actor } = createIsolatedActor({ storageClient: new MemoryStorageBackend() });
             await expect(actor.getInput()).rejects.toThrowError('Input does not exist');
+            await expect(actor.getInput()).rejects.toMatchObject({
+                constructor: ActorInputError,
+                name: 'ActorInputError',
+                code: 'NOT_FOUND',
+            });
+        });
+
+        test('throws PARSE_FAILED with the parser error as cause for a malformed JSON record', async () => {
+            const { actor } = createIsolatedActor({ storageClient: new MemoryStorageBackend() });
+            await actor.setValue(KEY_VALUE_STORE_KEYS.INPUT, Buffer.from('{ not json'), {
+                contentType: 'application/json',
+            });
+
+            const error = await actor.getInput().catch((e) => e);
+            expect(error).toBeInstanceOf(ActorInputError);
+            expect(error.code).toBe('PARSE_FAILED');
+            expect(error.message).toMatch(/"INPUT" record of the default key-value store/);
+            expect(error.cause).toBeInstanceOf(SyntaxError);
         });
 
         test('reads the input key from the environment', async () => {
@@ -1451,10 +1469,29 @@ describe('Actor', () => {
                 await expect(actor.getInput()).resolves.toEqual({ from: 'store' });
             });
 
-            test('throws when both INPUT and INPUT.json exist', async () => {
+            test('throws MULTIPLE_FILES when both INPUT and INPUT.json exist', async () => {
                 await writeFile(join(cwd, 'INPUT'), '{}');
                 await writeFile(join(cwd, 'INPUT.json'), '{}');
-                await expect(isolatedActor().getInput()).rejects.toThrowError(/multiple input files/);
+
+                const error = await isolatedActor()
+                    .getInput()
+                    .catch((e) => e);
+                expect(error).toBeInstanceOf(ActorInputError);
+                expect(error.code).toBe('MULTIPLE_FILES');
+                expect(error.message).toMatch(/multiple input files/);
+                expect(error.cause).toBeUndefined();
+            });
+
+            test('throws PARSE_FAILED for a malformed INPUT.json', async () => {
+                await writeFile(join(cwd, 'INPUT.json'), '{ not json');
+
+                const error = await isolatedActor()
+                    .getInput()
+                    .catch((e) => e);
+                expect(error).toBeInstanceOf(ActorInputError);
+                expect(error.code).toBe('PARSE_FAILED');
+                expect(error.message).toMatch(/"INPUT.json" file in the working directory/);
+                expect(error.cause).toBeInstanceOf(SyntaxError);
             });
 
             test('is skipped on the platform', async () => {
@@ -1511,6 +1548,30 @@ describe('Actor', () => {
             const input = await secretsActor.getInput();
 
             expect(input).toStrictEqual(originalInput);
+        });
+
+        test('throws DECRYPTION_FAILED with the original error as cause', async () => {
+            const encryptedInput = encryptInputSecrets({
+                input: { secret: 'foo' },
+                inputSchema: { properties: { secret: { type: 'string', isSecret: true } } },
+                publicKey: testingPublicKey,
+            });
+
+            process.env[APIFY_ENV_VARS.INPUT_SECRETS_PRIVATE_KEY_FILE] = testingPrivateKeyFile;
+            process.env[APIFY_ENV_VARS.INPUT_SECRETS_PRIVATE_KEY_PASSPHRASE] = 'wrong-passphrase';
+            const { actor } = createIsolatedActor({
+                config: new Configuration(),
+                storageClient: new MemoryStorageBackend(),
+            });
+            delete process.env[APIFY_ENV_VARS.INPUT_SECRETS_PRIVATE_KEY_FILE];
+            delete process.env[APIFY_ENV_VARS.INPUT_SECRETS_PRIVATE_KEY_PASSPHRASE];
+
+            await actor.setValue(KEY_VALUE_STORE_KEYS.INPUT, encryptedInput);
+
+            const error = await actor.getInput().catch((e) => e);
+            expect(error).toBeInstanceOf(ActorInputError);
+            expect(error.code).toBe('DECRYPTION_FAILED');
+            expect(error.cause).toBeInstanceOf(Error);
         });
     });
 

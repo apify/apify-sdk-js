@@ -54,6 +54,7 @@ import { ChargingManager, DEFAULT_DATASET_ITEM_EVENT } from './charging.js';
 import { ChargingDatasetBackend, ChargingStorageBackend } from './charging_storage_backend.js';
 import type { ConfigurationOptions } from './configuration.js';
 import { Configuration } from './configuration.js';
+import { ActorInputError } from './errors.js';
 import { getDefaultsFromInputSchema, noActorInputSchemaDefinedMarker, readInputSchema } from './input-schemas.js';
 import { PlatformEventManager } from './platform_event_manager.js';
 import type { ProxyConfigurationOptions } from './proxy_configuration.js';
@@ -70,6 +71,18 @@ import {
     printOutdatedSdkWarning,
     snakeCaseToCamelCase,
 } from './utils.js';
+
+/**
+ * {@link parseInputValue} with the parser error wrapped as an {@apilink ActorInputError}, so a malformed
+ * JSON input reports where it came from.
+ */
+function parseInput(value: Buffer | ArrayBuffer, contentType: string | null, source: string): unknown {
+    try {
+        return parseInputValue(value, contentType);
+    } catch (cause) {
+        throw new ActorInputError('PARSE_FAILED', `The input in ${source} is not valid JSON.`, { cause });
+    }
+}
 
 export interface InitOptions {
     /**
@@ -1333,7 +1346,10 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * When running locally and the store holds no such record, the input is read from a `<inputKey>` or
      * `<inputKey>.json` file in the current working directory instead.
      *
-     * Throws when no input is found. If your Actor can run without input, catch the error.
+     * Throws an {@apilink ActorInputError} when no input is found (`code: 'NOT_FOUND'`), when both input
+     * files exist in the working directory (`'MULTIPLE_FILES'`), when a JSON input does not parse
+     * (`'PARSE_FAILED'`) or when its secret fields cannot be decrypted (`'DECRYPTION_FAILED'`). If your
+     * Actor can run without input, catch the `'NOT_FOUND'` case and rethrow the rest.
      *
      * Note that the `getInput()` function does not cache the value read from the key-value store.
      * If you need to use the input multiple times in your Actor,
@@ -1346,6 +1362,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      *   Returns a promise that resolves to an object, string
      *   or [`Buffer`](https://nodejs.org/api/buffer.html), depending
      *   on the MIME content type of the record.
+     * @throws {ActorInputError} When the input cannot be produced; see `code`.
      * @ignore
      */
     async getInput<T = Dictionary | string | Buffer>(): Promise<T> {
@@ -1356,7 +1373,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
         const store = await this.openKeyValueStore();
         const record = await store.getRecord(inputKey);
         const rawInput = record
-            ? parseInputValue(record.value, record.contentType)
+            ? parseInput(record.value, record.contentType, `the "${inputKey}" record of the default key-value store`)
             : await this.readInputFromWorkingDirectory(inputKey);
 
         if (rawInput == null) {
@@ -1364,18 +1381,24 @@ export class Actor<Data extends Dictionary = Dictionary> {
             if (!this.configuration.isAtHome) {
                 locations.push(`a "${inputKey}" or "${inputKey}.json" file in the working directory`);
             }
-            throw new Error(`Input does not exist. Expected ${locations.join(' or ')}.`);
+            throw new ActorInputError('NOT_FOUND', `Input does not exist. Expected ${locations.join(' or ')}.`);
         }
 
         let input = rawInput as T;
 
         if (isNonEmptyObject(rawInput) && inputSecretsPrivateKeyFile && inputSecretsPrivateKeyPassphrase) {
-            const privateKey = createPrivateKey({
-                key: Buffer.from(inputSecretsPrivateKeyFile, 'base64'),
-                passphrase: inputSecretsPrivateKeyPassphrase,
-            });
+            try {
+                const privateKey = createPrivateKey({
+                    key: Buffer.from(inputSecretsPrivateKeyFile, 'base64'),
+                    passphrase: inputSecretsPrivateKeyPassphrase,
+                });
 
-            input = decryptInputSecrets({ input: rawInput, privateKey }) as T;
+                input = decryptInputSecrets({ input: rawInput, privateKey }) as T;
+            } catch (cause) {
+                throw new ActorInputError('DECRYPTION_FAILED', 'Failed to decrypt the secret fields of the input.', {
+                    cause,
+                });
+            }
         }
 
         if (isNonEmptyObject(input) && !Buffer.isBuffer(input)) {
@@ -1413,7 +1436,8 @@ export class Actor<Data extends Dictionary = Dictionary> {
         }
 
         if (found.length > 1) {
-            throw new Error(
+            throw new ActorInputError(
+                'MULTIPLE_FILES',
                 `Found multiple input files in the working directory: ${found.map((file) => `"${file.filename}"`).join(', ')}. Keep only one of them.`,
             );
         }
@@ -1423,7 +1447,11 @@ export class Actor<Data extends Dictionary = Dictionary> {
         }
 
         const [file] = found;
-        return parseInputValue(await readFile(file.path), file.contentType);
+        return parseInput(
+            await readFile(file.path),
+            file.contentType,
+            `the "${file.filename}" file in the working directory`,
+        );
     }
 
     /**
@@ -2174,7 +2202,18 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * When running locally and the store holds no such record, the input is read from a `<inputKey>` or
      * `<inputKey>.json` file in the current working directory instead.
      *
-     * Throws when no input is found. If your Actor can run without input, catch the error.
+     * Throws an {@apilink ActorInputError} when no input is found (`code: 'NOT_FOUND'`), when both input
+     * files exist in the working directory (`'MULTIPLE_FILES'`), when a JSON input does not parse
+     * (`'PARSE_FAILED'`) or when its secret fields cannot be decrypted (`'DECRYPTION_FAILED'`). If your
+     * Actor can run without input, catch the `'NOT_FOUND'` case and rethrow the rest:
+     * ```js
+     * let input = {};
+     * try {
+     *     input = await Actor.getInput();
+     * } catch (error) {
+     *     if (!(error instanceof ActorInputError) || error.code !== 'NOT_FOUND') throw error;
+     * }
+     * ```
      *
      * Note that the `getInput()` function does not cache the value read from the key-value store.
      * If you need to use the input multiple times in your Actor,
@@ -2186,6 +2225,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      *   Returns a promise that resolves to an object, string
      *   or [`Buffer`](https://nodejs.org/api/buffer.html), depending
      *   on the MIME content type of the record.
+     * @throws {ActorInputError} When the input cannot be produced; see `code`.
      */
     static async getInput<T = Dictionary | string | Buffer>(): Promise<T> {
         return Actor.getDefaultInstance().getInput<T>();

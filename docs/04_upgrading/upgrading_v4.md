@@ -149,7 +149,9 @@ Reading the run input now lives entirely in the SDK; Crawlee v4 dropped `KeyValu
 
 ### `Actor.getInput()` throws when there is no input
 
-`Actor.getInput()` no longer resolves to `null` for a missing input. It throws instead, and its return type is `Promise<T>` rather than `Promise<T | null>`. `Actor.getInputOrThrow()` is removed — it did exactly what `getInput()` does now.
+`Actor.getInput()` no longer resolves to `null` for a missing input. It throws an `ActorInputError` with `code: 'NOT_FOUND'` instead, and its return type is `Promise<T>` rather than `Promise<T | null>`. `Actor.getInputOrThrow()` is removed — it did exactly what `getInput()` does now.
+
+`ActorInputError` (exported from `apify`) is also thrown when both `INPUT` and `INPUT.json` exist in the working directory (`'MULTIPLE_FILES'`), when a JSON input does not parse (`'PARSE_FAILED'`, parser error in `cause`) and when the input's secret fields cannot be decrypted (`'DECRYPTION_FAILED'`, original error in `cause`). Anything else `getInput()` throws, such as an Apify API error, is not an input problem — rethrow it.
 
 ```ts
 // v3
@@ -157,13 +159,16 @@ const input = await Actor.getInputOrThrow();
 const optionalInput = (await Actor.getInput()) ?? {};
 
 // v4
+import { Actor, ActorInputError } from 'apify';
+
 const input = await Actor.getInput();
 
 let optionalInput = {};
 try {
     optionalInput = await Actor.getInput();
-} catch {
+} catch (error) {
     // no input, e.g. an Actor without an input schema started with none
+    if (!(error instanceof ActorInputError) || error.code !== 'NOT_FOUND') throw error;
 }
 ```
 
