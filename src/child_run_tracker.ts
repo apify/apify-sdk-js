@@ -14,6 +14,8 @@ export interface ChildRunInfo {
 }
 
 export interface TrackedChildRun extends ChildRunInfo {
+    /** Identifies the Actor / task and input the run was started with. */
+    checksum: string;
     /** Earlier runs that were replaced under the same name, oldest first. */
     history: ChildRunInfo[];
 }
@@ -51,23 +53,19 @@ const CHILD_RUNS_KVS_KEY = 'CHILD_RUNS';
 export class ChildRunTracker {
     private trackedRuns?: Promise<Record<string, TrackedChildRun>>;
     private lastWrite: Promise<void> = Promise.resolve();
-    private requestChecksums = new Map<string, string>();
 
     /**
-     * Throws if `runName` was already used by this process for a different Actor / task or input,
-     * as the earlier run would otherwise be silently returned in place of the requested one.
+     * Throws if the run tracked under `runName` was started for a different Actor / task or input,
+     * as it would otherwise be silently returned in place of the requested one.
      */
-    verifyRequest(runName: string, request: ChildRunRequest) {
-        const checksum = checksumRequest(request);
-        const knownChecksum = this.requestChecksums.get(runName);
+    async verifyRequest(runName: string, request: ChildRunRequest) {
+        const tracked = await this.get(runName);
 
-        if (knownChecksum && knownChecksum !== checksum) {
+        if (tracked && tracked.checksum !== checksumRequest(request)) {
             throw new Error(
                 `The run name "${runName}" was already used for a different Actor, task or input. Use a unique \`runName\` for each child run.`,
             );
         }
-
-        this.requestChecksums.set(runName, checksum);
     }
 
     /**
@@ -75,13 +73,12 @@ export class ChildRunTracker {
      * history, with `replacedStatus` as its last known status.
      */
     async track(runName: string, run: ActorRun, request: ChildRunRequest, replacedStatus: ChildRunStatus) {
-        this.requestChecksums.set(runName, checksumRequest(request));
-
         const trackedRuns = await this.load();
         const previous = trackedRuns[runName];
 
         trackedRuns[runName] = {
             ...toInfo(run),
+            checksum: checksumRequest(request),
             history: previous
                 ? [
                       ...previous.history,

@@ -1069,6 +1069,7 @@ describe('Actor', () => {
         const startedRun = { id: 'child-run', status: 'RUNNING', startedAt } as ActorRun;
         const finishedRun = { ...startedRun, status: 'SUCCEEDED' } as ActorRun;
         const trackedInfo = { runId: startedRun.id, status: 'RUNNING', startedAt: startedAt.toISOString() };
+        const stored = { ...trackedInfo, checksum: expect.any(String) };
 
         let storage: MemoryStorageBackend;
         let startSpy: MockInstance;
@@ -1106,7 +1107,7 @@ describe('Actor', () => {
             expect(run).toEqual(startedRun);
             expect(startSpy).toBeCalledTimes(1);
             expect(await readStored(actor)).toEqual({
-                [runName]: { ...trackedInfo, history: [] },
+                [runName]: { ...stored, history: [] },
             });
         });
 
@@ -1123,7 +1124,7 @@ describe('Actor', () => {
                 expect(startSpy).not.toBeCalled();
                 expect(run).toEqual({ ...startedRun, status });
                 expect(getSpy).toBeCalledTimes(1);
-                expect((await actor.childRuns())[runName]).toEqual({ ...trackedInfo, status, history: [] });
+                expect((await actor.childRuns())[runName]).toEqual({ ...stored, status, history: [] });
             },
         );
 
@@ -1143,7 +1144,7 @@ describe('Actor', () => {
                 expect(run).toEqual(replacement);
                 expect(await readStored(actor)).toEqual({
                     [runName]: {
-                        ...trackedInfo,
+                        ...stored,
                         runId: replacement.id,
                         history: [{ ...trackedInfo, status }],
                     },
@@ -1234,10 +1235,17 @@ describe('Actor', () => {
             expect(startSpy).toBeCalledTimes(1);
         });
 
-        test('reusing a run name with a different input is allowed after a restart', async () => {
+        test('reusing a run name with a different input after a restart throws', async () => {
             await newActor().start(actId, input, { runName });
 
-            await newActor().start(actId, { foo: 'baz' }, { runName });
+            await expect(newActor().start(actId, { foo: 'baz' }, { runName })).rejects.toThrow(/already used/);
+            expect(startSpy).toBeCalledTimes(1);
+        });
+
+        test('reusing a run name with the same input after a restart resumes the run', async () => {
+            await newActor().start(actId, { a: 1, b: 2 }, { runName });
+
+            await newActor().start(actId, { b: 2, a: 1 }, { runName });
 
             expect(startSpy).toBeCalledTimes(1);
         });

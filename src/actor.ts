@@ -1030,7 +1030,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
         const trackedRun = tracked ? await client.run(tracked.runId).get() : undefined;
 
         if (trackedRun && ['SUCCEEDED', 'READY', 'RUNNING'].includes(trackedRun.status)) {
-            this.#childRunTracker.verifyRequest(runName, request);
+            await this.#childRunTracker.verifyRequest(runName, request);
             await this.#childRunTracker.update(runName, trackedRun);
             return { run: trackedRun, resumed: true };
         }
