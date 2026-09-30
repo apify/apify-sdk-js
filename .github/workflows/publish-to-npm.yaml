@@ -14,7 +14,7 @@ on:
                 default: latest
                 options:
                     - latest
-                    - next
+                    - next-v3
 
 permissions:
     id-token: write # Required for OIDC
@@ -44,9 +44,23 @@ jobs:
             - name: Build module
               run: pnpm build
 
-            - name: Check version consistency and bump pre-release version (next only)
-              if: ${{ inputs.tag == 'next' }}
-              run: node ./.github/scripts/before-beta-release.js
+            # Only the pre-release version outputs are used here, so changelog generation and
+            # its GitHub API lookups are dead weight.
+            - name: Resolve pre-release version
+              id: prerelease
+              if: ${{ inputs.tag != 'latest' }}
+              uses: apify/actions/git-cliff-release@v1.6.1
+              with:
+                  release_type: prerelease
+                  prerelease_id: beta
+                  prerelease_registry: npm
+                  prerelease_package: apify
+                  premajor_version: ''
+                  add-github-links: false
+
+            - name: Set pre-release version
+              if: ${{ inputs.tag != 'latest' }}
+              run: pnpm version --no-git-tag-version --no-git-checks --allow-same-version ${{ steps.prerelease.outputs.prerelease_version }}
 
             - name: Publish to NPM
               run: pnpm publish --tag ${{ inputs.tag }} --no-git-checks
