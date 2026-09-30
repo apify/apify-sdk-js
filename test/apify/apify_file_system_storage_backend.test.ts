@@ -23,10 +23,13 @@ afterEach(async () => {
     await rm(directory, { recursive: true, force: true });
 });
 
+// The backend keeps its directories private, so this mirrors crawlee's on-disk layout.
+const keyValueStoresDirectory = () => join(directory, 'key_value_stores');
+
 /** A fresh backend over the test directory, seeded with sidecar-less files in one key-value store. */
 async function seedStore(store: string, files: Record<string, string>, inputKey?: string) {
     const backend = new ApifyFileSystemStorageBackend({ localDataDirectory: directory, inputKey });
-    const storeDirectory = join(backend.keyValueStoresDirectory, store);
+    const storeDirectory = join(keyValueStoresDirectory(), store);
     await mkdir(storeDirectory, { recursive: true });
     for (const [file, content] of Object.entries(files)) {
         await writeFile(join(storeDirectory, file), content);
@@ -85,7 +88,7 @@ describe('ApifyFileSystemStorageBackend', () => {
         const backend = await seedStore('default', {});
         const store = await backend.createKeyValueStoreBackend();
         await store.setValue({ key: 'INPUT', value: 'tracked', contentType: 'text/plain; charset=utf-8' });
-        await writeFile(join(backend.keyValueStoresDirectory, 'default', 'INPUT.json'), payload);
+        await writeFile(join(keyValueStoresDirectory(), 'default', 'INPUT.json'), payload);
 
         const reopened = await new ApifyFileSystemStorageBackend({
             localDataDirectory: directory,
@@ -119,7 +122,7 @@ describe('ApifyFileSystemStorageBackend', () => {
         const store = await backend.createKeyValueStoreBackend();
         expect((await store.listKeys()).items.map((item) => item.key)).toEqual(['INPUT', '__CLI_INPUT']);
         expect((await store.getValue('INPUT'))?.value.toString()).toBe(payload);
-        expect(await readdir(join(backend.keyValueStoresDirectory, 'default'))).not.toContain('leftover.json');
+        expect(await readdir(join(keyValueStoresDirectory(), 'default'))).not.toContain('leftover.json');
     });
 
     test('purges an alias-keyed store in full, INPUT included', async () => {
@@ -128,6 +131,6 @@ describe('ApifyFileSystemStorageBackend', () => {
 
         await backend.purge();
 
-        expect(await readdir(join(backend.keyValueStoresDirectory, 'other'))).not.toContain('INPUT.json');
+        expect(await readdir(join(keyValueStoresDirectory(), 'other'))).not.toContain('INPUT.json');
     });
 });
