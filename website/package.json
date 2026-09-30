@@ -16,7 +16,7 @@
     "devDependencies": {
         "@apify/tsconfig": "^0.2.0",
         "@types/react": "^19.3.0",
-        "fs-extra": "^11.4.0",
+        "fs-extra": "^11.4.1",
         "path-browserify": "^1.0.1",
         "rimraf": "^6.1.3"
     },
