@@ -27,7 +27,6 @@ import type {
     ActorStartOptions,
     ApifyClientOptions,
     RunAbortOptions,
-    RunResurrectOptions,
     TaskCallOptions,
     Webhook,
     WebhookEventType,
@@ -326,11 +325,6 @@ export interface Timeout {
      */
     timeout?: number | 'inherit';
 }
-
-const pickResurrectOptions = (
-    { build, memory, maxItems, maxTotalChargeUsd, restartOnError }: Omit<RunResurrectOptions, 'runTimeoutSecs'>,
-    runTimeoutSecs?: number,
-): RunResurrectOptions => ({ build, memory, runTimeoutSecs, maxItems, maxTotalChargeUsd, restartOnError });
 
 export interface ChildRunOptions {
     /**
@@ -895,7 +889,6 @@ export class Actor<Data extends Dictionary = Dictionary> {
             runName,
             { type: 'actor', id: actorId, input },
             async () => client.actor(actorId).start(input, { ...startOptions, runTimeoutSecs }),
-            pickResurrectOptions(startOptions, runTimeoutSecs),
         );
 
         // The earlier part of a resumed run's log was already redirected before the migration.
@@ -945,7 +938,6 @@ export class Actor<Data extends Dictionary = Dictionary> {
             runName,
             { type: 'actor', id: actorId, input },
             async () => client.actor(actorId).start(input, { ...rest, runTimeoutSecs }),
-            pickResurrectOptions(rest, runTimeoutSecs),
         );
         return run;
     }
@@ -1017,7 +1009,6 @@ export class Actor<Data extends Dictionary = Dictionary> {
             runName,
             { type: 'task', id: taskId, input },
             async () => client.task(taskId).start(input, { ...startOptions, runTimeoutSecs }),
-            pickResurrectOptions(startOptions, runTimeoutSecs),
         );
         const finishedRun = await client.run(run.id).waitForFinish({ waitSecs });
         await this.#childRunTracker.update(runName, finishedRun);
@@ -1025,8 +1016,8 @@ export class Actor<Data extends Dictionary = Dictionary> {
     }
 
     /**
-     * Returns the child run tracked under `runName` if it is still in progress or has succeeded, and resurrects it
-     * if it was aborted or timed out. Otherwise (the run failed or is gone), starts a new one using `start`
+     * Returns the child run tracked under `runName` if it is still in progress or has succeeded.
+     * Otherwise (the run failed, was aborted, timed out or is gone), starts a new one using `start`
      * and tracks it under `runName`, keeping the previous one in the history.
      */
     async #startOrResumeChildRun(
@@ -1034,7 +1025,6 @@ export class Actor<Data extends Dictionary = Dictionary> {
         runName: string,
         request: ChildRunRequest,
         start: () => Promise<ClientActorRun>,
-        resurrectOptions: RunResurrectOptions,
     ): Promise<{ run: ClientActorRun; resumed: boolean }> {
         const tracked = await this.#childRunTracker.get(runName);
         const trackedRun = tracked ? await client.run(tracked.runId).get() : undefined;
@@ -1046,13 +1036,6 @@ export class Actor<Data extends Dictionary = Dictionary> {
                 this.#childRunTracker.verifyRequest(runName, request);
                 await this.#childRunTracker.update(runName, trackedRun);
                 return { run: trackedRun, resumed: true };
-            }
-            case 'ABORTED':
-            case 'TIMED-OUT': {
-                this.#childRunTracker.verifyRequest(runName, request);
-                const run = await client.run(trackedRun.id).resurrect(resurrectOptions);
-                await this.#childRunTracker.update(runName, run);
-                return { run, resumed: true };
             }
             default: {
                 const run = await start();

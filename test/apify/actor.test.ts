@@ -1077,7 +1077,6 @@ describe('Actor', () => {
         let getSpy: MockInstance;
         let waitForFinishSpy: MockInstance;
         let getStreamedLogSpy: MockInstance;
-        let resurrectSpy: MockInstance;
 
         const newActor = () => createIsolatedActor({ storageClient: storage }).actor;
 
@@ -1088,7 +1087,6 @@ describe('Actor', () => {
             getSpy = vitest.spyOn(RunClient.prototype, 'get').mockResolvedValue(trackedRun);
             waitForFinishSpy = vitest.spyOn(RunClient.prototype, 'waitForFinish').mockResolvedValue(finishedRun);
             getStreamedLogSpy = vitest.spyOn(RunClient.prototype, 'getStreamedLog').mockResolvedValue(undefined);
-            resurrectSpy = vitest.spyOn(RunClient.prototype, 'resurrect');
         });
 
         test('start() without a run name does not track the run', async () => {
@@ -1129,26 +1127,7 @@ describe('Actor', () => {
             },
         );
 
-        test.each(['ABORTED', 'TIMED-OUT'] as const)(
-            'start() resurrects a tracked run in the %s status',
-            async (status) => {
-                await newActor().start(actId, input, { runName });
-                startSpy.mockClear();
-                getSpy.mockResolvedValue({ ...trackedRun, status });
-                resurrectSpy.mockResolvedValue({ ...trackedRun, status: 'READY' });
-
-                const actor = newActor();
-                const run = await actor.start(actId, input, { runName, memory: 512, timeout: 30 });
-
-                expect(startSpy).not.toBeCalled();
-                expect(resurrectSpy).toBeCalledTimes(1);
-                expect(resurrectSpy).toBeCalledWith(expect.objectContaining({ memory: 512, runTimeoutSecs: 30 }));
-                expect(run.status).toBe('READY');
-                expect((await actor.childRuns())[runName]).toEqual({ ...trackedInfo, status: 'READY', history: [] });
-            },
-        );
-
-        test.each(['FAILED', 'ABORTING', 'TIMING-OUT'] as const)(
+        test.each(['FAILED', 'ABORTING', 'ABORTED', 'TIMING-OUT', 'TIMED-OUT'] as const)(
             'start() starts a new run when the tracked run is in the %s status and keeps the old one in the history',
             async (status) => {
                 await newActor().start(actId, input, { runName });
@@ -1161,7 +1140,6 @@ describe('Actor', () => {
                 const run = await actor.start(actId, input, { runName });
 
                 expect(startSpy).toBeCalledTimes(1);
-                expect(resurrectSpy).not.toBeCalled();
                 expect(run).toEqual(replacement);
                 expect(await (await actor.openKeyValueStore()).getValue('CHILD_RUNS')).toEqual({
                     [runName]: {
