@@ -1171,6 +1171,49 @@ describe('Actor', () => {
             });
         });
 
+        test('reusing a run name for a different Actor in the same process throws', async () => {
+            const actor = newActor();
+            await actor.start(actId, input, { runName });
+
+            await expect(actor.start('other-actor', input, { runName })).rejects.toThrow(/already used/);
+            await expect(actor.callTask(taskId, input, { runName })).rejects.toThrow(/already used/);
+            expect(startSpy).toBeCalledTimes(1);
+        });
+
+        test('reusing a run name with a different input in the same process throws', async () => {
+            const actor = newActor();
+            await actor.start(actId, input, { runName });
+
+            await expect(actor.start(actId, { foo: 'baz' }, { runName })).rejects.toThrow(/already used/);
+        });
+
+        test('reusing a run name with an equivalent input in the same process resumes the run', async () => {
+            const actor = newActor();
+            await actor.start(actId, { a: 1, b: { c: 2, d: 3 } }, { runName });
+
+            await actor.start(actId, { b: { d: 3, c: 2 }, a: 1 }, { runName });
+
+            expect(startSpy).toBeCalledTimes(1);
+        });
+
+        test('reusing a run name with a different input is allowed after a restart', async () => {
+            await newActor().start(actId, input, { runName });
+
+            await newActor().start(actId, { foo: 'baz' }, { runName });
+
+            expect(startSpy).toBeCalledTimes(1);
+        });
+
+        test('reusing a run name with a different input is allowed when the tracked run is replaced', async () => {
+            const actor = newActor();
+            await actor.start(actId, input, { runName });
+            getSpy.mockResolvedValue({ ...trackedRun, status: 'FAILED' });
+
+            await actor.start(actId, { foo: 'baz' }, { runName });
+
+            expect(startSpy).toBeCalledTimes(2);
+        });
+
         test('call() waits for a new run started with a run name', async () => {
             const actor = newActor();
 

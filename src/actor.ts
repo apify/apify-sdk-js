@@ -50,7 +50,7 @@ import { ApifyFileSystemStorageBackend } from './apify_file_system_storage_backe
 import type { RequestQueueAccessMode } from './apify_request_queue_backend.js';
 import { ApifyStorageBackend } from './apify_storage_backend.js';
 import type { ChargeOptions, ChargeResult } from './charging.js';
-import { ChildRunTracker } from './child_run_tracker.js';
+import { type ChildRunRequest, ChildRunTracker } from './child_run_tracker.js';
 import { ChargingManager, DEFAULT_DATASET_ITEM_EVENT } from './charging.js';
 import { ChargingStorageBackend } from './charging_storage_backend.js';
 import type { ConfigurationOptions } from './configuration.js';
@@ -884,8 +884,11 @@ export class Actor<Data extends Dictionary = Dictionary> {
         if (!runName) return client.actor(actorId).call(input, { ...rest, runTimeoutSecs });
 
         const { waitSecs, log, ...startOptions } = rest;
-        const { run, resumed } = await this.#startOrResumeChildRun(client, runName, async () =>
-            client.actor(actorId).start(input, { ...startOptions, runTimeoutSecs }),
+        const { run, resumed } = await this.#startOrResumeChildRun(
+            client,
+            runName,
+            { type: 'actor', id: actorId, input },
+            async () => client.actor(actorId).start(input, { ...startOptions, runTimeoutSecs }),
         );
 
         // The earlier part of a resumed run's log was already redirected before the migration.
@@ -928,8 +931,11 @@ export class Actor<Data extends Dictionary = Dictionary> {
 
         if (!runName) return client.actor(actorId).start(input, { ...rest, runTimeoutSecs });
 
-        const { run } = await this.#startOrResumeChildRun(client, runName, async () =>
-            client.actor(actorId).start(input, { ...rest, runTimeoutSecs }),
+        const { run } = await this.#startOrResumeChildRun(
+            client,
+            runName,
+            { type: 'actor', id: actorId, input },
+            async () => client.actor(actorId).start(input, { ...rest, runTimeoutSecs }),
         );
         return run;
     }
@@ -996,8 +1002,11 @@ export class Actor<Data extends Dictionary = Dictionary> {
         if (!runName) return client.task(taskId).call(input, { ...rest, runTimeoutSecs });
 
         const { waitSecs, ...startOptions } = rest;
-        const { run } = await this.#startOrResumeChildRun(client, runName, async () =>
-            client.task(taskId).start(input, { ...startOptions, runTimeoutSecs }),
+        const { run } = await this.#startOrResumeChildRun(
+            client,
+            runName,
+            { type: 'task', id: taskId, input },
+            async () => client.task(taskId).start(input, { ...startOptions, runTimeoutSecs }),
         );
         return client.run(run.id).waitForFinish({ waitSecs });
     }
@@ -1009,6 +1018,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
     async #startOrResumeChildRun(
         client: ApifyClient,
         runName: string,
+        request: ChildRunRequest,
         start: () => Promise<ClientActorRun>,
     ): Promise<{ run: ClientActorRun; resumed: boolean }> {
         const trackedRunId = await this.#childRunTracker.get(runName);
@@ -1018,10 +1028,11 @@ export class Actor<Data extends Dictionary = Dictionary> {
             case 'SUCCEEDED':
             case 'READY':
             case 'RUNNING':
+                this.#childRunTracker.verifyRequest(runName, request);
                 return { run: trackedRun, resumed: true };
             default: {
                 const run = await start();
-                await this.#childRunTracker.set(runName, run.id);
+                await this.#childRunTracker.set(runName, run.id, request);
                 return { run, resumed: false };
             }
         }
