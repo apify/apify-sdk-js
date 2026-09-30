@@ -1051,8 +1051,6 @@ export class Actor<Data extends Dictionary = Dictionary> {
             case 'SUCCEEDED':
             case 'READY':
             case 'RUNNING':
-            case 'TIMING-OUT':
-            case 'ABORTING':
                 return { run: trackedRun, resumed: true };
             default: {
                 const run = await start();
