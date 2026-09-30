@@ -34,19 +34,19 @@ importers:
         specifier: ^2.35.11
         version: 2.35.11
       '@crawlee/core':
-        specifier: ^3.18.1
-        version: 3.18.1
+        specifier: ^3.18.2
+        version: 3.18.2
       '@crawlee/types':
-        specifier: ^3.18.1
-        version: 3.18.1
+        specifier: ^3.18.2
+        version: 3.18.2
       '@crawlee/utils':
-        specifier: ^3.18.1
-        version: 3.18.1
+        specifier: ^3.18.2
+        version: 3.18.2
       apify-client:
         specifier: ^2.25.0
         version: 2.25.0
       fs-extra:
-        specifier: ^11.4.0
+        specifier: ^11.4.1
         version: 11.4.1
       ow:
         specifier: ^0.28.2
@@ -58,7 +58,7 @@ importers:
         specifier: ^2.8.1
         version: 2.8.1
       ws:
-        specifier: ^8.21.3
+        specifier: ^8.22.0
         version: 8.22.0
     devDependencies:
       '@apify/oxlint-config':
@@ -80,7 +80,7 @@ importers:
         specifier: ^11.0.4
         version: 11.0.4
       '@types/node':
-        specifier: ^24.13.6
+        specifier: ^24.19.0
         version: 24.19.0
       '@types/semver':
         specifier: ^7.8.0
@@ -95,8 +95,8 @@ importers:
         specifier: ^21.2.3
         version: 21.2.3(@types/node@24.19.0)(conventional-commits-parser@7.1.2)(typescript@6.0.3)
       crawlee:
-        specifier: ^3.18.1
-        version: 3.18.1(@types/node@24.19.0)(playwright@1.63.0)(puppeteer@25.12.0)
+        specifier: ^3.18.2
+        version: 3.18.2(@types/node@24.19.0)(playwright@1.63.0)(puppeteer@25.12.0)
       gen-esm-wrapper:
         specifier: ^1.1.3
         version: 1.1.3
@@ -107,7 +107,7 @@ importers:
         specifier: ^9.1.7
         version: 9.1.7
       lint-staged:
-        specifier: ^17.5.1
+        specifier: ^17.6.0
         version: 17.6.0
       oxfmt:
         specifier: 0.71.0
@@ -122,7 +122,7 @@ importers:
         specifier: ^1.63.0
         version: 1.63.0
       puppeteer:
-        specifier: ^25.11.0
+        specifier: ^25.12.0
         version: 25.12.0
       rimraf:
         specifier: ^6.1.3
@@ -137,7 +137,7 @@ importers:
         specifier: ^6.1.1
         version: 6.1.1(typescript@6.0.3)(vite@8.3.0(@types/node@24.19.0)(esbuild@0.28.2)(jiti@2.6.1)(terser@5.51.2)(tsx@4.23.15)(yaml@2.9.1))
       vitest:
-        specifier: ^5.0.1
+        specifier: ^5.0.2
         version: 5.0.2(@types/node@24.19.0)(jsdom@26.1.0)(vite@8.3.0(@types/node@24.19.0)(esbuild@0.28.2)(jiti@2.6.1)(terser@5.51.2)(tsx@4.23.15)(yaml@2.9.1))
 
   website:
@@ -192,7 +192,7 @@ importers:
         specifier: ^19.3.0
         version: 19.3.0
       fs-extra:
-        specifier: ^11.4.0
+        specifier: ^11.4.1
         version: 11.4.1
       path-browserify:
         specifier: ^1.0.1
@@ -211,20 +211,20 @@ packages:
     resolution: {integrity: sha512-rSTin9Uta23uaewYVQEp8XI9T3iA/zrg0/1G2vhf8oFFDxFL5vybnZ5IQwsVAg4JpKxPX4/WYNKdcfWrZymk7w==}
     engines: {node: '>= 14.0.0'}
 
-  '@algolia/autocomplete-core@1.19.11':
-    resolution: {integrity: sha512-Txje8Sw5yMH4ApvgqR9rAxxWgmVKG+lIgl/e6MEn/IVkQvB/NZu7rV2+2Iy4/p34/D+DWS+hxpZL39w33pJXKA==}
+  '@algolia/autocomplete-core@1.19.12':
+    resolution: {integrity: sha512-nJU03L3Q0LlfnFsQTE1YppSrNcbP0lBg29mCaGCeYPog841HP9WWk5KtrTvNH2LPX6p5eELPFetSeSO8I1MFPg==}
 
   '@algolia/autocomplete-core@1.19.2':
     resolution: {integrity: sha512-mKv7RyuAzXvwmq+0XRK8HqZXt9iZ5Kkm2huLjgn5JoCPtDy+oh9yxUMfDDaVCw0oyzZ1isdJBc7l9nuCyyR7Nw==}
 
-  '@algolia/autocomplete-js@1.19.11':
-    resolution: {integrity: sha512-0xM2gHagaCG8wK1tUE5Cf4OaArXPb9tQgSoXvJrgtssftLKMIDUffoUM5wHouRWjlycHCtymWzZk/dXFtd/7tw==}
+  '@algolia/autocomplete-js@1.19.12':
+    resolution: {integrity: sha512-bHu42z7z6/hfqnzkav1/1IpRlHl7a13GzCElap5y2yqJSSRifhbtXPJT46q3dnNtoSTSDEEfHfKiEspcRWs4DQ==}
     peerDependencies:
       '@algolia/client-search': '>= 4.5.1 < 6'
       algoliasearch: '>= 4.9.1 < 6'
 
-  '@algolia/autocomplete-plugin-algolia-insights@1.19.11':
-    resolution: {integrity: sha512-NW7gVJqk1dQQeOEsY9+GqImCJwjL0YZW50gLDdfjI/9zfYNiCCByzpQaUM9YRzVr1QM61FHiVRjT6advLwl9Qw==}
+  '@algolia/autocomplete-plugin-algolia-insights@1.19.12':
+    resolution: {integrity: sha512-L3Fvu4Ajb7c9X1DMTHFFD8d1uK898b9bg9ENrjLpkSP8BAzO4vS5/MIsU0ks0FqpOihZ4VDAVYRaU6bhm/CljQ==}
     peerDependencies:
       search-insights: '>= 1 < 3'
 
@@ -233,14 +233,14 @@ packages:
     peerDependencies:
       search-insights: '>= 1 < 3'
 
-  '@algolia/autocomplete-preset-algolia@1.19.11':
-    resolution: {integrity: sha512-N5VnODgGow3wNJSEhJzYdKoUvjRtI3b9utmPUWBhebMWIicfYj66nc/xozLiuTFq3mT8ns92zrOqFC69BLjN7A==}
+  '@algolia/autocomplete-preset-algolia@1.19.12':
+    resolution: {integrity: sha512-0NfpAj47g95Dpk7cufSzpamYeOEnmY2/0UQlfJZlMVjch59uOaWAxtNGmcgSPuFwWXu4iidm6xqhVIb0w6mmbA==}
     peerDependencies:
       '@algolia/client-search': '>= 4.9.1 < 6'
       algoliasearch: '>= 4.9.1 < 6'
 
-  '@algolia/autocomplete-shared@1.19.11':
-    resolution: {integrity: sha512-9oYPEMmMAH+/EDUGKJJ6oX6JI7YNq7tmWTxEbe8r/qmZnM5BoJSzo8C3Wa2Kc/EPyBJjFrjw7qwo7huzqAYW0g==}
+  '@algolia/autocomplete-shared@1.19.12':
+    resolution: {integrity: sha512-goe55oftoEduuOHhTg4viHr58/ZsZvYEtfxkKFy6LdJxZ7+jOdVwp2bZz7qjip9CdFqkIB+34d4esftcaErCzA==}
     peerDependencies:
       '@algolia/client-search': '>= 4.9.1 < 6'
       algoliasearch: '>= 4.9.1 < 6'
@@ -251,8 +251,8 @@ packages:
       '@algolia/client-search': '>= 4.9.1 < 6'
       algoliasearch: '>= 4.9.1 < 6'
 
-  '@algolia/autocomplete-theme-classic@1.19.11':
-    resolution: {integrity: sha512-l0nwmAVoAihFBri3RnIIBjxrRve0JRg+Zy/NPAgrH2BrippsUrGcF7TjiFxuwnniRGMt8bR9kVTOVx1CUPuRPA==}
+  '@algolia/autocomplete-theme-classic@1.19.12':
+    resolution: {integrity: sha512-U/HVVI1rGeNH0l9jaB1+VTWMHkxw4MhbHxaNGjM5/XF49AN0hoMAo/dMKi7GvRm6a0D7vscbYnkC6dKGkTRZjw==}
 
   '@algolia/cache-browser-local-storage@4.27.0':
     resolution: {integrity: sha512-YGog2s57sO20lvpa+hv5XLAAmiTI1kHsCMRtPVfiaOdIQnvRla21lfH08onqEbZihOPVI8GULwt79zQB2ymKzg==}
@@ -420,8 +420,8 @@ packages:
       react: 17.x || 18.x || 19.x
       react-dom: 17.x || 18.x || 19.x
 
-  '@apify/ui-library@1.165.21':
-    resolution: {integrity: sha512-FR+NrbDIOY/9mIOrCga+ySCjk9njPt9ES1rtx/cmy3tP/jV3RMMSpNx4uUCvF4V4nz2Cr3MRuGs52b/E5k1hTw==}
+  '@apify/ui-library@1.165.24':
+    resolution: {integrity: sha512-S9l5cR6NLWuivLCaRZh4Ua15JM8YfEYNLYNrXr1bmeCu4hoVUjq7EVkKZPVGJV/nDEvcmY4URatazlJhsXg/Pw==}
     peerDependencies:
       react: 17.x || 18.x || 19.x
       react-dom: 17.x || 18.x || 19.x
@@ -1097,24 +1097,12 @@ packages:
     resolution: {integrity: sha512-aalGyl7dbB5PArRebDIX43ZvBlXrYm9uWzGJ26t+4SzJVPsOuvfILGGbw5X4yX7i50YEmJ8zvbiWnqH/AAnZqg==}
     engines: {node: '>=22'}
 
-  '@crawlee/basic@3.18.1':
-    resolution: {integrity: sha512-gSCflbW0qdlS+UQe4HdpP1qGU1tLy9WRHNCr5JF7cFdvh78OB/sKPvjNn9GdwC++wgjqiZCtP+WqNwQjc/2wuw==}
+  '@crawlee/basic@3.18.2':
+    resolution: {integrity: sha512-X5brWvycU8LfUPHwG/XF6egvZoQEynVG9v46TUOY8Q+qgCP0tZn7WYEefH35J7s8NQymssWa7FSsCwpZdFP4Iw==}
     engines: {node: '>=16.0.0'}
 
-  '@crawlee/browser-pool@3.18.1':
-    resolution: {integrity: sha512-zx3p+H6XnvLtVMSbECTgNHEK3Tg8EPaJv8/LtqZhtowdfTA2fbsXHG9dK4QRzeRjLZm+P+w/2QOAnn7qYQhTYg==}
-    engines: {node: '>=16.0.0'}
-    peerDependencies:
-      playwright: '*'
-      puppeteer: '*'
-    peerDependenciesMeta:
-      playwright:
-        optional: true
-      puppeteer:
-        optional: true
-
-  '@crawlee/browser@3.18.1':
-    resolution: {integrity: sha512-Mef8rX3u9ZsiWEr6J8A6+Jf+rSHTyNCx94H7NGyGwLcYud7HwRTMuOMiQEC8MFDIOqajxxFxU0MFqsT/ddHWIQ==}
+  '@crawlee/browser-pool@3.18.2':
+    resolution: {integrity: sha512-697ONYg1nEih96aCxm3tnSGT4/gV9cCi6Dz6/DM+DXao/+i/jE8mAEAT5S2PGqhErMp4hVT9evUB6p8qqhf4kA==}
     engines: {node: '>=16.0.0'}
     peerDependencies:
       playwright: '*'
@@ -1125,37 +1113,49 @@ packages:
       puppeteer:
         optional: true
 
-  '@crawlee/cheerio@3.18.1':
-    resolution: {integrity: sha512-ttP8w+dGJ2IaQUqqj5lVHONFsiR0ZcwFWa51vujknIeiX2CpWAZ8TkxIJ5m91JfTZAd50y/T1bXBVhK8pj521w==}
+  '@crawlee/browser@3.18.2':
+    resolution: {integrity: sha512-9sJi6NhUqWGe9gNO7PBHAk8LjZEb5Mb0FE+IE/UA+hFoaFbgrEzQB4TNyzVtWon35JWnc1yOlA9ot8uHkfnzaQ==}
+    engines: {node: '>=16.0.0'}
+    peerDependencies:
+      playwright: '*'
+      puppeteer: '*'
+    peerDependenciesMeta:
+      playwright:
+        optional: true
+      puppeteer:
+        optional: true
+
+  '@crawlee/cheerio@3.18.2':
+    resolution: {integrity: sha512-0O6mySET1l4Fk0Io2qdah0DjFM6wgq4IRt4GvWfu0G4w4mwCAn5YFXe4RvAtufCKzQewRuiHZBjnnLBbfnAPww==}
     engines: {node: '>=16.0.0'}
 
-  '@crawlee/cli@3.18.1':
-    resolution: {integrity: sha512-kJNr00csLE+RHBkayzOMR/GxDGpOpIFZrhnmXIsBIKu4Hyak8Dq9eqFlVFHQAmjpSK40KvLaz+sUiFNGZgsntA==}
+  '@crawlee/cli@3.18.2':
+    resolution: {integrity: sha512-o3shCMWywsRxDcDSjq5wy5wT/VbvCaxd59F3IOLSnQ8bNGn0WucNcrkXAtWQgAzZvOvpU50OpcWs6y0RtOTISA==}
     engines: {node: '>=16.0.0'}
     hasBin: true
 
-  '@crawlee/core@3.18.1':
-    resolution: {integrity: sha512-f8bQBBfRxRf5RvUErI6K5xhxN9vWsZajT3XdQmCjjPfqp4Oa20Vsi2DarQE9FAFZpy/djncJH+tn24HlZMaBig==}
+  '@crawlee/core@3.18.2':
+    resolution: {integrity: sha512-206jLh346ArZxnLrKHS8cqRF3/tbNw/qcIUppPrY1fyesb3iTQvD6+WKnP4ehHizyJxCWzPSZpgqm9k8y1e97Q==}
     engines: {node: '>=16.0.0'}
 
-  '@crawlee/http@3.18.1':
-    resolution: {integrity: sha512-LL7pfAiimYk/s0bMW60D6YfD2jKl+z614H+mRK2C4qB122o+fbGPpU+/25uO9c9FhAyeCEHfBhSmXrPvfvhRZg==}
+  '@crawlee/http@3.18.2':
+    resolution: {integrity: sha512-gWk3NzZ4oDOeMZ1fWjbCbTtgqVe2eaVPxGMUetLaJ3IISeOM7Idxc92ihdr4nNzt0OeYIz46t/tbxk6hRoThxw==}
     engines: {node: '>=16.0.0'}
 
-  '@crawlee/jsdom@3.18.1':
-    resolution: {integrity: sha512-sy6cA7tcdaovBsJs5Rye66PcoBk09uI6/qIAg8RPQfClWomurVWk5DJz3mBLRtfB4SP/DsJWrHLvz9xybBwmkQ==}
+  '@crawlee/jsdom@3.18.2':
+    resolution: {integrity: sha512-HYnfqEBIcd0W/ouK3B15zX52sZdsPiZNL06hm539KtB77ZI2LyhyATcPQVhE0hmUOD32d7pQK1IVEzfECtsZaQ==}
     engines: {node: '>=16.0.0'}
 
-  '@crawlee/linkedom@3.18.1':
-    resolution: {integrity: sha512-wO+yAA3nMiGsHbJJqXGBLCGCuul2+mbfoYzOjfNFpizU27B/wdEd+mRNFljDRrTPpOCQKfM5XLQ1dh6g23v4jQ==}
+  '@crawlee/linkedom@3.18.2':
+    resolution: {integrity: sha512-XiHCtyvYymxgui5VYH/5Uzbnn1prt5rUO8Qd6xXngkwdTuibUMZiY1O7u+LO0EmT5bYPiccQirMyek9PMd45ew==}
     engines: {node: '>=16.0.0'}
 
-  '@crawlee/memory-storage@3.18.1':
-    resolution: {integrity: sha512-uzyBuSwfwNCFRcJlNOoJ5UMVYGWQE7UlnMsMULzRrs1YnkqLzZ7ldeyXfRwGxJUNo4KJ6o3IxDpGCIj8dkuzrQ==}
+  '@crawlee/memory-storage@3.18.2':
+    resolution: {integrity: sha512-zyMmMa+g5oMXDkbpIh3WZGm5FJ1Eu/5hu65469+OHOosWn22RxyMEudBzJV9DJOhSMmqLNalhQKqntbylW49/A==}
     engines: {node: '>= 16'}
 
-  '@crawlee/playwright@3.18.1':
-    resolution: {integrity: sha512-fsGhDelkUZMc+PPGd4R2F9kN/IzkVa1TFVAnrytf0jg2v5Ef45lhOA9gXvPYizVeBa9bvT8eCAecm+vU4D4yYQ==}
+  '@crawlee/playwright@3.18.2':
+    resolution: {integrity: sha512-n7Dg+TxDN9K5xZFuRc5+DphGTynEyHDDzB05BZsrvxvol6I4kz7Z/stFATObBRK8sJ5izAJC8Hwhw0F2T5IiGg==}
     engines: {node: '>=16.0.0'}
     peerDependencies:
       idcac-playwright: ^0.2.0
@@ -1166,8 +1166,8 @@ packages:
       playwright:
         optional: true
 
-  '@crawlee/puppeteer@3.18.1':
-    resolution: {integrity: sha512-4ywRcHh32TOQCrxlvObc/fZkHNW19N9u7l4UZabqLFNWUadc8Uw1TndB13ADR5cUnmCDu26uCP1TzTnmHo1vEQ==}
+  '@crawlee/puppeteer@3.18.2':
+    resolution: {integrity: sha512-JWqdU0gYtz0hOc3Uvne3nc5fbz1cFDBnMlOHxEQowL4pFZk3ogEpFQ4p7GUOM8YCBY2tNMXLUd2yj3PICoXe3w==}
     engines: {node: '>=16.0.0'}
     peerDependencies:
       idcac-playwright: ^0.2.0
@@ -1178,16 +1178,16 @@ packages:
       puppeteer:
         optional: true
 
-  '@crawlee/templates@3.18.1':
-    resolution: {integrity: sha512-9GSWNwORT6uT6Mu/7IIGa5rx4hyOE4irbYqR5R0e6Jz/bzJ1p7pXa9XiMgG7uHPxMy8PQ8DGFWNzQQL5ul5a6g==}
+  '@crawlee/templates@3.18.2':
+    resolution: {integrity: sha512-OFYK1f+ZXx2t8TYza9ijH21TmPgk5Hj5wntGQW0nByASkfs0InzYAxClEtJetNfJLm/1LtCFKwUW1YYRuU3Wlg==}
     engines: {node: '>=16.0.0'}
 
-  '@crawlee/types@3.18.1':
-    resolution: {integrity: sha512-jmV7HN4b1vEzriGcKhCRa8A5rv5HaqBPPfneGRxPpZtbmnEcusHTmEOOyG393lUBmv0yaM03da0hy+PZnR35vw==}
+  '@crawlee/types@3.18.2':
+    resolution: {integrity: sha512-I1W/ozmusw6YaiGfhZicJA+er4McKN2RjhgnD8XJLc3BslUHXHJAGD1TZpzthhungpHPRTNtfYqm0zjvnC5PRg==}
     engines: {node: '>=16.0.0'}
 
-  '@crawlee/utils@3.18.1':
-    resolution: {integrity: sha512-NS9eCmaH+jcjLHfq2WIKp5yfKxQGEcuLOAwzugFcnH38D/EwCgYXYtnDxidFZB8qbuuONFfDpVfyHohc4mNDhw==}
+  '@crawlee/utils@3.18.2':
+    resolution: {integrity: sha512-zG5Z6yXHji12h2EEbFTncRnqOLwBbMJLtviDGLCBt0lV6Jq8FrFS7CRGElMC2SZBonh+9xelWLILwNiBikSh+A==}
     engines: {node: '>=16.0.0'}
 
   '@csstools/cascade-layer-name-parser@2.0.5':
@@ -2779,44 +2779,44 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@peculiar/asn1-cms@2.9.5':
-    resolution: {integrity: sha512-4Ivz0fsyFofe0bslNsYcGN9+iETdHX4v+BFwIPr+K/BAt61sHXECP63ff9FntU9zcfVQELJFdUG9so44OjUlBQ==}
+  '@peculiar/asn1-cms@2.10.0':
+    resolution: {integrity: sha512-CkX0H4NCIOMHOU3rh2xXZywinYZ/EnJlaOlJiGI0e5L4XjFqHf4iH30LMbXWChVppdA9ljbanjtzQFOhDNfTWg==}
     engines: {node: '>=14'}
 
-  '@peculiar/asn1-csr@2.9.5':
-    resolution: {integrity: sha512-9dO6PcoJeI+1xJ4rG7eINMa6f9Ix/QdRs5UGZ0D7v/R3TzmsbVr5cqAgfYw4xgS9U54ouHYqEz0bIZBbM/UY1g==}
+  '@peculiar/asn1-csr@2.10.0':
+    resolution: {integrity: sha512-jTPTr/9rxKM+niQLMF3jiAMb0lWHUhUHIuSOhdGCIfpB4FAQYf9SoiXOgxP8bS/68IB+bj+1OHvVnDVCQfVUZw==}
     engines: {node: '>=14'}
 
-  '@peculiar/asn1-ecc@2.9.5':
-    resolution: {integrity: sha512-OD+HLlcV7wCL64w0rheX/C0J31DbJce0nf8ulv3UNftQ617JEZE3sQ4cMN6PotXWlJ1M5GQx90G3bywtdKOstw==}
+  '@peculiar/asn1-ecc@2.10.0':
+    resolution: {integrity: sha512-GFd3iOjFrWX+QWH2R2dO5QSJyyRGv9CIBKtRlGlPNCvb2RvmCbBDexe91MJgV76c69d998Xsa+CvuQ98seoiPg==}
     engines: {node: '>=14'}
 
-  '@peculiar/asn1-pfx@2.9.5':
-    resolution: {integrity: sha512-btcH7lbcD4410qnjHvv7F0kEuMNKbX8CFAZSs9CDPWHKzT1byLPHYeR40AnUw9z4CzsijMY0daBFYUvVx75sdA==}
+  '@peculiar/asn1-pfx@2.10.0':
+    resolution: {integrity: sha512-1y3QK9ZH1IPleAMmRoJlPS10eGkAWnULETW8zDFNUK1ffqpG7zmDY+kYBMYQgwlcQZ2iitLm2z2EBP0xzRXpaA==}
     engines: {node: '>=14'}
 
-  '@peculiar/asn1-pkcs8@2.9.5':
-    resolution: {integrity: sha512-c7UghAGQdBfAHL9JdwcJkAc/lDJKNXfCdYXPXlf8BZdD/fVJjJnXKHxX4gyLhkFTvnGhME7caieSgc2ROtqYTQ==}
+  '@peculiar/asn1-pkcs8@2.10.0':
+    resolution: {integrity: sha512-Ri+BZT9bnwqlHWmhs7lvWjvJRxKev2hA2+4EbZajgeYWCbR8hyv0znF4DhsFouOhMj2nSDV/iGJ6DMQtwITnCw==}
     engines: {node: '>=14'}
 
-  '@peculiar/asn1-pkcs9@2.9.5':
-    resolution: {integrity: sha512-4R/zMgLSHbQIZRBwP1KzX6iuNHmW3xFWwu9TS9A00N60fmQqp9DkkqnQFyd0mAYMQTrQefuzQ/yP4U8sOLGUgQ==}
+  '@peculiar/asn1-pkcs9@2.10.0':
+    resolution: {integrity: sha512-XIXsbDQFezYk6fudczkuvawkRD4GNpISGCqfYhdkJlvcGF/RFknU+0DDJagOaJqBf+PdPzk4J9oMqDGcvfR9HQ==}
     engines: {node: '>=14'}
 
-  '@peculiar/asn1-rsa@2.9.5':
-    resolution: {integrity: sha512-kHwBLVMkm9ljlM521ovS7y4z4mr8xuHTdNyyoPlDvckBwFKSgs9HqKBryLBeqHqL2YpIgl+Vspl7kzNGG2phzA==}
+  '@peculiar/asn1-rsa@2.10.0':
+    resolution: {integrity: sha512-4Jvmwlh3gZAhNZ4/u7JSyLuce9hofOFZ4o3PYKAccCImGnyaT5CMym/ATgvAvqpOYFNW531oPZvJlEBhJy9VfA==}
     engines: {node: '>=14'}
 
-  '@peculiar/asn1-schema@2.9.5':
-    resolution: {integrity: sha512-Ez3wLKVjaxdsLcgeWN4OE31QkM7oBOgKuuBJxldRYAkfYw2C+8zJPcSd/SThnbhszsEOlAmoaS5kIIkN29fGKQ==}
+  '@peculiar/asn1-schema@2.10.0':
+    resolution: {integrity: sha512-GhokD41lV4gQrrLYm3wCkHfBOnJrnhDMgt4XeMW8gzfE1UdJqIuSwsE+ggf82XBjUXRJylcm+KIGQFa4utIVLw==}
     engines: {node: '>=14'}
 
-  '@peculiar/asn1-x509-attr@2.9.5':
-    resolution: {integrity: sha512-PlbL1a74RZiry7puPCZ5hdk/puvivxYJPbjadr2i7DBjHCJFEKCfTRPKL3DILeZFtzJjn95J5EBtSc4/TB9/6Q==}
+  '@peculiar/asn1-x509-attr@2.10.0':
+    resolution: {integrity: sha512-/85GtKOKmgvuSJNlaFfwGWNdRSZZ+hpF02NyM01XiCdzpaZONiBltDyfluFPvFx966CR+ZHNSG1jniwpy07oGg==}
     engines: {node: '>=14'}
 
-  '@peculiar/asn1-x509@2.9.5':
-    resolution: {integrity: sha512-NP3ecvN6zTDlwCvogIWL7MJN9AZNuskkIbnlhrlkB97Mn2EqirBUQ8GKzsOmdAL3pRvjGu1Uk/a4DNfiZrWxhw==}
+  '@peculiar/asn1-x509@2.10.0':
+    resolution: {integrity: sha512-ucNVg8+ANveTpMN3fy9lA2alryONdXc2A4cEG2hMniWbvQt+YOZoe8BI80YYNO8FBcuDY1qbDQ4uQGQVraHxGA==}
     engines: {node: '>=14'}
 
   '@peculiar/utils@2.0.3':
@@ -3804,6 +3804,9 @@ packages:
   '@types/node@24.19.0':
     resolution: {integrity: sha512-zY+5tKxXdhGh1PYI0ac+7juvEu4OI6vWtVVoj5i2m42jxAY1U+zHGt6QCyOFwykdP62sM3MJ9stoYYUw5aCWew==}
 
+  '@types/node@26.6.3':
+    resolution: {integrity: sha512-dsqMQQoeTLqu9wynDD00q573mNzso3IdQOAfHRJqLCcmCFPoGo9A1bDpUcv/9tnKpErQWv9uKeGfl37EIS02Yg==}
+
   '@types/parse-json@4.0.2':
     resolution: {integrity: sha512-dISoDXWWQwUquiKsyZ4Ng+HX2KsPL7LyHKHQwgGFEA3IaKac4Obd+h2a/a6waisAoepJlBcx9paWqjA8/HVjCw==}
 
@@ -4046,8 +4049,8 @@ packages:
     resolution: {integrity: sha512-quJQXlTSUGL2LH9SUXo8VwsY4soanhgo6LNSm84E1LBcE8s3O0wpdiRzyR9z/ZZJMlMWv37qOOb9pdJlMUEKFQ==}
     engines: {node: '>=8'}
 
-  ansi-regex@6.3.0:
-    resolution: {integrity: sha512-WpDfL7NO6j7tH88IDBNVdUJxDh9nmCteAVW9dsep846XdwF4naCBK+/tGLX3KJgcpgMRXCFlTM2hKGoK9FsdrQ==}
+  ansi-regex@6.4.0:
+    resolution: {integrity: sha512-KzTVk2tCWAHtYrvvvaP8bJKJq2pVinhLcGEQdtLIYPbmNGNyYe8QwNaTUYQp2J7/vIsUKt5QCqAfUkYyG9DkOw==}
     engines: {node: '>=12'}
 
   ansi-styles@2.2.1:
@@ -4253,8 +4256,8 @@ packages:
     resolution: {integrity: sha512-yQbXgO/OSZVD2IsiLlro+7Hf6Q18EJrKSEsdoMzKePKXct3gvD8oLcOQdIzGupr5Fj+EDe8gO/lxc1BzfMpxvA==}
     engines: {node: '>=8'}
 
-  browserslist@4.29.1:
-    resolution: {integrity: sha512-AUdjuRyCNGUYtqpqfTmWyM4fXay8yIQhmLnvYe/THMGfT9B/34X7xQd3ifKxwyNPPpowVBjLb+64BN9Rn1mizw==}
+  browserslist@4.29.2:
+    resolution: {integrity: sha512-/u9r8k8ue4ZhHCw9ovDtltpWdXeXzjhdxCGj6vm1RGLPXb8lu33EMdoCHF5Sx8oYBS+Q/FYYNmAqlHncxR3RmA==}
     engines: {node: ^6 || ^7 || ^8 || ^9 || ^10 || ^11 || ^12 || >=13.7}
     hasBin: true
 
@@ -4333,8 +4336,8 @@ packages:
   caniuse-api@3.0.0:
     resolution: {integrity: sha512-bsTwuIg/BZZK/vreVTYYbSWoe2F+71P7K5QGEX+pT250DZbfU1MQ5prOKpPR+LL6uWKK3KMwMCAS74QB3Um1uw==}
 
-  caniuse-lite@1.0.30001812:
-    resolution: {integrity: sha512-qN+QNNBr93TCmFrmte0bBCjSDMuRvt78VlHT99qIGPszm4QsqCX8lnyWUFkHi8B7ZBAPq8SH+UqyXNy/odMdng==}
+  caniuse-lite@1.0.30001813:
+    resolution: {integrity: sha512-zfjJo4rM0+fUomGDBW/xcDjhIwz/210DGvip2MAMDZ8KHcRPnOHmEgHPZP0UHlZoxr8fYKVJOqcORhYQcG4FKQ==}
 
   ccount@2.0.1:
     resolution: {integrity: sha512-eyrF0jiFpY+3drT6383f1qhkbGsLSifNAjA61IUjZjmLCWjItY6LB9ft9YhoDgwfmclB2zhu51Lc7+95b8NRAg==}
@@ -4630,8 +4633,8 @@ packages:
       typescript:
         optional: true
 
-  crawlee@3.18.1:
-    resolution: {integrity: sha512-NP/uod8hePPGFWs5dXS+rlIu+e2QypYnHCvagCOk6IGd0meVAeLT1qb1YBol+O9fOy96f6Rh/TmBSJ3uNQJcvA==}
+  crawlee@3.18.2:
+    resolution: {integrity: sha512-bFNqLId1I9EAAxXbTwS7uYFsMKnWs3KGHfWegOTVTeGIAneTcrTTudZPZA1nl7hM407UrCtjkVB9maRf68CYCw==}
     engines: {node: '>=16.0.0'}
     hasBin: true
     peerDependencies:
@@ -5272,8 +5275,8 @@ packages:
     resolution: {integrity: sha512-u5/sxGfiMfZNtJ3OvQpXcvotFpYkL0n9u9mM2vkui2nGo8b4wvDkJ8gAkYqbA8QpGyFCv3RK0Z+Iv+9veCS9bQ==}
     engines: {node: '>=0.4.0'}
 
-  figlet@1.11.4:
-    resolution: {integrity: sha512-ZU41480OncL+NVLQrT0GVnbO0COL24sLSrzksioDgunmdJNYEUxhJJZ4Y3x1csN8XXqN5OcCZTLG8lKdquNyfQ==}
+  figlet@1.12.0:
+    resolution: {integrity: sha512-Ith3WsUi0N/EqGt+0/F6XnWhT04sohhH2tT0Dq7GdUmWbMTIoCbg2Jq9qKggmTO62ST5kRCfB311EmIMbizGyA==}
     engines: {node: '>= 17.0.0'}
     hasBin: true
 
@@ -6299,8 +6302,8 @@ packages:
   mdast-util-gfm-footnote@2.1.0:
     resolution: {integrity: sha512-sqpDWlsHn7Ac9GNZQMeUzPQSMzR6Wv0WKRNvQRg0KqHh02fpTz69Qc1QSseNX29bhz1ROIyNyxExfawVKTm1GQ==}
 
-  mdast-util-gfm-strikethrough@2.0.0:
-    resolution: {integrity: sha512-mKKb915TF+OC5ptj5bJ7WFRPdYtuHv0yTRxK2tJvi+BDqbkiG7h7u/9SI89nRAYcmap2xHQL9D+QG/6wSrTtXg==}
+  mdast-util-gfm-strikethrough@2.0.1:
+    resolution: {integrity: sha512-OuJHqvr455pwu2OaOrir7dbzqs4jlWKOtlu9L6GjcIjjQwNyw02VntQsr/Ek6/A13vgnXfUhBekWRUP1OkNivw==}
 
   mdast-util-gfm-table@2.0.0:
     resolution: {integrity: sha512-78UEvebzz/rJIxLvE7ZtDd/vIQ0RHv+3Mh5DR96p7cS7HsBhYIICDBCu8csTNWNO6tBWfqXPWekRuj2FNOGOZg==}
@@ -6329,8 +6332,8 @@ packages:
   mdast-util-to-hast@13.2.1:
     resolution: {integrity: sha512-cctsq2wp5vTsLIcaymblUriiTcZd0CwWtCbLvrOzYCDZoWyMNV8sZ7krj09FSnsiJi3WVsHLM4k6Dq/yaPyCXA==}
 
-  mdast-util-to-markdown@2.1.2:
-    resolution: {integrity: sha512-xj68wMTvGXVOKonmog6LwyJKrYXZPvlwabaryTjLh9LuvovB/KAH+kvi8Gjj+7rJjsFi23nkUxRQv1KqSroMqA==}
+  mdast-util-to-markdown@2.1.3:
+    resolution: {integrity: sha512-wgyJtgUkUcdU7zci7uuwc/tzoAhm0TswWhaXuvnWolqug+8jY7bgNkBBL0dYBnHgc/tHL7lCzRdPsdUxUKKBqw==}
 
   mdast-util-to-string@4.0.0:
     resolution: {integrity: sha512-0H44vDimn51F0YwvxSJSm0eCDOJTRlmN0R1yBh4HLj9wiV1Dn0QoXGbvFAWj2hSItVTlCmBF1hqKlIyUBVFLPg==}
@@ -7791,8 +7794,8 @@ packages:
   reflect-metadata@0.2.2:
     resolution: {integrity: sha512-urBwgfrvVP/eAyXx4hluJivBKzuEbSQs9rKWCrCkbSxNv8mxPcUZKeuoF3Uy4mJl3Lwprp6yy5/39VWigZ4K6Q==}
 
-  regenerate-unicode-properties@10.2.2:
-    resolution: {integrity: sha512-m03P+zhBeQd1RGnYxrGyDAPpWX/epKirLrp8e3qevZdVkKtnCrjjWczIbYc8+xd6vcTStVlqfycTx1KR4LOr0g==}
+  regenerate-unicode-properties@10.3.0:
+    resolution: {integrity: sha512-9ns8odR8e9q3otKeHj3DE80jZYKg6zVeZKE+zQmRKXFoVUcuiTGeO6iusDhPRoIQQPVPRvH+SfBhrTud4eczuw==}
     engines: {node: '>=4'}
 
   regenerate@1.4.2:
@@ -8201,14 +8204,14 @@ packages:
   std-env@4.2.0:
     resolution: {integrity: sha512-oCUKSupKTHX53EyjDtuZQ64pjLJ6yYCtpmEw0goYxtjG9KpbRe8KAsl2tBUGU9DyMcJ0RwJ8GqJAFzMXcXW1Rw==}
 
-  stream-chain@2.2.5:
-    resolution: {integrity: sha512-1TJmBx6aSWqZ4tx7aTpBDXK0/e2hhcNSTV8+CbFJtDjbb+I1mZ8lHit0Grw9GRT+6JbIrrDd8esncgBi8aBXGA==}
+  stream-chain@4.2.6:
+    resolution: {integrity: sha512-1zeJ8CrtJfmiba26ui8jXkq/xLRFvhzkdH02D5QLO9Cnovgeb28IJxg88DdraWnjnkbOol/++uIAybJbJhk7ig==}
 
   stream-combiner@0.0.4:
     resolution: {integrity: sha512-rT00SPnTVyRsaSz5zgSPma/aHSOic5U1prhYdRy5HS2kTZviFpmDgzilbtsJsxiroqACmayynDN/9VzIbX5DOw==}
 
-  stream-json@1.9.1:
-    resolution: {integrity: sha512-uWkjJ+2Nt/LO9Z/JyKZbMusL8Dkh97uUBTv3AJQ74y07lVahLY4eEFsPsE97pxYBwr8nnjMAIch5eqI0gPShyw==}
+  stream-json@3.7.0:
+    resolution: {integrity: sha512-rCSBdcBP/bPk6T8QFcxAj1MSzAuc5i49cYW6IE7sYObNEPccBJIUiL6fU9c9BWt40aJK0siVynLX7lWaW8alXw==}
 
   string-argv@0.3.2:
     resolution: {integrity: sha512-aqD2Q0144Z+/RqG52NeHEkZauTAUWJO8c6yTftGJKO3Tja5tUgIfmIl6kExvhtxSDP7fXB6DvzkfMpCd/F3G+Q==}
@@ -8436,15 +8439,15 @@ packages:
   tldts-core@6.1.86:
     resolution: {integrity: sha512-Je6p7pkk+KMzMv2XXKmAE3McmolOQFdxkKw0R8EYNr7sELW46JqnNeTX8ybPiQgvg1ymCoF8LXs5fzFaZvJPTA==}
 
-  tldts-core@7.4.15:
-    resolution: {integrity: sha512-ERuv0p98XgSzmlSLJr8vDNxX+uATGInlN97V3R+JpYWaSqn5IG3ewWgCwczk4bkOpgth/o8Nt5FOi4B4w0n/1A==}
+  tldts-core@7.4.16:
+    resolution: {integrity: sha512-MDolfaSJtlSK5Y0A1xl3277ekubZwobpBjugknDizI9O5Rm60a1m8k4ICK+MRsCDzPygT81mp3BBf5RKDlFRfA==}
 
   tldts@6.1.86:
     resolution: {integrity: sha512-WMi/OQ2axVTf/ykqCQgXiIct+mSQDFdH2fkwhPwgEwvJ1kSzZRiinb0zF2Xb8u4+OqPChmyI6MEu4EezNJz+FQ==}
     hasBin: true
 
-  tldts@7.4.15:
-    resolution: {integrity: sha512-SJVBeHOxDbNoq14CvpAoA2mLEWdbldGK8nR+yumpjY5nrlZxOflcA7p1Qj1gbTGmbu9DY9qLj/bENSWhBzjxRQ==}
+  tldts@7.4.16:
+    resolution: {integrity: sha512-QwBER5KMR86IIjpIiO7H/Z3IMJPsZ1A6RKPAqzTTgOyUQUSt9FdnKcqhTaJmkY6HVrgouZHZR0ncK5QxvmnQeg==}
     hasBin: true
 
   to-regex-range@5.0.1:
@@ -8566,6 +8569,9 @@ packages:
 
   undici-types@7.24.6:
     resolution: {integrity: sha512-WRNW+sJgj5OBN4/0JpHFqtqzhpbnV0GuB+OozA9gCL7a993SmU+1JBZCzLNxYsbMfIeDL+lTsphD5jN5N+n0zg==}
+
+  undici-types@8.9.0:
+    resolution: {integrity: sha512-KTDyRTYX8sWmKXAikPHHSyc63CRPETMctyjKFupcC6OBLXT3xsN0e9aF7m+mIXutFWpUXuedtowG7iLOzp0kQg==}
 
   undici@7.30.0:
     resolution: {integrity: sha512-dkrQXeHSaoamnItlYbmzG0wFYrM0ZwDxCIg0A7aKjTyyhh9svRzCNFEzV+Vm05/yehjCzjDZ31KXfGEjYSztDQ==}
@@ -9056,19 +9062,19 @@ snapshots:
       '@algolia/requester-fetch': 5.59.0
       '@algolia/requester-node-http': 5.59.0
 
-  '@algolia/autocomplete-core@1.19.11(@algolia/client-search@5.59.0)(algoliasearch@4.27.0)(search-insights@2.17.3)':
+  '@algolia/autocomplete-core@1.19.12(@algolia/client-search@5.59.0)(algoliasearch@4.27.0)(search-insights@2.17.3)':
     dependencies:
-      '@algolia/autocomplete-plugin-algolia-insights': 1.19.11(@algolia/client-search@5.59.0)(algoliasearch@4.27.0)(search-insights@2.17.3)
-      '@algolia/autocomplete-shared': 1.19.11(@algolia/client-search@5.59.0)(algoliasearch@4.27.0)
+      '@algolia/autocomplete-plugin-algolia-insights': 1.19.12(@algolia/client-search@5.59.0)(algoliasearch@4.27.0)(search-insights@2.17.3)
+      '@algolia/autocomplete-shared': 1.19.12(@algolia/client-search@5.59.0)(algoliasearch@4.27.0)
     transitivePeerDependencies:
       - '@algolia/client-search'
       - algoliasearch
       - search-insights
 
-  '@algolia/autocomplete-core@1.19.11(@algolia/client-search@5.59.0)(algoliasearch@5.59.0)(search-insights@2.17.3)':
+  '@algolia/autocomplete-core@1.19.12(@algolia/client-search@5.59.0)(algoliasearch@5.59.0)(search-insights@2.17.3)':
     dependencies:
-      '@algolia/autocomplete-plugin-algolia-insights': 1.19.11(@algolia/client-search@5.59.0)(algoliasearch@5.59.0)(search-insights@2.17.3)
-      '@algolia/autocomplete-shared': 1.19.11(@algolia/client-search@5.59.0)(algoliasearch@5.59.0)
+      '@algolia/autocomplete-plugin-algolia-insights': 1.19.12(@algolia/client-search@5.59.0)(algoliasearch@5.59.0)(search-insights@2.17.3)
+      '@algolia/autocomplete-shared': 1.19.12(@algolia/client-search@5.59.0)(algoliasearch@5.59.0)
     transitivePeerDependencies:
       - '@algolia/client-search'
       - algoliasearch
@@ -9083,11 +9089,11 @@ snapshots:
       - algoliasearch
       - search-insights
 
-  '@algolia/autocomplete-js@1.19.11(@algolia/client-search@5.59.0)(algoliasearch@4.27.0)(search-insights@2.17.3)':
+  '@algolia/autocomplete-js@1.19.12(@algolia/client-search@5.59.0)(algoliasearch@4.27.0)(search-insights@2.17.3)':
     dependencies:
-      '@algolia/autocomplete-core': 1.19.11(@algolia/client-search@5.59.0)(algoliasearch@4.27.0)(search-insights@2.17.3)
-      '@algolia/autocomplete-preset-algolia': 1.19.11(@algolia/client-search@5.59.0)(algoliasearch@4.27.0)
-      '@algolia/autocomplete-shared': 1.19.11(@algolia/client-search@5.59.0)(algoliasearch@4.27.0)
+      '@algolia/autocomplete-core': 1.19.12(@algolia/client-search@5.59.0)(algoliasearch@4.27.0)(search-insights@2.17.3)
+      '@algolia/autocomplete-preset-algolia': 1.19.12(@algolia/client-search@5.59.0)(algoliasearch@4.27.0)
+      '@algolia/autocomplete-shared': 1.19.12(@algolia/client-search@5.59.0)(algoliasearch@4.27.0)
       '@algolia/client-search': 5.59.0
       algoliasearch: 4.27.0
       htm: 3.1.1
@@ -9096,17 +9102,17 @@ snapshots:
       - preact-render-to-string
       - search-insights
 
-  '@algolia/autocomplete-plugin-algolia-insights@1.19.11(@algolia/client-search@5.59.0)(algoliasearch@4.27.0)(search-insights@2.17.3)':
+  '@algolia/autocomplete-plugin-algolia-insights@1.19.12(@algolia/client-search@5.59.0)(algoliasearch@4.27.0)(search-insights@2.17.3)':
     dependencies:
-      '@algolia/autocomplete-shared': 1.19.11(@algolia/client-search@5.59.0)(algoliasearch@4.27.0)
+      '@algolia/autocomplete-shared': 1.19.12(@algolia/client-search@5.59.0)(algoliasearch@4.27.0)
       search-insights: 2.17.3
     transitivePeerDependencies:
       - '@algolia/client-search'
       - algoliasearch
 
-  '@algolia/autocomplete-plugin-algolia-insights@1.19.11(@algolia/client-search@5.59.0)(algoliasearch@5.59.0)(search-insights@2.17.3)':
+  '@algolia/autocomplete-plugin-algolia-insights@1.19.12(@algolia/client-search@5.59.0)(algoliasearch@5.59.0)(search-insights@2.17.3)':
     dependencies:
-      '@algolia/autocomplete-shared': 1.19.11(@algolia/client-search@5.59.0)(algoliasearch@5.59.0)
+      '@algolia/autocomplete-shared': 1.19.12(@algolia/client-search@5.59.0)(algoliasearch@5.59.0)
       search-insights: 2.17.3
     transitivePeerDependencies:
       - '@algolia/client-search'
@@ -9120,18 +9126,18 @@ snapshots:
       - '@algolia/client-search'
       - algoliasearch
 
-  '@algolia/autocomplete-preset-algolia@1.19.11(@algolia/client-search@5.59.0)(algoliasearch@4.27.0)':
+  '@algolia/autocomplete-preset-algolia@1.19.12(@algolia/client-search@5.59.0)(algoliasearch@4.27.0)':
     dependencies:
-      '@algolia/autocomplete-shared': 1.19.11(@algolia/client-search@5.59.0)(algoliasearch@4.27.0)
+      '@algolia/autocomplete-shared': 1.19.12(@algolia/client-search@5.59.0)(algoliasearch@4.27.0)
       '@algolia/client-search': 5.59.0
       algoliasearch: 4.27.0
 
-  '@algolia/autocomplete-shared@1.19.11(@algolia/client-search@5.59.0)(algoliasearch@4.27.0)':
+  '@algolia/autocomplete-shared@1.19.12(@algolia/client-search@5.59.0)(algoliasearch@4.27.0)':
     dependencies:
       '@algolia/client-search': 5.59.0
       algoliasearch: 4.27.0
 
-  '@algolia/autocomplete-shared@1.19.11(@algolia/client-search@5.59.0)(algoliasearch@5.59.0)':
+  '@algolia/autocomplete-shared@1.19.12(@algolia/client-search@5.59.0)(algoliasearch@5.59.0)':
     dependencies:
       '@algolia/client-search': 5.59.0
       algoliasearch: 5.59.0
@@ -9141,7 +9147,7 @@ snapshots:
       '@algolia/client-search': 5.59.0
       algoliasearch: 5.59.0
 
-  '@algolia/autocomplete-theme-classic@1.19.11': {}
+  '@algolia/autocomplete-theme-classic@1.19.12': {}
 
   '@algolia/cache-browser-local-storage@4.27.0':
     dependencies:
@@ -9304,9 +9310,9 @@ snapshots:
 
   '@apify/docs-search-modal@1.4.0(@algolia/client-search@5.59.0)(@babel/core@7.29.7)(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react-is@16.13.1)(react@19.3.0)(search-insights@2.17.3)':
     dependencies:
-      '@algolia/autocomplete-js': 1.19.11(@algolia/client-search@5.59.0)(algoliasearch@4.27.0)(search-insights@2.17.3)
-      '@algolia/autocomplete-theme-classic': 1.19.11
-      '@apify/ui-library': 1.165.21(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(styled-components@5.3.11(@babel/core@7.29.7)(react-dom@19.3.0(react@19.3.0))(react-is@16.13.1)(react@19.3.0))
+      '@algolia/autocomplete-js': 1.19.12(@algolia/client-search@5.59.0)(algoliasearch@4.27.0)(search-insights@2.17.3)
+      '@algolia/autocomplete-theme-classic': 1.19.12
+      '@apify/ui-library': 1.165.24(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(styled-components@5.3.11(@babel/core@7.29.7)(react-dom@19.3.0(react@19.3.0))(react-is@16.13.1)(react@19.3.0))
       algoliasearch: 4.27.0
       html-entities: 2.6.0
       react: 19.3.0
@@ -9328,7 +9334,7 @@ snapshots:
     dependencies:
       '@apify/docs-search-modal': 1.4.0(@algolia/client-search@5.59.0)(@babel/core@7.29.7)(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react-is@16.13.1)(react@19.3.0)(search-insights@2.17.3)
       '@apify/ui-icons': 1.52.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
-      '@apify/ui-library': 1.165.21(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(styled-components@5.3.11(@babel/core@7.29.7)(react-dom@19.3.0(react@19.3.0))(react-is@16.13.1)(react@19.3.0))
+      '@apify/ui-library': 1.165.24(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(styled-components@5.3.11(@babel/core@7.29.7)(react-dom@19.3.0(react@19.3.0))(react-is@16.13.1)(react@19.3.0))
       '@docusaurus/theme-common': 3.10.2(@docusaurus/plugin-content-docs@3.10.2(@docusaurus/faster@3.10.2(@docusaurus/types@3.10.2(@swc/core@1.16.2)(esbuild@0.28.2)(postcss@8.5.28)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(esbuild@0.28.2)(postcss@8.5.28))(@mdx-js/react@3.1.1(@types/react@19.3.0)(react@19.3.0))(@rspack/core@1.7.12)(@swc/core@1.16.2)(esbuild@0.28.2)(postcss@8.5.28)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(typescript@6.0.3))(@swc/core@1.16.2)(esbuild@0.28.2)(postcss@8.5.28)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
       '@stackql/docusaurus-plugin-hubspot': 1.1.0
       algoliasearch: 5.59.0
@@ -9430,7 +9436,7 @@ snapshots:
       react: 19.3.0
       react-dom: 19.3.0(react@19.3.0)
 
-  '@apify/ui-library@1.165.21(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(styled-components@5.3.11(@babel/core@7.29.7)(react-dom@19.3.0(react@19.3.0))(react-is@16.13.1)(react@19.3.0))':
+  '@apify/ui-library@1.165.24(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(styled-components@5.3.11(@babel/core@7.29.7)(react-dom@19.3.0(react@19.3.0))(react-is@16.13.1)(react@19.3.0))':
     dependencies:
       '@apify/ui-icons': 1.52.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
       '@floating-ui/react': 0.27.20(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
@@ -9523,7 +9529,7 @@ snapshots:
     dependencies:
       '@babel/compat-data': 7.29.7
       '@babel/helper-validator-option': 7.29.7
-      browserslist: 4.29.1
+      browserslist: 4.29.2
       lru-cache: 5.1.1
       semver: 6.3.1
 
@@ -10361,31 +10367,31 @@ snapshots:
 
   '@conventional-changelog/template@1.4.0': {}
 
-  '@crawlee/basic@3.18.1':
+  '@crawlee/basic@3.18.2':
     dependencies:
       '@apify/datastructures': 2.0.6
       '@apify/log': 2.5.54
       '@apify/timeout': 0.4.14
       '@apify/utilities': 2.35.11
-      '@crawlee/core': 3.18.1
-      '@crawlee/types': 3.18.1
-      '@crawlee/utils': 3.18.1
+      '@crawlee/core': 3.18.2
+      '@crawlee/types': 3.18.2
+      '@crawlee/utils': 3.18.2
       csv-stringify: 6.9.0
       fs-extra: 11.4.1
       got-scraping: 4.2.1
       ow: 0.28.2
-      tldts: 7.4.15
+      tldts: 7.4.16
       tslib: 2.8.1
       type-fest: 4.41.0
     transitivePeerDependencies:
       - supports-color
 
-  '@crawlee/browser-pool@3.18.1(playwright@1.63.0)(puppeteer@25.12.0)':
+  '@crawlee/browser-pool@3.18.2(playwright@1.63.0)(puppeteer@25.12.0)':
     dependencies:
       '@apify/log': 2.5.54
       '@apify/timeout': 0.4.14
-      '@crawlee/core': 3.18.1
-      '@crawlee/types': 3.18.1
+      '@crawlee/core': 3.18.2
+      '@crawlee/types': 3.18.2
       fingerprint-generator: 2.1.88
       fingerprint-injector: 2.1.88(playwright@1.63.0)(puppeteer@25.12.0)
       lodash.merge: 4.6.2
@@ -10402,13 +10408,13 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@crawlee/browser@3.18.1(playwright@1.63.0)(puppeteer@25.12.0)':
+  '@crawlee/browser@3.18.2(playwright@1.63.0)(puppeteer@25.12.0)':
     dependencies:
       '@apify/timeout': 0.4.14
-      '@crawlee/basic': 3.18.1
-      '@crawlee/browser-pool': 3.18.1(playwright@1.63.0)(puppeteer@25.12.0)
-      '@crawlee/types': 3.18.1
-      '@crawlee/utils': 3.18.1
+      '@crawlee/basic': 3.18.2
+      '@crawlee/browser-pool': 3.18.2(playwright@1.63.0)(puppeteer@25.12.0)
+      '@crawlee/types': 3.18.2
+      '@crawlee/utils': 3.18.2
       ow: 0.28.2
       tslib: 2.8.1
       type-fest: 4.41.0
@@ -10418,20 +10424,20 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@crawlee/cheerio@3.18.1':
+  '@crawlee/cheerio@3.18.2':
     dependencies:
-      '@crawlee/http': 3.18.1
-      '@crawlee/types': 3.18.1
-      '@crawlee/utils': 3.18.1
+      '@crawlee/http': 3.18.2
+      '@crawlee/types': 3.18.2
+      '@crawlee/utils': 3.18.2
       cheerio: 1.0.0-rc.12
       htmlparser2: 9.1.0
       tslib: 2.8.1
     transitivePeerDependencies:
       - supports-color
 
-  '@crawlee/cli@3.18.1(@types/node@24.19.0)':
+  '@crawlee/cli@3.18.2(@types/node@24.19.0)':
     dependencies:
-      '@crawlee/templates': 3.18.1(@types/node@24.19.0)
+      '@crawlee/templates': 3.18.2(@types/node@24.19.0)
       ansi-colors: 4.1.3
       fs-extra: 11.4.1
       inquirer: 8.2.7(@types/node@24.19.0)
@@ -10441,7 +10447,7 @@ snapshots:
     transitivePeerDependencies:
       - '@types/node'
 
-  '@crawlee/core@3.18.1':
+  '@crawlee/core@3.18.2':
     dependencies:
       '@apify/consts': 2.58.1
       '@apify/datastructures': 2.0.6
@@ -10449,9 +10455,9 @@ snapshots:
       '@apify/pseudo_url': 2.0.95
       '@apify/timeout': 0.4.14
       '@apify/utilities': 2.35.11
-      '@crawlee/memory-storage': 3.18.1
-      '@crawlee/types': 3.18.1
-      '@crawlee/utils': 3.18.1
+      '@crawlee/memory-storage': 3.18.2
+      '@crawlee/types': 3.18.2
+      '@crawlee/utils': 3.18.2
       '@sapphire/async-queue': 1.5.5
       '@standard-schema/spec': 1.1.0
       '@vladfrangu/async_event_emitter': 2.4.7
@@ -10461,22 +10467,22 @@ snapshots:
       json5: 2.2.3
       minimatch: 9.0.9
       ow: 0.28.2
-      stream-json: 1.9.1
-      tldts: 7.4.15
+      stream-json: 3.7.0
+      tldts: 7.4.16
       tough-cookie: 6.0.2
       tslib: 2.8.1
       type-fest: 4.41.0
     transitivePeerDependencies:
       - supports-color
 
-  '@crawlee/http@3.18.1':
+  '@crawlee/http@3.18.2':
     dependencies:
       '@apify/timeout': 0.4.14
       '@apify/utilities': 2.35.11
-      '@crawlee/basic': 3.18.1
-      '@crawlee/core': 3.18.1
-      '@crawlee/types': 3.18.1
-      '@crawlee/utils': 3.18.1
+      '@crawlee/basic': 3.18.2
+      '@crawlee/core': 3.18.2
+      '@crawlee/types': 3.18.2
+      '@crawlee/utils': 3.18.2
       '@types/content-type': 1.1.9
       cheerio: 1.0.0-rc.12
       content-type: 1.0.5
@@ -10489,13 +10495,13 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@crawlee/jsdom@3.18.1':
+  '@crawlee/jsdom@3.18.2':
     dependencies:
       '@apify/timeout': 0.4.14
       '@apify/utilities': 2.35.11
-      '@crawlee/http': 3.18.1
-      '@crawlee/types': 3.18.1
-      '@crawlee/utils': 3.18.1
+      '@crawlee/http': 3.18.2
+      '@crawlee/types': 3.18.2
+      '@crawlee/utils': 3.18.2
       '@types/jsdom': 21.1.7
       cheerio: 1.0.0-rc.12
       jsdom: 26.1.0
@@ -10507,13 +10513,13 @@ snapshots:
       - supports-color
       - utf-8-validate
 
-  '@crawlee/linkedom@3.18.1':
+  '@crawlee/linkedom@3.18.2':
     dependencies:
       '@apify/timeout': 0.4.14
       '@apify/utilities': 2.35.11
-      '@crawlee/http': 3.18.1
-      '@crawlee/types': 3.18.1
-      '@crawlee/utils': 3.18.1
+      '@crawlee/http': 3.18.2
+      '@crawlee/types': 3.18.2
+      '@crawlee/utils': 3.18.2
       cheerio: 1.0.0-rc.12
       linkedom: 0.18.13
       ow: 0.28.2
@@ -10522,10 +10528,10 @@ snapshots:
       - canvas
       - supports-color
 
-  '@crawlee/memory-storage@3.18.1':
+  '@crawlee/memory-storage@3.18.2':
     dependencies:
       '@apify/log': 2.5.54
-      '@crawlee/types': 3.18.1
+      '@crawlee/types': 3.18.2
       '@sapphire/async-queue': 1.5.5
       '@sapphire/shapeshift': 3.9.7
       content-type: 1.0.5
@@ -10536,16 +10542,16 @@ snapshots:
       proper-lockfile: 4.1.2
       tslib: 2.8.1
 
-  '@crawlee/playwright@3.18.1(playwright@1.63.0)(puppeteer@25.12.0)':
+  '@crawlee/playwright@3.18.2(playwright@1.63.0)(puppeteer@25.12.0)':
     dependencies:
       '@apify/datastructures': 2.0.6
       '@apify/log': 2.5.54
       '@apify/timeout': 0.4.14
-      '@crawlee/browser': 3.18.1(playwright@1.63.0)(puppeteer@25.12.0)
-      '@crawlee/browser-pool': 3.18.1(playwright@1.63.0)(puppeteer@25.12.0)
-      '@crawlee/core': 3.18.1
-      '@crawlee/types': 3.18.1
-      '@crawlee/utils': 3.18.1
+      '@crawlee/browser': 3.18.2(playwright@1.63.0)(puppeteer@25.12.0)
+      '@crawlee/browser-pool': 3.18.2(playwright@1.63.0)(puppeteer@25.12.0)
+      '@crawlee/core': 3.18.2
+      '@crawlee/types': 3.18.2
+      '@crawlee/utils': 3.18.2
       cheerio: 1.0.0-rc.12
       jquery: 3.7.1
       lodash.isequal: 4.5.0
@@ -10561,14 +10567,14 @@ snapshots:
       - puppeteer
       - supports-color
 
-  '@crawlee/puppeteer@3.18.1(playwright@1.63.0)(puppeteer@25.12.0)':
+  '@crawlee/puppeteer@3.18.2(playwright@1.63.0)(puppeteer@25.12.0)':
     dependencies:
       '@apify/datastructures': 2.0.6
       '@apify/log': 2.5.54
-      '@crawlee/browser': 3.18.1(playwright@1.63.0)(puppeteer@25.12.0)
-      '@crawlee/browser-pool': 3.18.1(playwright@1.63.0)(puppeteer@25.12.0)
-      '@crawlee/types': 3.18.1
-      '@crawlee/utils': 3.18.1
+      '@crawlee/browser': 3.18.2(playwright@1.63.0)(puppeteer@25.12.0)
+      '@crawlee/browser-pool': 3.18.2(playwright@1.63.0)(puppeteer@25.12.0)
+      '@crawlee/types': 3.18.2
+      '@crawlee/utils': 3.18.2
       cheerio: 1.0.0-rc.12
       devtools-protocol: 0.0.1704951
       jquery: 3.7.1
@@ -10580,7 +10586,7 @@ snapshots:
       - playwright
       - supports-color
 
-  '@crawlee/templates@3.18.1(@types/node@24.19.0)':
+  '@crawlee/templates@3.18.2(@types/node@24.19.0)':
     dependencies:
       ansi-colors: 4.1.3
       inquirer: 9.3.8(@types/node@24.19.0)
@@ -10590,15 +10596,15 @@ snapshots:
     transitivePeerDependencies:
       - '@types/node'
 
-  '@crawlee/types@3.18.1':
+  '@crawlee/types@3.18.2':
     dependencies:
       tslib: 2.8.1
 
-  '@crawlee/utils@3.18.1':
+  '@crawlee/utils@3.18.2':
     dependencies:
       '@apify/log': 2.5.54
       '@apify/ps-tree': 1.2.0
-      '@crawlee/types': 3.18.1
+      '@crawlee/types': 3.18.2
       '@types/sax': 1.2.7
       cheerio: 1.0.0-rc.12
       file-type: 21.3.4
@@ -10606,7 +10612,7 @@ snapshots:
       ow: 0.28.2
       robots-parser: 3.0.1
       sax: 1.6.1
-      tldts: 7.4.15
+      tldts: 7.4.16
       tslib: 2.8.1
       whatwg-mimetype: 4.0.0
     transitivePeerDependencies:
@@ -11462,7 +11468,7 @@ snapshots:
       '@rspack/core': 1.7.12
       '@swc/core': 1.16.2
       '@swc/html': 1.16.2
-      browserslist: 4.29.1
+      browserslist: 4.29.2
       lightningcss: 1.33.0
       semver: 7.8.5
       swc-loader: 0.2.7(@swc/core@1.16.2)(webpack@5.111.1(@swc/core@1.16.2)(esbuild@0.28.2)(postcss@8.5.28))
@@ -12154,7 +12160,7 @@ snapshots:
 
   '@docusaurus/theme-search-algolia@3.10.2(@algolia/client-search@5.59.0)(@docusaurus/faster@3.10.2(@docusaurus/types@3.10.2(@swc/core@1.16.2)(esbuild@0.28.2)(postcss@8.5.28)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(esbuild@0.28.2)(postcss@8.5.28))(@mdx-js/react@3.1.1(@types/react@19.3.0)(react@19.3.0))(@rspack/core@1.7.12)(@swc/core@1.16.2)(@types/react@19.3.0)(esbuild@0.28.2)(postcss@8.5.28)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(search-insights@2.17.3)(typescript@6.0.3)':
     dependencies:
-      '@algolia/autocomplete-core': 1.19.11(@algolia/client-search@5.59.0)(algoliasearch@5.59.0)(search-insights@2.17.3)
+      '@algolia/autocomplete-core': 1.19.12(@algolia/client-search@5.59.0)(algoliasearch@5.59.0)(search-insights@2.17.3)
       '@docsearch/react': 4.7.0(@algolia/client-search@5.59.0)(@types/react@19.3.0)(algoliasearch@5.59.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(search-insights@2.17.3)
       '@docusaurus/core': 3.10.2(@docusaurus/faster@3.10.2(@docusaurus/types@3.10.2(@swc/core@1.16.2)(esbuild@0.28.2)(postcss@8.5.28)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(esbuild@0.28.2)(postcss@8.5.28))(@mdx-js/react@3.1.1(@types/react@19.3.0)(react@19.3.0))(@rspack/core@1.7.12)(@swc/core@1.16.2)(esbuild@0.28.2)(postcss@8.5.28)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(typescript@6.0.3)
       '@docusaurus/logger': 3.10.2
@@ -12560,7 +12566,7 @@ snapshots:
       '@jest/schemas': 29.6.3
       '@types/istanbul-lib-coverage': 2.0.6
       '@types/istanbul-reports': 3.0.4
-      '@types/node': 24.19.0
+      '@types/node': 26.6.3
       '@types/yargs': 17.0.35
       chalk: 4.1.2
 
@@ -12936,78 +12942,78 @@ snapshots:
   '@oxlint/binding-win32-x64-msvc@1.86.0':
     optional: true
 
-  '@peculiar/asn1-cms@2.9.5':
+  '@peculiar/asn1-cms@2.10.0':
     dependencies:
-      '@peculiar/asn1-schema': 2.9.5
-      '@peculiar/asn1-x509': 2.9.5
-      '@peculiar/asn1-x509-attr': 2.9.5
+      '@peculiar/asn1-schema': 2.10.0
+      '@peculiar/asn1-x509': 2.10.0
+      '@peculiar/asn1-x509-attr': 2.10.0
       asn1js: 3.0.10
       tslib: 2.8.1
 
-  '@peculiar/asn1-csr@2.9.5':
+  '@peculiar/asn1-csr@2.10.0':
     dependencies:
-      '@peculiar/asn1-schema': 2.9.5
-      '@peculiar/asn1-x509': 2.9.5
+      '@peculiar/asn1-schema': 2.10.0
+      '@peculiar/asn1-x509': 2.10.0
       asn1js: 3.0.10
       tslib: 2.8.1
 
-  '@peculiar/asn1-ecc@2.9.5':
+  '@peculiar/asn1-ecc@2.10.0':
     dependencies:
-      '@peculiar/asn1-schema': 2.9.5
-      '@peculiar/asn1-x509': 2.9.5
+      '@peculiar/asn1-schema': 2.10.0
+      '@peculiar/asn1-x509': 2.10.0
       asn1js: 3.0.10
       tslib: 2.8.1
 
-  '@peculiar/asn1-pfx@2.9.5':
+  '@peculiar/asn1-pfx@2.10.0':
     dependencies:
-      '@peculiar/asn1-cms': 2.9.5
-      '@peculiar/asn1-pkcs8': 2.9.5
-      '@peculiar/asn1-rsa': 2.9.5
-      '@peculiar/asn1-schema': 2.9.5
+      '@peculiar/asn1-cms': 2.10.0
+      '@peculiar/asn1-pkcs8': 2.10.0
+      '@peculiar/asn1-rsa': 2.10.0
+      '@peculiar/asn1-schema': 2.10.0
       asn1js: 3.0.10
       tslib: 2.8.1
 
-  '@peculiar/asn1-pkcs8@2.9.5':
+  '@peculiar/asn1-pkcs8@2.10.0':
     dependencies:
-      '@peculiar/asn1-schema': 2.9.5
-      '@peculiar/asn1-x509': 2.9.5
+      '@peculiar/asn1-schema': 2.10.0
+      '@peculiar/asn1-x509': 2.10.0
       asn1js: 3.0.10
       tslib: 2.8.1
 
-  '@peculiar/asn1-pkcs9@2.9.5':
+  '@peculiar/asn1-pkcs9@2.10.0':
     dependencies:
-      '@peculiar/asn1-cms': 2.9.5
-      '@peculiar/asn1-pfx': 2.9.5
-      '@peculiar/asn1-pkcs8': 2.9.5
-      '@peculiar/asn1-schema': 2.9.5
-      '@peculiar/asn1-x509': 2.9.5
-      '@peculiar/asn1-x509-attr': 2.9.5
+      '@peculiar/asn1-cms': 2.10.0
+      '@peculiar/asn1-pfx': 2.10.0
+      '@peculiar/asn1-pkcs8': 2.10.0
+      '@peculiar/asn1-schema': 2.10.0
+      '@peculiar/asn1-x509': 2.10.0
+      '@peculiar/asn1-x509-attr': 2.10.0
       asn1js: 3.0.10
       tslib: 2.8.1
 
-  '@peculiar/asn1-rsa@2.9.5':
+  '@peculiar/asn1-rsa@2.10.0':
     dependencies:
-      '@peculiar/asn1-schema': 2.9.5
-      '@peculiar/asn1-x509': 2.9.5
+      '@peculiar/asn1-schema': 2.10.0
+      '@peculiar/asn1-x509': 2.10.0
       asn1js: 3.0.10
       tslib: 2.8.1
 
-  '@peculiar/asn1-schema@2.9.5':
+  '@peculiar/asn1-schema@2.10.0':
     dependencies:
       '@peculiar/utils': 2.0.3
       asn1js: 3.0.10
       tslib: 2.8.1
 
-  '@peculiar/asn1-x509-attr@2.9.5':
+  '@peculiar/asn1-x509-attr@2.10.0':
     dependencies:
-      '@peculiar/asn1-schema': 2.9.5
-      '@peculiar/asn1-x509': 2.9.5
+      '@peculiar/asn1-schema': 2.10.0
+      '@peculiar/asn1-x509': 2.10.0
       asn1js: 3.0.10
       tslib: 2.8.1
 
-  '@peculiar/asn1-x509@2.9.5':
+  '@peculiar/asn1-x509@2.10.0':
     dependencies:
-      '@peculiar/asn1-schema': 2.9.5
+      '@peculiar/asn1-schema': 2.10.0
       '@peculiar/utils': 2.0.3
       asn1js: 3.0.10
       tslib: 2.8.1
@@ -13018,13 +13024,13 @@ snapshots:
 
   '@peculiar/x509@1.14.3':
     dependencies:
-      '@peculiar/asn1-cms': 2.9.5
-      '@peculiar/asn1-csr': 2.9.5
-      '@peculiar/asn1-ecc': 2.9.5
-      '@peculiar/asn1-pkcs9': 2.9.5
-      '@peculiar/asn1-rsa': 2.9.5
-      '@peculiar/asn1-schema': 2.9.5
-      '@peculiar/asn1-x509': 2.9.5
+      '@peculiar/asn1-cms': 2.10.0
+      '@peculiar/asn1-csr': 2.10.0
+      '@peculiar/asn1-ecc': 2.10.0
+      '@peculiar/asn1-pkcs9': 2.10.0
+      '@peculiar/asn1-rsa': 2.10.0
+      '@peculiar/asn1-schema': 2.10.0
+      '@peculiar/asn1-x509': 2.10.0
       pvtsutils: 1.3.6
       reflect-metadata: 0.2.2
       tslib: 2.8.1
@@ -13790,11 +13796,11 @@ snapshots:
   '@types/body-parser@1.19.6':
     dependencies:
       '@types/connect': 3.4.38
-      '@types/node': 24.19.0
+      '@types/node': 26.6.3
 
   '@types/bonjour@3.5.13':
     dependencies:
-      '@types/node': 24.19.0
+      '@types/node': 26.6.3
 
   '@types/chai@5.2.3':
     dependencies:
@@ -13804,11 +13810,11 @@ snapshots:
   '@types/connect-history-api-fallback@1.5.4':
     dependencies:
       '@types/express-serve-static-core': 5.1.3
-      '@types/node': 24.19.0
+      '@types/node': 26.6.3
 
   '@types/connect@3.4.38':
     dependencies:
-      '@types/node': 24.19.0
+      '@types/node': 26.6.3
 
   '@types/content-type@1.1.9': {}
 
@@ -13826,7 +13832,7 @@ snapshots:
 
   '@types/express-serve-static-core@5.1.3':
     dependencies:
-      '@types/node': 24.19.0
+      '@types/node': 26.6.3
       '@types/qs': 6.15.1
       '@types/range-parser': 1.2.7
       '@types/send': 1.2.1
@@ -13890,6 +13896,10 @@ snapshots:
     dependencies:
       undici-types: 7.24.6
 
+  '@types/node@26.6.3':
+    dependencies:
+      undici-types: 8.9.0
+
   '@types/parse-json@4.0.2': {}
 
   '@types/prismjs@1.26.6': {}
@@ -13931,7 +13941,7 @@ snapshots:
 
   '@types/send@1.2.1':
     dependencies:
-      '@types/node': 24.19.0
+      '@types/node': 26.6.3
 
   '@types/serve-index@1.9.4':
     dependencies:
@@ -13940,7 +13950,7 @@ snapshots:
   '@types/serve-static@2.2.0':
     dependencies:
       '@types/http-errors': 2.0.5
-      '@types/node': 24.19.0
+      '@types/node': 26.6.3
 
   '@types/tough-cookie@4.0.5': {}
 
@@ -14177,7 +14187,7 @@ snapshots:
 
   ansi-regex@5.0.1: {}
 
-  ansi-regex@6.3.0: {}
+  ansi-regex@6.4.0: {}
 
   ansi-styles@2.2.1: {}
 
@@ -14199,7 +14209,7 @@ snapshots:
       '@apify/consts': 2.58.1
       '@apify/log': 2.5.54
       '@apify/utilities': 2.35.11
-      '@crawlee/types': 3.18.1
+      '@crawlee/types': 3.18.2
       ansi-colors: 4.1.3
       async-retry: 1.3.3
       axios: 1.20.0
@@ -14251,8 +14261,8 @@ snapshots:
 
   autoprefixer@10.6.1(postcss@8.5.28):
     dependencies:
-      browserslist: 4.29.1
-      caniuse-lite: 1.0.30001812
+      browserslist: 4.29.2
+      caniuse-lite: 1.0.30001813
       fraction.js: 5.3.4
       picocolors: 1.1.1
       postcss: 8.5.28
@@ -14424,13 +14434,13 @@ snapshots:
     dependencies:
       fill-range: 7.1.1
 
-  browserslist@4.29.1:
+  browserslist@4.29.2:
     dependencies:
       baseline-browser-mapping: 2.11.26
-      caniuse-lite: 1.0.30001812
+      caniuse-lite: 1.0.30001813
       electron-to-chromium: 1.5.439
       node-releases: 2.0.57
-      update-browserslist-db: 1.3.3(browserslist@4.29.1)
+      update-browserslist-db: 1.3.3(browserslist@4.29.2)
 
   buffer-from@1.1.2: {}
 
@@ -14507,12 +14517,12 @@ snapshots:
 
   caniuse-api@3.0.0:
     dependencies:
-      browserslist: 4.29.1
-      caniuse-lite: 1.0.30001812
+      browserslist: 4.29.2
+      caniuse-lite: 1.0.30001813
       lodash.memoize: 4.1.2
       lodash.uniq: 4.5.0
 
-  caniuse-lite@1.0.30001812: {}
+  caniuse-lite@1.0.30001813: {}
 
   ccount@2.0.1: {}
 
@@ -14771,7 +14781,7 @@ snapshots:
 
   core-js-compat@3.50.0:
     dependencies:
-      browserslist: 4.29.1
+      browserslist: 4.29.2
 
   core-js@3.50.0: {}
 
@@ -14808,21 +14818,21 @@ snapshots:
     optionalDependencies:
       typescript: 6.0.3
 
-  crawlee@3.18.1(@types/node@24.19.0)(playwright@1.63.0)(puppeteer@25.12.0):
+  crawlee@3.18.2(@types/node@24.19.0)(playwright@1.63.0)(puppeteer@25.12.0):
     dependencies:
-      '@crawlee/basic': 3.18.1
-      '@crawlee/browser': 3.18.1(playwright@1.63.0)(puppeteer@25.12.0)
-      '@crawlee/browser-pool': 3.18.1(playwright@1.63.0)(puppeteer@25.12.0)
-      '@crawlee/cheerio': 3.18.1
-      '@crawlee/cli': 3.18.1(@types/node@24.19.0)
-      '@crawlee/core': 3.18.1
-      '@crawlee/http': 3.18.1
-      '@crawlee/jsdom': 3.18.1
-      '@crawlee/linkedom': 3.18.1
-      '@crawlee/memory-storage': 3.18.1
-      '@crawlee/playwright': 3.18.1(playwright@1.63.0)(puppeteer@25.12.0)
-      '@crawlee/puppeteer': 3.18.1(playwright@1.63.0)(puppeteer@25.12.0)
-      '@crawlee/utils': 3.18.1
+      '@crawlee/basic': 3.18.2
+      '@crawlee/browser': 3.18.2(playwright@1.63.0)(puppeteer@25.12.0)
+      '@crawlee/browser-pool': 3.18.2(playwright@1.63.0)(puppeteer@25.12.0)
+      '@crawlee/cheerio': 3.18.2
+      '@crawlee/cli': 3.18.2(@types/node@24.19.0)
+      '@crawlee/core': 3.18.2
+      '@crawlee/http': 3.18.2
+      '@crawlee/jsdom': 3.18.2
+      '@crawlee/linkedom': 3.18.2
+      '@crawlee/memory-storage': 3.18.2
+      '@crawlee/playwright': 3.18.2(playwright@1.63.0)(puppeteer@25.12.0)
+      '@crawlee/puppeteer': 3.18.2(playwright@1.63.0)(puppeteer@25.12.0)
+      '@crawlee/utils': 3.18.2
       import-local: 3.2.0
       tslib: 2.8.1
     optionalDependencies:
@@ -14963,7 +14973,7 @@ snapshots:
   cssnano-preset-advanced@6.1.2(postcss@8.5.28):
     dependencies:
       autoprefixer: 10.6.1(postcss@8.5.28)
-      browserslist: 4.29.1
+      browserslist: 4.29.2
       cssnano-preset-default: 6.1.2(postcss@8.5.28)
       postcss: 8.5.28
       postcss-discard-unused: 6.0.5(postcss@8.5.28)
@@ -14973,7 +14983,7 @@ snapshots:
 
   cssnano-preset-default@6.1.2(postcss@8.5.28):
     dependencies:
-      browserslist: 4.29.1
+      browserslist: 4.29.2
       css-declaration-sorter: 7.4.0(postcss@8.5.28)
       cssnano-utils: 4.0.2(postcss@8.5.28)
       postcss: 8.5.28
@@ -15405,7 +15415,7 @@ snapshots:
 
   eval@0.1.8:
     dependencies:
-      '@types/node': 24.19.0
+      '@types/node': 26.6.3
       require-like: 0.1.2
 
   event-stream@3.3.4:
@@ -15507,7 +15517,7 @@ snapshots:
     dependencies:
       xml-js: 1.6.11
 
-  figlet@1.11.4:
+  figlet@1.12.0:
     dependencies:
       commander: 14.0.3
 
@@ -16010,7 +16020,7 @@ snapshots:
 
   header-generator@2.1.88:
     dependencies:
-      browserslist: 4.29.1
+      browserslist: 4.29.2
       generative-bayesian-network: 2.1.88
       ow: 0.28.2
       tslib: 2.8.1
@@ -16381,7 +16391,7 @@ snapshots:
   jest-util@29.7.0:
     dependencies:
       '@jest/types': 29.6.3
-      '@types/node': 24.19.0
+      '@types/node': 26.6.3
       chalk: 4.1.2
       ci-info: 3.9.0
       graceful-fs: 4.2.11
@@ -16389,13 +16399,13 @@ snapshots:
 
   jest-worker@27.5.1:
     dependencies:
-      '@types/node': 24.19.0
+      '@types/node': 26.6.3
       merge-stream: 2.0.0
       supports-color: 8.1.1
 
   jest-worker@29.7.0:
     dependencies:
-      '@types/node': 24.19.0
+      '@types/node': 26.6.3
       jest-util: 29.7.0
       merge-stream: 2.0.0
       supports-color: 8.1.1
@@ -16655,7 +16665,7 @@ snapshots:
       ccount: 2.0.1
       devlop: 1.1.0
       mdast-util-from-markdown: 2.0.3
-      mdast-util-to-markdown: 2.1.2
+      mdast-util-to-markdown: 2.1.3
       parse-entities: 4.0.2
       stringify-entities: 4.0.4
       unist-util-visit-parents: 6.0.2
@@ -16692,7 +16702,7 @@ snapshots:
       devlop: 1.1.0
       escape-string-regexp: 5.0.0
       mdast-util-from-markdown: 2.0.3
-      mdast-util-to-markdown: 2.1.2
+      mdast-util-to-markdown: 2.1.3
       micromark-extension-frontmatter: 2.0.0
     transitivePeerDependencies:
       - supports-color
@@ -16710,16 +16720,16 @@ snapshots:
       '@types/mdast': 4.0.4
       devlop: 1.1.0
       mdast-util-from-markdown: 2.0.3
-      mdast-util-to-markdown: 2.1.2
+      mdast-util-to-markdown: 2.1.3
       micromark-util-normalize-identifier: 2.0.1
     transitivePeerDependencies:
       - supports-color
 
-  mdast-util-gfm-strikethrough@2.0.0:
+  mdast-util-gfm-strikethrough@2.0.1:
     dependencies:
       '@types/mdast': 4.0.4
       mdast-util-from-markdown: 2.0.3
-      mdast-util-to-markdown: 2.1.2
+      mdast-util-to-markdown: 2.1.3
     transitivePeerDependencies:
       - supports-color
 
@@ -16729,7 +16739,7 @@ snapshots:
       devlop: 1.1.0
       markdown-table: 3.0.4
       mdast-util-from-markdown: 2.0.3
-      mdast-util-to-markdown: 2.1.2
+      mdast-util-to-markdown: 2.1.3
     transitivePeerDependencies:
       - supports-color
 
@@ -16738,7 +16748,7 @@ snapshots:
       '@types/mdast': 4.0.4
       devlop: 1.1.0
       mdast-util-from-markdown: 2.0.3
-      mdast-util-to-markdown: 2.1.2
+      mdast-util-to-markdown: 2.1.3
     transitivePeerDependencies:
       - supports-color
 
@@ -16747,10 +16757,10 @@ snapshots:
       mdast-util-from-markdown: 2.0.3
       mdast-util-gfm-autolink-literal: 2.0.1
       mdast-util-gfm-footnote: 2.1.0
-      mdast-util-gfm-strikethrough: 2.0.0
+      mdast-util-gfm-strikethrough: 2.0.1
       mdast-util-gfm-table: 2.0.0
       mdast-util-gfm-task-list-item: 2.0.0
-      mdast-util-to-markdown: 2.1.2
+      mdast-util-to-markdown: 2.1.3
     transitivePeerDependencies:
       - supports-color
 
@@ -16761,7 +16771,7 @@ snapshots:
       '@types/mdast': 4.0.4
       devlop: 1.1.0
       mdast-util-from-markdown: 2.0.3
-      mdast-util-to-markdown: 2.1.2
+      mdast-util-to-markdown: 2.1.3
     transitivePeerDependencies:
       - supports-color
 
@@ -16774,7 +16784,7 @@ snapshots:
       ccount: 2.0.1
       devlop: 1.1.0
       mdast-util-from-markdown: 2.0.3
-      mdast-util-to-markdown: 2.1.2
+      mdast-util-to-markdown: 2.1.3
       parse-entities: 4.0.2
       stringify-entities: 4.0.4
       unist-util-stringify-position: 4.0.0
@@ -16788,7 +16798,7 @@ snapshots:
       mdast-util-mdx-expression: 2.0.1
       mdast-util-mdx-jsx: 3.2.0
       mdast-util-mdxjs-esm: 2.0.1
-      mdast-util-to-markdown: 2.1.2
+      mdast-util-to-markdown: 2.1.3
     transitivePeerDependencies:
       - supports-color
 
@@ -16799,7 +16809,7 @@ snapshots:
       '@types/mdast': 4.0.4
       devlop: 1.1.0
       mdast-util-from-markdown: 2.0.3
-      mdast-util-to-markdown: 2.1.2
+      mdast-util-to-markdown: 2.1.3
     transitivePeerDependencies:
       - supports-color
 
@@ -16820,15 +16830,17 @@ snapshots:
       unist-util-visit: 5.1.0
       vfile: 6.0.3
 
-  mdast-util-to-markdown@2.1.2:
+  mdast-util-to-markdown@2.1.3:
     dependencies:
       '@types/mdast': 4.0.4
       '@types/unist': 3.0.3
       longest-streak: 3.1.0
       mdast-util-phrasing: 4.1.0
       mdast-util-to-string: 4.0.0
+      micromark-util-character: 2.1.1
       micromark-util-classify-character: 2.0.1
       micromark-util-decode-string: 2.0.1
+      micromark-util-html-tag-name: 2.0.1
       unist-util-visit: 5.1.0
       zwitch: 2.0.4
 
@@ -17745,7 +17757,7 @@ snapshots:
 
   postcss-colormin@6.1.0(postcss@8.5.28):
     dependencies:
-      browserslist: 4.29.1
+      browserslist: 4.29.2
       caniuse-api: 3.0.0
       colord: 2.10.0
       postcss: 8.5.28
@@ -17753,7 +17765,7 @@ snapshots:
 
   postcss-convert-values@6.1.0(postcss@8.5.28):
     dependencies:
-      browserslist: 4.29.1
+      browserslist: 4.29.2
       postcss: 8.5.28
       postcss-value-parser: 4.2.0
 
@@ -17948,7 +17960,7 @@ snapshots:
 
   postcss-merge-rules@6.1.1(postcss@8.5.28):
     dependencies:
-      browserslist: 4.29.1
+      browserslist: 4.29.2
       caniuse-api: 3.0.0
       cssnano-utils: 4.0.2(postcss@8.5.28)
       postcss: 8.5.28
@@ -17968,7 +17980,7 @@ snapshots:
 
   postcss-minify-params@6.1.0(postcss@8.5.28):
     dependencies:
-      browserslist: 4.29.1
+      browserslist: 4.29.2
       cssnano-utils: 4.0.2(postcss@8.5.28)
       postcss: 8.5.28
       postcss-value-parser: 4.2.0
@@ -18044,7 +18056,7 @@ snapshots:
 
   postcss-normalize-unicode@6.1.0(postcss@8.5.28):
     dependencies:
-      browserslist: 4.29.1
+      browserslist: 4.29.2
       postcss: 8.5.28
       postcss-value-parser: 4.2.0
 
@@ -18135,7 +18147,7 @@ snapshots:
       '@csstools/postcss-trigonometric-functions': 4.0.9(postcss@8.5.28)
       '@csstools/postcss-unset-value': 4.0.0(postcss@8.5.28)
       autoprefixer: 10.6.1(postcss@8.5.28)
-      browserslist: 4.29.1
+      browserslist: 4.29.2
       css-blank-pseudo: 7.0.1(postcss@8.5.28)
       css-has-pseudo: 7.0.3(postcss@8.5.28)
       css-prefers-color-scheme: 10.0.0(postcss@8.5.28)
@@ -18216,7 +18228,7 @@ snapshots:
       '@csstools/postcss-trigonometric-functions': 5.0.7(postcss@8.5.28)
       '@csstools/postcss-unset-value': 5.0.0(postcss@8.5.28)
       autoprefixer: 10.6.1(postcss@8.5.28)
-      browserslist: 4.29.1
+      browserslist: 4.29.2
       css-blank-pseudo: 8.0.2(postcss@8.5.28)
       css-has-pseudo: 8.0.1(postcss@8.5.28)
       css-prefers-color-scheme: 11.0.1(postcss@8.5.28)
@@ -18265,7 +18277,7 @@ snapshots:
 
   postcss-reduce-initial@6.1.0(postcss@8.5.28):
     dependencies:
-      browserslist: 4.29.1
+      browserslist: 4.29.2
       caniuse-api: 3.0.0
       postcss: 8.5.28
 
@@ -18664,7 +18676,7 @@ snapshots:
 
   reflect-metadata@0.2.2: {}
 
-  regenerate-unicode-properties@10.2.2:
+  regenerate-unicode-properties@10.3.0:
     dependencies:
       regenerate: 1.4.2
 
@@ -18684,7 +18696,7 @@ snapshots:
   regexpu-core@6.4.0:
     dependencies:
       regenerate: 1.4.2
-      regenerate-unicode-properties: 10.2.2
+      regenerate-unicode-properties: 10.3.0
       regjsgen: 0.8.0
       regjsparser: 0.13.3
       unicode-match-property-ecmascript: 2.0.0
@@ -18808,7 +18820,7 @@ snapshots:
   remark-stringify@11.0.0:
     dependencies:
       '@types/mdast': 4.0.4
-      mdast-util-to-markdown: 2.1.2
+      mdast-util-to-markdown: 2.1.3
       unified: 11.0.5
 
   remark-toc@9.0.0:
@@ -19175,15 +19187,15 @@ snapshots:
 
   std-env@4.2.0: {}
 
-  stream-chain@2.2.5: {}
+  stream-chain@4.2.6: {}
 
   stream-combiner@0.0.4:
     dependencies:
       duplexer: 0.1.2
 
-  stream-json@1.9.1:
+  stream-json@3.7.0:
     dependencies:
-      stream-chain: 2.2.5
+      stream-chain: 4.2.6
 
   string-argv@0.3.2: {}
 
@@ -19237,7 +19249,7 @@ snapshots:
 
   strip-ansi@7.2.0:
     dependencies:
-      ansi-regex: 6.3.0
+      ansi-regex: 6.4.0
 
   strip-bom-string@1.0.0: {}
 
@@ -19279,7 +19291,7 @@ snapshots:
 
   stylehacks@6.1.1(postcss@8.5.28):
     dependencies:
-      browserslist: 4.29.1
+      browserslist: 4.29.2
       postcss: 8.5.28
       postcss-selector-parser: 6.1.4
 
@@ -19376,15 +19388,15 @@ snapshots:
 
   tldts-core@6.1.86: {}
 
-  tldts-core@7.4.15: {}
+  tldts-core@7.4.16: {}
 
   tldts@6.1.86:
     dependencies:
       tldts-core: 6.1.86
 
-  tldts@7.4.15:
+  tldts@7.4.16:
     dependencies:
-      tldts-core: 7.4.15
+      tldts-core: 7.4.16
 
   to-regex-range@5.0.1:
     dependencies:
@@ -19406,7 +19418,7 @@ snapshots:
 
   tough-cookie@6.0.2:
     dependencies:
-      tldts: 7.4.15
+      tldts: 7.4.16
 
   tr46@5.1.1:
     dependencies:
@@ -19479,6 +19491,8 @@ snapshots:
 
   undici-types@7.24.6: {}
 
+  undici-types@8.9.0: {}
+
   undici@7.30.0: {}
 
   unicode-canonical-property-names-ecmascript@2.0.1: {}
@@ -19546,9 +19560,9 @@ snapshots:
 
   unpipe@1.0.0: {}
 
-  update-browserslist-db@1.3.3(browserslist@4.29.1):
+  update-browserslist-db@1.3.3(browserslist@4.29.2):
     dependencies:
-      browserslist: 4.29.1
+      browserslist: 4.29.2
       escalade: 3.2.0
       picocolors: 1.1.1
 
@@ -19783,7 +19797,7 @@ snapshots:
       '@webassemblyjs/ast': 1.14.1
       '@webassemblyjs/wasm-edit': 1.14.1
       '@webassemblyjs/wasm-parser': 1.14.1
-      browserslist: 4.29.1
+      browserslist: 4.29.2
       chrome-trace-event: 1.0.4
       enhanced-resolve: 5.25.1
       es-module-lexer: 2.3.2
@@ -19820,7 +19834,7 @@ snapshots:
       '@webassemblyjs/ast': 1.14.1
       '@webassemblyjs/wasm-edit': 1.14.1
       '@webassemblyjs/wasm-parser': 1.14.1
-      browserslist: 4.29.1
+      browserslist: 4.29.2
       chrome-trace-event: 1.0.4
       enhanced-resolve: 5.25.1
       es-module-lexer: 2.3.2
@@ -19946,7 +19960,7 @@ snapshots:
   yargonaut@1.1.4:
     dependencies:
       chalk: 1.1.3
-      figlet: 1.11.4
+      figlet: 1.12.0
       parent-require: 1.0.0
 
   yargs-parser@21.1.1: {}
