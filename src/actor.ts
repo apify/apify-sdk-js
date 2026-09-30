@@ -18,7 +18,6 @@ import {
     rejectOperationInTransaction,
     RequestQueue,
     serviceLocator,
-    withDirectStorageAccess,
 } from '@crawlee/core';
 import type { Awaitable, Dictionary, StorageBackend } from '@crawlee/types';
 import { sleep } from '@crawlee/utils';
@@ -51,6 +50,7 @@ import { ApifyFileSystemStorageBackend } from './apify_file_system_storage_backe
 import type { RequestQueueAccessMode } from './apify_request_queue_backend.js';
 import { ApifyStorageBackend } from './apify_storage_backend.js';
 import type { ChargeOptions, ChargeResult } from './charging.js';
+import { ChildRunTracker } from './child_run_tracker.js';
 import { ChargingManager, DEFAULT_DATASET_ITEM_EVENT } from './charging.js';
 import { ChargingStorageBackend } from './charging_storage_backend.js';
 import type { ConfigurationOptions } from './configuration.js';
@@ -447,39 +447,6 @@ export const EXIT_CODES = {
     ERROR_USER_FUNCTION_THREW: 91,
     ERROR_UNKNOWN: 92,
 };
-
-class ChildRunTracker {
-    private CHILD_RUN_TRACKER_KVS_KEY = 'CHILD_RUN_IDS';
-    private childRunIds?: Promise<Record<string, string>>;
-    private lastWrite: Promise<void> = Promise.resolve();
-
-    async set(runName: string, runId: string) {
-        const childRunIds = await this.load();
-        childRunIds[runName] = runId;
-
-        const write = this.lastWrite.then(async () =>
-            withDirectStorageAccess(async () => {
-                const defaultStore = await KeyValueStore.open();
-                await defaultStore.setValue(this.CHILD_RUN_TRACKER_KVS_KEY, childRunIds);
-            }),
-        );
-        this.lastWrite = write.catch(() => {});
-        await write;
-    }
-
-    async get(runName: string) {
-        const childRunIds = await this.load();
-        return childRunIds[runName];
-    }
-
-    private async load() {
-        this.childRunIds ??= KeyValueStore.open()
-            .then(async (defaultStore) => defaultStore.getValue<Record<string, string>>(this.CHILD_RUN_TRACKER_KVS_KEY))
-            .then((storedChildIds) => storedChildIds ?? {});
-
-        return this.childRunIds;
-    }
-}
 
 /**
  * `Actor` class serves as an alternative approach to the static helpers exported from the package. It allows to pass configuration
