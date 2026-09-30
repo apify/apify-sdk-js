@@ -4,12 +4,12 @@ env:
     PUPPETEER_DOWNLOAD_BASE_URL: https://storage.googleapis.com/chrome-for-testing-public
 
 on:
-    # Push to master / v4 will deploy a dev version
+    # Push to master will deploy a dev version
     push:
-        branches: [master, v4, renovate/**]
-    # PR to master / v4 branch will skip deployment
+        branches: [master, renovate/**]
+    # PR to master branch will skip deployment
     pull_request:
-        branches: [master, v4]
+        branches: [master]
 
 concurrency:
     group: ${{ github.workflow }}-${{ github.ref }}
@@ -157,7 +157,7 @@ jobs:
 
     publish:
         name: Publish
-        if: (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/v4') && !contains(github.event.head_commit.message, 'docs:')
+        if: (github.ref == 'refs/heads/master') && !contains(github.event.head_commit.message, 'docs:')
         runs-on: ubuntu-22.04
         needs: [lint, build_and_test]
         steps:
@@ -182,5 +182,5 @@ jobs:
                   inputs: >
                       {
                           "ref": "${{ github.sha }}",
-                          "tag": "${{ github.ref_name == 'v4' && 'next-v4' || 'next' }}"
+                          "tag": "next-v4"
                       }

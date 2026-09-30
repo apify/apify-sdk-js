@@ -1,64 +1,75 @@
-# How to release new versions of Apify SDK
+# How apify-sdk-js releases work
 
-Release of new versions is managed by GitHub Actions. On pushes to the `master` branch, prerelease versions
-are automatically produced. Latest releases are triggered manually through the GitHub release tool.
-After creating a release there, Actions will automatically produce a latest version of the package.
+Releases are managed by GitHub Actions and `apify/actions/git-cliff-release`. There are two
+release lines:
 
-## TLDR;
+| line | branch | stable dist-tag | canary dist-tag |
+|---|---|---|---|
+| v4 (current development) | `master` | `latest` (from 4.0.0 on) | `next-v4` now, `next` once 4.0.0 is stable |
+| v3 (maintenance) | `3.x` | `latest` until 4.0.0 ships, then `latest-v3` | `next-v3` |
 
-- To **NOT** release anything on a push to `master`, add `[skip ci]` to your commit message.
-- To release `next`, just push to `master`. If it breaks with a `Version already exists error` increment version
-  in `package.json` and push again.
-- To release `latest`, go to releases on GitHub, draft and publish a release. If you don't know how, read below.
+Release candidates for the next major are published from `master` under the `rc` dist-tag.
+Canary versions always keep the `-beta.N` suffix regardless of the dist-tag they ship under.
 
-## Prerelease (next) versions
+## Canary releases
 
-On each push to the `master` branch, a new prerelease version is automatically built and published
-by GitHub Actions. To skip the process, add `[skip ci]` to your commit message.
+Every push to `master` or `3.x` (not a `docs:` commit) runs the `publish` job in
+`test-and-release.yaml`, which dispatches `publish-to-npm.yaml` with the branch's canary
+dist-tag. The version comes from the `git-cliff-release` action (`release_type: prerelease`,
+registry-derived `-beta.N` counter; on master the `premajor_version` input pins the base to
+the next major). No commit or git tag is created for canaries.
 
-### Release process
+## Stable releases
 
-1. Actions build is triggered by a push to `master` (typically a merge of a PR).
-2. Actions lint the source code and run tests in Node.js 10, 12 and 14.
-3. If all is well, a new prerelease version is published to NPM (`${VERSION}-beta.${COUNTER}`),
-   where `VERSION` is the version in package.json and `COUNTER` is a zero based index of existing prereleases.
-   Example: `0.15.1-beta.3`.
-4. The package is tagged with the `next` NPM tag and a Git tag is associated with the triggering commit.
-5. A build of Apify docker images is triggered that updates the `next` packages to use the newly published package.
-6. All done and ready to use.
+Trigger `release.yaml` manually via `workflow_dispatch` **from the branch you want to
+release**:
 
-### Updating a release version
+- `master` + `release_type: auto` (or `custom` `4.0.0`) is how `4.0.0` goes out — git-cliff
+  derives the version, commits the changelog, creates the GitHub release, and publishes
+  with `tag: latest`.
+- `3.x` ships v3 maintenance releases (keeps `latest` until 4.0.0, then `latest-v3`).
 
-When releasing breaking changes, new features or for any other reason that requires a version bump,
-manually increment the version in the `package.json` file. Such as from `0.14.15` to `0.15.0`.
-This will automatically trigger a prerelease build with the `0.15.0-beta.0` version.
+On minor/major releases from `master`, the `version_docs` job snapshots the current docs
+into `website/versioned_docs`. The job never runs for maintenance branches — it checks out
+the default branch.
 
-### Existing versions
+## RC releases
 
-Actions will not allow you to publish a prerelease of a version that's already published. For example,
-if version `0.14.15` already exists on NPM, you can no longer release a `0.14.15-beta.0` version.
+Dispatch `publish-to-npm.yaml` from `master` with `tag: rc`. This publishes `4.0.0-rc.N`
+under the `rc` dist-tag and pushes a `v4.0.0-rc.N` git tag; no commit lands on the branch.
 
-## Latest release
+## 4.0.0 release day
 
-To trigger a latest release, go to the GitHub release tool (select `releases` under `<> Code`).
-There, draft a new release, fill the form (see below) and hit `Publish release`.
-Actions will automatically release the latest version of the package.
+See the tracking issue for the ordered checklist (publish 4.0.0 to `latest`, switch master
+canaries `next-v4` → `next`, switch 3.x stable releases to `latest-v3`, clean up retired
+dist-tags).
 
-### How to fill the form
+## Playbook: switching master to the next major
 
-- The version tag should be in the format `v${VERSION}` where `VERSION` is the version from `package.json`.
-  Such as `v0.15.0` or `v0.16.17`.
-- The target will typically be `master`, but you can also release any previous commit by selecting it or searching
-  for it by ID. This is useful when there have been some changes in master from the latest prerelease and you'd
-  like to release an older prerelease version as latest. You can find the commit ID easily by searching for the
-  prerelease tag.
-- The title should be the same as the version tag.
-- Typically just adding changelog to the release would be fine, but feel free to add extra information.
+Adapted from the crawlee v4 transition (see crawlee's RELEASE.md for the original) and the
+apify-client v3 transition; single package, git-cliff versioning:
 
-### Release process
-
-Similarly to the prerelease, the latest release process:
-
-1. Triggers build, lints, runs tests.
-2. Publishes new package to NPM with the `latest` tag and the version from package.json. Such as `0.15.1`.
-3. A build and deploy of Apify docker images is triggered with the `latest` tag.
+1. **Cut the maintenance branch first.** Branch `(N-1).x` off the master tip. In one commit:
+   point `test-and-release.yaml` triggers and the publish gate at the branch (exact
+   `github.ref` match), set the canary dist-tag to `next-v(N-1)`, port the current
+   git-cliff publish flow if the branch still carries an older mechanism, and delete the
+   `version_docs` job from `release.yaml` (it checks out the repo default branch, so it
+   would snapshot the wrong docs). Stable releases keep `latest` until the new major ships.
+2. **Rebase the `vN` branch onto the master tip** and validate: build, `tsc-check-tests`,
+   tests, and every functional master-only commit explicitly (a rerere- or strategy-assisted
+   rebase can silently drop them; diff the result against both parents — the tree vs the old
+   `vN` tip must equal exactly master's delta).
+3. **Prep the `vN` branch for becoming master**: narrow triggers and the publish gate to
+   `master`, hardcode the canary dist-tag to `next-vN`, and add RELEASE.md if missing.
+4. **Fast-forward push master.** A PR cannot do this (squash-only merges on the default
+   branch). The org rulesets accept the `BypassTemporary` team — join it for the push. The
+   repo required-checks ruleset ignores existing check runs on direct pushes, so it needs
+   `BypassTemporary` added for the moment of the push too (remove right after); update its
+   required contexts to the new branch's job names in the same breath.
+5. **Retarget open `vN`-based PRs to master** before deleting the `vN` branch — after a
+   fast-forward push, deleting the branch would auto-close them.
+6. **Check renovate and the docs pipeline**: no `baseBranches` means the maintenance branch
+   gets no dependency updates; the docs deploy fires from master only, and the theme
+   auto-update workflow keeps committing to master, so coordinate the push window.
+7. **Open the release-day tracking issue** with the dist-tag flips — the maintenance branch
+   must move off `latest` the same day the new major claims it.
