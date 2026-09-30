@@ -46,8 +46,9 @@ const toInfo = (run: ActorRun): ChildRunInfo => ({
     startedAt: run.startedAt.toISOString(),
 });
 
+const CHILD_RUNS_KVS_KEY = 'CHILD_RUNS';
+
 export class ChildRunTracker {
-    private CHILD_RUN_TRACKER_KVS_KEY = 'CHILD_RUNS';
     private trackedRuns?: Promise<Record<string, TrackedChildRun>>;
     private lastWrite: Promise<void> = Promise.resolve();
     private requestChecksums = new Map<string, string>();
@@ -89,7 +90,7 @@ export class ChildRunTracker {
                 : [],
         };
 
-        await this.persist();
+        await this.persist(trackedRuns);
     }
 
     /**
@@ -102,7 +103,7 @@ export class ChildRunTracker {
         if (tracked?.runId !== run.id || tracked.status === run.status) return;
 
         tracked.status = run.status;
-        await this.persist();
+        await this.persist(trackedRuns);
     }
 
     /**
@@ -120,13 +121,11 @@ export class ChildRunTracker {
         return structuredClone(await this.load());
     }
 
-    private async persist() {
-        const trackedRuns = await this.load();
-
+    private async persist(trackedRuns: Record<string, TrackedChildRun>) {
         const write = this.lastWrite.then(async () =>
             withDirectStorageAccess(async () => {
                 const defaultStore = await KeyValueStore.open();
-                await defaultStore.setValue(this.CHILD_RUN_TRACKER_KVS_KEY, trackedRuns);
+                await defaultStore.setValue(CHILD_RUNS_KVS_KEY, trackedRuns);
             }),
         );
         this.lastWrite = write.catch(() => {});
@@ -135,9 +134,7 @@ export class ChildRunTracker {
 
     private async load() {
         this.trackedRuns ??= KeyValueStore.open()
-            .then(async (defaultStore) =>
-                defaultStore.getValue<Record<string, TrackedChildRun>>(this.CHILD_RUN_TRACKER_KVS_KEY),
-            )
+            .then(async (defaultStore) => defaultStore.getValue<Record<string, TrackedChildRun>>(CHILD_RUNS_KVS_KEY))
             .then((storedRuns) => storedRuns ?? {});
 
         return this.trackedRuns;

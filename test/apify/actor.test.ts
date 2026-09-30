@@ -1067,7 +1067,6 @@ describe('Actor', () => {
         const runName = 'child';
         const startedAt = new Date('2026-01-01T00:00:00.000Z');
         const startedRun = { id: 'child-run', status: 'RUNNING', startedAt } as ActorRun;
-        const trackedRun = startedRun;
         const finishedRun = { ...startedRun, status: 'SUCCEEDED' } as ActorRun;
         const trackedInfo = { runId: startedRun.id, status: 'RUNNING', startedAt: startedAt.toISOString() };
 
@@ -1078,13 +1077,14 @@ describe('Actor', () => {
         let waitForFinishSpy: MockInstance;
         let getStreamedLogSpy: MockInstance;
 
+        const readStored = async (actor: Actor) => (await actor.openKeyValueStore()).getValue('CHILD_RUNS');
         const newActor = () => createIsolatedActor({ storageClient: storage }).actor;
 
         beforeEach(() => {
             storage = new MemoryStorageBackend();
             startSpy = vitest.spyOn(ActorClient.prototype, 'start').mockResolvedValue(startedRun);
             taskStartSpy = vitest.spyOn(TaskClient.prototype, 'start').mockResolvedValue(startedRun);
-            getSpy = vitest.spyOn(RunClient.prototype, 'get').mockResolvedValue(trackedRun);
+            getSpy = vitest.spyOn(RunClient.prototype, 'get').mockResolvedValue(startedRun);
             waitForFinishSpy = vitest.spyOn(RunClient.prototype, 'waitForFinish').mockResolvedValue(finishedRun);
             getStreamedLogSpy = vitest.spyOn(RunClient.prototype, 'getStreamedLog').mockResolvedValue(undefined);
         });
@@ -1095,7 +1095,7 @@ describe('Actor', () => {
             await actor.start(actId, input);
 
             expect(startSpy).toBeCalledTimes(1);
-            expect(await (await actor.openKeyValueStore()).getValue('CHILD_RUNS')).toBeNull();
+            expect(await readStored(actor)).toBeNull();
         });
 
         test('start() starts a new run and tracks it', async () => {
@@ -1105,7 +1105,7 @@ describe('Actor', () => {
 
             expect(run).toEqual(startedRun);
             expect(startSpy).toBeCalledTimes(1);
-            expect(await (await actor.openKeyValueStore()).getValue('CHILD_RUNS')).toEqual({
+            expect(await readStored(actor)).toEqual({
                 [runName]: { ...trackedInfo, history: [] },
             });
         });
@@ -1115,13 +1115,13 @@ describe('Actor', () => {
             async (status) => {
                 await newActor().start(actId, input, { runName });
                 startSpy.mockClear();
-                getSpy.mockResolvedValue({ ...trackedRun, status });
+                getSpy.mockResolvedValue({ ...startedRun, status });
 
                 const actor = newActor();
                 const run = await actor.start(actId, input, { runName });
 
                 expect(startSpy).not.toBeCalled();
-                expect(run).toEqual({ ...trackedRun, status });
+                expect(run).toEqual({ ...startedRun, status });
                 expect(getSpy).toBeCalledTimes(1);
                 expect((await actor.childRuns())[runName]).toEqual({ ...trackedInfo, status, history: [] });
             },
@@ -1132,7 +1132,7 @@ describe('Actor', () => {
             async (status) => {
                 await newActor().start(actId, input, { runName });
                 startSpy.mockClear();
-                getSpy.mockResolvedValue({ ...trackedRun, status });
+                getSpy.mockResolvedValue({ ...startedRun, status });
                 const replacement = { id: 'replacement-run', status: 'RUNNING', startedAt } as ActorRun;
                 startSpy.mockResolvedValue(replacement);
 
@@ -1141,7 +1141,7 @@ describe('Actor', () => {
 
                 expect(startSpy).toBeCalledTimes(1);
                 expect(run).toEqual(replacement);
-                expect(await (await actor.openKeyValueStore()).getValue('CHILD_RUNS')).toEqual({
+                expect(await readStored(actor)).toEqual({
                     [runName]: {
                         ...trackedInfo,
                         runId: replacement.id,
@@ -1167,10 +1167,10 @@ describe('Actor', () => {
         test('repeated replacements accumulate in the history, oldest first', async () => {
             const actor = newActor();
             await actor.start(actId, input, { runName });
-            getSpy.mockResolvedValue({ ...trackedRun, status: 'FAILED' });
+            getSpy.mockResolvedValue({ ...startedRun, status: 'FAILED' });
             startSpy.mockResolvedValueOnce({ ...startedRun, id: 'second' });
             await actor.start(actId, input, { runName });
-            getSpy.mockResolvedValue({ ...trackedRun, id: 'second', status: 'FAILED' });
+            getSpy.mockResolvedValue({ ...startedRun, id: 'second', status: 'FAILED' });
             startSpy.mockResolvedValueOnce({ ...startedRun, id: 'third' });
             await actor.start(actId, input, { runName });
 
@@ -1245,7 +1245,7 @@ describe('Actor', () => {
         test('reusing a run name with a different input is allowed when the tracked run is replaced', async () => {
             const actor = newActor();
             await actor.start(actId, input, { runName });
-            getSpy.mockResolvedValue({ ...trackedRun, status: 'FAILED' });
+            getSpy.mockResolvedValue({ ...startedRun, status: 'FAILED' });
 
             await actor.start(actId, { foo: 'baz' }, { runName });
 

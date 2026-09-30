@@ -50,9 +50,9 @@ import { ApifyFileSystemStorageBackend } from './apify_file_system_storage_backe
 import type { RequestQueueAccessMode } from './apify_request_queue_backend.js';
 import { ApifyStorageBackend } from './apify_storage_backend.js';
 import type { ChargeOptions, ChargeResult } from './charging.js';
-import { type ChildRunRequest, ChildRunTracker, type TrackedChildRun } from './child_run_tracker.js';
 import { ChargingManager, DEFAULT_DATASET_ITEM_EVENT } from './charging.js';
 import { ChargingStorageBackend } from './charging_storage_backend.js';
+import { type ChildRunRequest, ChildRunTracker, type TrackedChildRun } from './child_run_tracker.js';
 import type { ConfigurationOptions } from './configuration.js';
 import { Configuration } from './configuration.js';
 import { ActorInputError } from './errors.js';
@@ -1029,20 +1029,15 @@ export class Actor<Data extends Dictionary = Dictionary> {
         const tracked = await this.#childRunTracker.get(runName);
         const trackedRun = tracked ? await client.run(tracked.runId).get() : undefined;
 
-        switch (trackedRun?.status) {
-            case 'SUCCEEDED':
-            case 'READY':
-            case 'RUNNING': {
-                this.#childRunTracker.verifyRequest(runName, request);
-                await this.#childRunTracker.update(runName, trackedRun);
-                return { run: trackedRun, resumed: true };
-            }
-            default: {
-                const run = await start();
-                await this.#childRunTracker.track(runName, run, request, trackedRun?.status ?? 'LOST');
-                return { run, resumed: false };
-            }
+        if (trackedRun && ['SUCCEEDED', 'READY', 'RUNNING'].includes(trackedRun.status)) {
+            this.#childRunTracker.verifyRequest(runName, request);
+            await this.#childRunTracker.update(runName, trackedRun);
+            return { run: trackedRun, resumed: true };
         }
+
+        const run = await start();
+        await this.#childRunTracker.track(runName, run, request, trackedRun?.status ?? 'LOST');
+        return { run, resumed: false };
     }
 
     /**
