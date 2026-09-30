@@ -105,11 +105,13 @@ export class ChildRunTracker {
         await this.persist();
     }
 
+    /** Returns the tracked run and its history for `runName`, if there is one. */
     async get(runName: string) {
         const trackedRuns = await this.load();
         return trackedRuns[runName];
     }
 
+    /** Returns a copy of all the tracked runs, keyed by run name. */
     async getAll() {
         return structuredClone(await this.load());
     }
