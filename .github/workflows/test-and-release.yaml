@@ -11,6 +11,9 @@ on:
     pull_request:
         branches: [master]
 
+    # Allows running the checks manually (e.g. to attach check runs to a branch tip)
+    workflow_dispatch:
+
 concurrency:
     group: ${{ github.workflow }}-${{ github.ref }}
     cancel-in-progress: true
