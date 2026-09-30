@@ -15,6 +15,7 @@ export {
     type UrlPatternRequestOptions,
 } from './enqueue_links_filters.js';
 export type { OpenStorageOptions, StorageAlias, StorageId, StorageName, StorageIdentifier } from './storage.js';
+export type { ChildRunInfo, ChildRunStatus, TrackedChildRun } from './child_run_tracker.js';
 export { ChargeOptions, ChargeResult, ActorPricingInfo, ChargingManager } from './charging.js';
 export * from './configuration.js';
 export * from './proxy_configuration.js';
