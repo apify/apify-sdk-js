@@ -41,7 +41,7 @@ jobs:
                   registry-url: 'https://registry.npmjs.org'
 
             - name: Install pnpm and dependencies
-              uses: apify/actions/pnpm-install@v1.6.1
+              uses: apify/actions/pnpm-install@v1.6.2
 
             - name: Build module
               run: pnpm build
@@ -51,7 +51,7 @@ jobs:
             - name: Resolve pre-release version
               id: prerelease
               if: ${{ inputs.tag != 'latest' }}
-              uses: apify/actions/git-cliff-release@v1.6.1
+              uses: apify/actions/git-cliff-release@v1.6.2
               with:
                   release_type: prerelease
                   prerelease_id: ${{ inputs.tag == 'rc' && 'rc' || 'beta' }}
