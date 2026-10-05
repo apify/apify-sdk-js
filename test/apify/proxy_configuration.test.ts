@@ -1,5 +1,5 @@
 import type { Dictionary } from '@crawlee/types';
-import { Actor, ArgumentValidationError, ProxyConfiguration } from 'apify';
+import { Actor, ArgumentValidationError, Configuration, ProxyConfiguration } from 'apify';
 import { UserClient } from 'apify-client';
 import { sleep } from 'crawlee';
 import type { MockInstance } from 'vitest';
@@ -97,6 +97,40 @@ describe('ProxyConfiguration', () => {
             hostname: 'proxy.com',
             port: '1111',
         });
+    });
+
+    test('newProxyInfo() moves a passed Apify Proxy info to the current endpoint, keeping its session', async () => {
+        const previous = (await new ProxyConfiguration(basicOpts).newProxyInfo())!;
+        const proxyConfiguration = new ProxyConfiguration(
+            { ...basicOpts, password: 'new-password' },
+            new Configuration({ proxyHostname: '10.0.0.2', proxyPort: 8011 }),
+        );
+
+        const info = (await proxyConfiguration.newProxyInfo(previous))!;
+        expect(info.url).toBe(`http://${previous.username}:new-password@10.0.0.2:8011`);
+        expect(info.username).toBe(previous.username);
+        expect(info.password).toBe('new-password');
+        expect(info.hostname).toBe('10.0.0.2');
+        expect(info.port).toBe('8011');
+    });
+
+    test('newProxyInfo() returns a passed custom proxy info unchanged', async () => {
+        const proxyInfo = { url: 'http://proxy.com:1111', hostname: 'proxy.com', port: '1111', password: '' };
+
+        expect(await new ProxyConfiguration(basicOpts).newProxyInfo(proxyInfo)).toBe(proxyInfo);
+    });
+
+    test('newProxyInfo() returns a passed proxy info with groups but no proxy session unchanged', async () => {
+        const proxyInfo = {
+            url: 'http://user:pass@proxy.com:1111',
+            username: 'user',
+            password: 'pass',
+            hostname: 'proxy.com',
+            port: '1111',
+            groups: [],
+        };
+
+        expect(await new ProxyConfiguration(basicOpts).newProxyInfo(proxyInfo)).toBe(proxyInfo);
     });
 
     test('actor UI input schema should work', async () => {
@@ -327,6 +361,15 @@ describe('ProxyConfiguration', () => {
             expect((await proxyConfiguration.newProxyInfo())!.url).toEqual(proxyUrls[0]);
             expect((await proxyConfiguration.newProxyInfo())!.url).toEqual(proxyUrls[1]);
             expect((await proxyConfiguration.newProxyInfo())!.url).toEqual(proxyUrls[2]);
+        });
+
+        test('newProxyInfo() should return a passed ProxyInfo without advancing the rotation', async () => {
+            const proxyUrls = ['http://proxy.com:1111', 'http://proxy.com:2222'];
+            const proxyConfiguration = new ProxyConfiguration({ proxyUrls });
+
+            const proxyInfo = await proxyConfiguration.newProxyInfo();
+            expect(await proxyConfiguration.newProxyInfo(proxyInfo)).toBe(proxyInfo);
+            expect((await proxyConfiguration.newProxyInfo())!.url).toEqual(proxyUrls[1]);
         });
 
         test('should throw cannot combine custom proxies with Apify Proxy', async () => {
