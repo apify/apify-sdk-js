@@ -80,10 +80,10 @@
         "@apify/timeout": "^1.0.1",
         "@apify/utilities": "^3.1.0",
         "@apify/validations": "^1.1.1",
-        "@crawlee/core": "4.0.0-beta.213",
-        "@crawlee/fs-storage": "4.0.0-beta.213",
-        "@crawlee/types": "4.0.0-beta.213",
-        "@crawlee/utils": "4.0.0-beta.213",
+        "@crawlee/core": "4.0.0-rc.1",
+        "@crawlee/fs-storage": "4.0.0-rc.1",
+        "@crawlee/types": "4.0.0-rc.1",
+        "@crawlee/utils": "4.0.0-rc.1",
         "apify-client": "^3.0.0-beta.28",
         "minimatch": "^10.2.6",
         "semver": "^7.8.5",
@@ -100,11 +100,11 @@
         "@types/semver": "^7.8.0",
         "@types/ws": "^8.18.1",
         "commitlint": "^21.2.3",
-        "crawlee": "4.0.0-beta.213",
+        "crawlee": "4.0.0-rc.1",
         "husky": "^9.1.7",
         "lint-staged": "^17.6.0",
         "oxfmt": "0.72.0",
-        "oxlint": "1.86.0",
+        "oxlint": "1.87.0",
         "oxlint-tsgolint": "7.0.2003",
         "playwright": "^1.63.0",
         "puppeteer": "^25.12.0",
@@ -113,11 +113,11 @@
         "typescript": "~7.0.2",
         "vitest": "^5.0.2"
     },
-    "packageManager": "pnpm@12.8.1",
+    "packageManager": "pnpm@12.9.1",
     "devEngines": {
         "packageManager": {
             "name": "pnpm",
-            "version": "12.8.1",
+            "version": "12.9.1",
             "onFail": "warn"
         }
     }
