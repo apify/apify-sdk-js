@@ -32,14 +32,19 @@ const sortKeys = (value: unknown): unknown => {
 
     return Object.fromEntries(
         Object.entries(value)
-            .sort(([a], [b]) => a.localeCompare(b))
+            .sort(([a], [b]) => Number(a > b) - Number(a < b))
             .map(([key, nested]) => [key, sortKeys(nested)]),
     );
 };
 
+// Hashes the JSON form that `apify-client` sends (`Date` -> ISO string, `URL` -> href, functions -> source),
+// not the objects' own keys.
+const toSentJson = (value: unknown) =>
+    JSON.parse(JSON.stringify(value, (_key, nested) => (typeof nested === 'function' ? nested.toString() : nested)));
+
 const checksumRequest = ({ type, id, input }: ChildRunRequest) =>
     createHash('sha256')
-        .update(JSON.stringify(sortKeys({ type, id, input })) ?? '')
+        .update(JSON.stringify(sortKeys(toSentJson({ type, id, input }))))
         .digest('hex');
 
 const toInfo = (run: ActorRun): ChildRunInfo => ({
@@ -60,7 +65,10 @@ export class ChildRunTracker {
      */
     async withLock<T>(runName: string, fn: () => Promise<T>): Promise<T> {
         const result = (this.locks.get(runName) ?? Promise.resolve()).then(fn);
-        this.locks.set(runName, result.catch(() => {}));
+        this.locks.set(
+            runName,
+            result.catch(() => {}),
+        );
         return result;
     }
 
