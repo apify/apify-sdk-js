@@ -328,8 +328,11 @@ export interface Timeout {
 
 export interface ChildRunOptions {
     /**
-     * Local name for the child run. This serves as a way to identify the child run in case of a migration.
-     * The name must be unique across all Actors and tasks started by this run.
+     * Local name for the child run, unique across all Actors and tasks started by this run.
+     *
+     * If a `READY`, `RUNNING` or `SUCCEEDED` run is already tracked under this name, it is returned instead of
+     * starting a new one, including after a migration or resurrection of this run. A run that failed, was aborted
+     * or timed out is replaced by a new one. Reusing the name for a different Actor, task or input throws.
      */
     runName?: string;
 }
