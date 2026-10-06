@@ -317,7 +317,7 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
      * Apify Proxy one. Its endpoint is specific to the host, so it is moved to the current endpoint, keeping the
      * username and with it the proxy session.
      */
-    override async newProxyInfo(proxyInfo?: CoreProxyInfo): Promise<ProxyInfo | undefined> {
+    override async newProxyInfo(proxyInfo?: ProxyInfo): Promise<ProxyInfo | undefined> {
         // Only Apify Proxy infos carry `groups` and a proxy session in the username.
         if (
             proxyInfo &&
@@ -337,6 +337,8 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
             hostname: parsed.hostname,
             port: parsed.port,
         };
+        // A refreshed info keeps its own groups/country, which match its username rather than this config.
+        if (proxyInfo) return { ...proxyInfo, ...result };
         if (this.#usesApifyProxy) {
             result.groups = this.#groups;
             if (this.#countryCode !== undefined) result.countryCode = this.#countryCode;

@@ -114,6 +114,20 @@ describe('ProxyConfiguration', () => {
         expect(info.port).toBe('8011');
     });
 
+    test('newProxyInfo() keeps the fields of a passed Apify Proxy info from another configuration', async () => {
+        const previous = (await new ProxyConfiguration({
+            groups: ['RESIDENTIAL'],
+            countryCode: 'US',
+            password,
+        }).newProxyInfo())!;
+
+        const info = (await new ProxyConfiguration(basicOpts).newProxyInfo({ ...previous, ignoreTlsErrors: true }))!;
+        expect(info.username).toBe(previous.username);
+        expect(info.groups).toEqual(['RESIDENTIAL']);
+        expect(info.countryCode).toBe('US');
+        expect(info.ignoreTlsErrors).toBe(true);
+    });
+
     test('newProxyInfo() returns a passed custom proxy info unchanged', async () => {
         const proxyInfo = { url: 'http://proxy.com:1111', hostname: 'proxy.com', port: '1111', password: '' };
 
