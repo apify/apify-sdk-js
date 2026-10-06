@@ -132,7 +132,11 @@ export class ChildRunTracker {
     private async load() {
         this.trackedRuns ??= KeyValueStore.open()
             .then(async (defaultStore) => defaultStore.getValue<Record<string, TrackedChildRun>>(CHILD_RUNS_KVS_KEY))
-            .then((storedRuns) => storedRuns ?? {});
+            .then((storedRuns) => storedRuns ?? {})
+            .catch((error) => {
+                this.trackedRuns = undefined;
+                throw error;
+            });
 
         return this.trackedRuns;
     }
