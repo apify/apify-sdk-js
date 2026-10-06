@@ -53,6 +53,16 @@ const CHILD_RUNS_KVS_KEY = 'CHILD_RUNS';
 export class ChildRunTracker {
     private trackedRuns?: Promise<Record<string, TrackedChildRun>>;
     private lastWrite: Promise<void> = Promise.resolve();
+    private locks = new Map<string, Promise<unknown>>();
+
+    /**
+     * Runs `fn` once the earlier calls for the same `runName` have settled.
+     */
+    async withLock<T>(runName: string, fn: () => Promise<T>): Promise<T> {
+        const result = (this.locks.get(runName) ?? Promise.resolve()).then(fn);
+        this.locks.set(runName, result.catch(() => {}));
+        return result;
+    }
 
     /**
      * Throws if the run tracked under `runName` was started for a different Actor / task or input,

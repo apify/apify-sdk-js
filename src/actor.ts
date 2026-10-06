@@ -1029,18 +1029,20 @@ export class Actor<Data extends Dictionary = Dictionary> {
         request: ChildRunRequest,
         start: () => Promise<ClientActorRun>,
     ): Promise<{ run: ClientActorRun; resumed: boolean }> {
-        const tracked = await this.#childRunTracker.get(runName);
-        const trackedRun = tracked ? await client.run(tracked.runId).get() : undefined;
+        return this.#childRunTracker.withLock(runName, async () => {
+            const tracked = await this.#childRunTracker.get(runName);
+            const trackedRun = tracked ? await client.run(tracked.runId).get() : undefined;
 
-        if (trackedRun && ['SUCCEEDED', 'READY', 'RUNNING'].includes(trackedRun.status)) {
-            await this.#childRunTracker.verifyRequest(runName, request);
-            await this.#childRunTracker.update(runName, trackedRun);
-            return { run: trackedRun, resumed: true };
-        }
+            if (trackedRun && ['SUCCEEDED', 'READY', 'RUNNING'].includes(trackedRun.status)) {
+                await this.#childRunTracker.verifyRequest(runName, request);
+                await this.#childRunTracker.update(runName, trackedRun);
+                return { run: trackedRun, resumed: true };
+            }
 
-        const run = await start();
-        await this.#childRunTracker.track(runName, run, request, trackedRun?.status ?? 'LOST');
-        return { run, resumed: false };
+            const run = await start();
+            await this.#childRunTracker.track(runName, run, request, trackedRun?.status ?? 'LOST');
+            return { run, resumed: false };
+        });
     }
 
     /**
