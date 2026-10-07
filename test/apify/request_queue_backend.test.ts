@@ -258,7 +258,7 @@ describe('ApifyRequestQueueSharedBackend', () => {
         await expect(backend.isFinished()).resolves.toBe(true);
     });
 
-    test('reclaiming updates the request, releases its lock, and honors forefront', async () => {
+    test('reclaiming updates the request, releases its lock, and passes forefront through', async () => {
         const api = createMockApiClient();
         api.listAndLockHead.mockResolvedValueOnce({
             items: [
@@ -280,11 +280,10 @@ describe('ApifyRequestQueueSharedBackend', () => {
         expect(api.updateRequest).toHaveBeenCalledWith(expect.objectContaining({ id: id('a') }), { forefront: true });
         expect(api.deleteRequestLock).toHaveBeenCalledWith(id('a'), { forefront: true });
 
-        // The forefront reclaim invalidates the local head order — the next fetch re-reads the
-        // head even though buffered ids remain.
+        // Forefront ordering is left to the platform — buffered ids are drained without a re-fetch.
         expect(api.listAndLockHead).toHaveBeenCalledTimes(1);
-        await backend.fetchNextRequest();
-        expect(api.listAndLockHead).toHaveBeenCalledTimes(2);
+        expect((await backend.fetchNextRequest())?.id).toBe(id('b'));
+        expect(api.listAndLockHead).toHaveBeenCalledTimes(1);
     });
 
     test('skips requests handled by another client in the meantime', async () => {

@@ -50,9 +50,6 @@ export class ApifyRequestQueueSharedBackend extends ApifyRequestQueueBackend {
     /** Whether the last head read reported any locked requests left in the queue (any client's). */
     #queueHasLockedRequests?: boolean;
 
-    /** Set after a forefront insert — the next head read starts fresh so the insert is honored. */
-    #shouldCheckForefrontRequests = false;
-
     /** Lock duration applied to fetched requests; raised via `setExpectedRequestProcessingTimeSecs`. */
     #lockSecs = DEFAULT_REQUEST_LOCK_SECS;
 
@@ -96,11 +93,6 @@ export class ApifyRequestQueueSharedBackend extends ApifyRequestQueueBackend {
             result = await this.sendBatch(newRequests, forefront);
             for (const processed of result.processedRequests) {
                 this.cacheRequestInfo(processed.requestId, { wasAlreadyHandled: processed.wasAlreadyHandled });
-            }
-            // A forefront insert changes the head order — have the next head read re-fetch the
-            // front of the queue instead of draining the local buffer first.
-            if (forefront) {
-                this.#shouldCheckForefrontRequests = true;
             }
         }
 
@@ -185,9 +177,6 @@ export class ApifyRequestQueueSharedBackend extends ApifyRequestQueueBackend {
 
             this.#inProgressIds.delete(id);
             this.cacheRequestInfo(id, { wasAlreadyHandled: false });
-            if (forefront) {
-                this.#shouldCheckForefrontRequests = true;
-            }
             if (info.wasAlreadyHandled) {
                 this.estimatedHandledRequestCount -= 1;
             }
@@ -214,7 +203,7 @@ export class ApifyRequestQueueSharedBackend extends ApifyRequestQueueBackend {
 
     /** Must be called with the head lock held. */
     private async ensureHeadIsNonEmpty(): Promise<void> {
-        if (this.#headIds.length > 1 && !this.#shouldCheckForefrontRequests) {
+        if (this.#headIds.length > 1) {
             return;
         }
         await this.listAndLockHead(HEAD_LOCK_LIMIT);
@@ -222,24 +211,15 @@ export class ApifyRequestQueueSharedBackend extends ApifyRequestQueueBackend {
 
     /** Must be called with the head lock held. */
     private async listAndLockHead(limit: number): Promise<void> {
-        // After a forefront insert the local buffer no longer starts at the true front of the
-        // queue — re-fetch the front and keep the already-locked leftovers for afterwards.
-        let leftoverIds: string[] = [];
-        if (this.#shouldCheckForefrontRequests) {
-            leftoverIds = this.#headIds.splice(0);
-            this.#shouldCheckForefrontRequests = false;
-        }
-
         const head = await this.client.listAndLockHead({ limit, lockSecs: this.#lockSecs });
         this.#queueHasLockedRequests = head.queueHasLockedRequests;
 
         for (const item of head.items) {
             if (this.#inProgressIds.has(item.id)) continue;
-            if (this.#headIds.includes(item.id) || leftoverIds.includes(item.id)) continue;
+            if (this.#headIds.includes(item.id)) continue;
             this.cacheRequestInfo(item.id, { wasAlreadyHandled: false });
             this.#headIds.push(item.id);
         }
-        this.#headIds.push(...leftoverIds);
     }
 
     private async isKnownOrExists(id: string): Promise<boolean> {
