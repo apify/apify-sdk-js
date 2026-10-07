@@ -1078,7 +1078,7 @@ describe('Actor', () => {
         let waitForFinishSpy: MockInstance;
         let getStreamedLogSpy: MockInstance;
 
-        const readStored = async (actor: Actor) => (await actor.openKeyValueStore()).getValue('CHILD_RUNS');
+        const readStored = async (actor: Actor) => (await actor.openKeyValueStore()).getValue('__ACTOR_CHILD_RUNS');
         const newActor = () => createIsolatedActor({ storageClient: storage }).actor;
 
         beforeEach(() => {

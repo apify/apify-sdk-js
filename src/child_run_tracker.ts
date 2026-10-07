@@ -53,7 +53,7 @@ const toInfo = (run: ActorRun): ChildRunInfo => ({
     startedAt: run.startedAt.toISOString(),
 });
 
-const CHILD_RUNS_KVS_KEY = 'CHILD_RUNS';
+const CHILD_RUNS_KVS_KEY = '__ACTOR_CHILD_RUNS';
 
 export class ChildRunTracker {
     private trackedRuns?: Promise<Record<string, TrackedChildRun>>;

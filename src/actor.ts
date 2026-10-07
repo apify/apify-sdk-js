@@ -1050,7 +1050,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * that were replaced under the same name in `history`.
      *
      * The statuses are the last ones this Actor observed: a run nobody waits for is not refreshed.
-     * The same record is stored in the default key-value store under the `CHILD_RUNS` key.
+     * The same record is stored in the default key-value store under the `__ACTOR_CHILD_RUNS` key.
      */
     async childRuns(): Promise<Record<string, TrackedChildRun>> {
         return this.#childRunTracker.getAll();
@@ -2038,7 +2038,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * that were replaced under the same name in `history`.
      *
      * The statuses are the last ones this Actor observed: a run nobody waits for is not refreshed.
-     * The same record is stored in the default key-value store under the `CHILD_RUNS` key.
+     * The same record is stored in the default key-value store under the `__ACTOR_CHILD_RUNS` key.
      */
     static async childRuns(): Promise<Record<string, TrackedChildRun>> {
         return Actor.getDefaultInstance().childRuns();
