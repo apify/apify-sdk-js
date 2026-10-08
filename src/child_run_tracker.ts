@@ -2,6 +2,8 @@ import { createHash } from 'node:crypto';
 
 import { KeyValueStore, withDirectStorageAccess } from '@crawlee/core';
 import type { ActorRun } from 'apify-client';
+import { ReentrantAsyncLock } from './utils.js';
+import type { ApifyClient } from './index.js';
 
 /** `LOST` marks a tracked run that the platform no longer returns. */
 export type ChildRunStatus = ActorRun['status'] | 'LOST';
@@ -58,19 +60,7 @@ const CHILD_RUNS_KVS_KEY = '__ACTOR_CHILD_RUNS';
 export class ChildRunTracker {
     private trackedRuns?: Promise<Record<string, TrackedChildRun>>;
     private lastWrite: Promise<void> = Promise.resolve();
-    private locks = new Map<string, Promise<unknown>>();
-
-    /**
-     * Runs `fn` once the earlier calls for the same `runName` have settled.
-     */
-    async withLock<T>(runName: string, fn: () => Promise<T>): Promise<T> {
-        const result = (this.locks.get(runName) ?? Promise.resolve()).then(fn);
-        this.locks.set(
-            runName,
-            result.catch(() => {}),
-        );
-        return result;
-    }
+    private locks = new Map<string, ReentrantAsyncLock>();
 
     /**
      * Throws if the run tracked under `runName` was started for a different Actor / task or input,
@@ -84,6 +74,37 @@ export class ChildRunTracker {
                 `The run name "${runName}" was already used for a different Actor, task or input. Use a unique \`runName\` for each child run.`,
             );
         }
+    }
+
+    /**
+     * Returns the child run tracked under `runName` if it is still in progress or has succeeded.
+     * Otherwise (the run failed, was aborted, timed out or is gone), starts a new one using `start`
+     * and tracks it under `runName`, keeping the previous one in the history.
+     */
+    async startOrResumeChildRun(
+        client: ApifyClient,
+        runName: string,
+        request: ChildRunRequest,
+        start: () => Promise<ActorRun>,
+    ): Promise<{ run: ActorRun; resumed: boolean }> {
+        if (!this.locks.has(runName)) {
+            this.locks.set(runName, new ReentrantAsyncLock());
+        }
+
+        return this.locks.get(runName).runExclusive(async () => {
+            const tracked = await this.get(runName);
+            const trackedRun = tracked ? await client.run(tracked.runId).get() : undefined;
+
+            if (trackedRun && ['SUCCEEDED', 'READY', 'RUNNING'].includes(trackedRun.status)) {
+                await this.verifyRequest(runName, request);
+                await this.update(runName, trackedRun);
+                return { run: trackedRun, resumed: true };
+            }
+
+            const run = await start();
+            await this.track(runName, run, request, trackedRun?.status ?? 'LOST');
+            return { run, resumed: false };
+        });
     }
 
     /**

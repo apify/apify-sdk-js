@@ -15,6 +15,7 @@ import log from '@apify/log';
 
 // @ts-ignore if we enable resolveJsonModule, we end up with `src` folder in `dist`
 import apifyPkgJson from '../package.json' with { type: 'json' };
+import { AsyncLocalStorage } from 'node:async_hooks';
 
 export { ArgumentValidationError } from '@apify/validations';
 
@@ -137,4 +138,24 @@ export function printOutdatedSdkWarning() {
 
     log.warning(`You are using an outdated version (${apifyPkgJson.version}) of Apify SDK. We recommend you to update to the latest version (${latestApifyVersion}).
          Read more about Apify SDK versioning at: https://help.apify.com/en/articles/3184510-updates-and-versioning-of-apify-sdk`);
+}
+
+/**
+ * A FIFO mutex that a critical section may re-enter from a nested call — the charge lock is taken by
+ * `Actor.pushData()` and again, one level down, by the dataset backend it pushes through.
+ */
+export class ReentrantAsyncLock {
+    #tail: Promise<unknown> = Promise.resolve();
+    readonly #held = new AsyncLocalStorage<true>();
+
+    async runExclusive<T>(fn: () => Promise<T>): Promise<T> {
+        if (this.#held.getStore()) {
+            return await fn();
+        }
+
+        const run = this.#tail.then(async () => this.#held.run(true, fn));
+        // Keep the chain alive even when the critical section throws.
+        this.#tail = run.catch(() => {});
+        return await run;
+    }
 }

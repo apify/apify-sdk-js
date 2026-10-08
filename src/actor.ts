@@ -52,7 +52,7 @@ import { ApifyStorageBackend } from './apify_storage_backend.js';
 import type { ChargeOptions, ChargeResult } from './charging.js';
 import { ChargingManager, DEFAULT_DATASET_ITEM_EVENT } from './charging.js';
 import { ChargingStorageBackend } from './charging_storage_backend.js';
-import { type ChildRunRequest, ChildRunTracker, type TrackedChildRun } from './child_run_tracker.js';
+import { ChildRunTracker, type TrackedChildRun } from './child_run_tracker.js';
 import type { ConfigurationOptions } from './configuration.js';
 import { Configuration } from './configuration.js';
 import { ActorInputError } from './errors.js';
@@ -887,7 +887,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
         if (!runName) return client.actor(actorId).call(input, { ...rest, runTimeoutSecs });
 
         const { waitSecs, log, ...startOptions } = rest;
-        const { run, resumed } = await this.#startOrResumeChildRun(
+        const { run, resumed } = await this.#childRunTracker.startOrResumeChildRun(
             client,
             runName,
             { type: 'actor', id: actorId, input },
@@ -936,7 +936,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
 
         if (!runName) return client.actor(actorId).start(input, { ...rest, runTimeoutSecs });
 
-        const { run } = await this.#startOrResumeChildRun(
+        const { run } = await this.#childRunTracker.startOrResumeChildRun(
             client,
             runName,
             { type: 'actor', id: actorId, input },
@@ -1007,7 +1007,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
         if (!runName) return client.task(taskId).call(input, { ...rest, runTimeoutSecs });
 
         const { waitSecs, ...startOptions } = rest;
-        const { run } = await this.#startOrResumeChildRun(
+        const { run } = await this.#childRunTracker.startOrResumeChildRun(
             client,
             runName,
             { type: 'task', id: taskId, input },
@@ -1016,33 +1016,6 @@ export class Actor<Data extends Dictionary = Dictionary> {
         const finishedRun = await client.run(run.id).waitForFinish({ waitSecs });
         await this.#childRunTracker.update(runName, finishedRun);
         return finishedRun;
-    }
-
-    /**
-     * Returns the child run tracked under `runName` if it is still in progress or has succeeded.
-     * Otherwise (the run failed, was aborted, timed out or is gone), starts a new one using `start`
-     * and tracks it under `runName`, keeping the previous one in the history.
-     */
-    async #startOrResumeChildRun(
-        client: ApifyClient,
-        runName: string,
-        request: ChildRunRequest,
-        start: () => Promise<ClientActorRun>,
-    ): Promise<{ run: ClientActorRun; resumed: boolean }> {
-        return this.#childRunTracker.withLock(runName, async () => {
-            const tracked = await this.#childRunTracker.get(runName);
-            const trackedRun = tracked ? await client.run(tracked.runId).get() : undefined;
-
-            if (trackedRun && ['SUCCEEDED', 'READY', 'RUNNING'].includes(trackedRun.status)) {
-                await this.#childRunTracker.verifyRequest(runName, request);
-                await this.#childRunTracker.update(runName, trackedRun);
-                return { run: trackedRun, resumed: true };
-            }
-
-            const run = await start();
-            await this.#childRunTracker.track(runName, run, request, trackedRun?.status ?? 'LOST');
-            return { run, resumed: false };
-        });
     }
 
     /**
