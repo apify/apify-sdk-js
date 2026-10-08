@@ -211,7 +211,7 @@ importers:
         specifier: 4.0.0-rc.1
         version: 4.0.0-rc.1(supports-color@8.1.1)
       apify-client:
-        specifier: ^3.0.0-beta.28
+        specifier: ^3.0.0-beta.53
         version: 3.0.0-beta.53(debug@4.4.3(supports-color@8.1.1))(supports-color@8.1.1)
       minimatch:
         specifier: ^10.2.6
