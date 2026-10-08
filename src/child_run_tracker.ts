@@ -91,7 +91,7 @@ export class ChildRunTracker {
             this.locks.set(runName, new ReentrantAsyncLock());
         }
 
-        return this.locks.get(runName).runExclusive(async () => {
+        return this.locks.get(runName)!.runExclusive(async () => {
             const tracked = await this.get(runName);
             const trackedRun = tracked ? await client.run(tracked.runId).get() : undefined;
 
