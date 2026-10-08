@@ -69,7 +69,7 @@ describe('child run tracking with `runName`', () => {
     });
 
     test.each(['READY', 'RUNNING', 'SUCCEEDED'] as const)(
-        'start() resumes a tracked run in the %s status after a restart',
+        'start() respects an existing Actor run with %s status',
         async (status) => {
             await newActor().start(actId, input, { runName });
             startSpy.mockClear();
@@ -180,7 +180,7 @@ describe('child run tracking with `runName`', () => {
         await expect(actor.start(actId, { foo: 'baz' }, { runName })).rejects.toThrow(/already used/);
     });
 
-    test('reusing a run name with an equivalent input in the same process resumes the run', async () => {
+    test('reusing a run name with an equivalent input in the same process deduplicates the run', async () => {
         const actor = newActor();
         await actor.start(actId, { a: 1, b: { c: 2, d: 3 } }, { runName });
 
@@ -189,14 +189,14 @@ describe('child run tracking with `runName`', () => {
         expect(startSpy).toBeCalledTimes(1);
     });
 
-    test('reusing a run name with a different input after a restart throws', async () => {
+    test('reusing a run name with a different input after a migration throws', async () => {
         await newActor().start(actId, input, { runName });
 
         await expect(newActor().start(actId, { foo: 'baz' }, { runName })).rejects.toThrow(/already used/);
         expect(startSpy).toBeCalledTimes(1);
     });
 
-    test('reusing a run name with the same input after a restart resumes the run', async () => {
+    test('reusing a run name with the same input after a migration deduplicates the run', async () => {
         await newActor().start(actId, { a: 1, b: 2 }, { runName });
 
         await newActor().start(actId, { b: 2, a: 1 }, { runName });
@@ -258,7 +258,7 @@ describe('child run tracking with `runName`', () => {
         expect(startSpy).not.toBeCalled();
     });
 
-    test('callTask() resumes the tracked run instead of starting a new one', async () => {
+    test('callTask() deduplicates the tracked run instead of starting a new one', async () => {
         await newActor().callTask(taskId, input, { runName });
         expect(taskStartSpy).toBeCalledTimes(1);
         taskStartSpy.mockClear();
