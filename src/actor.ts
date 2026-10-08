@@ -28,10 +28,10 @@ import type {
     ApifyClientOptions,
     RunAbortOptions,
     TaskCallOptions,
-    Webhook,
+    WebhookResource,
     WebhookEventType,
 } from 'apify-client';
-import { ActorRun as ClientActorRun, ApifyClient } from 'apify-client';
+import { ApifyClient, Run as ClientActorRun } from 'apify-client';
 import { z } from 'zod';
 
 import {
@@ -1043,7 +1043,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * For more information, see the [Get webhook](https://apify.com/docs/api/v2#/reference/webhooks/webhook-object/get-webhook) API endpoint.
      * @ignore
      */
-    async addWebhook(options: WebhookOptions): Promise<Webhook | undefined> {
+    async addWebhook(options: WebhookOptions): Promise<WebhookResource | undefined> {
         parseArgument(
             options,
             z
@@ -1991,7 +1991,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @returns The return value is the Webhook object.
      * For more information, see the [Get webhook](https://apify.com/docs/api/v2#/reference/webhooks/webhook-object/get-webhook) API endpoint.
      */
-    static async addWebhook(options: WebhookOptions): Promise<Webhook | undefined> {
+    static async addWebhook(options: WebhookOptions): Promise<WebhookResource | undefined> {
         return Actor.getDefaultInstance().addWebhook(options);
     }
 

@@ -8,7 +8,7 @@ import { EventType, MemoryStorageBackend, serviceLocator } from '@crawlee/core';
 import { sleep } from '@crawlee/utils';
 import type { ApifyEnv } from 'apify';
 import { Actor, ActorInputError, Configuration, Dataset, KeyValueStore, ProxyConfiguration, RequestQueue } from 'apify';
-import type { ActorRun, WebhookUpdateData } from 'apify-client';
+import type { Run, WebhookUpdateData } from 'apify-client';
 import { ActorClient, ApifyClient, RunClient, TaskClient } from 'apify-client';
 import { BasicCrawler } from 'crawlee';
 
@@ -1326,7 +1326,7 @@ describe('Actor', () => {
         const runId = 'status-message-run-id';
         // A `RunClient.update()` stub — the tests only assert on the payload it receives,
         // so the resolved run is never inspected.
-        const stubRun = {} as unknown as ActorRun;
+        const stubRun = {} as unknown as Run;
 
         beforeEach(() => {
             process.env[ACTOR_ENV_VARS.RUN_ID] = runId;
