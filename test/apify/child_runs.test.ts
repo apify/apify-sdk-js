@@ -1,6 +1,6 @@
 import { MemoryStorageBackend } from '@crawlee/core';
 import type { Actor } from 'apify';
-import type { ActorRun } from 'apify-client';
+import type { Run as ActorRun } from 'apify-client';
 import { ActorClient, RunClient, TaskClient } from 'apify-client';
 import type { MockInstance } from 'vitest';
 import { createIsolatedActor } from '../createIsolatedActor';

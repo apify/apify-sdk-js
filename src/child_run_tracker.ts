@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto';
 
 import { KeyValueStore, withDirectStorageAccess } from '@crawlee/core';
-import type { ActorRun } from 'apify-client';
+import type { Run as ActorRun } from 'apify-client';
 import { ReentrantAsyncLock } from './utils.js';
 import type { ApifyClient } from './index.js';
 
