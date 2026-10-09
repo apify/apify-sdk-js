@@ -935,6 +935,14 @@ describe('Actor', () => {
             });
         });
 
+        test(`Actor.resurrect({timeout: 'inherit'})`, async () => {
+            const resurrectSpy = vitest.spyOn(RunClient.prototype, 'resurrect').mockReturnValue(undefined as any);
+            await Actor.resurrect(globalOptions.runId, { timeout: 'inherit' });
+            expect(resurrectSpy).toBeCalledWith({
+                runTimeoutSecs: (actorTimeout - usedTime) / 1000,
+            });
+        });
+
         test(`inherited timeout is rounded up to a whole second`, async () => {
             vi.setSystemTime(new Date(testStartTime.getTime() + usedTime + 500));
 
@@ -1058,6 +1066,38 @@ describe('Actor', () => {
             expect(callSpy).toBeCalledWith(input, { memory, runTimeoutSecs: timeout, build, webhooks });
 
             expect(callOutput).toEqual(finishedRun);
+        });
+    });
+
+    describe('Actor.resurrect()', () => {
+        const { runId, token, build } = globalOptions;
+        const { finishedRun } = runConfigs;
+
+        test('works as expected', async () => {
+            const options = { build, memory: 1024, timeout: 60, maxItems: 100, restartOnError: true };
+
+            const runSpy = vitest.spyOn(ApifyClient.prototype, 'run');
+            const resurrectSpy = vitest.spyOn(RunClient.prototype, 'resurrect').mockResolvedValue(finishedRun);
+            const run = await Actor.resurrect(runId, options);
+
+            expect(run).toEqual(finishedRun);
+            expect(runSpy).toBeCalledWith(runId);
+            expect(resurrectSpy).toBeCalledWith({
+                build,
+                memory: 1024,
+                runTimeoutSecs: 60,
+                maxItems: 100,
+                restartOnError: true,
+            });
+        });
+
+        test('works with token', async () => {
+            const newClientSpy = vitest.spyOn(Actor.prototype, 'newClient');
+            const resurrectSpy = vitest.spyOn(RunClient.prototype, 'resurrect').mockResolvedValue(finishedRun);
+            await Actor.resurrect(runId, { token, build });
+
+            expect(newClientSpy).toBeCalledWith({ token });
+            expect(resurrectSpy).toBeCalledWith({ build });
         });
     });
 

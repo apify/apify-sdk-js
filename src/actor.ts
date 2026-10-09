@@ -27,6 +27,7 @@ import type {
     ActorStartOptions,
     ApifyClientOptions,
     RunAbortOptions,
+    RunResurrectOptions,
     TaskCallOptions,
     WebhookResource,
     WebhookEventType,
@@ -328,6 +329,7 @@ export interface Timeout {
 export interface CallOptions extends Omit<ActorCallOptions, 'runTimeoutSecs'>, Token, Timeout {}
 export interface StartOptions extends Omit<ActorStartOptions, 'waitForFinish' | 'runTimeoutSecs'>, Token, Timeout {}
 export interface CallTaskOptions extends Omit<TaskCallOptions, 'runTimeoutSecs'>, Token, Timeout {}
+export interface ResurrectOptions extends Omit<RunResurrectOptions, 'runTimeoutSecs'>, Token, Timeout {}
 
 export interface AbortOptions extends RunAbortOptions, Token {
     /** Exit with given status message */
@@ -924,6 +926,32 @@ export class Actor<Data extends Dictionary = Dictionary> {
         }
 
         return client.run(runId).abort(rest);
+    }
+
+    /**
+     * Resurrects a finished Actor run on the Apify platform using the current user account (determined by the `APIFY_TOKEN` environment variable).
+     *
+     * Only finished runs (SUCCEEDED, FAILED, ABORTED or TIMED-OUT) can be resurrected. The run goes back to the RUNNING
+     * status and keeps its default storages. Options you leave out keep the values of the original run.
+     *
+     * The result of the function is an {@apilink ActorRun} object that contains details about the Actor run.
+     *
+     * For more information about Actors, read the
+     * [documentation](https://docs.apify.com/actor).
+     *
+     * **Example usage:**
+     *
+     * ```js
+     * const run = await Actor.resurrect(runId);
+     * ```
+     * @ignore
+     */
+    async resurrect(runId: string, options: ResurrectOptions = {}): Promise<ClientActorRun> {
+        const runTimeoutSecs = options.timeout === 'inherit' ? this.getRemainingTimeSecs() : options.timeout;
+        const { token, timeout: _timeout, ...rest } = options;
+        const client = token ? this.newClient({ token }) : this.apifyClient;
+
+        return client.run(runId).resurrect({ ...rest, runTimeoutSecs });
     }
 
     /**
@@ -1953,6 +1981,27 @@ export class Actor<Data extends Dictionary = Dictionary> {
      */
     static async abort(runId: string, options: AbortOptions = {}): Promise<ClientActorRun> {
         return Actor.getDefaultInstance().abort(runId, options);
+    }
+
+    /**
+     * Resurrects a finished Actor run on the Apify platform using the current user account (determined by the `APIFY_TOKEN` environment variable).
+     *
+     * Only finished runs (SUCCEEDED, FAILED, ABORTED or TIMED-OUT) can be resurrected. The run goes back to the RUNNING
+     * status and keeps its default storages. Options you leave out keep the values of the original run.
+     *
+     * The result of the function is an {@apilink ActorRun} object that contains details about the Actor run.
+     *
+     * For more information about Actors, read the
+     * [documentation](https://docs.apify.com/actor).
+     *
+     * **Example usage:**
+     *
+     * ```js
+     * const run = await Actor.resurrect(runId);
+     * ```
+     */
+    static async resurrect(runId: string, options: ResurrectOptions = {}): Promise<ClientActorRun> {
+        return Actor.getDefaultInstance().resurrect(runId, options);
     }
 
     /**
