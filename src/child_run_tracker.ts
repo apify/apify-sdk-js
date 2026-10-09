@@ -5,7 +5,12 @@ import type { ActorRun } from 'apify-client';
 import { ReentrantAsyncLock } from './utils.js';
 import type { ApifyClient } from './index.js';
 
-/** `LOST` marks a tracked run that the platform no longer returns. */
+/**
+ * Status of a tracked child run. This copies the `ActorRun['status']` type,
+ * but adds `LOST` to mark a locally tracked run that the platform no longer returns.
+ *
+ * `LOST` runs can happen as a result of a manual removal or expiration.
+ */
 export type ChildRunStatus = ActorRun['status'] | 'LOST';
 
 export interface ChildRunInfo {
