@@ -931,6 +931,9 @@ export class Actor<Data extends Dictionary = Dictionary> {
     /**
      * Resurrects a finished Actor run on the Apify platform using the current user account (determined by the `APIFY_TOKEN` environment variable).
      *
+     * Only finished runs (SUCCEEDED, FAILED, ABORTED or TIMED-OUT) can be resurrected. The run goes back to the RUNNING
+     * status and keeps its default storages. Options you leave out keep the values of the original run.
+     *
      * The result of the function is an {@apilink ActorRun} object that contains details about the Actor run.
      *
      * For more information about Actors, read the
