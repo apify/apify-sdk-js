@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto';
 
 import { KeyValueStore, withDirectStorageAccess } from '@crawlee/core';
-import type { Run as ActorRun } from 'apify-client';
+import type { Run as ActorRun, RunClient } from 'apify-client';
 import { ReentrantAsyncLock } from './utils.js';
 import type { ApifyClient } from './index.js';
 
@@ -64,6 +64,9 @@ const CHILD_RUNS_KVS_KEY = '__ACTOR_CHILD_RUNS';
 
 export class ChildRunTracker {
     private trackedRuns?: Promise<Record<string, TrackedChildRun>>;
+    private loadedRuns: Record<string, TrackedChildRun> = {};
+    /** Client each name was last started or resumed with in this process, so a custom `token` is kept. */
+    private clients = new Map<string, ApifyClient>();
     private lastWrite: Promise<void> = Promise.resolve();
     private locks = new Map<string, ReentrantAsyncLock>();
 
@@ -103,11 +106,13 @@ export class ChildRunTracker {
             if (trackedRun && ['SUCCEEDED', 'READY', 'RUNNING'].includes(trackedRun.status)) {
                 await this.verifyRequest(runName, request);
                 await this.update(runName, trackedRun);
+                this.clients.set(runName, client);
                 return { run: trackedRun, resumed: true };
             }
 
             const run = await start();
             await this.track(runName, run, request, trackedRun?.status ?? 'LOST');
+            this.clients.set(runName, client);
             return { run, resumed: false };
         });
     }
@@ -156,10 +161,16 @@ export class ChildRunTracker {
     }
 
     /**
-     * Returns a copy of all the tracked runs, keyed by run name.
+     * Returns a `RunClient` for the current run under each name loaded so far. The client is the one the name was
+     * last started or resumed with in this process, or `defaultClient` (e.g. for a run tracked before a migration).
      */
-    async getAll() {
-        return structuredClone(await this.load());
+    getRunClients(defaultClient: ApifyClient): Record<string, RunClient> {
+        return Object.fromEntries(
+            Object.entries(this.loadedRuns).map(([runName, { runId }]) => [
+                runName,
+                (this.clients.get(runName) ?? defaultClient).run(runId),
+            ]),
+        );
     }
 
     private async persist(trackedRuns: Record<string, TrackedChildRun>) {
@@ -173,10 +184,16 @@ export class ChildRunTracker {
         await write;
     }
 
-    private async load() {
+    /**
+     * Loads the tracked runs from the default key-value store, once.
+     */
+    async load() {
         this.trackedRuns ??= KeyValueStore.open()
             .then(async (defaultStore) => defaultStore.getValue<Record<string, TrackedChildRun>>(CHILD_RUNS_KVS_KEY))
-            .then((storedRuns) => storedRuns ?? {})
+            .then((storedRuns) => {
+                this.loadedRuns = storedRuns ?? {};
+                return this.loadedRuns;
+            })
             .catch((error) => {
                 this.trackedRuns = undefined;
                 throw error;

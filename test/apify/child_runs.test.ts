@@ -3,6 +3,10 @@ import type { Actor } from 'apify';
 import type { Run as ActorRun } from 'apify-client';
 import { ActorClient, RunClient, TaskClient } from 'apify-client';
 import type { MockInstance } from 'vitest';
+
+import log from '@apify/log';
+
+import type { TrackedChildRun } from '../../src/child_run_tracker.js';
 import { createIsolatedActor } from '../createIsolatedActor';
 
 const globalOptions = {
@@ -35,7 +39,8 @@ describe('child run tracking with `runName`', () => {
     let waitForFinishSpy: MockInstance;
     let getStreamedLogSpy: MockInstance;
 
-    const getChildRunLedger = async (actor: Actor) => (await actor.openKeyValueStore()).getValue('__ACTOR_CHILD_RUNS');
+    const getChildRunLedger = async (actor: Actor) =>
+        (await actor.openKeyValueStore()).getValue<Record<string, TrackedChildRun>>('__ACTOR_CHILD_RUNS');
     const newActor = () => createIsolatedActor({ storageClient: storage }).actor;
 
     beforeEach(() => {
@@ -81,7 +86,7 @@ describe('child run tracking with `runName`', () => {
             expect(startSpy).not.toBeCalled();
             expect(run).toEqual({ ...startedRun, status });
             expect(getSpy).toBeCalledTimes(1);
-            expect((await actor.childRuns())[runName]).toEqual({ ...stored, status, history: [] });
+            expect(await getChildRunLedger(actor)).toEqual({ [runName]: { ...stored, status, history: [] } });
         },
     );
 
@@ -119,7 +124,7 @@ describe('child run tracking with `runName`', () => {
         await actor.start(actId, input, { runName });
 
         expect(startSpy).toBeCalledTimes(1);
-        expect((await actor.childRuns())[runName].history).toEqual([{ ...trackedInfo, status: 'LOST' }]);
+        expect((await getChildRunLedger(actor))![runName].history).toEqual([{ ...trackedInfo, status: 'LOST' }]);
     });
 
     test('repeated replacements accumulate in the history, oldest first', async () => {
@@ -132,22 +137,12 @@ describe('child run tracking with `runName`', () => {
         startSpy.mockResolvedValueOnce({ ...startedRun, id: 'third' });
         await actor.start(actId, input, { runName });
 
-        const tracked = (await actor.childRuns())[runName];
+        const tracked = (await getChildRunLedger(actor))![runName];
         expect(tracked.runId).toBe('third');
         expect(tracked.history.map(({ runId, status }) => [runId, status])).toEqual([
             [startedRun.id, 'FAILED'],
             ['second', 'FAILED'],
         ]);
-    });
-
-    test('childRuns() is empty without tracked runs and returns a copy', async () => {
-        const actor = newActor();
-        expect(await actor.childRuns()).toEqual({});
-
-        await actor.start(actId, input, { runName });
-        (await actor.childRuns())[runName].status = 'FAILED';
-
-        expect((await actor.childRuns())[runName].status).toBe('RUNNING');
     });
 
     test('start() tracks different run names independently', async () => {
@@ -159,9 +154,51 @@ describe('child run tracking with `runName`', () => {
 
         await Promise.all([actor.start(actId, input, { runName: 'a' }), actor.start(actId, input, { runName: 'b' })]);
 
-        expect(
-            Object.fromEntries(Object.entries(await actor.childRuns()).map(([name, { runId }]) => [name, runId])),
-        ).toEqual({ a: 'first', b: 'second' });
+        expect(Object.fromEntries(Object.entries(actor.childRuns).map(([name, { id }]) => [name, id]))).toEqual({
+            a: 'first',
+            b: 'second',
+        });
+    });
+
+    test('childRuns returns a client for the current run under each name', async () => {
+        const actor = newActor();
+        await actor.start(actId, input, { runName });
+        getSpy.mockResolvedValue({ ...startedRun, status: 'FAILED' });
+        startSpy.mockResolvedValueOnce({ ...startedRun, id: 'replacement-run' });
+        await actor.start(actId, input, { runName });
+
+        const runClient = actor.childRuns[runName];
+
+        expect(runClient.id).toBe('replacement-run');
+        expect(await runClient.waitForFinish()).toEqual(finishedRun);
+    });
+
+    test('init() loads the child runs tracked before a migration', async () => {
+        await newActor().start(actId, input, { runName });
+
+        const actor = newActor();
+        await actor.init();
+
+        expect(Object.keys(actor.childRuns)).toEqual([runName]);
+        expect(actor.childRuns[runName].id).toBe(startedRun.id);
+    });
+
+    test('childRuns uses the token a run was started with in this process', async () => {
+        await newActor().start(actId, input, { runName: 'before-migration' });
+
+        const actor = newActor();
+        await actor.init();
+        await actor.start(actId, input, { runName: 'custom-token', token: 'custom-token' });
+
+        expect(actor.childRuns['before-migration'].apifyClient).toBe(actor.apifyClient);
+        expect(actor.childRuns['custom-token'].apifyClient.token).toBe('custom-token');
+    });
+
+    test('childRuns warns when accessed before init()', () => {
+        const warningSpy = vitest.spyOn(log, 'warning');
+
+        expect(newActor().childRuns).toEqual({});
+        expect(warningSpy).toHaveBeenCalledWith(expect.stringContaining('Actor.init()'));
     });
 
     test('reusing a run name for a different Actor in the same process throws', async () => {
@@ -235,7 +272,7 @@ describe('child run tracking with `runName`', () => {
         expect(run).toEqual(finishedRun);
         expect(startSpy).not.toBeCalled();
         expect(getStreamedLogSpy).toBeCalledWith({ toLog: undefined, fromStart: false });
-        expect((await actor.childRuns())[runName].status).toBe('SUCCEEDED');
+        expect((await getChildRunLedger(actor))![runName].status).toBe('SUCCEEDED');
     });
 
     test('call() stops the log stream when waiting for the run fails', async () => {
@@ -269,6 +306,6 @@ describe('child run tracking with `runName`', () => {
         expect(run).toEqual(finishedRun);
         expect(taskStartSpy).not.toBeCalled();
         expect(waitForFinishSpy).toHaveBeenLastCalledWith({ waitSecs: 5 });
-        expect((await actor.childRuns())[runName].status).toBe('SUCCEEDED');
+        expect((await getChildRunLedger(actor))![runName].status).toBe('SUCCEEDED');
     });
 });

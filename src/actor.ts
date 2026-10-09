@@ -27,6 +27,7 @@ import type {
     ActorStartOptions,
     ApifyClientOptions,
     RunAbortOptions,
+    RunClient,
     TaskCallOptions,
     WebhookResource,
     WebhookEventType,
@@ -52,7 +53,7 @@ import { ApifyStorageBackend } from './apify_storage_backend.js';
 import type { ChargeOptions, ChargeResult } from './charging.js';
 import { ChargingManager, DEFAULT_DATASET_ITEM_EVENT } from './charging.js';
 import { ChargingStorageBackend } from './charging_storage_backend.js';
-import { ChildRunTracker, type TrackedChildRun } from './child_run_tracker.js';
+import { ChildRunTracker } from './child_run_tracker.js';
 import type { ConfigurationOptions } from './configuration.js';
 import { Configuration } from './configuration.js';
 import { ActorInputError } from './errors.js';
@@ -721,6 +722,8 @@ export class Actor<Data extends Dictionary = Dictionary> {
         });
         log.debug(`Default storages purged`);
 
+        await this.#childRunTracker.load();
+
         await this.#chargingManager.init();
         log.debug(`ChargingManager initialized`, this.#chargingManager.getPricingInfo());
 
@@ -1019,14 +1022,20 @@ export class Actor<Data extends Dictionary = Dictionary> {
     }
 
     /**
-     * Returns the child runs started with the `runName` option, keyed by that name, including the runs
-     * that were replaced under the same name in `history`.
+     * Clients for the child runs started with the `runName` option, keyed by that name, including the runs started
+     * before a migration or resurrection of this run. Each client points to the current run under its name.
      *
-     * The statuses are the last ones this Actor observed: a run nobody waits for is not refreshed.
-     * The same record is stored in the default key-value store under the `__ACTOR_CHILD_RUNS` key.
+     * ```js
+     * await Actor.childRuns['my-child'].waitForFinish();
+     * ```
+     *
+     * A run started with a custom `token` uses that token, except for a run started before a migration or
+     * resurrection, which uses the default client. The tracked runs, including the earlier runs replaced
+     * under the same name, are stored in the default key-value store under the `__ACTOR_CHILD_RUNS` key.
      */
-    async childRuns(): Promise<Record<string, TrackedChildRun>> {
-        return this.#childRunTracker.getAll();
+    get childRuns(): Record<string, RunClient> {
+        this.ensureActorInit('childRuns');
+        return this.#childRunTracker.getRunClients(this.apifyClient);
     }
 
     /**
@@ -2007,14 +2016,19 @@ export class Actor<Data extends Dictionary = Dictionary> {
     }
 
     /**
-     * Returns the child runs started with the `runName` option, keyed by that name, including the runs
-     * that were replaced under the same name in `history`.
+     * Clients for the child runs started with the `runName` option, keyed by that name, including the runs started
+     * before a migration or resurrection of this run. Each client points to the current run under its name.
      *
-     * The statuses are the last ones this Actor observed: a run nobody waits for is not refreshed.
-     * The same record is stored in the default key-value store under the `__ACTOR_CHILD_RUNS` key.
+     * ```js
+     * await Actor.childRuns['my-child'].waitForFinish();
+     * ```
+     *
+     * A run started with a custom `token` uses that token, except for a run started before a migration or
+     * resurrection, which uses the default client. The tracked runs, including the earlier runs replaced
+     * under the same name, are stored in the default key-value store under the `__ACTOR_CHILD_RUNS` key.
      */
-    static async childRuns(): Promise<Record<string, TrackedChildRun>> {
-        return Actor.getDefaultInstance().childRuns();
+    static get childRuns(): Record<string, RunClient> {
+        return Actor.getDefaultInstance().childRuns;
     }
 
     /**
