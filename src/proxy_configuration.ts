@@ -25,6 +25,7 @@ const SUBDIVISION_CODE_REGEX = /^[A-Z0-9]{1,3}$/;
 // users; a fresh one is minted for every URL the SDK hands out so that the
 // returned proxy URLs are independent.
 const SESSION_ID_LENGTH = 12;
+const SESSION_USERNAME_REGEX = /(?:^|,)session-[^,]+/;
 
 /** Response of the Apify Proxy status endpoint (`proxy.apify.com/?format=json`). */
 interface ProxyStatus {
@@ -311,9 +312,21 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
      * Returns a new {@apilink ProxyInfo} object with a fresh proxy URL. Each call mints an
      * independent URL; for Apify Proxy a random session id is embedded so consecutive
      * calls resolve to different IPs.
+     *
+     * A passed `proxyInfo` (e.g. one restored with a persisted session) is returned unchanged, unless it is an
+     * Apify Proxy one. Its endpoint is specific to the host, so it is moved to the current endpoint, keeping the
+     * username and with it the proxy session.
      */
-    override async newProxyInfo(): Promise<ProxyInfo | undefined> {
-        const url = await this.newUrl();
+    override async newProxyInfo(proxyInfo?: ProxyInfo): Promise<ProxyInfo | undefined> {
+        // Only Apify Proxy infos carry `groups` and a proxy session in the username.
+        if (
+            proxyInfo &&
+            !(this.#usesApifyProxy && 'groups' in proxyInfo && SESSION_USERNAME_REGEX.test(proxyInfo.username ?? ''))
+        ) {
+            return proxyInfo;
+        }
+
+        const url = proxyInfo?.username ? this.composeUrl(proxyInfo.username) : await this.newUrl();
         if (!url) return undefined;
 
         const parsed = new URL(url);
@@ -324,6 +337,8 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
             hostname: parsed.hostname,
             port: parsed.port,
         };
+        // A refreshed info keeps its own groups/country, which match its username rather than this config.
+        if (proxyInfo) return { ...proxyInfo, ...result };
         if (this.#usesApifyProxy) {
             result.groups = this.#groups;
             if (this.#countryCode !== undefined) result.countryCode = this.#countryCode;
@@ -364,7 +379,10 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
     }
 
     protected composeDefaultUrl(sessionId: string): string {
-        const username = this.getUsername(sessionId);
+        return this.composeUrl(this.getUsername(sessionId));
+    }
+
+    private composeUrl(username: string): string {
         const url = new URL(`http://${this.#hostname}:${this.#port}`);
         url.username = `${username}`;
         url.password = `${this.#password}`;
