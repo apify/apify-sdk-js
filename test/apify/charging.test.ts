@@ -5,7 +5,8 @@ import {
     withStorageTransaction,
 } from '@crawlee/core';
 import { Actor } from 'apify';
-import type { RunClient } from 'apify-client';
+import type { KeyValueStoreResource, RunClient } from 'apify-client';
+import { KeyValueStoreClient } from 'apify-client';
 import type { MockInstance } from 'vitest';
 import { afterEach, beforeEach, describe, expect, test } from 'vitest';
 
@@ -53,6 +54,10 @@ function setUpPlatformEnv(
     }
 
     process.env.APIFY_CHARGED_ACTOR_EVENT_COUNTS = JSON.stringify(options.chargedEventCounts ?? {});
+
+    // `Actor.init()` reads the tracked child runs from the default key-value store.
+    vitest.spyOn(KeyValueStoreClient.prototype, 'get').mockResolvedValue({ id: 'default' } as KeyValueStoreResource);
+    vitest.spyOn(KeyValueStoreClient.prototype, 'getRecord').mockResolvedValue(undefined);
 }
 
 /**
