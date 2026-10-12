@@ -257,9 +257,19 @@ describe('child run tracking with `runName`', () => {
         const run = await actor.call(actId, input, { runName, waitSecs: 10 });
 
         expect(run).toEqual(finishedRun);
-        expect(startSpy).toBeCalledTimes(1);
-        expect(waitForFinishSpy).toBeCalledWith({ waitSecs: 10 });
+        expect(startSpy).toBeCalledWith(input, expect.objectContaining({ timeoutSecs: 'noTimeout' }));
+        expect(waitForFinishSpy).toBeCalledWith({ waitSecs: 10, timeoutSecs: 'noTimeout' });
         expect(getStreamedLogSpy).toBeCalledWith({ toLog: undefined, fromStart: true });
+    });
+
+    test('call() with a run name forwards the signal and request timeout like `ActorClient.call`', async () => {
+        const { signal } = new AbortController();
+
+        await newActor().call(actId, input, { runName, signal, timeoutSecs: 30 });
+
+        expect(startSpy).toBeCalledWith(input, expect.objectContaining({ signal, timeoutSecs: 30 }));
+        expect(getStreamedLogSpy).toBeCalledWith(expect.objectContaining({ signal }));
+        expect(waitForFinishSpy).toBeCalledWith({ timeoutSecs: 30, signal });
     });
 
     test('call() waits for the tracked run instead of starting a new one', async () => {
@@ -305,7 +315,16 @@ describe('child run tracking with `runName`', () => {
 
         expect(run).toEqual(finishedRun);
         expect(taskStartSpy).not.toBeCalled();
-        expect(waitForFinishSpy).toHaveBeenLastCalledWith({ waitSecs: 5 });
+        expect(waitForFinishSpy).toHaveBeenLastCalledWith({ waitSecs: 5, timeoutSecs: 'noTimeout' });
         expect((await getChildRunLedger(actor))![runName].status).toBe('SUCCEEDED');
+    });
+
+    test('callTask() with a run name forwards the signal and request timeout like `TaskClient.call`', async () => {
+        const { signal } = new AbortController();
+
+        await newActor().callTask(taskId, input, { runName, signal, timeoutSecs: 30 });
+
+        expect(taskStartSpy).toBeCalledWith(input, expect.objectContaining({ signal, timeoutSecs: 30 }));
+        expect(waitForFinishSpy).toBeCalledWith({ timeoutSecs: 30, signal });
     });
 });

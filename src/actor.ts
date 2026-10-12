@@ -886,19 +886,19 @@ export class Actor<Data extends Dictionary = Dictionary> {
 
         if (!runName) return client.actor(actorId).call(input, { ...rest, runTimeoutSecs });
 
-        const { waitSecs, log, ...startOptions } = rest;
+        const { waitSecs, log, timeoutSecs = 'noTimeout', signal, ...startOptions } = rest;
         const { run, resumed } = await this.#childRunTracker.startOrResumeChildRun(
             client,
             runName,
             { type: 'actor', id: actorId, input },
-            async () => client.actor(actorId).start(input, { ...startOptions, runTimeoutSecs }),
+            async () => client.actor(actorId).start(input, { ...startOptions, runTimeoutSecs, timeoutSecs, signal }),
         );
 
         // The earlier part of a resumed run's log was already redirected before the migration.
-        const streamedLog = await client.run(run.id).getStreamedLog({ toLog: log, fromStart: !resumed });
+        const streamedLog = await client.run(run.id).getStreamedLog({ toLog: log, fromStart: !resumed, signal });
         streamedLog?.start();
         try {
-            const finishedRun = await client.run(run.id).waitForFinish({ waitSecs });
+            const finishedRun = await client.run(run.id).waitForFinish({ waitSecs, timeoutSecs, signal });
             await this.#childRunTracker.update(runName, finishedRun);
             return finishedRun;
         } finally {
@@ -1006,14 +1006,14 @@ export class Actor<Data extends Dictionary = Dictionary> {
 
         if (!runName) return client.task(taskId).call(input, { ...rest, runTimeoutSecs });
 
-        const { waitSecs, ...startOptions } = rest;
+        const { waitSecs, timeoutSecs = 'noTimeout', signal, ...startOptions } = rest;
         const { run } = await this.#childRunTracker.startOrResumeChildRun(
             client,
             runName,
             { type: 'task', id: taskId, input },
-            async () => client.task(taskId).start(input, { ...startOptions, runTimeoutSecs }),
+            async () => client.task(taskId).start(input, { ...startOptions, runTimeoutSecs, timeoutSecs, signal }),
         );
-        const finishedRun = await client.run(run.id).waitForFinish({ waitSecs });
+        const finishedRun = await client.run(run.id).waitForFinish({ waitSecs, timeoutSecs, signal });
         await this.#childRunTracker.update(runName, finishedRun);
         return finishedRun;
     }
