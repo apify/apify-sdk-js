@@ -211,8 +211,8 @@ importers:
         specifier: 4.0.0-rc.1
         version: 4.0.0-rc.1(supports-color@8.1.1)
       apify-client:
-        specifier: ^3.0.0-beta.53
-        version: 3.0.0-beta.53(debug@4.4.3(supports-color@8.1.1))(supports-color@8.1.1)
+        specifier: ^3.0.0-rc.0
+        version: 3.0.0-rc.0(debug@4.4.3(supports-color@8.1.1))(supports-color@8.1.1)
       minimatch:
         specifier: ^10.2.6
         version: 10.2.6
@@ -4483,8 +4483,8 @@ packages:
     resolution: {integrity: sha512-KMReFUr0B4t+D+OBkjR3KYqvocp2XaSzO55UcB6mgQMd3KbcE+mWTyvVV7D/zsdEbNnV6acZUutkiHQXvTr1Rw==}
     engines: {node: '>= 8'}
 
-  apify-client@3.0.0-beta.53:
-    resolution: {integrity: sha512-Ru1ClhqTWHeCqy9attudULKiHwOV8zthonbMBLM1D4oYypcmyVNk0H36qE/LzTkruzNOoaU3dEjmkLLLJXflEQ==}
+  apify-client@3.0.0-rc.0:
+    resolution: {integrity: sha512-kq7wo0AE38qWS4/msDiTXTDIgOKvgI+IJnHzdjA5ZQgg2aqb9Osmm1FFngwhSHjSlQceLfMERgdzgSu4Rt7N9A==}
     engines: {node: '>=22.13.0'}
 
   arg@5.0.2:
@@ -14496,7 +14496,7 @@ snapshots:
       normalize-path: 3.0.0
       picomatch: 2.3.2
 
-  apify-client@3.0.0-beta.53(debug@4.4.3(supports-color@8.1.1))(supports-color@8.1.1):
+  apify-client@3.0.0-rc.0(debug@4.4.3(supports-color@8.1.1))(supports-color@8.1.1):
     dependencies:
       '@apify/consts': 3.0.1
       '@apify/log': 3.0.1
