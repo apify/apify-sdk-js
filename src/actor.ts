@@ -461,9 +461,6 @@ export class Actor<Data extends Dictionary = Dictionary> {
     /** @internal */
     static #instance?: Actor;
 
-    /**
-     * Tracks child runs of this Actor instance.
-     */
     #childRunTracker: ChildRunTracker;
 
     /**

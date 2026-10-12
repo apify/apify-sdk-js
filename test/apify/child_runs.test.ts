@@ -7,7 +7,7 @@ import type { MockInstance } from 'vitest';
 import log from '@apify/log';
 
 import type { TrackedChildRun } from '../../src/child_run_tracker.js';
-import { createIsolatedActor } from '../createIsolatedActor';
+import { createIsolatedActor } from '../createIsolatedActor.js';
 
 const globalOptions = {
     token: 'some-token',

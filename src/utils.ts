@@ -1,3 +1,4 @@
+import { AsyncLocalStorage } from 'node:async_hooks';
 import { existsSync, readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { type } from 'node:os';
@@ -15,7 +16,6 @@ import log from '@apify/log';
 
 // @ts-ignore if we enable resolveJsonModule, we end up with `src` folder in `dist`
 import apifyPkgJson from '../package.json' with { type: 'json' };
-import { AsyncLocalStorage } from 'node:async_hooks';
 
 export { ArgumentValidationError } from '@apify/validations';
 
@@ -141,8 +141,7 @@ export function printOutdatedSdkWarning() {
 }
 
 /**
- * A FIFO mutex that a critical section may re-enter from a nested call — the charge lock is taken by
- * `Actor.pushData()` and again, one level down, by the dataset backend it pushes through.
+ * A FIFO mutex that a critical section may re-enter from a nested call without deadlocking.
  */
 export class ReentrantAsyncLock {
     #tail: Promise<unknown> = Promise.resolve();

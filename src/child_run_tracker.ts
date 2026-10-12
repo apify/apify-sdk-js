@@ -63,8 +63,8 @@ const toInfo = (run: ActorRun): ChildRunInfo => ({
 const CHILD_RUNS_KVS_KEY = '__ACTOR_CHILD_RUNS';
 
 export class ChildRunTracker {
-    private trackedRuns?: Promise<Record<string, TrackedChildRun>>;
-    private loadedRuns: Record<string, TrackedChildRun> = {};
+    private trackedRuns: Record<string, TrackedChildRun> = {};
+    private loading?: Promise<void>;
     /** Client each name was last started or resumed with in this process, so a custom `token` is kept. */
     private clients = new Map<string, ApifyClient>();
     private lastWrite: Promise<void> = Promise.resolve();
@@ -136,7 +136,7 @@ export class ChildRunTracker {
                 : [],
         };
 
-        await this.persist(trackedRuns);
+        await this.persist();
     }
 
     /**
@@ -149,7 +149,7 @@ export class ChildRunTracker {
         if (tracked?.runId !== run.id || tracked.status === run.status) return;
 
         tracked.status = run.status;
-        await this.persist(trackedRuns);
+        await this.persist();
     }
 
     /**
@@ -166,18 +166,18 @@ export class ChildRunTracker {
      */
     getRunClients(defaultClient: ApifyClient): Record<string, RunClient> {
         return Object.fromEntries(
-            Object.entries(this.loadedRuns).map(([runName, { runId }]) => [
+            Object.entries(this.trackedRuns).map(([runName, { runId }]) => [
                 runName,
                 (this.clients.get(runName) ?? defaultClient).run(runId),
             ]),
         );
     }
 
-    private async persist(trackedRuns: Record<string, TrackedChildRun>) {
+    private async persist() {
         const write = this.lastWrite.then(async () =>
             withDirectStorageAccess(async () => {
                 const defaultStore = await KeyValueStore.open();
-                await defaultStore.setValue(CHILD_RUNS_KVS_KEY, trackedRuns);
+                await defaultStore.setValue(CHILD_RUNS_KVS_KEY, this.trackedRuns);
             }),
         );
         this.lastWrite = write.catch(() => {});
@@ -188,17 +188,17 @@ export class ChildRunTracker {
      * Loads the tracked runs from the default key-value store, once.
      */
     async load() {
-        this.trackedRuns ??= KeyValueStore.open()
+        this.loading ??= KeyValueStore.open()
             .then(async (defaultStore) => defaultStore.getValue<Record<string, TrackedChildRun>>(CHILD_RUNS_KVS_KEY))
             .then((storedRuns) => {
-                this.loadedRuns = storedRuns ?? {};
-                return this.loadedRuns;
+                this.trackedRuns = storedRuns ?? {};
             })
             .catch((error) => {
-                this.trackedRuns = undefined;
+                this.loading = undefined;
                 throw error;
             });
 
+        await this.loading;
         return this.trackedRuns;
     }
 }
