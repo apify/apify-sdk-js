@@ -77,7 +77,7 @@ export class ChildRunTracker {
 
     /**
      * Throws if the run tracked under `runName` was started for a different Actor / task or input,
-     * as it would otherwise be silently returned in place of the requested one.
+     * as it would otherwise be silently returned or resurrected in place of the requested one.
      */
     async verifyRequest(runName: string, request: ChildRunRequest) {
         const tracked = await this.get(runName);
