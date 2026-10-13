@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto';
 
 import { KeyValueStore, withDirectStorageAccess } from '@crawlee/core';
-import type { Run as ActorRun, RunClient } from 'apify-client';
+import type { Run as ActorRun, RunClient, RunResurrectOptions } from 'apify-client';
 import { ReentrantAsyncLock } from './utils.js';
 import type { ApifyClient } from './index.js';
 
@@ -62,6 +62,11 @@ const toInfo = (run: ActorRun): ChildRunInfo => ({
 
 const CHILD_RUNS_KVS_KEY = '__ACTOR_CHILD_RUNS';
 
+/** Statuses that shortly end as `ABORTED` / `TIMED-OUT`. */
+const SETTLING_STATUSES = ['ABORTING', 'TIMING-OUT'];
+const RESURRECTABLE_STATUSES = ['ABORTED', 'TIMED-OUT'];
+const REUSABLE_STATUSES = ['READY', 'RUNNING', 'SUCCEEDED', ...RESURRECTABLE_STATUSES];
+
 export class ChildRunTracker {
     private trackedRuns: Record<string, TrackedChildRun> = {};
     private loading?: Promise<void>;
@@ -85,14 +90,16 @@ export class ChildRunTracker {
     }
 
     /**
-     * Returns the child run tracked under `runName` if it is still in progress or has succeeded.
-     * Otherwise (the run failed, was aborted, timed out or is gone), starts a new one using `start`
-     * and tracks it under `runName`, keeping the previous one in the history.
+     * Returns the child run tracked under `runName` if it is still in progress or has succeeded, and resurrects it
+     * with `startOptions` if it was aborted or timed out (waiting for it to finish aborting or timing out first).
+     * Otherwise (the run failed or is gone), starts a new one using `start` and tracks it under `runName`,
+     * keeping the previous one in the history.
      */
     async startOrResumeChildRun(
         client: ApifyClient,
         runName: string,
         request: ChildRunRequest,
+        startOptions: RunResurrectOptions,
         start: () => Promise<ActorRun>,
     ): Promise<{ run: ActorRun; resumed: boolean }> {
         if (!this.locks.has(runName)) {
@@ -100,14 +107,32 @@ export class ChildRunTracker {
         }
 
         return this.locks.get(runName)!.runExclusive(async () => {
+            const { build, memory, runTimeoutSecs, maxItems, maxTotalChargeUsd, restartOnError, timeoutSecs, signal } =
+                startOptions;
             const tracked = await this.get(runName);
-            const trackedRun = tracked ? await client.run(tracked.runId).get() : undefined;
+            let trackedRun = tracked ? await client.run(tracked.runId).get() : undefined;
 
-            if (trackedRun && ['SUCCEEDED', 'READY', 'RUNNING'].includes(trackedRun.status)) {
+            if (trackedRun && SETTLING_STATUSES.includes(trackedRun.status)) {
+                trackedRun = await client.run(trackedRun.id).waitForFinish({ timeoutSecs, signal });
+            }
+
+            if (trackedRun && REUSABLE_STATUSES.includes(trackedRun.status)) {
                 await this.verifyRequest(runName, request);
-                await this.update(runName, trackedRun);
+                const run = RESURRECTABLE_STATUSES.includes(trackedRun.status)
+                    ? await client.run(trackedRun.id).resurrect({
+                          build,
+                          memory,
+                          runTimeoutSecs,
+                          maxItems,
+                          maxTotalChargeUsd,
+                          restartOnError,
+                          timeoutSecs,
+                          signal,
+                      })
+                    : trackedRun;
+                await this.update(runName, run);
                 this.clients.set(runName, client);
-                return { run: trackedRun, resumed: true };
+                return { run, resumed: true };
             }
 
             const run = await start();

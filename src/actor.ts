@@ -334,8 +334,9 @@ export interface ChildRunOptions {
      * Local name for the child run, unique across all Actors and tasks started by this run.
      *
      * If a `READY`, `RUNNING` or `SUCCEEDED` run is already tracked under this name, it is returned instead of
-     * starting a new one, including after a migration or resurrection of this run. A run that failed, was aborted
-     * or timed out is replaced by a new one. Reusing the name for a different Actor, task or input throws.
+     * starting a new one, including after a migration or resurrection of this run. A run that was aborted or timed out
+     * is resurrected with the given options, once it finishes aborting or timing out. A run that failed is replaced
+     * by a new one. Reusing the name for a different Actor, task or input throws.
      */
     runName?: string;
 }
@@ -890,12 +891,14 @@ export class Actor<Data extends Dictionary = Dictionary> {
 
         if (!runName) return client.actor(actorId).call(input, { ...rest, runTimeoutSecs });
 
-        const { waitSecs, log, timeoutSecs = 'noTimeout', signal, ...startOptions } = rest;
+        const { waitSecs, log, timeoutSecs = 'noTimeout', signal, ...otherOptions } = rest;
+        const startOptions = { ...otherOptions, runTimeoutSecs, timeoutSecs, signal };
         const { run, resumed } = await this.#childRunTracker.startOrResumeChildRun(
             client,
             runName,
             { type: 'actor', id: actorId, input },
-            async () => client.actor(actorId).start(input, { ...startOptions, runTimeoutSecs, timeoutSecs, signal }),
+            startOptions,
+            async () => client.actor(actorId).start(input, startOptions),
         );
 
         // The earlier part of a resumed run's log was already redirected before the migration.
@@ -940,11 +943,13 @@ export class Actor<Data extends Dictionary = Dictionary> {
 
         if (!runName) return client.actor(actorId).start(input, { ...rest, runTimeoutSecs });
 
+        const startOptions = { ...rest, runTimeoutSecs };
         const { run } = await this.#childRunTracker.startOrResumeChildRun(
             client,
             runName,
             { type: 'actor', id: actorId, input },
-            async () => client.actor(actorId).start(input, { ...rest, runTimeoutSecs }),
+            startOptions,
+            async () => client.actor(actorId).start(input, startOptions),
         );
         return run;
     }
@@ -1036,12 +1041,14 @@ export class Actor<Data extends Dictionary = Dictionary> {
 
         if (!runName) return client.task(taskId).call(input, { ...rest, runTimeoutSecs });
 
-        const { waitSecs, timeoutSecs = 'noTimeout', signal, ...startOptions } = rest;
+        const { waitSecs, timeoutSecs = 'noTimeout', signal, ...otherOptions } = rest;
+        const startOptions = { ...otherOptions, runTimeoutSecs, timeoutSecs, signal };
         const { run } = await this.#childRunTracker.startOrResumeChildRun(
             client,
             runName,
             { type: 'task', id: taskId, input },
-            async () => client.task(taskId).start(input, { ...startOptions, runTimeoutSecs, timeoutSecs, signal }),
+            startOptions,
+            async () => client.task(taskId).start(input, startOptions),
         );
         const finishedRun = await client.run(run.id).waitForFinish({ waitSecs, timeoutSecs, signal });
         await this.#childRunTracker.update(runName, finishedRun);

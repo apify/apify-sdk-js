@@ -3,7 +3,9 @@ import type { Actor } from 'apify';
 import type { Run as ActorRun } from 'apify-client';
 import { ActorClient, RunClient, TaskClient } from 'apify-client';
 import type { MockInstance } from 'vitest';
+import { onTestFinished } from 'vitest';
 
+import { ACTOR_ENV_VARS, APIFY_ENV_VARS } from '@apify/consts';
 import log from '@apify/log';
 
 import type { TrackedChildRun } from '../../src/child_run_tracker.js';
@@ -38,6 +40,7 @@ describe('child run tracking with `runName`', () => {
     let getSpy: MockInstance;
     let waitForFinishSpy: MockInstance;
     let getStreamedLogSpy: MockInstance;
+    let resurrectSpy: MockInstance;
 
     const getChildRunLedger = async (actor: Actor) =>
         (await actor.openKeyValueStore()).getValue<Record<string, TrackedChildRun>>('__ACTOR_CHILD_RUNS');
@@ -50,6 +53,7 @@ describe('child run tracking with `runName`', () => {
         getSpy = vitest.spyOn(RunClient.prototype, 'get').mockResolvedValue(startedRun);
         waitForFinishSpy = vitest.spyOn(RunClient.prototype, 'waitForFinish').mockResolvedValue(finishedRun);
         getStreamedLogSpy = vitest.spyOn(RunClient.prototype, 'getStreamedLog').mockResolvedValue(undefined);
+        resurrectSpy = vitest.spyOn(RunClient.prototype, 'resurrect').mockResolvedValue(startedRun);
     });
 
     test('start() without a run name does not track the run', async () => {
@@ -90,29 +94,87 @@ describe('child run tracking with `runName`', () => {
         },
     );
 
-    test.each(['FAILED', 'ABORTING', 'ABORTED', 'TIMING-OUT', 'TIMED-OUT'] as const)(
-        'start() starts a new run when the tracked run is in the %s status and keeps the old one in the history',
+    test('start() starts a new run when the tracked run failed and keeps the old one in the history', async () => {
+        await newActor().start(actId, input, { runName });
+        startSpy.mockClear();
+        getSpy.mockResolvedValue({ ...startedRun, status: 'FAILED' });
+        const replacement = { id: 'replacement-run', status: 'RUNNING', startedAt } as ActorRun;
+        startSpy.mockResolvedValue(replacement);
+
+        const actor = newActor();
+        const run = await actor.start(actId, input, { runName });
+
+        expect(startSpy).toBeCalledTimes(1);
+        expect(resurrectSpy).not.toBeCalled();
+        expect(run).toEqual(replacement);
+        expect(await getChildRunLedger(actor)).toEqual({
+            [runName]: {
+                ...stored,
+                runId: replacement.id,
+                history: [{ ...trackedInfo, status: 'FAILED' }],
+            },
+        });
+    });
+
+    test.each(['ABORTED', 'TIMED-OUT'] as const)(
+        'start() resurrects a tracked run in the %s status with the resurrect options of the call',
         async (status) => {
             await newActor().start(actId, input, { runName });
             startSpy.mockClear();
             getSpy.mockResolvedValue({ ...startedRun, status });
-            const replacement = { id: 'replacement-run', status: 'RUNNING', startedAt } as ActorRun;
-            startSpy.mockResolvedValue(replacement);
 
             const actor = newActor();
-            const run = await actor.start(actId, input, { runName });
-
-            expect(startSpy).toBeCalledTimes(1);
-            expect(run).toEqual(replacement);
-            expect(await getChildRunLedger(actor)).toEqual({
-                [runName]: {
-                    ...stored,
-                    runId: replacement.id,
-                    history: [{ ...trackedInfo, status }],
-                },
+            const run = await actor.start(actId, input, {
+                runName,
+                build: 'beta',
+                memory: 1024,
+                timeout: 60,
+                maxItems: 10,
+                webhooks: [],
             });
+
+            expect(startSpy).not.toBeCalled();
+            expect(resurrectSpy).toBeCalledWith({ build: 'beta', memory: 1024, runTimeoutSecs: 60, maxItems: 10 });
+            expect(run).toEqual(startedRun);
+            expect(await getChildRunLedger(actor)).toEqual({ [runName]: { ...stored, history: [] } });
         },
     );
+
+    test.each([
+        ['ABORTING', 'ABORTED'],
+        ['TIMING-OUT', 'TIMED-OUT'],
+    ] as const)(
+        'start() waits for a tracked run in the %s status to finish before resurrecting it',
+        async (status, finalStatus) => {
+            await newActor().start(actId, input, { runName });
+            startSpy.mockClear();
+            getSpy.mockResolvedValue({ ...startedRun, status });
+            waitForFinishSpy.mockResolvedValue({ ...startedRun, status: finalStatus });
+
+            await newActor().start(actId, input, { runName });
+
+            expect(waitForFinishSpy).toBeCalledTimes(1);
+            expect(resurrectSpy).toBeCalledTimes(1);
+            expect(startSpy).not.toBeCalled();
+        },
+    );
+
+    test("start() resurrects a tracked run with the remaining time of this run with `timeout: 'inherit'`", async () => {
+        await newActor().start(actId, input, { runName });
+        getSpy.mockResolvedValue({ ...startedRun, status: 'TIMED-OUT' });
+        vitest.setSystemTime(startedAt);
+        process.env[APIFY_ENV_VARS.IS_AT_HOME] = '1';
+        process.env[ACTOR_ENV_VARS.TIMEOUT_AT] = new Date(startedAt.getTime() + 60_000).toISOString();
+        onTestFinished(() => {
+            delete process.env[APIFY_ENV_VARS.IS_AT_HOME];
+            delete process.env[ACTOR_ENV_VARS.TIMEOUT_AT];
+            vitest.useRealTimers();
+        });
+
+        await newActor().start(actId, input, { runName, timeout: 'inherit' });
+
+        expect(resurrectSpy).toBeCalledWith(expect.objectContaining({ runTimeoutSecs: 60 }));
+    });
 
     test('start() starts a new run when the tracked run no longer exists and records the old one as lost', async () => {
         await newActor().start(actId, input, { runName });
@@ -241,6 +303,15 @@ describe('child run tracking with `runName`', () => {
         expect(startSpy).toBeCalledTimes(1);
     });
 
+    test('reusing a run name with a different input throws when the tracked run would be resurrected', async () => {
+        const actor = newActor();
+        await actor.start(actId, input, { runName });
+        getSpy.mockResolvedValue({ ...startedRun, status: 'ABORTED' });
+
+        await expect(actor.start(actId, { foo: 'baz' }, { runName })).rejects.toThrow(/already used/);
+        expect(resurrectSpy).not.toBeCalled();
+    });
+
     test('reusing a run name with a different input is allowed when the tracked run is replaced', async () => {
         const actor = newActor();
         await actor.start(actId, input, { runName });
@@ -283,6 +354,19 @@ describe('child run tracking with `runName`', () => {
         expect(startSpy).not.toBeCalled();
         expect(getStreamedLogSpy).toBeCalledWith({ toLog: undefined, fromStart: false });
         expect((await getChildRunLedger(actor))![runName].status).toBe('SUCCEEDED');
+    });
+
+    test('call() waits for a resurrected run without replaying its log', async () => {
+        await newActor().start(actId, input, { runName });
+        startSpy.mockClear();
+        getSpy.mockResolvedValue({ ...startedRun, status: 'ABORTED' });
+
+        const run = await newActor().call(actId, input, { runName });
+
+        expect(run).toEqual(finishedRun);
+        expect(startSpy).not.toBeCalled();
+        expect(resurrectSpy).toBeCalledWith(expect.objectContaining({ timeoutSecs: 'noTimeout' }));
+        expect(getStreamedLogSpy).toBeCalledWith(expect.objectContaining({ fromStart: false }));
     });
 
     test('call() stops the log stream when waiting for the run fails', async () => {
