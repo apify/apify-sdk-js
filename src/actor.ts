@@ -28,6 +28,7 @@ import type {
     ApifyClientOptions,
     RunAbortOptions,
     TaskCallOptions,
+    TaskStartOptions,
     WebhookResource,
     WebhookEventType,
 } from 'apify-client';
@@ -328,6 +329,7 @@ export interface Timeout {
 export interface CallOptions extends Omit<ActorCallOptions, 'runTimeoutSecs'>, Token, Timeout {}
 export interface StartOptions extends Omit<ActorStartOptions, 'waitForFinish' | 'runTimeoutSecs'>, Token, Timeout {}
 export interface CallTaskOptions extends Omit<TaskCallOptions, 'runTimeoutSecs'>, Token, Timeout {}
+export interface StartTaskOptions extends Omit<TaskStartOptions, 'waitForFinish' | 'runTimeoutSecs'>, Token, Timeout {}
 
 export interface AbortOptions extends RunAbortOptions, Token {
     /** Exit with given status message */
@@ -958,6 +960,37 @@ export class Actor<Data extends Dictionary = Dictionary> {
         const client = token ? this.newClient({ token }) : this.apifyClient;
 
         return client.task(taskId).call(input, { ...rest, runTimeoutSecs });
+    }
+
+    /**
+     * Runs an Actor task on the Apify platform using the current user account (determined by the `APIFY_TOKEN` environment variable),
+     * unlike `Actor.callTask`, this method just starts the run without waiting for finish.
+     *
+     * The result of the function is an {@apilink ActorRun} object that contains details about the Actor run.
+     *
+     * For more information about Actor tasks, read the [documentation](https://docs.apify.com/tasks).
+     *
+     * **Example usage:**
+     *
+     * ```js
+     * const run = await Actor.startTask('bob/some-task');
+     * ```
+     *
+     * @param taskId
+     *  Allowed formats are `username/task-name`, `userId/task-name` or task ID.
+     * @param [input]
+     *  Input overrides for the Actor task. If it is an object, it will be stringified to
+     *  JSON and its content type set to `application/json; charset=utf-8`.
+     *  Provided input will be merged with Actor task input.
+     * @param [options]
+     * @ignore
+     */
+    async startTask(taskId: string, input?: Dictionary, options: StartTaskOptions = {}): Promise<ClientActorRun> {
+        const runTimeoutSecs = options.timeout === 'inherit' ? this.getRemainingTimeSecs() : options.timeout;
+        const { token, timeout: _timeout, ...rest } = options;
+        const client = token ? this.newClient({ token }) : this.apifyClient;
+
+        return client.task(taskId).start(input, { ...rest, runTimeoutSecs });
     }
 
     /**
@@ -1909,6 +1942,36 @@ export class Actor<Data extends Dictionary = Dictionary> {
      */
     static async callTask(taskId: string, input?: Dictionary, options: CallTaskOptions = {}): Promise<ClientActorRun> {
         return Actor.getDefaultInstance().callTask(taskId, input, options);
+    }
+
+    /**
+     * Runs an Actor task on the Apify platform using the current user account (determined by the `APIFY_TOKEN` environment variable),
+     * unlike `Actor.callTask`, this method just starts the run without waiting for finish.
+     *
+     * The result of the function is an {@apilink ActorRun} object that contains details about the Actor run.
+     *
+     * For more information about Actor tasks, read the [documentation](https://docs.apify.com/tasks).
+     *
+     * **Example usage:**
+     *
+     * ```js
+     * const run = await Actor.startTask('bob/some-task');
+     * ```
+     *
+     * @param taskId
+     *  Allowed formats are `username/task-name`, `userId/task-name` or task ID.
+     * @param [input]
+     *  Input overrides for the Actor task. If it is an object, it will be stringified to
+     *  JSON and its content type set to `application/json; charset=utf-8`.
+     *  Provided input will be merged with Actor task input.
+     * @param [options]
+     */
+    static async startTask(
+        taskId: string,
+        input?: Dictionary,
+        options: StartTaskOptions = {},
+    ): Promise<ClientActorRun> {
+        return Actor.getDefaultInstance().startTask(taskId, input, options);
     }
 
     /**
