@@ -127,7 +127,7 @@ const store = await KeyValueStore.open(storeId, { storageBackend: new ApifyStora
 On the platform, request queues can now be consumed in two modes, controlled by the `requestQueueAccess` option of `Actor.init()` (or of `ApifyStorageBackend` when constructing it directly):
 
 - `'single'` (default) assumes the run is the only consumer of its request queues. Requests are not locked server-side and the queue head is estimated locally, which means fewer (paid) API calls and better performance. Multiple producers may still add requests concurrently.
-- `'shared'` locks every fetched request server-side, so several concurrent consumers (e.g. multiple Actor runs) can process one queue safely, at the cost of roughly one extra API call per request.
+- `'shared'` locks every fetched request server-side, so several concurrent consumers (e.g. multiple Actor runs) can process one queue safely, at the cost of roughly one extra API call per request. Unlike v3's `RequestQueueV2`, it does not re-fetch the queue head after a forefront insert or a reclaimed request, so processing order only loosely follows forefront placement.
 
 ```ts
 await Actor.init({ requestQueueAccess: 'shared' });
@@ -183,6 +183,30 @@ When running locally and the default key-value store holds no input record, `Act
 ### Input key configuration
 
 `Configuration.inputKey` is resolved from `ACTOR_INPUT_KEY`, then `APIFY_INPUT_KEY`, then `CRAWLEE_INPUT_KEY`, defaulting to `INPUT`. The last one is kept for compatibility with the Apify CLI, which sets all three; Crawlee itself no longer reads it. Locally the Actor stores data through `ApifyFileSystemStorageBackend`, a new export that extends Crawlee's `FileSystemStorageBackend`: it adopts a bare `INPUT` / `INPUT.json` in the default store as the record `INPUT` (and likewise a file named after the configured key as that key's record), and spares those keys when the store is purged on start. Plain Crawlee's backend does neither, so an `Actor.init({ storage })` with a plain `FileSystemStorageBackend` reads no hand-placed input and purges it. See [Out-of-band key-value files](https://crawlee.dev/js/docs/upgrading/upgrading-to-v4#out-of-band-key-value-files-eg-a-hand-placed-inputjson) in the Crawlee upgrading guide for the adoption rules.
+
+## `apify-client` v3
+
+The SDK now depends on `apify-client` v3. `Actor.apifyClient` and `Actor.newClient()` return a v3 client, so code that calls the client directly is subject to the client's own breaking changes, listed in the [`apify-client` upgrading guide](https://docs.apify.com/api/client/js/docs/next/upgrading/upgrading-to-v3). These are the ones SDK users are most likely to hit:
+
+- The `timeout` option of `Actor.call()`, `Actor.start()` and `Actor.callTask()` keeps its name and meaning (seconds, or `'inherit'`). The SDK passes it to the client as `runTimeoutSecs`. Only direct client calls, such as `Actor.apifyClient.actor(id).call(input, { timeout })`, need the new name.
+- The client constructor no longer accepts `timeoutSecs`, and neither does `Actor.newClient()`. Use the per-tier options (`timeoutShortSecs`, `timeoutMediumSecs`, `timeoutLongSecs` and `timeoutMaxSecs`) instead.
+- API errors are thrown as subclasses of `ApifyApiError`, such as `NotFoundError` or `ForbiddenError`. Checks on `instanceof ApifyApiError` and `statusCode` keep working, but log tooling that matches on the `ApifyApiError` name has to match the subclass names too.
+
+### Actor input is typed
+
+`Actor.call()`, `Actor.metamorph()` and the instance method `actor.start()` used to take their `input` as `unknown`. It is now typed as the client's `ActorInput`: a plain object, an array of plain objects, or raw bytes (a `Buffer`, `Uint8Array` or `ArrayBuffer`). Nothing changes at runtime, but some inputs stop compiling:
+
+- A raw `string`, with or without `contentType`. Pass an object instead. With `contentType: 'application/x-www-form-urlencoded'`, the client form-encodes the object for you.
+- `null`. Omit the argument or pass `undefined` to run an Actor without input.
+- A value typed as an `interface` or a class, since `ActorInput` needs an index signature. Declare the type as a `type` alias, or spread the value into a new object.
+
+```ts
+// v3
+await Actor.call('my-actor', 'some=body', { contentType: 'application/x-www-form-urlencoded' });
+
+// v4
+await Actor.call('my-actor', { some: 'body' }, { contentType: 'application/x-www-form-urlencoded' });
+```
 
 ## Argument validation (`ow` → `zod`)
 
