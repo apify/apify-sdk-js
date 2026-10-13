@@ -1076,18 +1076,31 @@ describe('Actor', () => {
         const webhooks = [{ a: 'a' }, { b: 'b' }] as unknown as WebhookUpdateData[];
 
         const { input, taskId, token, build } = globalOptions;
+        const maxTotalChargeUsd = 5;
         const { run } = runConfigs;
 
         test('works as expected', async () => {
             const taskSpy = vitest.spyOn(ApifyClient.prototype, 'task');
             const startSpy = vitest.spyOn(TaskClient.prototype, 'start').mockReturnValue(run);
 
-            const startOutput = await Actor.startTask(taskId, input, { memory, timeout, build, webhooks });
+            const startOutput = await Actor.startTask(taskId, input, {
+                memory,
+                timeout,
+                build,
+                webhooks,
+                maxTotalChargeUsd,
+            });
 
             expect(startOutput).toEqual(run);
             expect(taskSpy).toBeCalledWith(taskId);
             expect(startSpy).toBeCalledTimes(1);
-            expect(startSpy).toBeCalledWith(input, { memory, runTimeoutSecs: timeout, build, webhooks });
+            expect(startSpy).toBeCalledWith(input, {
+                memory,
+                runTimeoutSecs: timeout,
+                build,
+                webhooks,
+                maxTotalChargeUsd,
+            });
         });
 
         test('works with token', async () => {
