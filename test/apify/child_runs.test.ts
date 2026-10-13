@@ -1,4 +1,5 @@
 import { MemoryStorageBackend } from '@crawlee/core';
+import { sleep } from '@crawlee/utils';
 import type { Actor } from 'apify';
 import type { Run as ActorRun } from 'apify-client';
 import { ActorClient, RunClient, TaskClient } from 'apify-client';
@@ -10,6 +11,12 @@ import log from '@apify/log';
 
 import type { TrackedChildRun } from '../../src/child_run_tracker.js';
 import { createIsolatedActor } from '../createIsolatedActor.js';
+
+// Skips the delays between the lookups of a tracked run that the API reports as missing.
+vitest.mock('@crawlee/utils', async (importOriginal) => ({
+    ...(await importOriginal<Record<string, unknown>>()),
+    sleep: vitest.fn(async () => {}),
+}));
 
 const globalOptions = {
     token: 'some-token',
@@ -186,7 +193,21 @@ describe('child run tracking with `runName`', () => {
         await actor.start(actId, input, { runName });
 
         expect(startSpy).toBeCalledTimes(1);
+        expect(getSpy).toBeCalledTimes(13);
+        expect(sleep).toBeCalledWith(250);
         expect((await getChildRunLedger(actor))![runName].history).toEqual([{ ...trackedInfo, status: 'LOST' }]);
+    });
+
+    test('start() looks a missing tracked run up again, as it may not have reached every API replica yet', async () => {
+        await newActor().start(actId, input, { runName });
+        startSpy.mockClear();
+        getSpy.mockResolvedValueOnce(undefined).mockResolvedValueOnce(undefined);
+
+        const run = await newActor().start(actId, input, { runName });
+
+        expect(run).toEqual(startedRun);
+        expect(getSpy).toBeCalledTimes(3);
+        expect(startSpy).not.toBeCalled();
     });
 
     test('repeated replacements accumulate in the history, oldest first', async () => {

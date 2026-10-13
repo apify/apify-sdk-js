@@ -1,6 +1,7 @@
 import { createHash } from 'node:crypto';
 
 import { KeyValueStore, withDirectStorageAccess } from '@crawlee/core';
+import { sleep } from '@crawlee/utils';
 import type { Run as ActorRun, RunClient, RunResurrectOptions } from 'apify-client';
 import { ReentrantAsyncLock } from './utils.js';
 import type { ApifyClient } from './index.js';
@@ -62,6 +63,23 @@ const toInfo = (run: ActorRun): ChildRunInfo => ({
 
 const CHILD_RUNS_KVS_KEY = '__ACTOR_CHILD_RUNS';
 
+/** How many times a tracked run that the API reports as missing is looked up again before it counts as gone. */
+const NOT_FOUND_RETRIES = 12;
+const NOT_FOUND_RETRY_INTERVAL_MILLIS = 250;
+
+/**
+ * Fetches a tracked run, retrying a 404 for a few seconds. A run started moments ago (e.g. by a concurrent call or
+ * right before a migration) may not be on every API replica yet, and treating it as gone would start a duplicate.
+ */
+const getTrackedRun = async (runClient: RunClient) => {
+    let run = await runClient.get();
+    for (let retry = 0; !run && retry < NOT_FOUND_RETRIES; retry++) {
+        await sleep(NOT_FOUND_RETRY_INTERVAL_MILLIS);
+        run = await runClient.get();
+    }
+    return run;
+};
+
 /** Statuses that shortly end as `ABORTED` / `TIMED-OUT`. */
 const SETTLING_STATUSES = ['ABORTING', 'TIMING-OUT'];
 const RESURRECTABLE_STATUSES = ['ABORTED', 'TIMED-OUT'];
@@ -110,7 +128,7 @@ export class ChildRunTracker {
             const { build, memory, runTimeoutSecs, maxItems, maxTotalChargeUsd, restartOnError, timeoutSecs, signal } =
                 startOptions;
             const tracked = await this.get(runName);
-            let trackedRun = tracked ? await client.run(tracked.runId).get() : undefined;
+            let trackedRun = tracked ? await getTrackedRun(client.run(tracked.runId)) : undefined;
 
             if (trackedRun && SETTLING_STATUSES.includes(trackedRun.status)) {
                 trackedRun = await client.run(trackedRun.id).waitForFinish({ timeoutSecs, signal });
