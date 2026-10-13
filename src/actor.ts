@@ -28,7 +28,9 @@ import type {
     ApifyClientOptions,
     RunAbortOptions,
     RunClient,
+    RunResurrectOptions,
     TaskCallOptions,
+    TaskStartOptions,
     WebhookResource,
     WebhookEventType,
 } from 'apify-client';
@@ -342,6 +344,8 @@ export interface CallOptions extends Omit<ActorCallOptions, 'runTimeoutSecs'>, T
 export interface StartOptions
     extends Omit<ActorStartOptions, 'waitForFinish' | 'runTimeoutSecs'>, Token, Timeout, ChildRunOptions {}
 export interface CallTaskOptions extends Omit<TaskCallOptions, 'runTimeoutSecs'>, Token, Timeout, ChildRunOptions {}
+export interface ResurrectOptions extends Omit<RunResurrectOptions, 'runTimeoutSecs'>, Token, Timeout {}
+export interface StartTaskOptions extends Omit<TaskStartOptions, 'waitForFinish' | 'runTimeoutSecs'>, Token, Timeout {}
 
 export interface AbortOptions extends RunAbortOptions, Token {
     /** Exit with given status message */
@@ -974,6 +978,32 @@ export class Actor<Data extends Dictionary = Dictionary> {
     }
 
     /**
+     * Resurrects a finished Actor run on the Apify platform using the current user account (determined by the `APIFY_TOKEN` environment variable).
+     *
+     * Only finished runs (SUCCEEDED, FAILED, ABORTED or TIMED-OUT) can be resurrected. The run goes back to the RUNNING
+     * status and keeps its default storages. Options you leave out keep the values of the original run.
+     *
+     * The result of the function is an {@apilink ActorRun} object that contains details about the Actor run.
+     *
+     * For more information about Actors, read the
+     * [documentation](https://docs.apify.com/actor).
+     *
+     * **Example usage:**
+     *
+     * ```js
+     * const run = await Actor.resurrect(runId);
+     * ```
+     * @ignore
+     */
+    async resurrect(runId: string, options: ResurrectOptions = {}): Promise<ClientActorRun> {
+        const runTimeoutSecs = options.timeout === 'inherit' ? this.getRemainingTimeSecs() : options.timeout;
+        const { token, timeout: _timeout, ...rest } = options;
+        const client = token ? this.newClient({ token }) : this.apifyClient;
+
+        return client.run(runId).resurrect({ ...rest, runTimeoutSecs });
+    }
+
+    /**
      * Runs an actor task on the Apify platform using the current user account (determined by the `APIFY_TOKEN` environment variable).
      *
      * The result of the function is an {@apilink ActorRun} object that contains details about the Actor run.
@@ -1033,6 +1063,37 @@ export class Actor<Data extends Dictionary = Dictionary> {
     get childRuns(): Record<string, RunClient> {
         this.ensureActorInit('childRuns');
         return this.#childRunTracker.getRunClients(this.apifyClient);
+    }
+
+    /**
+     * Runs an Actor task on the Apify platform using the current user account (determined by the `APIFY_TOKEN` environment variable),
+     * unlike `Actor.callTask`, this method just starts the run without waiting for finish.
+     *
+     * The result of the function is an {@apilink ActorRun} object that contains details about the Actor run.
+     *
+     * For more information about Actor tasks, read the [documentation](https://docs.apify.com/tasks).
+     *
+     * **Example usage:**
+     *
+     * ```js
+     * const run = await Actor.startTask('bob/some-task');
+     * ```
+     *
+     * @param taskId
+     *  Allowed formats are `username/task-name`, `userId/task-name` or task ID.
+     * @param [input]
+     *  Input overrides for the Actor task. If it is an object, it will be stringified to
+     *  JSON and its content type set to `application/json; charset=utf-8`.
+     *  Provided input will be merged with Actor task input.
+     * @param [options]
+     * @ignore
+     */
+    async startTask(taskId: string, input?: Dictionary, options: StartTaskOptions = {}): Promise<ClientActorRun> {
+        const runTimeoutSecs = options.timeout === 'inherit' ? this.getRemainingTimeSecs() : options.timeout;
+        const { token, timeout: _timeout, ...rest } = options;
+        const client = token ? this.newClient({ token }) : this.apifyClient;
+
+        return client.task(taskId).start(input, { ...rest, runTimeoutSecs });
     }
 
     /**
@@ -1987,6 +2048,36 @@ export class Actor<Data extends Dictionary = Dictionary> {
     }
 
     /**
+     * Runs an Actor task on the Apify platform using the current user account (determined by the `APIFY_TOKEN` environment variable),
+     * unlike `Actor.callTask`, this method just starts the run without waiting for finish.
+     *
+     * The result of the function is an {@apilink ActorRun} object that contains details about the Actor run.
+     *
+     * For more information about Actor tasks, read the [documentation](https://docs.apify.com/tasks).
+     *
+     * **Example usage:**
+     *
+     * ```js
+     * const run = await Actor.startTask('bob/some-task');
+     * ```
+     *
+     * @param taskId
+     *  Allowed formats are `username/task-name`, `userId/task-name` or task ID.
+     * @param [input]
+     *  Input overrides for the Actor task. If it is an object, it will be stringified to
+     *  JSON and its content type set to `application/json; charset=utf-8`.
+     *  Provided input will be merged with Actor task input.
+     * @param [options]
+     */
+    static async startTask(
+        taskId: string,
+        input?: Dictionary,
+        options: StartTaskOptions = {},
+    ): Promise<ClientActorRun> {
+        return Actor.getDefaultInstance().startTask(taskId, input, options);
+    }
+
+    /**
      * Runs an Actor on the Apify platform using the current user account (determined by the `APIFY_TOKEN` environment variable),
      * unlike `Actor.call`, this method just starts the run without waiting for finish.
      *
@@ -2044,6 +2135,27 @@ export class Actor<Data extends Dictionary = Dictionary> {
      */
     static async abort(runId: string, options: AbortOptions = {}): Promise<ClientActorRun> {
         return Actor.getDefaultInstance().abort(runId, options);
+    }
+
+    /**
+     * Resurrects a finished Actor run on the Apify platform using the current user account (determined by the `APIFY_TOKEN` environment variable).
+     *
+     * Only finished runs (SUCCEEDED, FAILED, ABORTED or TIMED-OUT) can be resurrected. The run goes back to the RUNNING
+     * status and keeps its default storages. Options you leave out keep the values of the original run.
+     *
+     * The result of the function is an {@apilink ActorRun} object that contains details about the Actor run.
+     *
+     * For more information about Actors, read the
+     * [documentation](https://docs.apify.com/actor).
+     *
+     * **Example usage:**
+     *
+     * ```js
+     * const run = await Actor.resurrect(runId);
+     * ```
+     */
+    static async resurrect(runId: string, options: ResurrectOptions = {}): Promise<ClientActorRun> {
+        return Actor.getDefaultInstance().resurrect(runId, options);
     }
 
     /**
