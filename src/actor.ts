@@ -346,7 +346,8 @@ export interface StartOptions
     extends Omit<ActorStartOptions, 'waitForFinish' | 'runTimeoutSecs'>, Token, Timeout, ChildRunOptions {}
 export interface CallTaskOptions extends Omit<TaskCallOptions, 'runTimeoutSecs'>, Token, Timeout, ChildRunOptions {}
 export interface ResurrectOptions extends Omit<RunResurrectOptions, 'runTimeoutSecs'>, Token, Timeout {}
-export interface StartTaskOptions extends Omit<TaskStartOptions, 'waitForFinish' | 'runTimeoutSecs'>, Token, Timeout {}
+export interface StartTaskOptions
+    extends Omit<TaskStartOptions, 'waitForFinish' | 'runTimeoutSecs'>, Token, Timeout, ChildRunOptions {}
 
 export interface AbortOptions extends RunAbortOptions, Token {
     /** Exit with given status message */
@@ -1097,10 +1098,20 @@ export class Actor<Data extends Dictionary = Dictionary> {
      */
     async startTask(taskId: string, input?: Dictionary, options: StartTaskOptions = {}): Promise<ClientActorRun> {
         const runTimeoutSecs = options.timeout === 'inherit' ? this.getRemainingTimeSecs() : options.timeout;
-        const { token, timeout: _timeout, ...rest } = options;
+        const { token, timeout: _timeout, runName, ...rest } = options;
         const client = token ? this.newClient({ token }) : this.apifyClient;
 
-        return client.task(taskId).start(input, { ...rest, runTimeoutSecs });
+        if (!runName) return client.task(taskId).start(input, { ...rest, runTimeoutSecs });
+
+        const startOptions = { ...rest, runTimeoutSecs };
+        const { run } = await this.#childRunTracker.startOrResumeChildRun(
+            client,
+            runName,
+            { type: 'task', id: taskId, input },
+            startOptions,
+            async () => client.task(taskId).start(input, startOptions),
+        );
+        return run;
     }
 
     /**

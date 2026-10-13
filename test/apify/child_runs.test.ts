@@ -410,6 +410,18 @@ describe('child run tracking with `runName`', () => {
         expect(startSpy).not.toBeCalled();
     });
 
+    test('startTask() returns the tracked run instead of starting a new one', async () => {
+        await newActor().startTask(taskId, input, { runName });
+        taskStartSpy.mockClear();
+
+        const actor = newActor();
+        const run = await actor.startTask(taskId, input, { runName });
+
+        expect(run).toEqual(startedRun);
+        expect(taskStartSpy).not.toBeCalled();
+        expect(await getChildRunLedger(actor)).toEqual({ [runName]: { ...stored, history: [] } });
+    });
+
     test('callTask() deduplicates the tracked run instead of starting a new one', async () => {
         await newActor().callTask(taskId, input, { runName });
         expect(taskStartSpy).toBeCalledTimes(1);
