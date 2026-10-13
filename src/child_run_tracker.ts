@@ -3,6 +3,8 @@ import { createHash } from 'node:crypto';
 import { KeyValueStore, withDirectStorageAccess } from '@crawlee/core';
 import { sleep } from '@crawlee/utils';
 import type { Run as ActorRun, RunClient, RunResurrectOptions } from 'apify-client';
+import { z } from 'zod';
+
 import { ReentrantAsyncLock } from './utils.js';
 import type { ApifyClient } from './index.js';
 
@@ -62,6 +64,12 @@ const toInfo = (run: ActorRun): ChildRunInfo => ({
 });
 
 const CHILD_RUNS_KVS_KEY = '__ACTOR_CHILD_RUNS';
+
+const childRunInfoSchema = z.object({ runId: z.string(), status: z.string(), startedAt: z.string() });
+const trackedRunsSchema = z.record(
+    z.string(),
+    childRunInfoSchema.extend({ checksum: z.string(), history: z.array(childRunInfoSchema).default([]) }),
+);
 
 /** How many times a tracked run that the API reports as missing is looked up again before it counts as gone. */
 const NOT_FOUND_RETRIES = 12;
@@ -232,9 +240,16 @@ export class ChildRunTracker {
      */
     async load() {
         this.loading ??= KeyValueStore.open()
-            .then(async (defaultStore) => defaultStore.getValue<Record<string, TrackedChildRun>>(CHILD_RUNS_KVS_KEY))
+            .then(async (defaultStore) => defaultStore.getValue(CHILD_RUNS_KVS_KEY))
             .then((storedRuns) => {
-                this.trackedRuns = storedRuns ?? {};
+                const parsed = trackedRunsSchema.safeParse(storedRuns ?? {});
+                if (!parsed.success) {
+                    throw new Error(
+                        `The child runs stored under the "${CHILD_RUNS_KVS_KEY}" key in the default key-value store are malformed.`,
+                        { cause: parsed.error },
+                    );
+                }
+                this.trackedRuns = parsed.data as Record<string, TrackedChildRun>;
             })
             .catch((error) => {
                 this.loading = undefined;

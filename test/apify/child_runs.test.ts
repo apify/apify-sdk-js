@@ -266,6 +266,12 @@ describe('child run tracking with `runName`', () => {
         expect(actor.childRuns[runName].id).toBe(startedRun.id);
     });
 
+    test('init() throws when the stored child runs are malformed', async () => {
+        await (await newActor().openKeyValueStore()).setValue('__ACTOR_CHILD_RUNS', { [runName]: { runId: 42 } });
+
+        await expect(newActor().init()).rejects.toThrow(/__ACTOR_CHILD_RUNS.*malformed/);
+    });
+
     test('childRuns uses the token a run was started with in this process', async () => {
         await newActor().start(actId, input, { runName: 'before-migration' });
 
