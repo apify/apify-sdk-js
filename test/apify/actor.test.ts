@@ -1099,8 +1099,9 @@ describe('Actor', () => {
                 restartOnError: true,
             });
         });
-      
+
         test('works with token', async () => {
+            const newClientSpy = vitest.spyOn(Actor.prototype, 'newClient');
             const resurrectSpy = vitest.spyOn(RunClient.prototype, 'resurrect').mockResolvedValue(finishedRun);
             await Actor.resurrect(runId, { token, build });
 
