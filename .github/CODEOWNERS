@@ -2,3 +2,4 @@
 
 /docs/**/*.md @szaganek
 /docs/**/*.mdx @szaganek
+/.github/workflows/factory_review.yaml @mtrunkat
