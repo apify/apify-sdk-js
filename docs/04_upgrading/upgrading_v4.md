@@ -102,6 +102,12 @@ In addition, `_setPasswordIfToken()` is now `private setPasswordIfToken()` (it w
 
 If you only interact with events through `Actor.on()` / `Actor.off()` / `Actor.events`, no code changes are needed.
 
+### Platform events websocket
+
+`Actor.init()` (and `PlatformEventManager.init()`) now waits for the connection to the platform events websocket and rejects if it cannot be established. Previously the failure was only logged and the run continued without any platform events. Locally, where `ACTOR_EVENTS_WEBSOCKET_URL` is not set, nothing changes.
+
+Once connected, a dropped connection is re-established automatically with backoff, so `migrating`, `aborting` and `persistState` keep arriving after a network blip. The connection is not re-established after a close code signalling a permanent condition, such as `1008` for an unknown run ID.
+
 ## StorageBackend
 
 The SDK's storage layer was adapted to the new Crawlee v4 `StorageBackend` interface. The Apify platform client is wrapped via the `ApifyStorageBackend` adapter — now exported from `apify` — which implements `createDatasetBackend`, `createKeyValueStoreBackend`, and `createRequestQueueBackend`.
