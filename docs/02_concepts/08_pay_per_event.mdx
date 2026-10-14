@@ -35,6 +35,16 @@ If you can split your work into individual units, for example scraping one page 
 
 If you use the `count` parameter, always check the returned `chargedCount`. It tells you how many events were charged, which may be less than what you requested.
 
+### Retry charges safely
+
+When an operation may be retried, for example after a network error, pass an `idempotencyKey` to `Actor.charge()`. A repeated call under the same key isn't charged again. It reports the `chargedCount` of the original call:
+
+```typescript
+await Actor.charge({ eventName: 'search-result', idempotencyKey: resultId });
+```
+
+Like the Apify platform, the SDK remembers a key for three minutes, so a later repeat is charged again. A repeat that names a different event is skipped with a warning and reports zero.
+
 ### Monitor charging
 
 For custom events, every `Actor.charge` call returns <ApiLink to="interface/ChargeResult">`ChargeResult`</ApiLink>. Inspect its fields to learn how much was charged.
@@ -69,7 +79,7 @@ By default, crawlee runs each request handler in a storage transaction: dataset 
 
 For the same reason, <ApiLink to="class/Actor#pushData">`Actor.pushData`</ApiLink> with an event name throws inside a transaction: the charge cannot wait for the commit. You have two options:
 - Wrap the call in crawlee's `withDirectStorageAccess()` function. It stores the items and charges immediately. However,  if crawlee retries the request, it pushes the items again.
-- Push the items without an event name and charge separately. <ApiLink to="class/Actor#charge">`Actor.charge`</ApiLink> takes effect immediately and isn't rolled back, so pass an `idempotencyKey` that a retry reproduces. The platform then bills the event once.
+- Push the items without an event name and charge separately. <ApiLink to="class/Actor#charge">`Actor.charge`</ApiLink> takes effect immediately and isn't rolled back, so pass an `idempotencyKey` that a retry reproduces. The platform and the SDK's own budget accounting then count the event once.
 
 <CodeBlock language="typescript">{ChargeInRequestHandlerSource}</CodeBlock>
 

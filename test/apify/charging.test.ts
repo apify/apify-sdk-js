@@ -7,7 +7,7 @@ import {
 import { Actor } from 'apify';
 import type { RunClient } from 'apify-client';
 import type { MockInstance } from 'vitest';
-import { afterEach, beforeEach, describe, expect, test } from 'vitest';
+import { afterEach, beforeEach, describe, expect, onTestFinished, test } from 'vitest';
 
 import log from '@apify/log';
 
@@ -302,6 +302,173 @@ describe('ChargingManager', () => {
                 eventName: 'test-event',
                 count: 2,
                 idempotencyKey: 'request-42-test-event',
+            });
+        });
+
+        describe('with an idempotency key', () => {
+            /** Starts a platform PPE run with the run client's `charge()` replaced by a spy. */
+            async function initPlatformActorWithChargeSpy(
+                options: { maxTotalChargeUsd?: string; prices?: Record<string, number> } = {},
+            ) {
+                setUpPlatformEnv({
+                    maxTotalChargeUsd: options.maxTotalChargeUsd ?? '10.0',
+                    pricingInfo: Object.fromEntries(
+                        Object.entries(options.prices ?? { search: 1.0, scrape: 2.0 }).map(([name, price]) => [
+                            name,
+                            { eventTitle: name, eventPriceUsd: price },
+                        ]),
+                    ),
+                });
+
+                const { serviceLocator } = await initIsolatedDefaultActor();
+                useInMemoryStorage(serviceLocator);
+
+                const chargeSpy = vitest.fn().mockResolvedValue(undefined);
+                vitest.spyOn(Actor.apifyClient, 'run').mockReturnValue({ charge: chargeSpy } as unknown as RunClient);
+
+                return { chargeSpy, chargingManager: Actor.getChargingManager() };
+            }
+
+            test('rejects a blank key', async () => {
+                const { chargeSpy } = await initPlatformActorWithChargeSpy();
+
+                for (const idempotencyKey of ['', '   ']) {
+                    await expect(Actor.charge({ eventName: 'search', idempotencyKey })).rejects.toThrow(
+                        'must not be blank',
+                    );
+                }
+
+                expect(chargeSpy).not.toHaveBeenCalled();
+            });
+
+            test('skips a repeat of the key, both at the API and in the local charging state', async () => {
+                const { chargeSpy, chargingManager } = await initPlatformActorWithChargeSpy();
+                const warningSpy = vitest.spyOn(log, 'warning').mockImplementation(() => {});
+
+                const first = await Actor.charge({ eventName: 'search', count: 2, idempotencyKey: 'key-1' });
+                expect(first.chargedCount).toBe(2);
+
+                // The repeat reports what was charged under this key originally, whatever count it asks for.
+                const repeated = await Actor.charge({ eventName: 'search', count: 1, idempotencyKey: 'key-1' });
+                expect(repeated.chargedCount).toBe(2);
+                expect(chargingManager.getChargedEventCount('search')).toBe(2);
+                expect(chargeSpy).toHaveBeenCalledTimes(1);
+
+                // A distinct key is charged as usual.
+                await Actor.charge({ eventName: 'search', count: 1, idempotencyKey: 'key-2' });
+                expect(chargingManager.getChargedEventCount('search')).toBe(3);
+                expect(chargeSpy).toHaveBeenCalledTimes(2);
+
+                // Like on the platform, the key alone decides - a repeat naming another event is skipped with a warning.
+                const otherEvent = await Actor.charge({ eventName: 'scrape', count: 1, idempotencyKey: 'key-1' });
+                expect(otherEvent.chargedCount).toBe(0);
+                expect(chargingManager.getChargedEventCount('scrape')).toBe(0);
+                expect(chargeSpy).toHaveBeenCalledTimes(2);
+                expect(warningSpy).toHaveBeenCalledWith(
+                    expect.stringContaining("was already used to charge for event 'search'"),
+                );
+            });
+
+            test('skips a repeat of events the API never receives', async () => {
+                const { chargeSpy, chargingManager } = await initPlatformActorWithChargeSpy({
+                    prices: { [DEFAULT_DATASET_ITEM_EVENT]: 0.5, search: 1.0 },
+                });
+                vitest.spyOn(log, 'warning').mockImplementation(() => {});
+
+                // A synthetic and an unknown event both skip the API, yet each one is counted locally.
+                for (const [eventName, idempotencyKey] of [
+                    [DEFAULT_DATASET_ITEM_EVENT, 'key-1'],
+                    ['typo-event', 'key-2'],
+                ]) {
+                    await Actor.charge({ eventName, idempotencyKey });
+                    await Actor.charge({ eventName, idempotencyKey });
+                    expect(chargingManager.getChargedEventCount(eventName)).toBe(1);
+                }
+
+                expect(chargeSpy).not.toHaveBeenCalled();
+            });
+
+            test('forgets the key after three minutes', async () => {
+                vitest.useFakeTimers();
+                onTestFinished(() => {
+                    vitest.useRealTimers();
+                });
+
+                const { chargeSpy, chargingManager } = await initPlatformActorWithChargeSpy();
+
+                await Actor.charge({ eventName: 'search', idempotencyKey: 'key-1' });
+
+                // Just inside the window the key is still remembered.
+                vitest.advanceTimersByTime(170_000);
+                await Actor.charge({ eventName: 'search', idempotencyKey: 'key-1' });
+                expect(chargeSpy).toHaveBeenCalledTimes(1);
+
+                // Once the window has passed the key is forgotten and the charge goes out again.
+                vitest.advanceTimersByTime(10_000);
+                await Actor.charge({ eventName: 'search', idempotencyKey: 'key-1' });
+                expect(chargingManager.getChargedEventCount('search')).toBe(2);
+                expect(chargeSpy).toHaveBeenCalledTimes(2);
+            });
+
+            test('charges once for concurrent calls under one key', async () => {
+                const { chargeSpy, chargingManager } = await initPlatformActorWithChargeSpy();
+
+                const results = await Promise.all(
+                    Array.from({ length: 5 }, async () =>
+                        Actor.charge({ eventName: 'search', idempotencyKey: 'key-1' }),
+                    ),
+                );
+
+                expect(results.map(({ chargedCount }) => chargedCount)).toStrictEqual([1, 1, 1, 1, 1]);
+                expect(chargingManager.getChargedEventCount('search')).toBe(1);
+                expect(chargeSpy).toHaveBeenCalledTimes(1);
+            });
+
+            test('counts a charge whose API call failed only once it is retried', async () => {
+                const { chargeSpy, chargingManager } = await initPlatformActorWithChargeSpy();
+
+                chargeSpy.mockRejectedValueOnce(new Error('request failed'));
+                await expect(Actor.charge({ eventName: 'search', idempotencyKey: 'key-1' })).rejects.toThrow(
+                    'request failed',
+                );
+                expect(chargingManager.getChargedEventCount('search')).toBe(0);
+
+                // The platform may have received the failed request anyway, so the retry goes out under the same key.
+                const retried = await Actor.charge({ eventName: 'search', idempotencyKey: 'key-1' });
+                expect(retried.chargedCount).toBe(1);
+                expect(chargingManager.getChargedEventCount('search')).toBe(1);
+                expect(chargeSpy).toHaveBeenCalledTimes(2);
+            });
+
+            test('skips a repeat of the key off the platform, where no API call is made at all', async () => {
+                await initIsolatedDefaultActor();
+                const chargingManager = Actor.getChargingManager();
+
+                expect(
+                    (await Actor.charge({ eventName: 'search', count: 2, idempotencyKey: 'key-1' })).chargedCount,
+                ).toBe(2);
+                expect(
+                    (await Actor.charge({ eventName: 'search', count: 2, idempotencyKey: 'key-1' })).chargedCount,
+                ).toBe(2);
+                expect(chargingManager.getChargedEventCount('search')).toBe(2);
+            });
+
+            test('remembers the count capped by the budget, not the requested one', async () => {
+                const { chargeSpy, chargingManager } = await initPlatformActorWithChargeSpy({
+                    maxTotalChargeUsd: '2.0',
+                });
+
+                // The budget covers two events and the manager overcharges by one so the platform terminates the run.
+                expect(
+                    (await Actor.charge({ eventName: 'search', count: 5, idempotencyKey: 'key-1' })).chargedCount,
+                ).toBe(3);
+                expect(chargeSpy).toHaveBeenCalledWith({ eventName: 'search', count: 3, idempotencyKey: 'key-1' });
+
+                expect(
+                    (await Actor.charge({ eventName: 'search', count: 5, idempotencyKey: 'key-1' })).chargedCount,
+                ).toBe(3);
+                expect(chargingManager.getChargedEventCount('search')).toBe(3);
+                expect(chargeSpy).toHaveBeenCalledTimes(1);
             });
         });
 

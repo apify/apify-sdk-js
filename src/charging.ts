@@ -12,6 +12,16 @@ interface ChargingStateItem {
     totalChargedAmount: number;
 }
 
+interface IdempotentCharge {
+    eventName: string;
+    chargedCount: number;
+    /** Timestamp in milliseconds after which the key is forgotten. */
+    expiresAt: number;
+}
+
+/** How long a charge is remembered by its idempotency key - the same as the platform's own records. */
+const IDEMPOTENCY_KEY_TTL_MILLIS = 3 * 60 * 1000;
+
 export const DEFAULT_DATASET_ITEM_EVENT = 'apify-default-dataset-item';
 
 export interface ChargeOptions {
@@ -28,8 +38,9 @@ export interface ChargeOptions {
     count?: number;
 
     /**
-     * Repeated charges sharing a key are billed once - e.g. a request handler rerun by a retry.
-     * Local accounting still counts every call, so the remaining budget comes out underestimated.
+     * A unique key preventing a retried operation from being charged for twice - e.g. a request handler rerun by a retry.
+     * A repeat under the same key within three minutes is not sent to the API and reports the `chargedCount` of
+     * the original call, or zero if it names a different event. Like the platform, the key is forgotten afterwards.
      */
     idempotencyKey?: string;
 }
@@ -112,6 +123,9 @@ export class ChargingManager {
     #pricingInfo: Record<string, { price: number; title: string }> = {};
     #chargingState?: Record<string, ChargingStateItem>;
     #chargingLogDataset?: Dataset;
+
+    /** Charges made with an idempotency key, by key, in insertion (and therefore expiry) order. */
+    readonly #idempotentCharges = new Map<string, IdempotentCharge>();
 
     readonly #chargeLock = new ReentrantAsyncLock();
 
@@ -297,6 +311,10 @@ export class ChargingManager {
      * @param options The name of the event to charge for and the number of events to be charged.
      */
     async charge({ eventName, count = 1, idempotencyKey }: ChargeOptions): Promise<ChargeResult> {
+        if (idempotencyKey !== undefined && idempotencyKey.trim() === '') {
+            throw new Error('idempotencyKey must not be blank');
+        }
+
         if (!this.isPayPerEvent) {
             if (!this.#notPpeWarningPrinted) {
                 log.warning(
@@ -319,6 +337,30 @@ export class ChargingManager {
         }
 
         return await this.withChargeLock(async () => {
+            // A repeat the platform would discard is resolved here too - counting it would inflate the charging state
+            // and make the run hit `maxTotalChargeUsd` early. The key alone decides, as on the platform.
+            const previous = idempotencyKey === undefined ? undefined : this.getIdempotentCharge(idempotencyKey);
+
+            if (previous !== undefined) {
+                let repeatedCount: number;
+
+                if (previous.eventName === eventName) {
+                    log.debug(`Skipped a repeated charge of event '${eventName}' under key '${idempotencyKey}'.`);
+                    repeatedCount = previous.chargedCount;
+                } else {
+                    log.warning(
+                        `Idempotency key '${idempotencyKey}' was already used to charge for event '${previous.eventName}', so the charge of event '${eventName}' is skipped.`,
+                    );
+                    repeatedCount = 0;
+                }
+
+                return {
+                    eventChargeLimitReached: this.isEventChargeLimitReached(eventName),
+                    chargedCount: repeatedCount,
+                    chargeableWithinLimit: this.calculateChargeableWithinLimit(),
+                };
+            }
+
             const maxEventChargeCount = this.calculateMaxEventChargeCountWithinLimit(eventName);
 
             const chargedCount = (() => {
@@ -349,13 +391,6 @@ export class ChargingManager {
                 title: `Unknown event '${eventName}'`,
             };
 
-            chargingState[eventName] ??= {
-                chargeCount: 0,
-                totalChargedAmount: 0,
-            };
-            chargingState[eventName].chargeCount += chargedCount;
-            chargingState[eventName].totalChargedAmount += chargedCount * pricingInfo.price;
-
             if (this.#isAtHome) {
                 if (eventName.startsWith('apify-')) {
                     // Synthetic events (e.g. apify-default-dataset-item) are tracked locally only,
@@ -371,12 +406,28 @@ export class ChargingManager {
                 }
             }
 
+            // Count the charge only after the API call succeeds, so a failed call retried under the same key
+            // is counted once.
+            chargingState[eventName] ??= {
+                chargeCount: 0,
+                totalChargedAmount: 0,
+            };
+            chargingState[eventName].chargeCount += chargedCount;
+            chargingState[eventName].totalChargedAmount += chargedCount * pricingInfo.price;
+
+            // Remember the key for every charge that was counted, including events the API never receives,
+            // such as synthetic ones - those are counted locally and a repeat would count them twice.
+            if (idempotencyKey !== undefined) {
+                this.setIdempotentCharge(idempotencyKey, { eventName, chargedCount });
+            }
+
             if (this.#chargingLogDataset !== undefined) {
                 await this.#chargingLogDataset.pushData({
                     eventName,
                     eventTitle: pricingInfo.title,
                     eventPriceUsd: pricingInfo.price,
                     chargedCount,
+                    idempotencyKey,
                     timestamp: new Date().toISOString(),
                 });
             }
@@ -394,6 +445,32 @@ export class ChargingManager {
                 chargeableWithinLimit: this.calculateChargeableWithinLimit(),
             };
         });
+    }
+
+    private getIdempotentCharge(idempotencyKey: string): IdempotentCharge | undefined {
+        const charge = this.#idempotentCharges.get(idempotencyKey);
+
+        if (charge !== undefined && charge.expiresAt <= Date.now()) {
+            this.#idempotentCharges.delete(idempotencyKey);
+            return undefined;
+        }
+
+        return charge;
+    }
+
+    private setIdempotentCharge(idempotencyKey: string, charge: Omit<IdempotentCharge, 'expiresAt'>): void {
+        const now = Date.now();
+
+        // Entries expire in insertion order, so pruning can stop at the first live one.
+        for (const [key, { expiresAt }] of this.#idempotentCharges) {
+            if (expiresAt > now) {
+                break;
+            }
+
+            this.#idempotentCharges.delete(key);
+        }
+
+        this.#idempotentCharges.set(idempotencyKey, { ...charge, expiresAt: now + IDEMPOTENCY_KEY_TTL_MILLIS });
     }
 
     /**
