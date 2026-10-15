@@ -147,7 +147,8 @@ export class PlatformEventManager extends EventManager {
     /** Opens a new connection; resolves once it is established and rejects if it fails before that. */
     async #connect(eventsWsUrl: string) {
         await new Promise<void>((resolve, reject) => {
-            const ws = new WebSocket(eventsWsUrl);
+            // `ws` has no default handshake timeout, so without it a silent server would block `init()` forever.
+            const ws = new WebSocket(eventsWsUrl, { handshakeTimeout: 10_000 });
             this.#eventsWs = ws;
 
             let openedAt: number | undefined;
