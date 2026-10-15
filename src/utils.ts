@@ -1,3 +1,4 @@
+import { AsyncLocalStorage } from 'node:async_hooks';
 import { existsSync, readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { type } from 'node:os';
@@ -137,4 +138,23 @@ export function printOutdatedSdkWarning() {
 
     log.warning(`You are using an outdated version (${apifyPkgJson.version}) of Apify SDK. We recommend you to update to the latest version (${latestApifyVersion}).
          Read more about Apify SDK versioning at: https://help.apify.com/en/articles/3184510-updates-and-versioning-of-apify-sdk`);
+}
+
+/**
+ * A FIFO mutex that a critical section may re-enter from a nested call without deadlocking.
+ */
+export class ReentrantAsyncLock {
+    #tail: Promise<unknown> = Promise.resolve();
+    readonly #held = new AsyncLocalStorage<true>();
+
+    async runExclusive<T>(fn: () => Promise<T>): Promise<T> {
+        if (this.#held.getStore()) {
+            return await fn();
+        }
+
+        const run = this.#tail.then(async () => this.#held.run(true, fn));
+        // Keep the chain alive even when the critical section throws.
+        this.#tail = run.catch(() => {});
+        return await run;
+    }
 }

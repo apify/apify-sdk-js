@@ -1,11 +1,10 @@
-import { AsyncLocalStorage } from 'node:async_hooks';
-
 import { Dataset, KeyValueStore } from '@crawlee/core';
 import type { ActorRunPricingInfo, ApifyClient } from 'apify-client';
 
 import log from '@apify/log';
 
 import type { Configuration } from './configuration.js';
+import { ReentrantAsyncLock } from './utils.js';
 
 interface ChargingStateItem {
     chargeCount: number;
@@ -72,26 +71,6 @@ export interface ActorPricingInfo {
     maxTotalChargeUsd: number;
     isPayPerEvent: boolean;
     perEventPrices: Record<string, number>;
-}
-
-/**
- * A FIFO mutex that a critical section may re-enter from a nested call — the charge lock is taken by
- * `Actor.pushData()` and again, one level down, by the dataset backend it pushes through.
- */
-class ReentrantAsyncLock {
-    #tail: Promise<unknown> = Promise.resolve();
-    readonly #held = new AsyncLocalStorage<true>();
-
-    async runExclusive<T>(fn: () => Promise<T>): Promise<T> {
-        if (this.#held.getStore()) {
-            return await fn();
-        }
-
-        const run = this.#tail.then(async () => this.#held.run(true, fn));
-        // Keep the chain alive even when the critical section throws.
-        this.#tail = run.catch(() => {});
-        return await run;
-    }
 }
 
 /**
