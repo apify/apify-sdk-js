@@ -53,6 +53,10 @@ When a setting is exposed under several environment variables, the Apify-specifi
 
 `Actor.config` was renamed to `Actor.configuration` (both the static getter and the instance property), and `Configuration.getGlobalConfig()` to `Configuration.getGlobalConfiguration()`, following the same renames in Crawlee v4. The public `config` properties of `ProxyConfiguration` and `PlatformEventManager` were renamed to `configuration` as well.
 
+### `userIsPaying` is a boolean
+
+`Configuration.userIsPaying` and `Actor.getEnv().userIsPaying` are now parsed as booleans, like the other flags. `APIFY_USER_IS_PAYING=1` or `true` resolves to `true`; `0`, `false`, an empty string, or an unset variable resolves to `false`. In v3 the raw string was exposed (`'1'`, `''` or `null`), so a `'0'` or `'false'` set locally counted as paying.
+
 ## ProxyConfiguration: `newUrl()` / `newProxyInfo()` no longer take `sessionId`
 
 The `sessionId` parameter has been removed from both `ProxyConfiguration.newUrl()` and `ProxyConfiguration.newProxyInfo()`. Each call now returns an independent URL; for Apify Proxy the SDK mints a fresh random session id internally for every URL it hands out, so consecutive calls resolve to different IPs.

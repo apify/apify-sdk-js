@@ -10,6 +10,7 @@ import type {
     UseStateOptions,
 } from '@crawlee/core';
 import {
+    coerceBoolean,
     Dataset,
     EventType,
     KeyValueStore,
@@ -204,9 +205,9 @@ export interface ApifyEnv {
     userId: string | null;
 
     /**
-     * If it is `1`, it means that the user who started the Actor is a paying user. (APIFY_USER_IS_PAYING)
+     * Whether the user who started the Actor is a paying user. `false` when not set. (APIFY_USER_IS_PAYING)
      */
-    userIsPaying: string | null;
+    userIsPaying: boolean;
 
     /**
      * Authentication token representing privileges given to the Actor run,
@@ -1807,6 +1808,11 @@ export class Actor<Data extends Dictionary = Dictionary> {
         })) {
             const camelCaseName = snakeCaseToCamelCase(shortName) as keyof ApifyEnv;
             let value: string | number | Date | undefined = env[fullName];
+
+            if (fullName === APIFY_ENV_VARS.USER_IS_PAYING) {
+                Reflect.set(envVars, camelCaseName, !!value && coerceBoolean.parse(value));
+                continue;
+            }
 
             // Parse dates and integers.
             if (value && fullName.endsWith('_AT')) {
