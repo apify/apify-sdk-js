@@ -208,6 +208,10 @@ await Actor.call('my-actor', 'some=body', { contentType: 'application/x-www-form
 await Actor.call('my-actor', { some: 'body' }, { contentType: 'application/x-www-form-urlencoded' });
 ```
 
+## `Actor.abort()` sets `statusMessage` on the aborted run
+
+`Actor.abort(runId, { statusMessage })` used to set the message, as terminal, on the *calling* run, via `Actor.setStatusMessage()`. The aborted run kept its old message and the caller's run was left with a terminal message it could no longer change. It now updates `runId` through the same client it aborts with, so the `token` option applies to the status message as well. The message is no longer logged by the SDK. If you relied on the old behaviour to annotate your own run, call `Actor.setStatusMessage()` yourself.
+
 ## Argument validation (`ow` → `zod`)
 
 Runtime argument validation (e.g. `Actor.addWebhook()`, `Actor.setStatusMessage()`, `Actor.openDataset()` / `openKeyValueStore()` / `openRequestQueue()`, and the `ProxyConfiguration` constructor) now uses [`zod`](https://zod.dev) instead of `ow`. Validation is just as strict — invalid arguments still throw synchronously, before any work is done — but the **error messages changed**.
