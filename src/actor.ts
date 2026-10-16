@@ -1499,7 +1499,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * extension is read as — is parsed with JSON5 when it parses, and returned as a `Buffer` otherwise.
      *
      * When running locally and the store holds no such record, the input is read from a `<inputKey>` or
-     * `<inputKey>.json` file in the current working directory instead.
+     * `<inputKey>.json` file in the current working directory, then in the storage directory.
      *
      * Throws an {@apilink ActorInputError} when no input is found (`code: 'NOT_FOUND'`), when both input
      * files exist in the working directory (`'MULTIPLE_FILES'`), when a JSON input does not parse
@@ -1529,12 +1529,13 @@ export class Actor<Data extends Dictionary = Dictionary> {
         const record = await store.getRecord(inputKey);
         const rawInput = record
             ? parseInput(record.value, record.contentType, `the "${inputKey}" record of the default key-value store`)
-            : await this.readInputFromWorkingDirectory(inputKey);
+            : ((await this.readInputFromDirectory(inputKey, process.cwd(), 'working directory')) ??
+              (await this.readInputFromDirectory(inputKey, this.configuration.storageDir, 'storage directory')));
 
         if (rawInput == null) {
             const locations = [`the "${inputKey}" record of the default key-value store`];
             if (!this.configuration.isAtHome) {
-                locations.push(`a "${inputKey}" or "${inputKey}.json" file in the working directory`);
+                locations.push(`a "${inputKey}" or "${inputKey}.json" file in the working or storage directory`);
             }
             throw new ActorInputError('NOT_FOUND', `Input does not exist. Expected ${locations.join(' or ')}.`);
         }
@@ -1564,14 +1565,14 @@ export class Actor<Data extends Dictionary = Dictionary> {
     }
 
     /**
-     * Reads the input from a `<inputKey>` or `<inputKey>.json` file in the working directory, for local runs
+     * Reads the input from a `<inputKey>` or `<inputKey>.json` file in the given directory, for local runs
      * whose default key-value store holds no input record. Mirrors how `ApifyFileSystemStorageBackend` adopts
      * such files inside the store directory: the `.json` file is JSON, the bare one is bytes that
      * {@link parseInputValue} tries as JSON5. Both files present is an error rather than a guess.
      *
      * @returns `undefined` when running on the platform or when neither file exists.
      */
-    private async readInputFromWorkingDirectory(inputKey: string): Promise<unknown> {
+    private async readInputFromDirectory(inputKey: string, directory: string, label: string): Promise<unknown> {
         if (this.configuration.isAtHome) {
             return undefined;
         }
@@ -1583,7 +1584,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
 
         const found = [];
         for (const candidate of candidates) {
-            const path = join(process.cwd(), candidate.filename);
+            const path = join(directory, candidate.filename);
             const stats = await stat(path).catch(() => null);
             if (stats?.isFile()) {
                 found.push({ ...candidate, path });
@@ -1593,7 +1594,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
         if (found.length > 1) {
             throw new ActorInputError(
                 'MULTIPLE_FILES',
-                `Found multiple input files in the working directory: ${found.map((file) => `"${file.filename}"`).join(', ')}. Keep only one of them.`,
+                `Found multiple input files in the ${label}: ${found.map((file) => `"${file.filename}"`).join(', ')}. Keep only one of them.`,
             );
         }
 
@@ -1602,11 +1603,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
         }
 
         const [file] = found;
-        return parseInput(
-            await readFile(file.path),
-            file.contentType,
-            `the "${file.filename}" file in the working directory`,
-        );
+        return parseInput(await readFile(file.path), file.contentType, `the "${file.filename}" file in the ${label}`);
     }
 
     /**

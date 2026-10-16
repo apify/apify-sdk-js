@@ -1595,6 +1595,17 @@ describe('Actor', () => {
                 const actor = isolatedActor(new Configuration({ isAtHome: true }));
                 await expect(actor.getInput()).rejects.toThrowError('Input does not exist');
             });
+
+            test('falls back to the storage directory, after the working directory', async () => {
+                const storageDir = await mkdtemp(join(tmpdir(), 'apify-sdk-input-storage-'));
+                await writeFile(join(storageDir, 'INPUT.json'), '{ "from": "storage" }');
+                const actor = () => isolatedActor(new Configuration({ storageDir }));
+                await expect(actor().getInput()).resolves.toEqual({ from: 'storage' });
+
+                await writeFile(join(cwd, 'INPUT.json'), '{ "from": "cwd" }');
+                await expect(actor().getInput()).resolves.toEqual({ from: 'cwd' });
+                await rm(storageDir, { recursive: true, force: true });
+            });
         });
 
         test('reads a bare input file the file-system storage adopts under the configured key', async () => {

@@ -178,7 +178,7 @@ A local input file without an extension (a bare `INPUT` in `storage/key_value_st
 
 ### Input file in the working directory
 
-When running locally and the default key-value store holds no input record, `Actor.getInput()` falls back to an `INPUT` or `INPUT.json` file in the current working directory (the file name follows the configured input key). The bare file follows the octet-stream rule above; the `.json` file is parsed with JSON5 like any JSON record. If both files are present, `getInput()` throws instead of picking one. This fallback never runs on the Apify platform. It is new to the SDK — v3's `Actor.getInput()` only ever read the key-value store.
+When running locally and the default key-value store holds no input record, `Actor.getInput()` falls back to an `INPUT` or `INPUT.json` file in the current working directory, then in the storage directory (`CRAWLEE_STORAGE_DIR`, `./storage` by default; the file name follows the configured input key). The bare file follows the octet-stream rule above; the `.json` file is parsed with JSON5 like any JSON record. If both files are present in the same directory, `getInput()` throws instead of picking one. This fallback never runs on the Apify platform. It is new to the SDK — v3's `Actor.getInput()` only ever read the key-value store.
 
 ### Input key configuration
 
