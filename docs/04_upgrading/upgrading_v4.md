@@ -208,6 +208,17 @@ await Actor.call('my-actor', 'some=body', { contentType: 'application/x-www-form
 await Actor.call('my-actor', { some: 'body' }, { contentType: 'application/x-www-form-urlencoded' });
 ```
 
+## `Actor.setStatusMessage()` resolves `undefined` when no run was updated
+
+`Actor.setStatusMessage()` used to resolve an empty object cast to `ActorRun` when there was no run to update (locally) or when the update failed or timed out, so there was no way to tell that nothing happened. It now returns `Promise<ActorRun | undefined>` and resolves `undefined` in those cases. A failed or timed-out update still logs a warning rather than throwing.
+
+```ts
+const run = await Actor.setStatusMessage('Crawled 10/100 pages');
+if (run) {
+    console.log(run.statusMessage);
+}
+```
+
 ## Argument validation (`ow` → `zod`)
 
 Runtime argument validation (e.g. `Actor.addWebhook()`, `Actor.setStatusMessage()`, `Actor.openDataset()` / `openKeyValueStore()` / `openRequestQueue()`, and the `ProxyConfiguration` constructor) now uses [`zod`](https://zod.dev) instead of `ow`. Validation is just as strict — invalid arguments still throw synchronously, before any work is done — but the **error messages changed**.
