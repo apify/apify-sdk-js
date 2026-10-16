@@ -529,6 +529,9 @@ export class Actor<Data extends Dictionary = Dictionary> {
     /** Lazily built by the `#storageBackend` getter. */
     #cachedStorageBackend?: SmartApifyStorageBackend;
 
+    /** Listeners registered via `on()` before `init()`; attached to the event manager by `init()`. */
+    #pendingListeners: [event: EventTypeName, listener: (...args: any[]) => any][] = [];
+
     constructor(options: ActorOptions = {}) {
         const { configuration, ...configOptions } = options;
         if (configuration) {
@@ -684,8 +687,18 @@ export class Actor<Data extends Dictionary = Dictionary> {
             this.installStorageBackend(options.storage);
         }
 
+        // Attach listeners queued before init() so they don't miss any platform event.
+        const events = serviceLocator.getEventManager();
+        if (this.#pendingListeners.length > 0) {
+            for (const [event, listener] of this.#pendingListeners) {
+                events.on(event, listener);
+            }
+            log.debug(`Attached ${this.#pendingListeners.length} listener(s) registered before Actor.init()`);
+            this.#pendingListeners = [];
+        }
+
         // Init the event manager the config uses
-        await serviceLocator.getEventManager().init();
+        await events.init();
         log.debug(`Events initialized`);
 
         // Register handlers for aborting and migrating events for automatic graceful shutdown.
@@ -852,6 +865,13 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @ignore
      */
     on(event: EventTypeName, listener: (...args: any[]) => any): void {
+        // Before init() the service locator must stay untouched, otherwise it
+        // creates a default Configuration that init() then conflicts with.
+        if (!this.initialized) {
+            this.#pendingListeners.push([event, listener]);
+            return;
+        }
+
         serviceLocator.getEventManager().on(event, listener);
     }
 
@@ -859,6 +879,14 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @ignore
      */
     off(event: EventTypeName, listener?: (...args: any[]) => any): void {
+        if (!this.initialized) {
+            this.#pendingListeners = this.#pendingListeners.filter(
+                ([pendingEvent, pendingListener]) =>
+                    pendingEvent !== event || (listener !== undefined && pendingListener !== listener),
+            );
+            return;
+        }
+
         serviceLocator.getEventManager().off(event, listener);
     }
 
