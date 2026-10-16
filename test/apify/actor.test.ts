@@ -1420,9 +1420,8 @@ describe('Actor', () => {
 
     describe('Actor.setStatusMessage()', () => {
         const runId = 'status-message-run-id';
-        // A `RunClient.update()` stub — the tests only assert on the payload it receives,
-        // so the resolved run is never inspected.
-        const stubRun = {} as unknown as Run;
+        // A `RunClient.update()` stub. Most tests only assert on the payload it receives.
+        const stubRun = { id: runId, statusMessage: 'almost there' } as unknown as Run;
 
         beforeEach(() => {
             process.env[ACTOR_ENV_VARS.RUN_ID] = runId;
@@ -1432,14 +1431,57 @@ describe('Actor', () => {
             delete process.env[ACTOR_ENV_VARS.RUN_ID];
         });
 
-        test('updates the run', async () => {
+        test('updates the run and resolves it', async () => {
             const { actor } = createIsolatedActor();
             const updateSpy = vitest.spyOn(RunClient.prototype, 'update').mockResolvedValue(stubRun);
 
             await actor.init();
-            await actor.setStatusMessage('almost there', { isStatusMessageTerminal: true });
+            const run = await actor.setStatusMessage('almost there', { isStatusMessageTerminal: true });
 
             expect(updateSpy).toHaveBeenCalledWith({ statusMessage: 'almost there', isStatusMessageTerminal: true });
+            expect(run).toBe(stubRun);
+        });
+
+        test('resolves undefined locally, without a run id', async () => {
+            delete process.env[ACTOR_ENV_VARS.RUN_ID];
+            const { actor } = createIsolatedActor();
+            const updateSpy = vitest.spyOn(RunClient.prototype, 'update').mockResolvedValue(stubRun);
+
+            await actor.init();
+            const run = await actor.setStatusMessage('almost there');
+
+            expect(run).toBeUndefined();
+            expect(updateSpy).not.toHaveBeenCalled();
+        });
+
+        test('resolves undefined and warns when the update fails', async () => {
+            const { actor } = createIsolatedActor();
+            vitest.spyOn(RunClient.prototype, 'update').mockRejectedValue(new Error('Boom'));
+            const warningSpy = vitest.spyOn(log, 'warning').mockImplementation(() => {});
+
+            await actor.init();
+            const run = await actor.setStatusMessage('almost there');
+
+            expect(run).toBeUndefined();
+            expect(warningSpy).toHaveBeenCalledWith('Boom');
+        });
+
+        test('resolves undefined and warns when the update times out', async () => {
+            const { actor } = createIsolatedActor();
+            vitest.spyOn(RunClient.prototype, 'update').mockReturnValue(new Promise(() => {}));
+            const warningSpy = vitest.spyOn(log, 'warning').mockImplementation(() => {});
+
+            await actor.init();
+            vitest.useFakeTimers();
+            try {
+                const runPromise = actor.setStatusMessage('almost there');
+                await vitest.advanceTimersByTimeAsync(1000);
+
+                await expect(runPromise).resolves.toBeUndefined();
+                expect(warningSpy).toHaveBeenCalledWith('Setting status message timed out after 1s');
+            } finally {
+                vitest.useRealTimers();
+            }
         });
 
         test('forwards crawlee status messages to the run', async () => {
