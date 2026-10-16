@@ -1,4 +1,4 @@
-import { EventType, serviceLocator } from '@crawlee/core';
+import { EventType, MemoryStorageBackend, serviceLocator } from '@crawlee/core';
 import type { Dictionary } from '@crawlee/types';
 import { sleep } from '@crawlee/utils';
 import { Actor, Configuration, PlatformEventManager } from 'apify';
@@ -388,5 +388,81 @@ describe('reconnection', () => {
         await startServer();
         await sleep(1000);
         expect(attempts).toBe(1);
+    });
+});
+
+describe('listeners registered before init()', () => {
+    // These tests use the global locator on purpose: the bug only shows up when
+    // `on()` runs before anything seeded the locator with a configuration.
+    beforeEach(() => {
+        serviceLocator.reset();
+        Actor.setDefaultInstance();
+    });
+
+    afterEach(async () => {
+        if (Actor.getDefaultInstance().initialized) {
+            await Actor.exit({ exit: false });
+        }
+        Actor.setDefaultInstance();
+        serviceLocator.reset();
+    });
+
+    test('on() before init() does not break init() and the listener receives events', async () => {
+        const received: unknown[] = [];
+        Actor.on(ACTOR_EVENT_NAMES.ABORTING, (data) => received.push(data));
+
+        await Actor.init({ storage: new MemoryStorageBackend() });
+
+        serviceLocator.getEventManager().emit(ACTOR_EVENT_NAMES.ABORTING, { foo: 'bar' });
+        expect(received).toEqual([{ foo: 'bar' }]);
+    });
+
+    test('off() before init() removes a queued listener', async () => {
+        const kept = vitest.fn();
+        const removed = vitest.fn();
+        Actor.on(ACTOR_EVENT_NAMES.ABORTING, kept);
+        Actor.on(ACTOR_EVENT_NAMES.ABORTING, removed);
+        Actor.off(ACTOR_EVENT_NAMES.ABORTING, removed);
+
+        await Actor.init({ storage: new MemoryStorageBackend() });
+
+        serviceLocator.getEventManager().emit(ACTOR_EVENT_NAMES.ABORTING, {});
+        expect(kept).toHaveBeenCalledTimes(1);
+        expect(removed).not.toHaveBeenCalled();
+    });
+
+    test('off() without a listener before init() removes all queued listeners for the event', async () => {
+        const aborting = vitest.fn();
+        const migrating = vitest.fn();
+        Actor.on(ACTOR_EVENT_NAMES.ABORTING, aborting);
+        Actor.on(ACTOR_EVENT_NAMES.ABORTING, vitest.fn());
+        Actor.on(ACTOR_EVENT_NAMES.MIGRATING, migrating);
+        Actor.off(ACTOR_EVENT_NAMES.ABORTING);
+
+        await Actor.init({ storage: new MemoryStorageBackend() });
+
+        const events = serviceLocator.getEventManager();
+        events.emit(ACTOR_EVENT_NAMES.ABORTING, {});
+        events.emit(ACTOR_EVENT_NAMES.MIGRATING, {});
+        expect(aborting).not.toHaveBeenCalled();
+        expect(migrating).toHaveBeenCalledTimes(1);
+    });
+
+    test('on() and off() after init() go straight to the event manager', async () => {
+        await Actor.init({ storage: new MemoryStorageBackend() });
+        const events = serviceLocator.getEventManager();
+
+        // init() registers its own graceful-shutdown handler for this event.
+        const before = events.listenerCount(ACTOR_EVENT_NAMES.ABORTING);
+
+        const listener = vitest.fn();
+        Actor.on(ACTOR_EVENT_NAMES.ABORTING, listener);
+        expect(events.listenerCount(ACTOR_EVENT_NAMES.ABORTING)).toBe(before + 1);
+
+        events.emit(ACTOR_EVENT_NAMES.ABORTING, {});
+        expect(listener).toHaveBeenCalledTimes(1);
+
+        Actor.off(ACTOR_EVENT_NAMES.ABORTING, listener);
+        expect(events.listenerCount(ACTOR_EVENT_NAMES.ABORTING)).toBe(before);
     });
 });

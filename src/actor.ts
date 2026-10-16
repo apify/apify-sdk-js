@@ -529,6 +529,9 @@ export class Actor<Data extends Dictionary = Dictionary> {
     /** Lazily built by the `#storageBackend` getter. */
     #cachedStorageBackend?: SmartApifyStorageBackend;
 
+    /** Listeners registered via `on()` before `init()`; attached to the event manager by `init()`. */
+    #pendingListeners: [event: EventTypeName, listener: (...args: any[]) => any][] = [];
+
     constructor(options: ActorOptions = {}) {
         const { configuration, ...configOptions } = options;
         if (configuration) {
@@ -713,9 +716,18 @@ export class Actor<Data extends Dictionary = Dictionary> {
             this.#updateRunStatusMessage(message, isStatusMessageTerminal);
         this.on(EventType.STATUS_MESSAGE, this.#statusMessageForwarder);
 
-        // Connect to the platform events only after the handlers above are registered, so that an event sent
-        // right after the connection opens (e.g. an already pending `aborting`) is not missed.
-        await serviceLocator.getEventManager().init();
+        // Attach listeners queued before init(), then connect to the platform events only after all handlers
+        // are registered, so that an event sent right after the connection opens (e.g. an already pending
+        // `aborting`) is not missed.
+        const events = serviceLocator.getEventManager();
+        if (this.#pendingListeners.length > 0) {
+            for (const [event, listener] of this.#pendingListeners) {
+                events.on(event, listener);
+            }
+            log.debug(`Attached ${this.#pendingListeners.length} listener(s) registered before Actor.init()`);
+            this.#pendingListeners = [];
+        }
+        await events.init();
         log.debug(`Events initialized`);
 
         await purgeDefaultStorages({
@@ -853,6 +865,13 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @ignore
      */
     on(event: EventTypeName, listener: (...args: any[]) => any): void {
+        // Before init() the service locator must stay untouched, otherwise it
+        // creates a default Configuration that init() then conflicts with.
+        if (!this.initialized) {
+            this.#pendingListeners.push([event, listener]);
+            return;
+        }
+
         serviceLocator.getEventManager().on(event, listener);
     }
 
@@ -860,6 +879,14 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @ignore
      */
     off(event: EventTypeName, listener?: (...args: any[]) => any): void {
+        if (!this.initialized) {
+            this.#pendingListeners = this.#pendingListeners.filter(
+                ([pendingEvent, pendingListener]) =>
+                    pendingEvent !== event || (listener !== undefined && pendingListener !== listener),
+            );
+            return;
+        }
+
         serviceLocator.getEventManager().off(event, listener);
     }
 
