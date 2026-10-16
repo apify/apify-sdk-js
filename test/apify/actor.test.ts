@@ -163,6 +163,51 @@ describe('Actor', () => {
                 });
                 expect(exitSpy).toBeCalledWith(91);
             });
+
+            test('on exception with `exit: false` the process keeps running', async () => {
+                const exitSpy = vitest.spyOn(process, 'exit').mockImplementation((() => {}) as any);
+                await Actor.main(
+                    async () => {
+                        throw new Error('Test exception I');
+                    },
+                    { exit: false },
+                );
+                expect(exitSpy).not.toHaveBeenCalled();
+            });
+
+            test('on exception the exit options are passed to exit() with exit code 91', async () => {
+                const actor = new Actor();
+                const exitSpy = vitest.spyOn(actor, 'exit');
+                await actor.main(
+                    async () => {
+                        throw new Error('Test exception I');
+                    },
+                    { exit: false, statusMessage: 'Something broke', timeoutSecs: 5, exitCode: 5 },
+                );
+                expect(exitSpy).toHaveBeenCalledWith({
+                    exit: false,
+                    statusMessage: 'Something broke',
+                    timeoutSecs: 5,
+                    exitCode: 91,
+                });
+            });
+
+            test('on exception a caller exit code is overridden by 91', async () => {
+                const exitSpy = vitest.spyOn(process, 'exit').mockImplementation((() => {}) as any);
+                await Actor.main(
+                    async () => {
+                        throw new Error('Test exception I');
+                    },
+                    { exitCode: 5 },
+                );
+                expect(exitSpy).toBeCalledWith(91);
+            });
+
+            test('on success a caller exit code is respected', async () => {
+                const exitSpy = vitest.spyOn(process, 'exit').mockImplementation((() => {}) as any);
+                await Actor.main(async () => {}, { exitCode: 5 });
+                expect(exitSpy).toBeCalledWith(5);
+            });
         });
 
         // TODO just test we call the client method via vitest spy and use the token if available
