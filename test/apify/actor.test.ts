@@ -165,6 +165,38 @@ describe('Actor', () => {
             });
         });
 
+        describe('fail()', () => {
+            test('honors exitCode passed in the options object', async () => {
+                const exitSpy = vitest.spyOn(process, 'exit').mockImplementation((() => {}) as any);
+                const { actor } = createIsolatedActor();
+                await actor.init();
+
+                await actor.fail({ exitCode: 5 });
+
+                expect(exitSpy).toBeCalledWith(5);
+            });
+
+            test('honors exitCode passed alongside a status message', async () => {
+                const exitSpy = vitest.spyOn(process, 'exit').mockImplementation((() => {}) as any);
+                const { actor } = createIsolatedActor();
+                await actor.init();
+
+                await actor.fail('Something went wrong', { exitCode: 5 });
+
+                expect(exitSpy).toBeCalledWith(5);
+            });
+
+            test('defaults exitCode to 1', async () => {
+                const exitSpy = vitest.spyOn(process, 'exit').mockImplementation((() => {}) as any);
+                const { actor } = createIsolatedActor();
+                await actor.init();
+
+                await actor.fail();
+
+                expect(exitSpy).toBeCalledWith(1);
+            });
+        });
+
         // TODO just test we call the client method via vitest spy and use the token if available
         describe.skip('call()', () => {
             const token = 'some-token';
