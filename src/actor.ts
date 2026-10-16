@@ -1502,7 +1502,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * `<inputKey>.json` file in the current working directory, then in the storage directory.
      *
      * Throws an {@apilink ActorInputError} when no input is found (`code: 'NOT_FOUND'`), when both input
-     * files exist in the working directory (`'MULTIPLE_FILES'`), when a JSON input does not parse
+     * files exist in the working/storage directory (`'MULTIPLE_FILES'`), when a JSON input does not parse
      * (`'PARSE_FAILED'`) or when its secret fields cannot be decrypted (`'DECRYPTION_FAILED'`). If your
      * Actor can run without input, catch the `'NOT_FOUND'` case and rethrow the rest.
      *
