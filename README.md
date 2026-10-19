@@ -9,7 +9,7 @@
 
 ## Quick Start
 
-This short tutorial will set you up to start using Apify SDK in a minute or two.
+This short tutorial will set you up to start using the Apify SDK in a minute or two.
 If you want to learn more, proceed to the [Apify Platform](https://docs.apify.com/sdk/js/docs/concepts/actor-lifecycle)
 guide that will take you step by step through running your Actor on Apify's platform.
 
