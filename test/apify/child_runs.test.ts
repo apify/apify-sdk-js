@@ -465,7 +465,7 @@ describe('child run tracking with `runName`', () => {
             events.emit(ACTOR_EVENT_NAMES.ABORTING);
             await events.waitForAllListenersToComplete();
         };
-        const abortedRunIds = () => abortSpy.mock.contexts.map((runClient: RunClient) => runClient.id);
+        const abortedRunIds = () => (abortSpy.mock.contexts as RunClient[]).map((runClient) => runClient.id);
 
         beforeEach(() => {
             abortSpy = vitest
