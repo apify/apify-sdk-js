@@ -19,7 +19,7 @@ permissions:
 
 jobs:
   factory-review:
-    uses: apify/ai-developer/.github/workflows/_factory_review.yaml@main
+    uses: apify/workflows/.github/workflows/factory_review.yaml@main
     secrets: inherit
     # Paths never auto-approved here, on top of the pipeline's defaults. Proposed from the
     # repository's layout when this workflow was added; edit them like any other code.
