@@ -208,6 +208,18 @@ await Actor.call('my-actor', 'some=body', { contentType: 'application/x-www-form
 await Actor.call('my-actor', { some: 'body' }, { contentType: 'application/x-www-form-urlencoded' });
 ```
 
+## `maxItems` option removed
+
+The options of `Actor.start()`, `Actor.call()`, `Actor.startTask()`, `Actor.callTask()` and `Actor.resurrect()` no longer include `maxItems`. It is a leftover from the pay-per-result pricing model and does nothing for most Actors. Use `maxTotalChargeUsd` instead, which caps the cost of a run for any pricing model.
+
+```ts
+// v3
+await Actor.call('my-actor', input, { maxItems: 100 });
+
+// v4
+await Actor.call('my-actor', input, { maxTotalChargeUsd: 5 });
+```
+
 ## Argument validation (`ow` → `zod`)
 
 Runtime argument validation (e.g. `Actor.addWebhook()`, `Actor.setStatusMessage()`, `Actor.openDataset()` / `openKeyValueStore()` / `openRequestQueue()`, and the `ProxyConfiguration` constructor) now uses [`zod`](https://zod.dev) instead of `ow`. Validation is just as strict — invalid arguments still throw synchronously, before any work is done — but the **error messages changed**.

@@ -341,13 +341,15 @@ export interface ChildRunOptions {
     runName?: string;
 }
 
-export interface CallOptions extends Omit<ActorCallOptions, 'runTimeoutSecs'>, Token, Timeout, ChildRunOptions {}
+export interface CallOptions
+    extends Omit<ActorCallOptions, 'runTimeoutSecs' | 'maxItems'>, Token, Timeout, ChildRunOptions {}
 export interface StartOptions
-    extends Omit<ActorStartOptions, 'waitForFinish' | 'runTimeoutSecs'>, Token, Timeout, ChildRunOptions {}
-export interface CallTaskOptions extends Omit<TaskCallOptions, 'runTimeoutSecs'>, Token, Timeout, ChildRunOptions {}
-export interface ResurrectOptions extends Omit<RunResurrectOptions, 'runTimeoutSecs'>, Token, Timeout {}
+    extends Omit<ActorStartOptions, 'waitForFinish' | 'runTimeoutSecs' | 'maxItems'>, Token, Timeout, ChildRunOptions {}
+export interface CallTaskOptions
+    extends Omit<TaskCallOptions, 'runTimeoutSecs' | 'maxItems'>, Token, Timeout, ChildRunOptions {}
+export interface ResurrectOptions extends Omit<RunResurrectOptions, 'runTimeoutSecs' | 'maxItems'>, Token, Timeout {}
 export interface StartTaskOptions
-    extends Omit<TaskStartOptions, 'waitForFinish' | 'runTimeoutSecs'>, Token, Timeout, ChildRunOptions {}
+    extends Omit<TaskStartOptions, 'waitForFinish' | 'runTimeoutSecs' | 'maxItems'>, Token, Timeout, ChildRunOptions {}
 
 export interface AbortOptions extends RunAbortOptions, Token {
     /** Exit with given status message */

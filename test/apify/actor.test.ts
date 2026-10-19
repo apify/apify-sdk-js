@@ -1083,7 +1083,7 @@ describe('Actor', () => {
         const { finishedRun } = runConfigs;
 
         test('works as expected', async () => {
-            const options = { build, memory: 1024, timeout: 60, maxItems: 100, restartOnError: true };
+            const options = { build, memory: 1024, timeout: 60, restartOnError: true };
 
             const runSpy = vitest.spyOn(ApifyClient.prototype, 'run');
             const resurrectSpy = vitest.spyOn(RunClient.prototype, 'resurrect').mockResolvedValue(finishedRun);
@@ -1095,7 +1095,6 @@ describe('Actor', () => {
                 build,
                 memory: 1024,
                 runTimeoutSecs: 60,
-                maxItems: 100,
                 restartOnError: true,
             });
         });
