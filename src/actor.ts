@@ -77,6 +77,9 @@ import {
     snakeCaseToCamelCase,
 } from './utils.js';
 
+// `@apify/consts` has no boolean counterpart to `INTEGER_ENV_VARS`.
+const BOOLEAN_ENV_VARS: readonly string[] = [APIFY_ENV_VARS.USER_IS_PAYING];
+
 /**
  * {@link parseInputValue} with the parser error wrapped as an {@apilink ActorInputError}, so a malformed
  * JSON input reports where it came from.
@@ -1807,22 +1810,19 @@ export class Actor<Data extends Dictionary = Dictionary> {
             ...this.getModifiedActorEnvVars(),
         })) {
             const camelCaseName = snakeCaseToCamelCase(shortName) as keyof ApifyEnv;
-            let value: string | number | Date | undefined = env[fullName];
+            let value: string | number | boolean | Date | undefined = env[fullName];
 
-            if (fullName === APIFY_ENV_VARS.USER_IS_PAYING) {
-                Reflect.set(envVars, camelCaseName, !!value && coerceBoolean.parse(value));
-                continue;
-            }
-
-            // Parse dates and integers.
-            if (value && fullName.endsWith('_AT')) {
+            // Parse booleans, dates and integers.
+            if (BOOLEAN_ENV_VARS.includes(fullName)) {
+                value = !!value && coerceBoolean.parse(value);
+            } else if (value && fullName.endsWith('_AT')) {
                 const unix = Date.parse(value);
                 value = unix > 0 ? new Date(unix) : undefined;
             } else if ((INTEGER_ENV_VARS as readonly string[]).includes(fullName)) {
                 value = parseInt(value!, 10);
             }
 
-            Reflect.set(envVars, camelCaseName, value || value === 0 ? value : null);
+            Reflect.set(envVars, camelCaseName, value || value === 0 || value === false ? value : null);
         }
 
         return envVars;
