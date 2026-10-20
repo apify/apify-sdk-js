@@ -350,6 +350,14 @@ export interface ChildRunOptions {
     abortWithParent?: boolean;
 }
 
+export interface ChildRunLimits {
+    /**
+     * How many child runs started with `runName` may be `READY`, `RUNNING`, `ABORTING` or `TIMING-OUT` at once.
+     * Leave it out for no limit.
+     */
+    maxConcurrentRuns?: number;
+}
+
 export interface CallOptions extends Omit<ActorCallOptions, 'runTimeoutSecs'>, Token, Timeout, ChildRunOptions {}
 export interface StartOptions
     extends Omit<ActorStartOptions, 'waitForFinish' | 'runTimeoutSecs'>, Token, Timeout, ChildRunOptions {}
@@ -1095,6 +1103,26 @@ export class Actor<Data extends Dictionary = Dictionary> {
     get childRuns(): Record<string, RunClient> {
         this.ensureActorInit('childRuns');
         return this.#childRunTracker.getRunClients(this.apifyClient);
+    }
+
+    /**
+     * Limits the child runs started with the `runName` option, replacing the limits set before.
+     *
+     * While `maxConcurrentRuns` of them are active, `Actor.start()`, `call()`, `startTask()` and `callTask()` with
+     * a `runName` wait for one to finish before starting or resurrecting a run. Returning a tracked run never waits,
+     * and runs without a `runName` are neither counted nor limited. The status of a run not awaited by `call()` or
+     * `callTask()` is fetched again before it is counted, once it is more than 10 seconds old.
+     *
+     * ```js
+     * Actor.setChildRunLimits({ maxConcurrentRuns: 5 });
+     * await Promise.all(batches.map((batch, i) => Actor.call('apify/web-scraper', batch, { runName: `batch-${i}` })));
+     * ```
+     *
+     * The limits are kept in memory, so set them again after a migration or resurrection of this run.
+     * Once this run is being aborted, a start that is waiting for a slot throws.
+     */
+    setChildRunLimits(limits: ChildRunLimits): void {
+        this.#childRunTracker.setMaxConcurrentRuns(limits.maxConcurrentRuns);
     }
 
     /**
@@ -2159,6 +2187,26 @@ export class Actor<Data extends Dictionary = Dictionary> {
      */
     static get childRuns(): Record<string, RunClient> {
         return Actor.getDefaultInstance().childRuns;
+    }
+
+    /**
+     * Limits the child runs started with the `runName` option, replacing the limits set before.
+     *
+     * While `maxConcurrentRuns` of them are active, `Actor.start()`, `call()`, `startTask()` and `callTask()` with
+     * a `runName` wait for one to finish before starting or resurrecting a run. Returning a tracked run never waits,
+     * and runs without a `runName` are neither counted nor limited. The status of a run not awaited by `call()` or
+     * `callTask()` is fetched again before it is counted, once it is more than 10 seconds old.
+     *
+     * ```js
+     * Actor.setChildRunLimits({ maxConcurrentRuns: 5 });
+     * await Promise.all(batches.map((batch, i) => Actor.call('apify/web-scraper', batch, { runName: `batch-${i}` })));
+     * ```
+     *
+     * The limits are kept in memory, so set them again after a migration or resurrection of this run.
+     * Once this run is being aborted, a start that is waiting for a slot throws.
+     */
+    static setChildRunLimits(limits: ChildRunLimits): void {
+        Actor.getDefaultInstance().setChildRunLimits(limits);
     }
 
     /**

@@ -601,4 +601,163 @@ describe('child run tracking with `runName`', () => {
             expect(order).toEqual(['aborted', 'exited']);
         });
     });
+
+    describe('setChildRunLimits', () => {
+        /** Status `RunClient.get()` returns for each child run. A child run gets its name as the run ID. */
+        let statuses: Record<string, ActorRun['status']>;
+
+        const startChild = async (actor: Actor, name: string) => actor.start(actId, { name }, { runName: name });
+        /** Calls a named child run that keeps running until the returned function is called. */
+        const callChild = async (actor: Actor, name: string) => {
+            let finish: ((run: ActorRun) => void) | undefined;
+            waitForFinishSpy.mockImplementationOnce(
+                async () =>
+                    new Promise((resolve) => {
+                        finish = resolve;
+                    }),
+            );
+            const call = actor.call(actId, { name }, { runName: name });
+            await vitest.waitFor(() => expect(finish).toBeDefined());
+            return async () => {
+                finish!({ ...startedRun, id: name, status: 'SUCCEEDED' });
+                await call;
+            };
+        };
+        const isPending = async (promise: Promise<unknown>) =>
+            Promise.race([
+                promise.then(
+                    () => false,
+                    () => false,
+                ),
+                setTimeout(50, true),
+            ]);
+
+        beforeEach(() => {
+            statuses = {};
+            startSpy.mockImplementation(async ({ name }: { name: string }) => {
+                statuses[name] = 'RUNNING';
+                return { ...startedRun, id: name, status: 'READY' };
+            });
+            getSpy.mockImplementation(async function (this: RunClient) {
+                return statuses[this.id] && { ...startedRun, id: this.id, status: statuses[this.id] };
+            });
+        });
+
+        test('a named start waits while the limit is reached and starts once a child run finishes', async () => {
+            const actor = newActor();
+            actor.setChildRunLimits({ maxConcurrentRuns: 1 });
+            const finishFirst = await callChild(actor, 'first');
+
+            const second = startChild(actor, 'second');
+
+            expect(await isPending(second)).toBe(true);
+            await finishFirst();
+            expect(await isPending(second)).toBe(false);
+            expect((await second).id).toBe('second');
+        });
+
+        test('concurrent named starts start no more runs than the limit, until the limit is removed', async () => {
+            const actor = newActor();
+            actor.setChildRunLimits({ maxConcurrentRuns: 2 });
+
+            const starts = Promise.all(['a', 'b', 'c'].map(async (name) => startChild(actor, name)));
+
+            expect(await isPending(starts)).toBe(true);
+            expect(startSpy).toBeCalledTimes(2);
+            actor.setChildRunLimits({});
+            await starts;
+            expect(startSpy).toBeCalledTimes(3);
+        });
+
+        test('a child run not awaited by call() frees its slot once its status is fetched again after 10 seconds', async () => {
+            vitest.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'Date'] });
+            onTestFinished(() => {
+                vitest.useRealTimers();
+            });
+            const actor = newActor();
+            actor.setChildRunLimits({ maxConcurrentRuns: 1 });
+            await startChild(actor, 'first');
+            const second = startChild(actor, 'second');
+
+            statuses.first = 'SUCCEEDED';
+            await vitest.advanceTimersByTimeAsync(9_000);
+            expect(startSpy).toBeCalledTimes(1);
+            await vitest.advanceTimersByTimeAsync(1_000);
+            expect((await second).id).toBe('second');
+        });
+
+        test('a child run tracked before a migration counts toward the limit', async () => {
+            await startChild(newActor(), 'first');
+            const actor = newActor();
+            actor.setChildRunLimits({ maxConcurrentRuns: 1 });
+
+            const second = startChild(actor, 'second');
+
+            expect(await isPending(second)).toBe(true);
+            actor.setChildRunLimits({});
+            await second;
+        });
+
+        test('a child run tracked before a migration that cannot be fetched does not block a named start', async () => {
+            await startChild(newActor(), 'first');
+            getSpy.mockRejectedValue(new Error('forbidden'));
+            const actor = newActor();
+            actor.setChildRunLimits({ maxConcurrentRuns: 1 });
+
+            expect((await startChild(actor, 'second')).id).toBe('second');
+        });
+
+        test('returning a tracked run does not wait for a slot', async () => {
+            const actor = newActor();
+            actor.setChildRunLimits({ maxConcurrentRuns: 1 });
+            await startChild(actor, 'first');
+
+            expect((await startChild(actor, 'first')).id).toBe('first');
+            expect(startSpy).toBeCalledTimes(1);
+        });
+
+        test('resurrecting a tracked run waits for a slot', async () => {
+            await startChild(newActor(), 'first');
+            statuses.first = 'ABORTED';
+            const actor = newActor();
+            actor.setChildRunLimits({ maxConcurrentRuns: 1 });
+            const finishSecond = await callChild(actor, 'second');
+
+            const first = startChild(actor, 'first');
+
+            expect(await isPending(first)).toBe(true);
+            expect(resurrectSpy).not.toBeCalled();
+            await finishSecond();
+            await first;
+            expect(resurrectSpy).toBeCalledTimes(1);
+        });
+
+        test('a failed start frees its slot', async () => {
+            const actor = newActor();
+            actor.setChildRunLimits({ maxConcurrentRuns: 1 });
+            startSpy.mockRejectedValueOnce(new Error('boom'));
+
+            await expect(startChild(actor, 'first')).rejects.toThrow('boom');
+            expect((await startChild(actor, 'second')).id).toBe('second');
+        });
+
+        test('a start waiting for a slot throws once the parent is aborting', async () => {
+            const { actor, events } = createIsolatedActor({ storageClient: storage });
+            await actor.init({ gracefulShutdown: false });
+            actor.setChildRunLimits({ maxConcurrentRuns: 1 });
+            await startChild(actor, 'first');
+            const second = startChild(actor, 'second');
+            expect(await isPending(second)).toBe(true);
+
+            events.emit(ACTOR_EVENT_NAMES.ABORTING);
+
+            await expect(second).rejects.toThrow(/being aborted/);
+            await events.waitForAllListenersToComplete();
+            expect(startSpy).toBeCalledTimes(1);
+        });
+
+        test('a limit below 1 is rejected', () => {
+            expect(() => newActor().setChildRunLimits({ maxConcurrentRuns: 0 })).toThrow(/at least 1/);
+        });
+    });
 });
