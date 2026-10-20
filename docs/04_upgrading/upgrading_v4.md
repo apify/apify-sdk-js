@@ -210,7 +210,7 @@ await Actor.call('my-actor', { some: 'body' }, { contentType: 'application/x-www
 
 ## `maxItems` option removed
 
-The options of `Actor.start()`, `Actor.call()`, `Actor.startTask()`, `Actor.callTask()` and `Actor.resurrect()` no longer include `maxItems`. It is a leftover from the pay-per-result pricing model and does nothing for most Actors. Use `maxTotalChargeUsd` instead, which caps the cost of a run for any pricing model.
+`Actor.start()`, `Actor.call()`, `Actor.startTask()`, `Actor.callTask()` and `Actor.resurrect()` no longer include the `maxItems` option. It applied only to the pay-per-result pricing model. Instead, use `maxTotalChargeUsd`, which caps the cost of a run for any pricing model.
 
 ```ts
 // v3
