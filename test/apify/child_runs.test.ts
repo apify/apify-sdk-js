@@ -522,6 +522,19 @@ describe('child run tracking with `runName`', () => {
             expect(abortedRunIds()).toEqual([startedRun.id]);
         });
 
+        test('removing all `aborting` listeners keeps aborting the child runs started with `abortWithParent`', async () => {
+            const { actor, events } = await newInitializedActor();
+            await actor.start(actId, input, { runName, abortWithParent: true });
+            const listener = vitest.fn();
+            actor.on(ACTOR_EVENT_NAMES.ABORTING, listener);
+
+            actor.off(ACTOR_EVENT_NAMES.ABORTING);
+            await abortParent(events);
+
+            expect(listener).not.toBeCalled();
+            expect(abortedRunIds()).toEqual([startedRun.id]);
+        });
+
         test('a child run that fails to abort is logged and does not stop the others', async () => {
             const exceptionSpy = vitest.spyOn(log, 'exception');
             const { actor, events } = await newInitializedActor();
