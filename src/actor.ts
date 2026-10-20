@@ -882,7 +882,13 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @ignore
      */
     off(event: EventTypeName, listener?: (...args: any[]) => any): void {
-        serviceLocator.getEventManager().off(event, listener);
+        const events = serviceLocator.getEventManager();
+        // Removing all listeners keeps the SDK's own one that aborts the child runs started with `abortWithParent`.
+        const keepsChildRunAbort = !listener && events.listeners(event).includes(this.#abortChildRunsWithParent);
+
+        events.off(event, listener);
+
+        if (keepsChildRunAbort) events.on(event, this.#abortChildRunsWithParent);
     }
 
     /**
