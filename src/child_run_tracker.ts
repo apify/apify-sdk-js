@@ -3,7 +3,10 @@ import { createHash } from 'node:crypto';
 import { KeyValueStore, withDirectStorageAccess } from '@crawlee/core';
 import { sleep } from '@crawlee/utils';
 import type { Run as ActorRun, RunClient, RunResurrectOptions } from 'apify-client';
+import { NotFoundError } from 'apify-client';
 import { z } from 'zod';
+
+import log from '@apify/log';
 
 import { ReentrantAsyncLock } from './utils.js';
 import type { ApifyClient } from './index.js';
@@ -28,6 +31,8 @@ export interface TrackedChildRun extends ChildRunInfo {
     checksum: string;
     /** Earlier runs that were replaced under the same name, oldest first. */
     history: ChildRunInfo[];
+    /** Whether the run is aborted when this run is gracefully aborted. */
+    abortWithParent: boolean;
 }
 
 export interface ChildRunRequest {
@@ -68,7 +73,11 @@ const CHILD_RUNS_KVS_KEY = '__ACTOR_CHILD_RUNS';
 const childRunInfoSchema = z.object({ runId: z.string(), status: z.string(), startedAt: z.string() });
 const trackedRunsSchema = z.record(
     z.string(),
-    childRunInfoSchema.extend({ checksum: z.string(), history: z.array(childRunInfoSchema).default([]) }),
+    childRunInfoSchema.extend({
+        checksum: z.string(),
+        history: z.array(childRunInfoSchema).default([]),
+        abortWithParent: z.boolean().default(false),
+    }),
 );
 
 /** How many times a tracked run that the API reports as missing is looked up again before it counts as gone. */
@@ -92,6 +101,7 @@ const getTrackedRun = async (runClient: RunClient) => {
 const SETTLING_STATUSES = ['ABORTING', 'TIMING-OUT'];
 const RESURRECTABLE_STATUSES = ['ABORTED', 'TIMED-OUT'];
 const REUSABLE_STATUSES = ['READY', 'RUNNING', 'SUCCEEDED', ...RESURRECTABLE_STATUSES];
+const ABORTED_STATUSES = ['ABORTING', 'ABORTED'];
 
 export class ChildRunTracker {
     private trackedRuns: Record<string, TrackedChildRun> = {};
@@ -100,6 +110,8 @@ export class ChildRunTracker {
     private clients = new Map<string, ApifyClient>();
     private lastWrite: Promise<void> = Promise.resolve();
     private locks = new Map<string, ReentrantAsyncLock>();
+    /** Set once this run is being gracefully aborted, after which no run with `abortWithParent` is started. */
+    private isParentAborting = false;
 
     /**
      * Throws if the run tracked under `runName` was started for a different Actor / task or input,
@@ -119,20 +131,23 @@ export class ChildRunTracker {
      * Returns the child run tracked under `runName` if it is still in progress or has succeeded, and resurrects it
      * with `startOptions` if it was aborted or timed out (waiting for it to finish aborting or timing out first).
      * Otherwise (the run failed or is gone), starts a new one using `start` and tracks it under `runName`,
-     * keeping the previous one in the history.
+     * keeping the previous one in the history. `abortWithParent` replaces the value tracked under `runName`.
      */
     async startOrResumeChildRun(
         client: ApifyClient,
         runName: string,
         request: ChildRunRequest,
         startOptions: RunResurrectOptions,
+        abortWithParent: boolean,
         start: () => Promise<ActorRun>,
     ): Promise<{ run: ActorRun; resumed: boolean }> {
-        if (!this.locks.has(runName)) {
-            this.locks.set(runName, new ReentrantAsyncLock());
-        }
+        return this.getLock(runName).runExclusive(async () => {
+            if (abortWithParent && this.isParentAborting) {
+                throw new Error(
+                    `Child run "${runName}" with \`abortWithParent\` was not started, because this run is being aborted.`,
+                );
+            }
 
-        return this.locks.get(runName)!.runExclusive(async () => {
             const { build, memory, runTimeoutSecs, maxItems, maxTotalChargeUsd, restartOnError, timeoutSecs, signal } =
                 startOptions;
             const tracked = await this.get(runName);
@@ -156,13 +171,17 @@ export class ChildRunTracker {
                           signal,
                       })
                     : trackedRun;
+                if (tracked!.abortWithParent !== abortWithParent) {
+                    tracked!.abortWithParent = abortWithParent;
+                    await this.persist();
+                }
                 await this.update(runName, run);
                 this.clients.set(runName, client);
                 return { run, resumed: true };
             }
 
             const run = await start();
-            await this.track(runName, run, request, trackedRun?.status ?? 'LOST');
+            await this.track(runName, run, request, trackedRun?.status ?? 'LOST', abortWithParent);
             this.clients.set(runName, client);
             return { run, resumed: false };
         });
@@ -172,7 +191,13 @@ export class ChildRunTracker {
      * Tracks `run` as the current run under `runName`. A run tracked earlier under the same name is moved to the
      * history, with `replacedStatus` as its last known status.
      */
-    async track(runName: string, run: ActorRun, request: ChildRunRequest, replacedStatus: ChildRunStatus) {
+    async track(
+        runName: string,
+        run: ActorRun,
+        request: ChildRunRequest,
+        replacedStatus: ChildRunStatus,
+        abortWithParent: boolean,
+    ) {
         const trackedRuns = await this.load();
         const previous = trackedRuns[runName];
 
@@ -185,6 +210,7 @@ export class ChildRunTracker {
                       { runId: previous.runId, startedAt: previous.startedAt, status: replacedStatus },
                   ]
                 : [],
+            abortWithParent,
         };
 
         await this.persist();
@@ -222,6 +248,46 @@ export class ChildRunTracker {
                 (this.clients.get(runName) ?? defaultClient).run(runId),
             ]),
         );
+    }
+
+    /**
+     * Gracefully aborts the current run under each name tracked with `abortWithParent`, and makes any later start with
+     * `abortWithParent` throw. A start in flight is waited for, so the run it starts is aborted too.
+     */
+    async abortRunsWithParent(defaultClient: ApifyClient) {
+        this.isParentAborting = true;
+        const trackedRuns = await this.load();
+        const runNames = new Set([...Object.keys(trackedRuns), ...this.locks.keys()]);
+
+        await Promise.all(
+            [...runNames].map(async (runName) =>
+                this.getLock(runName).runExclusive(async () => {
+                    const tracked = await this.get(runName);
+                    if (!tracked?.abortWithParent) return;
+
+                    try {
+                        const run = await (this.clients.get(runName) ?? defaultClient)
+                            .run(tracked.runId)
+                            .abort({ gracefully: true });
+                        if (ABORTED_STATUSES.includes(run.status)) {
+                            log.info(`Aborted child run "${runName}" with the parent`, { runId: run.id });
+                        }
+                    } catch (error) {
+                        if (error instanceof NotFoundError) return;
+                        log.exception(error as Error, `Failed to abort child run "${runName}"`, {
+                            runId: tracked.runId,
+                        });
+                    }
+                }),
+            ),
+        );
+    }
+
+    private getLock(runName: string) {
+        if (!this.locks.has(runName)) {
+            this.locks.set(runName, new ReentrantAsyncLock());
+        }
+        return this.locks.get(runName)!;
     }
 
     private async persist() {

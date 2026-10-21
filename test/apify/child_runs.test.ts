@@ -1,12 +1,14 @@
+import { setTimeout } from 'node:timers/promises';
+
 import { MemoryStorageBackend } from '@crawlee/core';
 import { sleep } from '@crawlee/utils';
-import type { Actor } from 'apify';
+import type { Actor, PlatformEventManager } from 'apify';
 import type { Run as ActorRun } from 'apify-client';
-import { ActorClient, RunClient, TaskClient } from 'apify-client';
+import { ActorClient, NotFoundError, RunClient, TaskClient } from 'apify-client';
 import type { MockInstance } from 'vitest';
 import { onTestFinished } from 'vitest';
 
-import { ACTOR_ENV_VARS, APIFY_ENV_VARS } from '@apify/consts';
+import { ACTOR_ENV_VARS, ACTOR_EVENT_NAMES, APIFY_ENV_VARS } from '@apify/consts';
 import log from '@apify/log';
 
 import type { TrackedChildRun } from '../../src/child_run_tracker.js';
@@ -39,7 +41,7 @@ describe('child run tracking with `runName`', () => {
     const startedRun = { id: 'child-run', status: 'RUNNING', startedAt } as ActorRun;
     const finishedRun = { ...startedRun, status: 'SUCCEEDED' } as ActorRun;
     const trackedInfo = { runId: startedRun.id, status: 'RUNNING', startedAt: startedAt.toISOString() };
-    const stored = { ...trackedInfo, checksum: expect.any(String) };
+    const stored = { ...trackedInfo, checksum: expect.any(String), abortWithParent: false };
 
     let storage: MemoryStorageBackend;
     let startSpy: MockInstance;
@@ -449,5 +451,167 @@ describe('child run tracking with `runName`', () => {
 
         expect(taskStartSpy).toBeCalledWith(input, expect.objectContaining({ signal, timeoutSecs: 30 }));
         expect(waitForFinishSpy).toBeCalledWith({ timeoutSecs: 30, signal });
+    });
+
+    describe('abortWithParent', () => {
+        let abortSpy: MockInstance;
+
+        const newInitializedActor = async () => {
+            const { actor, events } = createIsolatedActor({ storageClient: storage });
+            await actor.init({ gracefulShutdown: false });
+            return { actor, events };
+        };
+        const abortParent = async (events: PlatformEventManager) => {
+            events.emit(ACTOR_EVENT_NAMES.ABORTING);
+            await events.waitForAllListenersToComplete();
+        };
+        const abortedRunIds = () => (abortSpy.mock.contexts as RunClient[]).map((runClient) => runClient.id);
+
+        beforeEach(() => {
+            abortSpy = vitest
+                .spyOn(RunClient.prototype, 'abort')
+                .mockResolvedValue({ ...startedRun, status: 'ABORTING' } as ActorRun);
+        });
+
+        test.each(['start', 'call', 'startTask', 'callTask'] as const)(
+            '%s() with `abortWithParent` throws without a run name',
+            async (method) => {
+                await expect(newActor()[method](actId, input, { abortWithParent: true })).rejects.toThrow(
+                    /requires `runName`/,
+                );
+                expect(startSpy).not.toBeCalled();
+                expect(taskStartSpy).not.toBeCalled();
+            },
+        );
+
+        test('aborting the parent gracefully aborts only the child runs started with `abortWithParent`', async () => {
+            const { actor, events } = await newInitializedActor();
+            startSpy.mockResolvedValueOnce({ ...startedRun, id: 'with' }).mockResolvedValueOnce({
+                ...startedRun,
+                id: 'without',
+            });
+            await actor.start(actId, input, { runName: 'with', abortWithParent: true });
+            await actor.start(actId, input, { runName: 'without' });
+
+            await abortParent(events);
+
+            expect(abortSpy).toBeCalledTimes(1);
+            expect(abortSpy).toBeCalledWith({ gracefully: true });
+            expect(abortedRunIds()).toEqual(['with']);
+            const ledger = await getChildRunLedger(actor);
+            expect([ledger!.with.abortWithParent, ledger!.without.abortWithParent]).toEqual([true, false]);
+        });
+
+        test('the latest call under a run name sets `abortWithParent`', async () => {
+            const { actor, events } = await newInitializedActor();
+            await actor.start(actId, input, { runName });
+            await actor.start(actId, input, { runName, abortWithParent: true });
+
+            await abortParent(events);
+
+            expect(startSpy).toBeCalledTimes(1);
+            expect(abortedRunIds()).toEqual([startedRun.id]);
+        });
+
+        test('aborting the parent aborts a child run tracked before a migration', async () => {
+            await newActor().start(actId, input, { runName, abortWithParent: true });
+
+            const { events } = await newInitializedActor();
+            await abortParent(events);
+
+            expect(abortedRunIds()).toEqual([startedRun.id]);
+        });
+
+        test('removing all `aborting` listeners keeps aborting the child runs started with `abortWithParent`', async () => {
+            const { actor, events } = await newInitializedActor();
+            await actor.start(actId, input, { runName, abortWithParent: true });
+            const listener = vitest.fn();
+            actor.on(ACTOR_EVENT_NAMES.ABORTING, listener);
+
+            actor.off(ACTOR_EVENT_NAMES.ABORTING);
+            await abortParent(events);
+
+            expect(listener).not.toBeCalled();
+            expect(abortedRunIds()).toEqual([startedRun.id]);
+        });
+
+        test('a child run that fails to abort is logged and does not stop the others', async () => {
+            const exceptionSpy = vitest.spyOn(log, 'exception');
+            const { actor, events } = await newInitializedActor();
+            for (const id of ['broken', 'gone', 'healthy']) {
+                startSpy.mockResolvedValueOnce({ ...startedRun, id });
+                await actor.start(actId, input, { runName: id, abortWithParent: true });
+            }
+            abortSpy.mockImplementation(async function (this: RunClient) {
+                if (this.id === 'broken') throw new Error('boom');
+                if (this.id === 'gone') throw new NotFoundError({ status: 404, data: {} } as any, 1);
+                return { ...startedRun, id: this.id, status: 'ABORTING' };
+            });
+
+            await abortParent(events);
+
+            expect(abortedRunIds().sort()).toEqual(['broken', 'gone', 'healthy']);
+            expect(exceptionSpy).toBeCalledTimes(1);
+            expect(exceptionSpy).toBeCalledWith(expect.any(Error), 'Failed to abort child run "broken"', {
+                runId: 'broken',
+            });
+        });
+
+        test('once the parent is aborting, a call with `abortWithParent` throws instead of resurrecting', async () => {
+            const { actor, events } = await newInitializedActor();
+            await actor.start(actId, input, { runName, abortWithParent: true });
+            await abortParent(events);
+            getSpy.mockResolvedValue({ ...startedRun, status: 'ABORTED' });
+
+            await expect(actor.call(actId, input, { runName, abortWithParent: true })).rejects.toThrow(/being aborted/);
+            await expect(actor.start(actId, input, { runName: 'other', abortWithParent: true })).rejects.toThrow(
+                /being aborted/,
+            );
+            expect(resurrectSpy).not.toBeCalled();
+            expect(startSpy).toBeCalledTimes(1);
+
+            await actor.start(actId, input, { runName: 'other' });
+            expect(startSpy).toBeCalledTimes(2);
+        });
+
+        test('a child run whose start is in flight when the parent is aborted is aborted once started', async () => {
+            const { actor, events } = await newInitializedActor();
+            let finishStart!: () => void;
+            const startCalled = new Promise<void>((resolve) => {
+                startSpy.mockImplementation(async () => {
+                    resolve();
+                    return new Promise((resolveStart) => {
+                        finishStart = () => resolveStart(startedRun);
+                    });
+                });
+            });
+
+            const started = actor.start(actId, input, { runName, abortWithParent: true });
+            await startCalled;
+            events.emit(ACTOR_EVENT_NAMES.ABORTING);
+            expect(abortSpy).not.toBeCalled();
+            finishStart();
+            await started;
+            await events.waitForAllListenersToComplete();
+
+            expect(abortedRunIds()).toEqual([startedRun.id]);
+        });
+
+        test('exit() waits for the child runs to be aborted', async () => {
+            const { actor, events } = await newInitializedActor();
+            await actor.start(actId, input, { runName, abortWithParent: true });
+            const order: string[] = [];
+            abortSpy.mockImplementation(async () => {
+                await setTimeout(50);
+                order.push('aborted');
+                return { ...startedRun, status: 'ABORTING' };
+            });
+
+            events.emit(ACTOR_EVENT_NAMES.ABORTING);
+            await actor.exit({ exit: false });
+            order.push('exited');
+
+            expect(order).toEqual(['aborted', 'exited']);
+        });
     });
 });

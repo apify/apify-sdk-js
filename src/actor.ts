@@ -339,6 +339,15 @@ export interface ChildRunOptions {
      * by a new one. Reusing the name for a different Actor, task or input throws, unless the tracked run is replaced.
      */
     runName?: string;
+    /**
+     * Gracefully abort the child run when this run is gracefully aborted. Requires `runName`.
+     *
+     * The latest call under the same `runName` sets the value. Once this run is being aborted, a call with this option
+     * throws instead of starting, resurrecting or returning a run. A hard abort, timeout or crash of this run leaves
+     * the child run running.
+     * @default false
+     */
+    abortWithParent?: boolean;
 }
 
 export interface CallOptions extends Omit<ActorCallOptions, 'runTimeoutSecs'>, Token, Timeout, ChildRunOptions {}
@@ -522,6 +531,9 @@ export class Actor<Data extends Dictionary = Dictionary> {
     #statusMessageForwarder?: (data: EventStatusMessageData) => Promise<ClientActorRun>;
 
     #chargingManager: ChargingManager;
+
+    /** Aborts the child runs started with `abortWithParent` on the `aborting` event. */
+    readonly #abortChildRunsWithParent = async () => this.#childRunTracker.abortRunsWithParent(this.apifyClient);
 
     /** How Apify platform request queues are consumed; set from {@link InitOptions.requestQueueAccess}. */
     #requestQueueAccess: RequestQueueAccessMode = 'single';
@@ -714,6 +726,8 @@ export class Actor<Data extends Dictionary = Dictionary> {
             this.on(ACTOR_EVENT_NAMES.MIGRATING, this.#gracefulShutdownHandlers.migrating);
         }
 
+        this.on(ACTOR_EVENT_NAMES.ABORTING, this.#abortChildRunsWithParent);
+
         // Crawlee crawlers, for instance, broadcast their status messages as `statusMessage` events.
         this.#statusMessageForwarder = async ({ message, isStatusMessageTerminal }: EventStatusMessageData) =>
             this.#updateRunStatusMessage(message, isStatusMessageTerminal);
@@ -771,6 +785,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
         if (this.#gracefulShutdownHandlers.migrating) {
             this.off(ACTOR_EVENT_NAMES.MIGRATING, this.#gracefulShutdownHandlers.migrating);
         }
+        this.off(ACTOR_EVENT_NAMES.ABORTING, this.#abortChildRunsWithParent);
 
         // Close the event manager and emit the final PERSIST_STATE event
         await events.close();
@@ -859,7 +874,13 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @ignore
      */
     off(event: EventTypeName, listener?: (...args: any[]) => any): void {
-        serviceLocator.getEventManager().off(event, listener);
+        const events = serviceLocator.getEventManager();
+        // Removing all listeners keeps the SDK's own one that aborts the child runs started with `abortWithParent`.
+        const keepsChildRunAbort = !listener && events.listeners(event).includes(this.#abortChildRunsWithParent);
+
+        events.off(event, listener);
+
+        if (keepsChildRunAbort) events.on(event, this.#abortChildRunsWithParent);
     }
 
     /**
@@ -887,8 +908,10 @@ export class Actor<Data extends Dictionary = Dictionary> {
      */
     async call(actorId: string, input?: ActorInput, options: CallOptions = {}): Promise<ClientActorRun> {
         const runTimeoutSecs = options.timeout === 'inherit' ? this.getRemainingTimeSecs() : options.timeout;
-        const { token, timeout: _timeout, runName, ...rest } = options;
+        const { token, timeout: _timeout, runName, abortWithParent = false, ...rest } = options;
         const client = token ? this.newClient({ token }) : this.apifyClient;
+
+        if (abortWithParent && !runName) throw new Error('`abortWithParent` requires `runName`.');
 
         if (!runName) return client.actor(actorId).call(input, { ...rest, runTimeoutSecs });
 
@@ -899,6 +922,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
             runName,
             { type: 'actor', id: actorId, input },
             startOptions,
+            abortWithParent,
             async () => client.actor(actorId).start(input, startOptions),
         );
 
@@ -939,8 +963,10 @@ export class Actor<Data extends Dictionary = Dictionary> {
      */
     async start(actorId: string, input?: ActorInput, options: StartOptions = {}): Promise<ClientActorRun> {
         const runTimeoutSecs = options.timeout === 'inherit' ? this.getRemainingTimeSecs() : options.timeout;
-        const { token, timeout: _timeout, runName, ...rest } = options;
+        const { token, timeout: _timeout, runName, abortWithParent = false, ...rest } = options;
         const client = token ? this.newClient({ token }) : this.apifyClient;
+
+        if (abortWithParent && !runName) throw new Error('`abortWithParent` requires `runName`.');
 
         if (!runName) return client.actor(actorId).start(input, { ...rest, runTimeoutSecs });
 
@@ -950,6 +976,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
             runName,
             { type: 'actor', id: actorId, input },
             startOptions,
+            abortWithParent,
             async () => client.actor(actorId).start(input, startOptions),
         );
         return run;
@@ -1037,8 +1064,10 @@ export class Actor<Data extends Dictionary = Dictionary> {
      */
     async callTask(taskId: string, input?: Dictionary, options: CallTaskOptions = {}): Promise<ClientActorRun> {
         const runTimeoutSecs = options.timeout === 'inherit' ? this.getRemainingTimeSecs() : options.timeout;
-        const { token, timeout: _timeout, runName, ...rest } = options;
+        const { token, timeout: _timeout, runName, abortWithParent = false, ...rest } = options;
         const client = token ? this.newClient({ token }) : this.apifyClient;
+
+        if (abortWithParent && !runName) throw new Error('`abortWithParent` requires `runName`.');
 
         if (!runName) return client.task(taskId).call(input, { ...rest, runTimeoutSecs });
 
@@ -1049,6 +1078,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
             runName,
             { type: 'task', id: taskId, input },
             startOptions,
+            abortWithParent,
             async () => client.task(taskId).start(input, startOptions),
         );
         const finishedRun = await client.run(run.id).waitForFinish({ waitSecs, timeoutSecs, signal });
@@ -1098,8 +1128,10 @@ export class Actor<Data extends Dictionary = Dictionary> {
      */
     async startTask(taskId: string, input?: Dictionary, options: StartTaskOptions = {}): Promise<ClientActorRun> {
         const runTimeoutSecs = options.timeout === 'inherit' ? this.getRemainingTimeSecs() : options.timeout;
-        const { token, timeout: _timeout, runName, ...rest } = options;
+        const { token, timeout: _timeout, runName, abortWithParent = false, ...rest } = options;
         const client = token ? this.newClient({ token }) : this.apifyClient;
+
+        if (abortWithParent && !runName) throw new Error('`abortWithParent` requires `runName`.');
 
         if (!runName) return client.task(taskId).start(input, { ...rest, runTimeoutSecs });
 
@@ -1109,6 +1141,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
             runName,
             { type: 'task', id: taskId, input },
             startOptions,
+            abortWithParent,
             async () => client.task(taskId).start(input, startOptions),
         );
         return run;
