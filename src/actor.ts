@@ -1447,11 +1447,41 @@ export class Actor<Data extends Dictionary = Dictionary> {
      *   if the record is missing.
      * @ignore
      */
-    async getValue<T = unknown>(key: string): Promise<T | null> {
+    async getValue<T = unknown>(key: string): Promise<T | null>;
+    /**
+     * Gets a value from the default {@apilink KeyValueStore} associated with the current Actor run.
+     *
+     * This is just a convenient shortcut for {@apilink KeyValueStore.getValue}.
+     * For example, calling the following code:
+     * ```js
+     * const value = await Actor.getValue('my-key');
+     * ```
+     *
+     * is equivalent to:
+     * ```js
+     * const store = await Actor.openKeyValueStore();
+     * const value = await store.getValue('my-key');
+     * ```
+     *
+     * To store the value to the default key-value store, you can use the {@apilink Actor.setValue} function.
+     *
+     * For more information, see  {@apilink Actor.openKeyValueStore}
+     * and  {@apilink KeyValueStore.getValue}.
+     *
+     * @param key Unique record key.
+     * @param defaultValue Fallback that will be returned if no value if present in the storage.
+     * @returns
+     *   Returns a promise that resolves to an object, string
+     *   or [`Buffer`](https://nodejs.org/api/buffer.html), depending
+     *   on the MIME content type of the record, or the provided default value.
+     * @ignore
+     */
+    async getValue<T = unknown>(key: string, defaultValue: T): Promise<T>;
+    async getValue<T = unknown>(key: string, defaultValue?: T): Promise<T | null> {
         this.ensureActorInit('getValue');
 
         const store = await this.openKeyValueStore();
-        return store.getValue<T>(key);
+        return store.getValue<T>(key, defaultValue as T);
     }
 
     /**
@@ -2370,8 +2400,37 @@ export class Actor<Data extends Dictionary = Dictionary> {
      *   on the MIME content type of the record, or `null`
      *   if the record is missing.
      */
-    static async getValue<T = unknown>(key: string): Promise<T | null> {
-        return Actor.getDefaultInstance().getValue(key);
+    static async getValue<T = unknown>(key: string): Promise<T | null>;
+    /**
+     * Gets a value from the default {@apilink KeyValueStore} associated with the current Actor run.
+     *
+     * This is just a convenient shortcut for {@apilink KeyValueStore.getValue}.
+     * For example, calling the following code:
+     * ```js
+     * const value = await Actor.getValue('my-key');
+     * ```
+     *
+     * is equivalent to:
+     * ```js
+     * const store = await Actor.openKeyValueStore();
+     * const value = await store.getValue('my-key');
+     * ```
+     *
+     * To store the value to the default key-value store, you can use the {@apilink Actor.setValue} function.
+     *
+     * For more information, see  {@apilink Actor.openKeyValueStore}
+     * and  {@apilink KeyValueStore.getValue}.
+     *
+     * @param key Unique record key.
+     * @param defaultValue Fallback that will be returned if no value if present in the storage.
+     * @returns
+     *   Returns a promise that resolves to an object, string
+     *   or [`Buffer`](https://nodejs.org/api/buffer.html), depending
+     *   on the MIME content type of the record, or the provided default value.
+     */
+    static async getValue<T = unknown>(key: string, defaultValue: T): Promise<T>;
+    static async getValue<T = unknown>(key: string, defaultValue?: T): Promise<T | null> {
+        return Actor.getDefaultInstance().getValue<T>(key, defaultValue as T);
     }
 
     /**

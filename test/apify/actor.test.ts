@@ -747,8 +747,30 @@ describe('Actor', () => {
 
                 const val = await sdk.getValue('key-1');
                 expect(getValueSpy).toBeCalledTimes(1);
-                expect(getValueSpy).toBeCalledWith('key-1');
+                expect(getValueSpy).toBeCalledWith('key-1', undefined);
                 expect(val).toBe(123);
+            });
+
+            test('getValue() returns the default value when the key is missing', async () => {
+                await expect(sdk.getValue('missing', { fallback: true })).resolves.toEqual({ fallback: true });
+            });
+
+            test('getValue() ignores the default value when the key is present', async () => {
+                await sdk.setValue('key-1', { foo: 'bar' });
+                await expect(sdk.getValue('key-1', { fallback: true })).resolves.toEqual({ foo: 'bar' });
+            });
+
+            test('getValue() without a default value resolves to null for a missing key', async () => {
+                await expect(sdk.getValue('missing')).resolves.toBeNull();
+            });
+
+            test('getValue() drops null from the return type when a default value is given', () => {
+                expectTypeOf(sdk.getValue('key', { fallback: true })).resolves.toEqualTypeOf<{ fallback: boolean }>();
+                expectTypeOf(sdk.getValue<string>('key')).resolves.toEqualTypeOf<string | null>();
+                expectTypeOf(Actor.getValue('key', { fallback: true })).resolves.toEqualTypeOf<{
+                    fallback: boolean;
+                }>();
+                expectTypeOf(Actor.getValue<string>('key')).resolves.toEqualTypeOf<string | null>();
             });
 
             test('pushData()', async () => {
@@ -1782,7 +1804,16 @@ describe('Actor', () => {
 
             await Actor.getValue('key-1');
 
-            expect(getValueSpy).toHaveBeenCalledWith('key-1');
+            expect(getValueSpy).toHaveBeenCalledWith('key-1', undefined);
+        });
+
+        test('forwards the default value to the store', async () => {
+            const defaultStore = await KeyValueStore.open();
+            const getValueSpy = vitest.spyOn(defaultStore, 'getValue');
+
+            await expect(Actor.getValue('missing', 'fallback')).resolves.toBe('fallback');
+
+            expect(getValueSpy).toHaveBeenCalledWith('missing', 'fallback');
         });
     });
 
