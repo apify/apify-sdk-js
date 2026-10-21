@@ -10,7 +10,6 @@ import type {
     UseStateOptions,
 } from '@crawlee/core';
 import {
-    coerceBoolean,
     Dataset,
     EventType,
     KeyValueStore,
@@ -43,6 +42,7 @@ import {
     ACTOR_EVENT_NAMES,
     type ACTOR_PERMISSION_LEVEL,
     APIFY_ENV_VARS,
+    COMMA_SEPARATED_LIST_ENV_VARS,
     INTEGER_ENV_VARS,
 } from '@apify/consts';
 import { decryptInputSecrets } from '@apify/input_secrets';
@@ -58,7 +58,7 @@ import { ChargingManager, DEFAULT_DATASET_ITEM_EVENT } from './charging.js';
 import { ChargingStorageBackend } from './charging_storage_backend.js';
 import { ChildRunTracker } from './child_run_tracker.js';
 import type { ConfigurationOptions } from './configuration.js';
-import { Configuration } from './configuration.js';
+import { apifyConfigFields, Configuration } from './configuration.js';
 import { ActorInputError } from './errors.js';
 import { getDefaultsFromInputSchema, noActorInputSchemaDefinedMarker, readInputSchema } from './input-schemas.js';
 import { PlatformEventManager } from './platform_event_manager.js';
@@ -76,8 +76,13 @@ import {
     snakeCaseToCamelCase,
 } from './utils.js';
 
-// `@apify/consts` has no boolean counterpart to `INTEGER_ENV_VARS`.
-const BOOLEAN_ENV_VARS: readonly string[] = [APIFY_ENV_VARS.USER_IS_PAYING];
+// The `Configuration` schema reading each env var, so `getEnv()` coerces and defaults it the same way.
+const CONFIG_SCHEMAS_BY_ENV_VAR = new Map<string, z.ZodType>();
+for (const { schema, envVar } of Object.values(apifyConfigFields)) {
+    for (const name of [envVar ?? []].flat()) {
+        if (!CONFIG_SCHEMAS_BY_ENV_VAR.has(name)) CONFIG_SCHEMAS_BY_ENV_VAR.set(name, schema);
+    }
+}
 
 // Still listed in `@apify/consts`, but no longer read by the SDK.
 const IGNORED_ENV_VARS: readonly string[] = [
@@ -237,13 +242,13 @@ export interface ApifyEnv {
      * ID of the key-value store where input and output data of this
      * Actor is stored (ACTOR_DEFAULT_KEY_VALUE_STORE_ID)
      */
-    defaultKeyValueStoreId: string | null;
+    defaultKeyValueStoreId: string;
 
     /**
      * ID of the dataset where input and output data of this
      * Actor is stored (ACTOR_DEFAULT_DATASET_ID)
      */
-    defaultDatasetId: string | null;
+    defaultDatasetId: string;
 
     /**
      * Amount of memory allocated for the Actor,
@@ -252,32 +257,41 @@ export interface ApifyEnv {
     memoryMbytes: number | null;
 
     /**
-     * If set to "1", the web browsers inside the Actor should run in headless
-     * mode because there is no windowing system available. (APIFY_HEADLESS)
+     * Whether the web browsers inside the Actor should run in headless mode because
+     * there is no windowing system available. `true` when not set. (APIFY_HEADLESS)
      */
-    headless: string | null;
+    headless: boolean;
 
     /**
-     * Is set to "1" if the Actor is running on Apify servers.
-     * (APIFY_IS_AT_HOME)
+     * Whether the Actor runs in an X virtual framebuffer. `false` when not set. (APIFY_XVFB)
      */
-    isAtHome: string | null;
+    xvfb: boolean;
+
+    /**
+     * Whether the Actor is running on Apify servers. `false` when not set. (APIFY_IS_AT_HOME)
+     */
+    isAtHome: boolean;
+
+    /**
+     * Whether the default storages should be purged on start. `true` when not set. (APIFY_PURGE_ON_START)
+     */
+    purgeOnStart: boolean;
 
     /**
      * The Apify Proxy password of the user who started the Actor. (APIFY_PROXY_PASSWORD)
      */
     proxyPassword: string | null;
-    proxyHostname: string | null;
-    proxyPort: string | null;
+    proxyHostname: string;
+    proxyPort: number;
 
     /**
      * You can visit this page to troubleshoot your proxy connection. (APIFY_PROXY_STATUS_URL)
      */
-    proxyStatusUrl: string | null;
-    apiBaseUrl: string | null;
-    apiPublicBaseUrl: string | null;
+    proxyStatusUrl: string;
+    apiBaseUrl: string;
+    apiPublicBaseUrl: string;
     chromeExecutablePath: string | null;
-    dedicatedCpus: string | null;
+    dedicatedCpus: number | null;
     fact: string | null;
     inputSecretsPrivateKeyFile: string | null;
     inputSecretsPrivateKeyPassphrase: string | null;
@@ -306,15 +320,29 @@ export interface ApifyEnv {
     /**
      * The key of the input record in the Actor’s default key-value store (ACTOR_INPUT_KEY)
      */
-    inputKey: string | null;
-    systemInfoIntervalMillis: string | null;
+    inputKey: string;
+    systemInfoIntervalMillis: number | null;
+    persistStateIntervalMillis: number;
+    metamorphAfterSleepMillis: number;
     workflowKey: string | null;
     actorBuildNumber: string | null;
     actorEventsWsUrl: string | null;
     actorMaxPaidDatasetItems: number | null;
-    containerPort: number | null;
-    containerUrl: string | null;
-    defaultRequestQueueId: string | null;
+    containerPort: number;
+    containerUrl: string;
+    defaultRequestQueueId: string;
+    standbyPort: number;
+    webServerPort: number;
+
+    /**
+     * Maximum amount in USD the run may charge the user. `Infinity` when not set or `0`. (ACTOR_MAX_TOTAL_CHARGE_USD)
+     */
+    maxTotalChargeUsd: number;
+
+    /**
+     * Tags of the Actor build used in the run, e.g. `['latest', 'beta']`. (ACTOR_BUILD_TAGS)
+     */
+    buildTags: string[] | null;
 }
 
 export type UserFunc<T = unknown> = () => Awaitable<T>;
@@ -1860,7 +1888,8 @@ export class Actor<Data extends Dictionary = Dictionary> {
      *
      * For the list of the Apify environment variables, see
      * [Actor documentation](https://docs.apify.com/platform/actors/development/programming-interface/environment-variables).
-     * If some variables are not defined or are invalid, the corresponding value in the resulting object will be null.
+     * Variables that {@apilink Configuration} also reads are parsed the same way and fall back to its defaults.
+     * Other variables that are not defined or are invalid resolve to `null`.
      * @ignore
      */
     getEnv(): ApifyEnv {
@@ -1875,16 +1904,23 @@ export class Actor<Data extends Dictionary = Dictionary> {
             if (IGNORED_ENV_VARS.includes(fullName)) continue;
 
             const camelCaseName = snakeCaseToCamelCase(shortName) as keyof ApifyEnv;
-            let value: string | number | boolean | Date | undefined = env[fullName];
+            const raw = env[fullName] || undefined;
+            const schema = CONFIG_SCHEMAS_BY_ENV_VAR.get(fullName);
+            let value: unknown = raw;
 
-            // Parse booleans, dates and integers.
-            if (BOOLEAN_ENV_VARS.includes(fullName)) {
-                value = !!value && coerceBoolean.parse(value);
-            } else if (value && fullName.endsWith('_AT')) {
-                const unix = Date.parse(value);
+            if (schema) {
+                const parsed = schema.safeParse(raw);
+                value = parsed.success ? parsed.data : schema.safeParse(undefined).data;
+            } else if (raw && fullName.endsWith('_AT')) {
+                const unix = Date.parse(raw);
                 value = unix > 0 ? new Date(unix) : undefined;
             } else if ((INTEGER_ENV_VARS as readonly string[]).includes(fullName)) {
-                value = parseInt(value!, 10);
+                value = parseInt(raw!, 10);
+            } else if (raw && (COMMA_SEPARATED_LIST_ENV_VARS as readonly string[]).includes(fullName)) {
+                value = raw
+                    .split(',')
+                    .map((item) => item.trim())
+                    .filter(Boolean);
             }
 
             Reflect.set(envVars, camelCaseName, value || value === 0 || value === false ? value : null);
