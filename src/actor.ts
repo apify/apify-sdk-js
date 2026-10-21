@@ -844,7 +844,9 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @ignore
      */
     async fail(messageOrOptions?: string | ExitOptions, options: ExitOptions = {}): Promise<void> {
-        return this.exit(messageOrOptions, { exitCode: 1, ...options });
+        const exitCode =
+            options.exitCode ?? (typeof messageOrOptions === 'object' ? messageOrOptions.exitCode : undefined) ?? 1;
+        return this.exit(messageOrOptions, { ...options, exitCode });
     }
 
     /**
