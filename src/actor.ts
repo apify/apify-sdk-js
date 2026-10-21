@@ -684,10 +684,6 @@ export class Actor<Data extends Dictionary = Dictionary> {
             this.installStorageBackend(options.storage);
         }
 
-        // Init the event manager the config uses
-        await serviceLocator.getEventManager().init();
-        log.debug(`Events initialized`);
-
         // Register handlers for aborting and migrating events for automatic graceful shutdown.
         // - aborting: calls Actor.exit() to terminate the run gracefully
         // - migrating: calls Actor.reboot() to speed up migration (the run continues on a new worker)
@@ -718,6 +714,11 @@ export class Actor<Data extends Dictionary = Dictionary> {
         this.#statusMessageForwarder = async ({ message, isStatusMessageTerminal }: EventStatusMessageData) =>
             this.#updateRunStatusMessage(message, isStatusMessageTerminal);
         this.on(EventType.STATUS_MESSAGE, this.#statusMessageForwarder);
+
+        // Connect to the platform events only after the handlers above are registered, so that an event sent
+        // right after the connection opens (e.g. an already pending `aborting`) is not missed.
+        await serviceLocator.getEventManager().init();
+        log.debug(`Events initialized`);
 
         await purgeDefaultStorages({
             configuration: this.configuration,

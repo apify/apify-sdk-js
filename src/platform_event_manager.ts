@@ -1,3 +1,5 @@
+import { setTimeout as sleep } from 'node:timers/promises';
+
 import { EventManager, EventType } from '@crawlee/core';
 import { WebSocket } from 'ws';
 
@@ -5,6 +7,36 @@ import { ACTOR_ENV_VARS, ACTOR_EVENT_NAMES } from '@apify/consts';
 import { betterClearInterval } from '@apify/utilities';
 
 import { Configuration } from './configuration.js';
+
+/**
+ * WebSocket close codes for a permanent condition, on which the connection is not re-established.
+ *
+ * The platform sends `1008` (policy violation) for an unknown/missing run ID or an exceeded per-run connection limit.
+ * The rest are protocol, data, or mandatory-extension failures that reconnecting cannot resolve.
+ */
+const NON_RETRYABLE_CLOSE_CODES = new Set([1002, 1003, 1007, 1008, 1010]);
+
+/** Close codes of a clean close, as opposed to a lost connection. */
+const CLEAN_CLOSE_CODES = new Set([1000, 1001]);
+
+/** How long a connection must stay open to count as healthy, after which a drop reconnects without backoff. */
+const HEALTHY_CONNECTION_MIN_DURATION_MILLIS = 1000;
+
+/**
+ * Delays between reconnection attempts, mirroring the Python `websockets` library
+ * (see RFC 6455, section 7.2.3): a random initial delay, then exponential growth up to a cap.
+ */
+function* backoffDelays(): Generator<number, never> {
+    yield Math.random() * 5000;
+
+    let delay = 3100;
+    while (delay < 90_000) {
+        yield delay;
+        delay *= 1.618;
+    }
+
+    while (true) yield 90_000;
+}
 
 /**
  * Gets an instance of a Node.js'
@@ -43,10 +75,19 @@ import { Configuration } from './configuration.js';
  *   in which case the `isMigrating` flag is set to `true`. Otherwise the flag is `false`.
  *   Note that the `persistState` event is provided merely for user convenience,
  *   you can achieve the same effect using `setInterval()` and listening for the `migrating` event.
+ *
+ * The connection to the platform events websocket is re-established after it drops, unless it was closed
+ * with a code signalling a permanent condition (e.g. `1008` for an unknown run ID).
  */
 export class PlatformEventManager extends EventManager {
     /** Websocket connection to Actor events. */
     #eventsWs?: WebSocket;
+
+    /** Aborted by `close()`, which stops any pending reconnection and marks the final close as intentional. */
+    #abortController = new AbortController();
+
+    /** Backoff for rapid reconnections; reset after a connection that stayed open long enough to count as healthy. */
+    #backoff?: Generator<number, never>;
 
     constructor(readonly configuration = Configuration.getGlobalConfiguration()) {
         super({
@@ -57,6 +98,8 @@ export class PlatformEventManager extends EventManager {
     /**
      * Initializes `Actor.events` event emitter by creating a connection to a websocket that provides them.
      * This is an internal function that is automatically called by `Actor.main()`.
+     *
+     * Rejects if the first connection cannot be established. Later drops are handled by reconnecting.
      */
     override async init() {
         if (this.initialized) {
@@ -74,38 +117,16 @@ export class PlatformEventManager extends EventManager {
             return;
         }
 
-        this.createWebSocketConnection(eventsWsUrl);
-    }
+        this.#abortController = new AbortController();
+        this.#backoff = undefined;
 
-    private createWebSocketConnection(eventsWsUrl: string) {
-        this.#eventsWs = new WebSocket(eventsWsUrl);
-        this.#eventsWs.on('message', (message) => {
-            if (!message) return;
-
-            try {
-                const { name, data } = JSON.parse(String(message));
-                this.events.emit(name, data);
-
-                if (name === ACTOR_EVENT_NAMES.MIGRATING) {
-                    betterClearInterval(this.intervals.persistState!); // Don't send any other persist state event.
-                    this.events.emit(EventType.PERSIST_STATE, {
-                        isMigrating: true,
-                    });
-                }
-            } catch (err) {
-                this.log.exception(err as Error, 'Cannot parse Actor event');
-            }
-        });
-        this.#eventsWs.on('error', (err) => {
-            // Don't print this error as this happens in the case of very short Actor.main().
-            if (err.message === 'WebSocket was closed before the connection was established') return;
-
-            this.log.exception(err, 'web socket connection failed');
-        });
-        this.#eventsWs.on('close', () => {
-            this.log.debug('web socket has been closed');
-            this.#eventsWs = undefined;
-        });
+        try {
+            await this.#connect(eventsWsUrl);
+        } catch (err) {
+            // Leave no `persistState` interval behind, so that `init()` can be retried.
+            await this.close();
+            throw new Error('Error connecting to platform events websocket!', { cause: err });
+        }
     }
 
     /**
@@ -119,6 +140,129 @@ export class PlatformEventManager extends EventManager {
         }
 
         await super.close();
+        this.#abortController.abort();
         this.#eventsWs?.close();
+    }
+
+    /** Opens a new connection; resolves once it is established and rejects if it fails before that. */
+    async #connect(eventsWsUrl: string) {
+        await new Promise<void>((resolve, reject) => {
+            // `ws` has no default handshake timeout, so without it a silent server would block `init()` forever.
+            const ws = new WebSocket(eventsWsUrl, { handshakeTimeout: 10_000 });
+            this.#eventsWs = ws;
+
+            let openedAt: number | undefined;
+            let lastError: Error | undefined;
+
+            ws.on('open', () => {
+                openedAt = Date.now();
+                resolve();
+            });
+            ws.on('message', (message) => this.#handleMessage(message));
+            ws.on('error', (err) => {
+                // Before the connection is open, the error is reported through the `close` event.
+                lastError = err;
+                if (openedAt !== undefined) this.log.exception(err, 'Platform events websocket error');
+            });
+            ws.on('close', (code, reason) => {
+                if (this.#eventsWs === ws) this.#eventsWs = undefined;
+
+                if (openedAt === undefined) {
+                    reject(
+                        lastError ??
+                            new Error(`Web socket closed before the connection was established (code=${code})`),
+                    );
+                    return;
+                }
+
+                this.#handleClose(eventsWsUrl, { code, reason: reason.toString(), openedAt });
+            });
+        });
+    }
+
+    #handleMessage(message: unknown) {
+        if (!message) return;
+
+        try {
+            const { name, data } = JSON.parse(String(message));
+            this.events.emit(name, data);
+
+            if (name === ACTOR_EVENT_NAMES.MIGRATING) {
+                betterClearInterval(this.intervals.persistState!); // Don't send any other persist state event.
+                this.events.emit(EventType.PERSIST_STATE, {
+                    isMigrating: true,
+                });
+            }
+        } catch (err) {
+            this.log.exception(err as Error, 'Cannot parse Actor event');
+        }
+    }
+
+    /** Logs the close of an established connection and schedules a reconnection, unless the close is final. */
+    #handleClose(eventsWsUrl: string, { code, reason, openedAt }: { code: number; reason: string; openedAt: number }) {
+        if (this.#abortController.signal.aborted) {
+            this.log.debug('web socket has been closed');
+            return;
+        }
+
+        const details = `code=${code}, reason=${JSON.stringify(reason)}`;
+
+        if (NON_RETRYABLE_CLOSE_CODES.has(code)) {
+            this.log.error(
+                `Connection to platform events websocket was closed with a non-retryable code (${details}); not reconnecting. ` +
+                    'No further platform events will be received for the rest of this run, so migration and abort handling ' +
+                    '(e.g. persisting state before a migration) is now disabled.',
+            );
+            return;
+        }
+
+        if (CLEAN_CLOSE_CODES.has(code)) {
+            this.log.info(`Connection to platform events websocket was closed (${details}), reconnecting...`);
+        } else {
+            this.log.warning(`Connection to platform events websocket was lost (${details}), reconnecting...`);
+        }
+
+        // Reconnect a healthy connection immediately; back off only on repeated rapid drops. The first rapid drop
+        // retries without delay (it just primes the backoff), each consecutive one waits for the next interval.
+        let delay = 0;
+        if (Date.now() - openedAt >= HEALTHY_CONNECTION_MIN_DURATION_MILLIS) {
+            this.#backoff = undefined;
+        } else if (this.#backoff) {
+            delay = this.#backoff.next().value;
+        } else {
+            this.#backoff = backoffDelays();
+        }
+
+        this.#reconnect(eventsWsUrl, delay).catch((err) => {
+            this.log.exception(err as Error, 'Reconnecting to platform events websocket failed');
+        });
+    }
+
+    /** Keeps trying to connect, with backoff between failed attempts, until it succeeds or `close()` is called. */
+    async #reconnect(eventsWsUrl: string, initialDelayMillis: number) {
+        const { signal } = this.#abortController;
+        await this.#sleep(initialDelayMillis, signal);
+
+        while (!signal.aborted) {
+            try {
+                await this.#connect(eventsWsUrl);
+                this.log.info('Reconnected to the platform events websocket.');
+                return;
+            } catch (err) {
+                if (signal.aborted) return;
+                this.log.warning(`Reconnecting to platform events websocket failed: ${(err as Error).message}`);
+            }
+
+            this.#backoff ??= backoffDelays();
+            await this.#sleep(this.#backoff.next().value, signal);
+        }
+    }
+
+    /** Sleeps for the given time, or until the signal is aborted. */
+    async #sleep(millis: number, signal: AbortSignal) {
+        if (millis <= 0 || signal.aborted) return;
+
+        // Rejects with an `AbortError` when aborted, which just means there is nothing left to wait for.
+        await sleep(millis, undefined, { signal }).catch(() => {});
     }
 }
