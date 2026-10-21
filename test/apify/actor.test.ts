@@ -1209,6 +1209,66 @@ describe('Actor', () => {
         });
     });
 
+    describe('Actor.abort()', () => {
+        const { runId, token } = globalOptions;
+        const { finishedRun } = runConfigs;
+        const ownRunId = 'own-run-id';
+
+        beforeEach(() => {
+            process.env[ACTOR_ENV_VARS.RUN_ID] = ownRunId;
+        });
+
+        afterEach(() => {
+            delete process.env[ACTOR_ENV_VARS.RUN_ID];
+        });
+
+        test('works as expected', async () => {
+            const runSpy = vitest.spyOn(ApifyClient.prototype, 'run');
+            const updateSpy = vitest.spyOn(RunClient.prototype, 'update');
+            const abortSpy = vitest.spyOn(RunClient.prototype, 'abort').mockResolvedValue(finishedRun);
+            const run = await Actor.abort(runId, { gracefully: true });
+
+            expect(run).toEqual(finishedRun);
+            expect(runSpy).toBeCalledWith(runId);
+            expect(updateSpy).not.toBeCalled();
+            expect(abortSpy).toBeCalledWith({ gracefully: true });
+        });
+
+        test('sets the status message on the aborted run, not on the current one', async () => {
+            const runSpy = vitest.spyOn(ApifyClient.prototype, 'run');
+            const updateSpy = vitest.spyOn(RunClient.prototype, 'update').mockResolvedValue(finishedRun);
+            const abortSpy = vitest.spyOn(RunClient.prototype, 'abort').mockResolvedValue(finishedRun);
+            const setStatusMessageSpy = vitest.spyOn(Actor.prototype, 'setStatusMessage');
+            await Actor.abort(runId, { statusMessage: 'Stopping' });
+
+            expect(runSpy).toBeCalledTimes(1);
+            expect(runSpy).toBeCalledWith(runId);
+            expect(runSpy).not.toBeCalledWith(ownRunId);
+            expect(updateSpy).toBeCalledWith({ statusMessage: 'Stopping', isStatusMessageTerminal: true });
+            expect(abortSpy).toBeCalledWith({});
+            expect(setStatusMessageSpy).not.toBeCalled();
+            expect(updateSpy.mock.invocationCallOrder[0]).toBeLessThan(abortSpy.mock.invocationCallOrder[0]);
+        });
+
+        test('works with token', async () => {
+            // Resolve the default instance before `newClient` is mocked, or it would be built with the token client.
+            const defaultRunSpy = vitest.spyOn(Actor.apifyClient, 'run');
+            const tokenClient = new ApifyClient({ token });
+            const newClientSpy = vitest.spyOn(Actor.prototype, 'newClient').mockReturnValue(tokenClient);
+            const tokenRunSpy = vitest.spyOn(tokenClient, 'run');
+            const updateSpy = vitest.spyOn(RunClient.prototype, 'update').mockResolvedValue(finishedRun);
+            const abortSpy = vitest.spyOn(RunClient.prototype, 'abort').mockResolvedValue(finishedRun);
+            await Actor.abort(runId, { token, statusMessage: 'Stopping' });
+
+            expect(newClientSpy).toBeCalledWith({ token });
+            expect(defaultRunSpy).not.toBeCalled();
+            expect(tokenRunSpy).toBeCalledTimes(1);
+            expect(tokenRunSpy).toBeCalledWith(runId);
+            expect(updateSpy).toBeCalledWith({ statusMessage: 'Stopping', isStatusMessageTerminal: true });
+            expect(abortSpy).toBeCalledWith({});
+        });
+    });
+
     describe('Actor.startTask()', () => {
         const memory = 256;
         const timeout = 60;

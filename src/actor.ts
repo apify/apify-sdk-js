@@ -1002,13 +1002,13 @@ export class Actor<Data extends Dictionary = Dictionary> {
         const { token, statusMessage, ...rest } = options;
         const client = token ? this.newClient({ token }) : this.apifyClient;
 
+        const runClient = client.run(runId);
+
         if (statusMessage) {
-            await this.setStatusMessage(statusMessage, {
-                isStatusMessageTerminal: true,
-            });
+            await runClient.update({ statusMessage, isStatusMessageTerminal: true });
         }
 
-        return client.run(runId).abort(rest);
+        return runClient.abort(rest);
     }
 
     /**
