@@ -190,6 +190,21 @@ When running locally and the default key-value store holds no input record, `Act
 
 `Configuration.inputKey` is resolved from `ACTOR_INPUT_KEY`, then `APIFY_INPUT_KEY`, then `CRAWLEE_INPUT_KEY`, defaulting to `INPUT`. The last one is kept for compatibility with the Apify CLI, which sets all three; Crawlee itself no longer reads it. Locally the Actor stores data through `ApifyFileSystemStorageBackend`, a new export that extends Crawlee's `FileSystemStorageBackend`: it adopts a bare `INPUT` / `INPUT.json` in the default store as the record `INPUT` (and likewise a file named after the configured key as that key's record), and spares those keys when the store is purged on start. Plain Crawlee's backend does neither, so an `Actor.init({ storage })` with a plain `FileSystemStorageBackend` reads no hand-placed input and purges it. See [Out-of-band key-value files](https://crawlee.dev/js/docs/next/upgrading/upgrading-to-v4#out-of-band-key-value-files-eg-a-hand-placed-inputjson) in the Crawlee upgrading guide for the adoption rules.
 
+## `Actor.main()` honors its options when the user function throws
+
+When the user function threw, `Actor.main()` used to ignore the options it was given and always called `process.exit(91)`. It now passes them to `Actor.exit()`, so `exit: false` keeps the process alive and `statusMessage` and `timeoutSecs` apply on the error path too. The exit code is still 91 on error; a caller-supplied `exitCode` only applies when the user function succeeds. `main()` still resolves after a thrown error instead of rethrowing it.
+
+```ts
+// v3: process.exit(91)
+// v4: logs the error and resolves
+await Actor.main(
+    async () => {
+        throw new Error('boom');
+    },
+    { exit: false },
+);
+```
+
 ## `apify-client` v3
 
 The SDK now depends on `apify-client` v3. `Actor.apifyClient` and `Actor.newClient()` return a v3 client, so code that calls the client directly is subject to the client's own breaking changes, listed in the [`apify-client` upgrading guide](https://docs.apify.com/api/client/js/docs/next/upgrading/upgrading-to-v3). These are the ones SDK users are most likely to hit:

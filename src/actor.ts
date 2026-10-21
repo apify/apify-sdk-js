@@ -633,9 +633,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
                 await this.exit(options);
             } catch (err: any) {
                 log.exception(err, err.message);
-                await this.exit({
-                    exitCode: EXIT_CODES.ERROR_USER_FUNCTION_THREW,
-                });
+                await this.exit({ ...options, exitCode: EXIT_CODES.ERROR_USER_FUNCTION_THREW });
             }
 
             return ret!;
