@@ -258,6 +258,10 @@ if (run) {
 
 `Actor.abort(runId, { statusMessage })` used to set the message, as terminal, on the *calling* run, via `Actor.setStatusMessage()`. The aborted run kept its old message and the caller's run was left with a terminal message it could no longer change. It now updates `runId` through the same client it aborts with, so the `token` option applies to the status message as well. The message is no longer logged by the SDK. If you relied on the old behaviour to annotate your own run, call `Actor.setStatusMessage()` yourself.
 
+## Outdated SDK warning removed
+
+`Actor.init()` no longer logs a warning when a newer SDK version is available. The SDK stopped reading `APIFY_DISABLE_OUTDATED_WARNING` and `APIFY_SDK_LATEST_VERSION`, and `Actor.getEnv()` no longer returns the matching `disableOutdatedWarning` and `sdkLatestVersion` fields.
+
 ## Argument validation (`ow` → `zod`)
 
 Runtime argument validation (e.g. `Actor.addWebhook()`, `Actor.setStatusMessage()`, `Actor.openDataset()` / `openKeyValueStore()` / `openRequestQueue()`, and the `ProxyConfiguration` constructor) now uses [`zod`](https://zod.dev) instead of `ow`. Validation is just as strict — invalid arguments still throw synchronously, before any work is done — but the **error messages changed**.
@@ -305,3 +309,4 @@ The SDK dropped several runtime dependencies in favor of native Node.js APIs and
 - **`got-scraping`** — the internal Apify Proxy status check now uses a native `node:http` request. If your Actor imported `got-scraping` transitively through `apify`, add it to your own `dependencies`.
 - **`fs-extra`** — replaced with `node:fs`.
 - **`ow`** — replaced with `zod` (see above).
+- **`semver`** — only the removed outdated-SDK warning used it.
