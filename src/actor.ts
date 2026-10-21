@@ -519,7 +519,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
     /**
      * Reference to the crawlee status message forwarder, so it can be removed during cleanup.
      */
-    #statusMessageForwarder?: (data: EventStatusMessageData) => Promise<ClientActorRun>;
+    #statusMessageForwarder?: (data: EventStatusMessageData) => Promise<ClientActorRun | undefined>;
 
     #chargingManager: ChargingManager;
 
@@ -1241,11 +1241,15 @@ export class Actor<Data extends Dictionary = Dictionary> {
     /**
      * Sets the status message for the current Actor run.
      *
-     * @returns The return value is the Run object.
+     * @returns The updated Run object, or `undefined` when no run was updated: when run locally,
+     * or when the update failed or timed out (a warning is logged in that case).
      * For more information, see the [Actor Runs](https://docs.apify.com/api/v2#/reference/actor-runs/) API endpoints.
      * @ignore
      */
-    async setStatusMessage(statusMessage: string, options?: SetStatusMessageOptions): Promise<ClientActorRun> {
+    async setStatusMessage(
+        statusMessage: string,
+        options?: SetStatusMessageOptions,
+    ): Promise<ClientActorRun | undefined> {
         const { isStatusMessageTerminal, level } = options || {};
         parseArgument(statusMessage, z.string());
         parseArgument(isStatusMessageTerminal, z.boolean().optional());
@@ -1274,24 +1278,26 @@ export class Actor<Data extends Dictionary = Dictionary> {
 
     /**
      * Propagates a status message to the current run, without logging it locally.
+     * Resolves `undefined` when there is no run to update, or when the update failed or timed out.
      */
-    async #updateRunStatusMessage(statusMessage: string, isStatusMessageTerminal?: boolean): Promise<ClientActorRun> {
+    async #updateRunStatusMessage(
+        statusMessage: string,
+        isStatusMessageTerminal?: boolean,
+    ): Promise<ClientActorRun | undefined> {
         const runId = this.configuration.actorRunId!;
-
-        if (runId) {
-            // just to be sure, this should be fast
-            const run = await addTimeoutToPromise(
-                async () => this.apifyClient.run(runId).update({ statusMessage, isStatusMessageTerminal }),
-                1000,
-                'Setting status message timed out after 1s',
-            ).catch((e) => log.warning(e.message));
-
-            if (run) {
-                return run;
-            }
+        if (!runId) {
+            return undefined;
         }
 
-        return {} as ClientActorRun;
+        // just to be sure, this should be fast
+        return addTimeoutToPromise(
+            async () => this.apifyClient.run(runId).update({ statusMessage, isStatusMessageTerminal }),
+            1000,
+            'Setting status message timed out after 1s',
+        ).catch((e) => {
+            log.warning(e.message);
+            return undefined;
+        });
     }
 
     /**
@@ -2251,10 +2257,14 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @param [options]
      * @param [options.isStatusMessageTerminal] If `true`, the status message will be marked as terminal.
      *          This is required for the last status message of the run. Default value is `false`.
-     * @returns The return value is the Run object. When run locally, this method returns empty object (`{}`).
+     * @returns The updated Run object, or `undefined` when no run was updated: when run locally,
+     * or when the update failed or timed out (a warning is logged in that case).
      * For more information, see the [Actor Runs](https://docs.apify.com/api/v2#/reference/actor-runs/) API endpoints.
      */
-    static async setStatusMessage(statusMessage: string, options?: SetStatusMessageOptions): Promise<ClientActorRun> {
+    static async setStatusMessage(
+        statusMessage: string,
+        options?: SetStatusMessageOptions,
+    ): Promise<ClientActorRun | undefined> {
         return Actor.getDefaultInstance().setStatusMessage(statusMessage, options);
     }
 
