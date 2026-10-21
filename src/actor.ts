@@ -1567,10 +1567,12 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * extension is read as — is parsed with JSON5 when it parses, and returned as a `Buffer` otherwise.
      *
      * When running locally and the store holds no such record, the input is read from a `<inputKey>` or
-     * `<inputKey>.json` file in the current working directory, then in the storage directory.
+     * `<inputKey>.json` file in the current working directory, then in the default key-value store's
+     * directory under the storage directory, where `apify run` writes it. The latter only matters for
+     * storage backends that don't read that directory themselves.
      *
      * Throws an {@apilink ActorInputError} when no input is found (`code: 'NOT_FOUND'`), when both input
-     * files exist in the working/storage directory (`'MULTIPLE_FILES'`), when a JSON input does not parse
+     * files exist in the same directory (`'MULTIPLE_FILES'`), when a JSON input does not parse
      * (`'PARSE_FAILED'`) or when its secret fields cannot be decrypted (`'DECRYPTION_FAILED'`). If your
      * Actor can run without input, catch the `'NOT_FOUND'` case and rethrow the rest.
      *
@@ -1598,12 +1600,19 @@ export class Actor<Data extends Dictionary = Dictionary> {
         const rawInput = record
             ? parseInput(record.value, record.contentType, `the "${inputKey}" record of the default key-value store`)
             : ((await this.readInputFromDirectory(inputKey, process.cwd(), 'working directory')) ??
-              (await this.readInputFromDirectory(inputKey, this.configuration.storageDir, 'storage directory')));
+              (await this.readInputFromDirectory(
+                  inputKey,
+                  // Not arbitrary: mirrors apify-cli's `getLocalKeyValueStorePath`, which is where `apify run` writes the input.
+                  join(this.configuration.storageDir, 'key_value_stores', this.configuration.defaultKeyValueStoreId),
+                  'default key-value store directory',
+              )));
 
         if (rawInput == null) {
             const locations = [`the "${inputKey}" record of the default key-value store`];
             if (!this.configuration.isAtHome) {
-                locations.push(`a "${inputKey}" or "${inputKey}.json" file in the working or storage directory`);
+                locations.push(
+                    `a "${inputKey}" or "${inputKey}.json" file in the working or default key-value store directory`,
+                );
             }
             throw new ActorInputError('NOT_FOUND', `Input does not exist. Expected ${locations.join(' or ')}.`);
         }

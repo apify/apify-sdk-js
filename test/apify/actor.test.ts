@@ -1816,9 +1816,11 @@ describe('Actor', () => {
                 await expect(actor.getInput()).rejects.toThrowError('Input does not exist');
             });
 
-            test('falls back to the storage directory, after the working directory', async () => {
+            test('falls back to the default key-value store directory, after the working directory', async () => {
+                // Where `apify run` writes the input; the in-memory backend never reads it.
                 const storageDir = await mkdtemp(join(tmpdir(), 'apify-sdk-input-storage-'));
-                await writeFile(join(storageDir, 'INPUT.json'), '{ "from": "storage" }');
+                await mkdir(join(storageDir, 'key_value_stores', 'default'), { recursive: true });
+                await writeFile(join(storageDir, 'key_value_stores', 'default', 'INPUT.json'), '{ "from": "storage" }');
                 const actor = () => isolatedActor(new Configuration({ storageDir }));
                 await expect(actor().getInput()).resolves.toEqual({ from: 'storage' });
 
