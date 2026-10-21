@@ -47,7 +47,21 @@ Resolution order (highest to lowest priority): constructor options → environme
 
 Empty-string environment variables are treated as unset (they fall through to the schema default) rather than being coerced to `0` / `''` / `false`. For example, `ACTOR_MAX_TOTAL_CHARGE_USD=""` now resolves to `undefined` instead of `0`.
 
-`userIsPaying` (both `Configuration.userIsPaying` and `Actor.getEnv().userIsPaying`) is now a `boolean` instead of the raw `APIFY_USER_IS_PAYING` string; `0`, `false`, empty or unset resolve to `false`.
+`Configuration.userIsPaying` is now a `boolean` instead of the raw `APIFY_USER_IS_PAYING` string.
+
+`Actor.getEnv()` now parses every environment variable that `Configuration` also reads with the same schema, so it gets the same type and the same default when unset or empty. Invalid values fall back to the default instead of throwing. Changed fields:
+
+- `userIsPaying`, `isAtHome`, `xvfb`: `string | null` → `boolean`, `false` when unset. `0` and `false` (any case) parse as `false`.
+- `headless`, `purgeOnStart`: `string | null` → `boolean`, `true` when unset.
+- `maxTotalChargeUsd` (`ACTOR_MAX_TOTAL_CHARGE_USD`): `string | null` → `number`, `Infinity` when unset or `0`.
+- `defaultDatasetId`, `defaultKeyValueStoreId`, `defaultRequestQueueId`: `string | null` → `string`, `'default'` when unset.
+- `inputKey`: `string | null` → `string`, `'INPUT'` when unset.
+- `apiBaseUrl`, `apiPublicBaseUrl`, `proxyHostname`, `proxyStatusUrl`, `containerUrl`: `string | null` → `string`, with the `Configuration` defaults.
+- `proxyPort` (`8000`), `containerPort` (`4321`): `number | null` → `number`, with the defaults shown.
+- `buildTags` (`ACTOR_BUILD_TAGS`): `string | null` → `string[] | null`, split on commas.
+- `dedicatedCpus`, `systemInfoIntervalMillis`: declared as `number | null`. They were already numbers at runtime.
+
+`ApifyEnv` now also declares `xvfb`, `purgeOnStart`, `maxTotalChargeUsd` and `buildTags`, which `getEnv()` returned before as raw strings, and `persistStateIntervalMillis` (`60000`), `metamorphAfterSleepMillis` (`300000`), `standbyPort` (`4321`) and `webServerPort` (`4321`) as `number`.
 
 When a setting is exposed under several environment variables, the Apify-specific ones take precedence over Crawlee's generic one — i.e. `ACTOR_*` / `APIFY_*` are checked before `CRAWLEE_*`. For example, if both `APIFY_HEADLESS` and `CRAWLEE_HEADLESS` are set, `APIFY_HEADLESS` wins.
 

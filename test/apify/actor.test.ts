@@ -35,8 +35,8 @@ const getEmptyEnv = () => {
         token: null,
         startedAt: null,
         timeoutAt: null,
-        defaultKeyValueStoreId: null,
-        defaultDatasetId: null,
+        defaultKeyValueStoreId: 'default',
+        defaultDatasetId: 'default',
         memoryMbytes: null,
     } as ApifyEnv;
 };
@@ -124,18 +124,102 @@ describe('Actor', () => {
                 expect(env).toMatchObject(expectedEnv);
             });
 
-            test.each([
-                ['1', true],
-                ['true', true],
-                ['0', false],
-                ['false', false],
-                ['', false],
-                [undefined, false],
-            ])('parses APIFY_USER_IS_PAYING=%j as %s', (raw, expected) => {
-                if (raw === undefined) delete process.env.APIFY_USER_IS_PAYING;
-                else process.env.APIFY_USER_IS_PAYING = raw;
+            test('defaults match Configuration', () => {
+                for (const name of Object.keys(process.env)) {
+                    if (/^(APIFY|ACTOR|CRAWLEE)_/.test(name)) vi.stubEnv(name, undefined);
+                }
+                onTestFinished(() => {
+                    vi.unstubAllEnvs();
+                });
 
-                expect(new Actor().getEnv().userIsPaying).toBe(expected);
+                const env = new Actor().getEnv();
+                const configuration = new Configuration();
+                // Same names, different env vars: `Configuration` reads `CRAWLEE_LOG_LEVEL` and has no
+                // env var for `systemInfoIntervalMillis`.
+                const shared = Object.keys(env).filter(
+                    (key) => key in configuration && !['logLevel', 'systemInfoIntervalMillis'].includes(key),
+                ) as (keyof ApifyEnv & keyof Configuration)[];
+
+                expect(shared.length).toBeGreaterThan(30);
+                for (const key of shared) {
+                    expect(env[key], key).toEqual(configuration[key] ?? null);
+                }
+            });
+
+            describe.each([
+                ['userIsPaying', APIFY_ENV_VARS.USER_IS_PAYING, false],
+                ['isAtHome', APIFY_ENV_VARS.IS_AT_HOME, false],
+                ['headless', APIFY_ENV_VARS.HEADLESS, true],
+                ['xvfb', APIFY_ENV_VARS.XVFB, false],
+                ['purgeOnStart', APIFY_ENV_VARS.PURGE_ON_START, true],
+            ] as const)('%s', (field, envVar, unset) => {
+                test.each([
+                    ['1', true],
+                    ['true', true],
+                    ['0', false],
+                    ['false', false],
+                    ['FALSE', false],
+                    ['', unset],
+                    [undefined, unset],
+                ])(`parses ${envVar}=%j as %s`, (raw, expected) => {
+                    vi.stubEnv(envVar, raw);
+                    onTestFinished(() => {
+                        vi.unstubAllEnvs();
+                    });
+
+                    expect(new Actor().getEnv()[field]).toBe(expected);
+                });
+            });
+
+            test.each([
+                ['proxyPort', APIFY_ENV_VARS.PROXY_PORT, 8000],
+                ['dedicatedCpus', APIFY_ENV_VARS.DEDICATED_CPUS, null],
+                ['systemInfoIntervalMillis', APIFY_ENV_VARS.SYSTEM_INFO_INTERVAL_MILLIS, null],
+                ['persistStateIntervalMillis', APIFY_ENV_VARS.PERSIST_STATE_INTERVAL_MILLIS, 60_000],
+                ['metamorphAfterSleepMillis', APIFY_ENV_VARS.METAMORPH_AFTER_SLEEP_MILLIS, 300_000],
+                ['standbyPort', ACTOR_ENV_VARS.STANDBY_PORT, 4321],
+                ['webServerPort', ACTOR_ENV_VARS.WEB_SERVER_PORT, 4321],
+            ] as const)('parses %s (%s) as a number, defaulting to %s', (field, envVar, unset) => {
+                onTestFinished(() => {
+                    vi.unstubAllEnvs();
+                });
+
+                vi.stubEnv(envVar, '1234');
+                expect(new Actor().getEnv()[field]).toBe(1234);
+
+                vi.stubEnv(envVar, '0');
+                expect(new Actor().getEnv()[field]).toBe(0);
+
+                vi.stubEnv(envVar, undefined);
+                expect(new Actor().getEnv()[field]).toBe(unset);
+            });
+
+            test.each([
+                ['12.5', 12.5],
+                ['0', Infinity],
+                ['', Infinity],
+                [undefined, Infinity],
+            ])('parses ACTOR_MAX_TOTAL_CHARGE_USD=%j as %s', (raw, expected) => {
+                vi.stubEnv(ACTOR_ENV_VARS.MAX_TOTAL_CHARGE_USD, raw);
+                onTestFinished(() => {
+                    vi.unstubAllEnvs();
+                });
+
+                expect(new Actor().getEnv().maxTotalChargeUsd).toBe(expected);
+            });
+
+            test.each([
+                ['latest', ['latest']],
+                ['latest, beta,1.0.5', ['latest', 'beta', '1.0.5']],
+                ['', null],
+                [undefined, null],
+            ])('parses ACTOR_BUILD_TAGS=%j as %j', (raw, expected) => {
+                vi.stubEnv(ACTOR_ENV_VARS.BUILD_TAGS, raw);
+                onTestFinished(() => {
+                    vi.unstubAllEnvs();
+                });
+
+                expect(new Actor().getEnv().buildTags).toEqual(expected);
             });
 
             test('omits the removed outdated-SDK warning env vars', () => {
