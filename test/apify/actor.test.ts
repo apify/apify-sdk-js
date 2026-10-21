@@ -31,6 +31,7 @@ const getEmptyEnv = () => {
         actorId: null,
         actorRunId: null,
         userId: null,
+        userIsPaying: false,
         token: null,
         startedAt: null,
         timeoutAt: null,
@@ -44,6 +45,7 @@ const setEnv = (env: ApifyEnv) => {
     delete process.env.ACTOR_ID;
     delete process.env.ACTOR_RUN_ID;
     delete process.env.APIFY_USER_ID;
+    delete process.env.APIFY_USER_IS_PAYING;
     delete process.env.APIFY_TOKEN;
     delete process.env.ACTOR_STARTED_AT;
     delete process.env.ACTOR_TIMEOUT_AT;
@@ -54,6 +56,7 @@ const setEnv = (env: ApifyEnv) => {
     if (env.actorId) process.env.ACTOR_ID = env.actorId;
     if (env.actorRunId) process.env.ACTOR_RUN_ID = env.actorRunId;
     if (env.userId) process.env.APIFY_USER_ID = env.userId;
+    if (env.userIsPaying) process.env.APIFY_USER_IS_PAYING = '1';
     if (env.token) process.env.APIFY_TOKEN = env.token;
     if (env.startedAt) process.env.ACTOR_STARTED_AT = env.startedAt.toISOString();
     if (env.timeoutAt) process.env.ACTOR_TIMEOUT_AT = env.timeoutAt.toISOString();
@@ -107,6 +110,7 @@ describe('Actor', () => {
                     actorId: 'test actId',
                     actorRunId: 'test actId',
                     userId: 'some user',
+                    userIsPaying: true,
                     token: 'auth token',
                     startedAt: new Date('2017-01-01'),
                     timeoutAt: new Date(),
@@ -118,6 +122,20 @@ describe('Actor', () => {
 
                 const env = new Actor().getEnv();
                 expect(env).toMatchObject(expectedEnv);
+            });
+
+            test.each([
+                ['1', true],
+                ['true', true],
+                ['0', false],
+                ['false', false],
+                ['', false],
+                [undefined, false],
+            ])('parses APIFY_USER_IS_PAYING=%j as %s', (raw, expected) => {
+                if (raw === undefined) delete process.env.APIFY_USER_IS_PAYING;
+                else process.env.APIFY_USER_IS_PAYING = raw;
+
+                expect(new Actor().getEnv().userIsPaying).toBe(expected);
             });
         });
 
@@ -975,6 +993,7 @@ describe('Actor', () => {
                     actorId: 'test actId',
                     actorRunId: 'test actId',
                     userId: 'some user',
+                    userIsPaying: true,
                     token: 'auth token',
                     startedAt: new Date('2017-01-01'),
                     timeoutAt: new Date(),

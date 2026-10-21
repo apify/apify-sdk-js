@@ -47,6 +47,8 @@ Resolution order (highest to lowest priority): constructor options → environme
 
 Empty-string environment variables are treated as unset (they fall through to the schema default) rather than being coerced to `0` / `''` / `false`. For example, `ACTOR_MAX_TOTAL_CHARGE_USD=""` now resolves to `undefined` instead of `0`.
 
+`userIsPaying` (both `Configuration.userIsPaying` and `Actor.getEnv().userIsPaying`) is now a `boolean` instead of the raw `APIFY_USER_IS_PAYING` string; `0`, `false`, empty or unset resolve to `false`.
+
 When a setting is exposed under several environment variables, the Apify-specific ones take precedence over Crawlee's generic one — i.e. `ACTOR_*` / `APIFY_*` are checked before `CRAWLEE_*`. For example, if both `APIFY_HEADLESS` and `CRAWLEE_HEADLESS` are set, `APIFY_HEADLESS` wins.
 
 `new Actor({ configuration })` accepts a pre-built `Configuration`, but it must be the Apify SDK's `Configuration` (imported from `apify`), not a bare Crawlee one — otherwise the `APIFY_*` / `ACTOR_*` environment variables are never resolved, so the SDK now throws if given a non-Apify instance.

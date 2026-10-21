@@ -131,7 +131,7 @@ export const apifyConfigFields = {
     standbyUrl: field(z.string().optional(), ACTOR_ENV_VARS.STANDBY_URL),
     isAtHome: field(coerceBoolean.default(false), APIFY_ENV_VARS.IS_AT_HOME),
     userId: field(z.string().optional(), APIFY_ENV_VARS.USER_ID),
-    userIsPaying: field(z.string().optional(), APIFY_ENV_VARS.USER_IS_PAYING),
+    userIsPaying: field(coerceBoolean.default(false), APIFY_ENV_VARS.USER_IS_PAYING),
     actorPermissionLevel: field(z.string().optional(), ACTOR_ENV_VARS.PERMISSION_LEVEL),
     inputSecretsPrivateKeyPassphrase: field(z.string().optional(), APIFY_ENV_VARS.INPUT_SECRETS_PRIVATE_KEY_PASSPHRASE),
     inputSecretsPrivateKeyFile: field(z.string().optional(), APIFY_ENV_VARS.INPUT_SECRETS_PRIVATE_KEY_FILE),
@@ -232,6 +232,7 @@ export interface Configuration extends ApifyResolvedConfigValues {}
  * `proxyPort` | `APIFY_PROXY_PORT` | `8000`
  * `proxyStatusUrl` | `APIFY_PROXY_STATUS_URL` | `'http://proxy.apify.com'`
  * `userId` | `APIFY_USER_ID` | -
+ * `userIsPaying` | `APIFY_USER_IS_PAYING` | `false`
  * `xvfb` | `APIFY_XVFB` | -
  * `standbyPort` | `ACTOR_STANDBY_PORT` | `4321`
  * `standbyUrl` | `ACTOR_STANDBY_URL` | -
