@@ -16,6 +16,6 @@ To provide the actor with input, create a `INPUT.json` file inside the "default"
 {PROJECT_FOLDER}/storage/key_value_stores/default/INPUT.json
 ```
 
-Anything in this file will be available to the actor when it runs. If the default key-value store holds no input record, `Actor.getInput()` also looks for an `INPUT.json` (or a bare `INPUT`) file in the current working directory and then in the default key-value store directory above, even when the storage backend doesn't read it (e.g. in-memory storage), a shortcut for local runs carried over from Crawlee v3. Either way, `Actor.getInput()` throws when it finds no input.
+Anything in this file will be available to the actor when it runs. Locally, `Actor.getInput()` also accepts an `INPUT.json` (or a bare `INPUT`) file in the current working directory, and reads the directory above even when the storage backend doesn't (e.g. in-memory storage). The input must be in exactly one place: `Actor.getInput()` throws when it finds none, and when it finds more than one.
 
 To learn about other ways to provide an actor with input, refer to the [Apify Platform Documentation](https://apify.com/docs/actor#run).

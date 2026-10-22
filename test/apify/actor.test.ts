@@ -1778,11 +1778,15 @@ describe('Actor', () => {
                 await expect(actor.getInput()).resolves.toEqual({ from: 'cli' });
             });
 
-            test('prefers the store record over the file', async () => {
+            test('throws MULTIPLE_FILES when both the store record and the file exist', async () => {
                 await writeFile(join(cwd, 'INPUT.json'), '{ "from": "file" }');
                 const actor = isolatedActor();
                 await actor.setValue(KEY_VALUE_STORE_KEYS.INPUT, { from: 'store' });
-                await expect(actor.getInput()).resolves.toEqual({ from: 'store' });
+
+                const error = await actor.getInput().catch((e) => e);
+                expect(error).toBeInstanceOf(ActorInputError);
+                expect(error.code).toBe('MULTIPLE_FILES');
+                expect(error.message).toMatch(/both in the default key-value store and in/);
             });
 
             test('throws MULTIPLE_FILES when both INPUT and INPUT.json exist', async () => {
@@ -1816,7 +1820,7 @@ describe('Actor', () => {
                 await expect(actor.getInput()).rejects.toThrowError('Input does not exist');
             });
 
-            test('falls back to the default key-value store directory, after the working directory', async () => {
+            test('reads the default key-value store directory, and rejects it next to a working directory file', async () => {
                 // Where `apify run` writes the input; the in-memory backend never reads it.
                 const storageDir = await mkdtemp(join(tmpdir(), 'apify-sdk-input-storage-'));
                 await mkdir(join(storageDir, 'key_value_stores', 'default'), { recursive: true });
@@ -1825,7 +1829,11 @@ describe('Actor', () => {
                 await expect(actor().getInput()).resolves.toEqual({ from: 'storage' });
 
                 await writeFile(join(cwd, 'INPUT.json'), '{ "from": "cwd" }');
-                await expect(actor().getInput()).resolves.toEqual({ from: 'cwd' });
+                const error = await actor()
+                    .getInput()
+                    .catch((e) => e);
+                expect(error).toBeInstanceOf(ActorInputError);
+                expect(error.code).toBe('MULTIPLE_FILES');
                 await rm(storageDir, { recursive: true, force: true });
             });
         });

@@ -1566,13 +1566,12 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * A record stored as `application/octet-stream` — which is what a local input file without an
      * extension is read as — is parsed with JSON5 when it parses, and returned as a `Buffer` otherwise.
      *
-     * When running locally and the store holds no such record, the input is read from a `<inputKey>` or
-     * `<inputKey>.json` file in the current working directory, then in the default key-value store's
-     * directory under the storage directory, where `apify run` writes it. The latter only matters for
-     * storage backends that don't read that directory themselves.
+     * When running locally, the input may instead be a `<inputKey>` or `<inputKey>.json` file in the current
+     * working directory. A storage backend that doesn't read the default key-value store's directory under
+     * the storage directory (e.g. in-memory storage) also gets the file `apify run` writes there.
      *
-     * Throws an {@apilink ActorInputError} when no input is found (`code: 'NOT_FOUND'`), when both input
-     * files exist in the same directory (`'MULTIPLE_FILES'`), when a JSON input does not parse
+     * Throws an {@apilink ActorInputError} when no input is found (`code: 'NOT_FOUND'`), when the input is
+     * found in more than one place (`'MULTIPLE_FILES'`), when a JSON input does not parse
      * (`'PARSE_FAILED'`) or when its secret fields cannot be decrypted (`'DECRYPTION_FAILED'`). If your
      * Actor can run without input, catch the `'NOT_FOUND'` case and rethrow the rest.
      *
@@ -1593,19 +1592,33 @@ export class Actor<Data extends Dictionary = Dictionary> {
     async getInput<T = Dictionary | string | Buffer>(): Promise<T> {
         this.ensureActorInit('getInput');
 
-        const { inputKey, inputSecretsPrivateKeyFile, inputSecretsPrivateKeyPassphrase } = this.configuration;
+        const {
+            inputKey,
+            inputSecretsPrivateKeyFile,
+            inputSecretsPrivateKeyPassphrase,
+            storageDir,
+            defaultKeyValueStoreId,
+        } = this.configuration;
+        // Where `apify run` writes the input (apify-cli `getLocalKeyValueStorePath`).
+        const defaultStoreDir = join(storageDir, 'key_value_stores', defaultKeyValueStoreId);
 
         const store = await this.openKeyValueStore();
         const record = await store.getRecord(inputKey);
-        const rawInput = record
+        // Not a conflict check: under the file-system backend the record *is* the store directory's file.
+        const storeInput = record
             ? parseInput(record.value, record.contentType, `the "${inputKey}" record of the default key-value store`)
-            : ((await this.readInputFromDirectory(inputKey, process.cwd(), 'working directory')) ??
-              (await this.readInputFromDirectory(
-                  inputKey,
-                  // Not arbitrary: mirrors apify-cli's `getLocalKeyValueStorePath`, which is where `apify run` writes the input.
-                  join(this.configuration.storageDir, 'key_value_stores', this.configuration.defaultKeyValueStoreId),
-                  'default key-value store directory',
-              )));
+            : await this.readInputFromDirectory(inputKey, defaultStoreDir, 'default key-value store directory');
+
+        const cwdInput = await this.readInputFromDirectory(inputKey, process.cwd(), 'working directory');
+
+        if (storeInput != null && cwdInput != null) {
+            throw new ActorInputError(
+                'MULTIPLE_FILES',
+                `Found the input both in the default key-value store and in a "${inputKey}" or "${inputKey}.json" file in the working directory. Keep only one of them.`,
+            );
+        }
+
+        const rawInput = storeInput ?? cwdInput;
 
         if (rawInput == null) {
             const locations = [`the "${inputKey}" record of the default key-value store`];
@@ -2530,11 +2543,11 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * A record stored as `application/octet-stream` — which is what a local input file without an
      * extension is read as — is parsed with JSON5 when it parses, and returned as a `Buffer` otherwise.
      *
-     * When running locally and the store holds no such record, the input is read from a `<inputKey>` or
-     * `<inputKey>.json` file in the current working directory instead.
+     * When running locally, the input may instead be a `<inputKey>` or `<inputKey>.json` file in the current
+     * working directory.
      *
-     * Throws an {@apilink ActorInputError} when no input is found (`code: 'NOT_FOUND'`), when both input
-     * files exist in the working directory (`'MULTIPLE_FILES'`), when a JSON input does not parse
+     * Throws an {@apilink ActorInputError} when no input is found (`code: 'NOT_FOUND'`), when the input is
+     * found in more than one place (`'MULTIPLE_FILES'`), when a JSON input does not parse
      * (`'PARSE_FAILED'`) or when its secret fields cannot be decrypted (`'DECRYPTION_FAILED'`). If your
      * Actor can run without input, catch the `'NOT_FOUND'` case and rethrow the rest:
      * ```js
