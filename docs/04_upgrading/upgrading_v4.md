@@ -47,6 +47,8 @@ Resolution order (highest to lowest priority): constructor options → environme
 
 Empty-string environment variables are treated as unset (they fall through to the schema default) rather than being coerced to `0` / `''` / `false`. For example, `ACTOR_MAX_TOTAL_CHARGE_USD=""` now resolves to `undefined` instead of `0`.
 
+`userIsPaying` (both `Configuration.userIsPaying` and `Actor.getEnv().userIsPaying`) is now a `boolean` instead of the raw `APIFY_USER_IS_PAYING` string; `0`, `false`, empty or unset resolve to `false`.
+
 When a setting is exposed under several environment variables, the Apify-specific ones take precedence over Crawlee's generic one — i.e. `ACTOR_*` / `APIFY_*` are checked before `CRAWLEE_*`. For example, if both `APIFY_HEADLESS` and `CRAWLEE_HEADLESS` are set, `APIFY_HEADLESS` wins.
 
 `new Actor({ configuration })` accepts a pre-built `Configuration`, but it must be the Apify SDK's `Configuration` (imported from `apify`), not a bare Crawlee one — otherwise the `APIFY_*` / `ACTOR_*` environment variables are never resolved, so the SDK now throws if given a non-Apify instance.
@@ -102,6 +104,12 @@ In addition, `_setPasswordIfToken()` is now `private setPasswordIfToken()` (it w
 
 If you only interact with events through `Actor.on()` / `Actor.off()` / `Actor.events`, no code changes are needed.
 
+### Platform events websocket
+
+`Actor.init()` (and `PlatformEventManager.init()`) now waits for the connection to the platform events websocket and rejects if it cannot be established. Previously the failure was only logged and the run continued without any platform events. Locally, where `ACTOR_EVENTS_WEBSOCKET_URL` is not set, nothing changes.
+
+Once connected, a dropped connection is re-established automatically with backoff, so `migrating`, `aborting` and `persistState` keep arriving after a network blip. The connection is not re-established after a close code signalling a permanent condition, such as `1008` for an unknown run ID.
+
 ## StorageBackend
 
 The SDK's storage layer was adapted to the new Crawlee v4 `StorageBackend` interface. The Apify platform client is wrapped via the `ApifyStorageBackend` adapter — now exported from `apify` — which implements `createDatasetBackend`, `createKeyValueStoreBackend`, and `createRequestQueueBackend`.
@@ -151,7 +159,7 @@ Reading the run input now lives entirely in the SDK; Crawlee v4 dropped `KeyValu
 
 `Actor.getInput()` no longer resolves to `null` for a missing input. It throws an `ActorInputError` with `code: 'NOT_FOUND'` instead, and its return type is `Promise<T>` rather than `Promise<T | null>`. `Actor.getInputOrThrow()` is removed — it did exactly what `getInput()` does now.
 
-`ActorInputError` (exported from `apify`) is also thrown when both `INPUT` and `INPUT.json` exist in the working directory (`'MULTIPLE_FILES'`), when a JSON input does not parse (`'PARSE_FAILED'`, parser error in `cause`) and when the input's secret fields cannot be decrypted (`'DECRYPTION_FAILED'`, original error in `cause`). Anything else `getInput()` throws, such as an Apify API error, is not an input problem — rethrow it.
+`ActorInputError` (exported from `apify`) is also thrown when the input is found in more than one place (`'MULTIPLE_FILES'`, see below), when a JSON input does not parse (`'PARSE_FAILED'`, parser error in `cause`) and when the input's secret fields cannot be decrypted (`'DECRYPTION_FAILED'`, original error in `cause`). Anything else `getInput()` throws, such as an Apify API error, is not an input problem — rethrow it.
 
 ```ts
 // v3
@@ -178,11 +186,26 @@ A local input file without an extension (a bare `INPUT` in `storage/key_value_st
 
 ### Input file in the working directory
 
-When running locally and the default key-value store holds no input record, `Actor.getInput()` falls back to an `INPUT` or `INPUT.json` file in the current working directory, then in the storage directory (`CRAWLEE_STORAGE_DIR`, `./storage` by default; the file name follows the configured input key). The bare file follows the octet-stream rule above; the `.json` file is parsed with JSON5 like any JSON record. If both files are present in the same directory, `getInput()` throws instead of picking one. This fallback never runs on the Apify platform. It is new to the SDK — v3's `Actor.getInput()` only ever read the key-value store.
+When running locally, `Actor.getInput()` also accepts an `INPUT` or `INPUT.json` file in the current working directory (the file name follows the configured input key). The bare file follows the octet-stream rule above; the `.json` file is parsed with JSON5 like any JSON record. With a storage backend that doesn't read the default key-value store directory itself, such as in-memory storage, the same file is also picked up from `<storage dir>/key_value_stores/<default store id>`, where `apify run` writes it. The input must be in exactly one place: both files in one directory, or a file in the working directory next to an input in the store, make `getInput()` throw `'MULTIPLE_FILES'` instead of picking one. Crawlee v3's `KeyValueStore.getInput()` silently preferred the working directory file in that case; delete whichever copy you don't mean. None of this runs on the Apify platform. The working directory lookup is new to the SDK — v3's `Actor.getInput()` only ever read the key-value store.
 
 ### Input key configuration
 
 `Configuration.inputKey` is resolved from `ACTOR_INPUT_KEY`, then `APIFY_INPUT_KEY`, then `CRAWLEE_INPUT_KEY`, defaulting to `INPUT`. The last one is kept for compatibility with the Apify CLI, which sets all three; Crawlee itself no longer reads it. Locally the Actor stores data through `ApifyFileSystemStorageBackend`, a new export that extends Crawlee's `FileSystemStorageBackend`: it adopts a bare `INPUT` / `INPUT.json` in the default store as the record `INPUT` (and likewise a file named after the configured key as that key's record), and spares those keys when the store is purged on start. Plain Crawlee's backend does neither, so an `Actor.init({ storage })` with a plain `FileSystemStorageBackend` reads no hand-placed input and purges it. See [Out-of-band key-value files](https://crawlee.dev/js/docs/next/upgrading/upgrading-to-v4#out-of-band-key-value-files-eg-a-hand-placed-inputjson) in the Crawlee upgrading guide for the adoption rules.
+
+## `Actor.main()` honors its options when the user function throws
+
+When the user function threw, `Actor.main()` used to ignore the options it was given and always called `process.exit(91)`. It now passes them to `Actor.exit()`, so `exit: false` keeps the process alive and `statusMessage` and `timeoutSecs` apply on the error path too. The exit code is still 91 on error; a caller-supplied `exitCode` only applies when the user function succeeds. `main()` still resolves after a thrown error instead of rethrowing it.
+
+```ts
+// v3: process.exit(91)
+// v4: logs the error and resolves
+await Actor.main(
+    async () => {
+        throw new Error('boom');
+    },
+    { exit: false },
+);
+```
 
 ## `apify-client` v3
 
@@ -219,6 +242,21 @@ await Actor.call('my-actor', input, { maxItems: 100 });
 // v4
 await Actor.call('my-actor', input, { maxTotalChargeUsd: 5 });
 ```
+
+## `Actor.setStatusMessage()` resolves `undefined` when no run was updated
+
+`Actor.setStatusMessage()` used to resolve an empty object cast to `ActorRun` when there was no run to update (locally) or when the update failed or timed out, so there was no way to tell that nothing happened. It now returns `Promise<ActorRun | undefined>` and resolves `undefined` in those cases. A failed or timed-out update still logs a warning rather than throwing.
+
+```ts
+const run = await Actor.setStatusMessage('Crawled 10/100 pages');
+if (run) {
+    console.log(run.statusMessage);
+}
+```
+
+## `Actor.abort()` sets `statusMessage` on the aborted run
+
+`Actor.abort(runId, { statusMessage })` used to set the message, as terminal, on the *calling* run, via `Actor.setStatusMessage()`. The aborted run kept its old message and the caller's run was left with a terminal message it could no longer change. It now updates `runId` through the same client it aborts with, so the `token` option applies to the status message as well. The message is no longer logged by the SDK. If you relied on the old behaviour to annotate your own run, call `Actor.setStatusMessage()` yourself.
 
 ## Argument validation (`ow` → `zod`)
 
