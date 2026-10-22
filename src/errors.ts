@@ -1,8 +1,8 @@
 /** Why {@apilink Actor.getInput} could not produce the input. */
 export type ActorInputErrorCode =
-    /** No input record in the default key-value store, and locally no input file in the working directory either. */
+    /** No input record in the default key-value store, and locally no input file either. */
     | 'NOT_FOUND'
-    /** Both `<inputKey>` and `<inputKey>.json` exist in the working directory, so neither is picked. */
+    /** The input is in more than one place — both `<inputKey>` and `<inputKey>.json` in one directory, or in the store and in the working directory — so none is picked. */
     | 'MULTIPLE_FILES'
     /** The secret fields of the input could not be decrypted; `cause` holds the underlying error. */
     | 'DECRYPTION_FAILED'

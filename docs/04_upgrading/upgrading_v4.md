@@ -159,7 +159,7 @@ Reading the run input now lives entirely in the SDK; Crawlee v4 dropped `KeyValu
 
 `Actor.getInput()` no longer resolves to `null` for a missing input. It throws an `ActorInputError` with `code: 'NOT_FOUND'` instead, and its return type is `Promise<T>` rather than `Promise<T | null>`. `Actor.getInputOrThrow()` is removed — it did exactly what `getInput()` does now.
 
-`ActorInputError` (exported from `apify`) is also thrown when both `INPUT` and `INPUT.json` exist in the working directory (`'MULTIPLE_FILES'`), when a JSON input does not parse (`'PARSE_FAILED'`, parser error in `cause`) and when the input's secret fields cannot be decrypted (`'DECRYPTION_FAILED'`, original error in `cause`). Anything else `getInput()` throws, such as an Apify API error, is not an input problem — rethrow it.
+`ActorInputError` (exported from `apify`) is also thrown when the input is found in more than one place (`'MULTIPLE_FILES'`, see below), when a JSON input does not parse (`'PARSE_FAILED'`, parser error in `cause`) and when the input's secret fields cannot be decrypted (`'DECRYPTION_FAILED'`, original error in `cause`). Anything else `getInput()` throws, such as an Apify API error, is not an input problem — rethrow it.
 
 ```ts
 // v3
@@ -186,7 +186,7 @@ A local input file without an extension (a bare `INPUT` in `storage/key_value_st
 
 ### Input file in the working directory
 
-When running locally and the default key-value store holds no input record, `Actor.getInput()` falls back to an `INPUT` or `INPUT.json` file in the current working directory, then in the storage directory (`CRAWLEE_STORAGE_DIR`, `./storage` by default; the file name follows the configured input key). The bare file follows the octet-stream rule above; the `.json` file is parsed with JSON5 like any JSON record. If both files are present in the same directory, `getInput()` throws instead of picking one. This fallback never runs on the Apify platform. It is new to the SDK — v3's `Actor.getInput()` only ever read the key-value store.
+When running locally, `Actor.getInput()` also accepts an `INPUT` or `INPUT.json` file in the current working directory (the file name follows the configured input key). The bare file follows the octet-stream rule above; the `.json` file is parsed with JSON5 like any JSON record. With a storage backend that doesn't read the default key-value store directory itself, such as in-memory storage, the same file is also picked up from `<storage dir>/key_value_stores/<default store id>`, where `apify run` writes it. The input must be in exactly one place: both files in one directory, or a file in the working directory next to an input in the store, make `getInput()` throw `'MULTIPLE_FILES'` instead of picking one. Crawlee v3's `KeyValueStore.getInput()` silently preferred the working directory file in that case; delete whichever copy you don't mean. None of this runs on the Apify platform. The working directory lookup is new to the SDK — v3's `Actor.getInput()` only ever read the key-value store.
 
 ### Input key configuration
 
