@@ -1958,7 +1958,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
         this.ensureActorInit('useState');
 
         const kvStore = await KeyValueStore.open(options?.keyValueStoreName, {
-            configuration: options?.configuration || Configuration.getGlobalConfiguration(),
+            configuration: options?.configuration ?? this.configuration,
         });
         return kvStore.getAutoSavedValue<State>(name || 'APIFY_GLOBAL_STATE', defaultValue);
     }
