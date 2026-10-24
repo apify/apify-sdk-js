@@ -73,12 +73,17 @@ import {
     isNonEmptyObject,
     JSON_CONTENT_TYPE,
     parseInputValue,
-    printOutdatedSdkWarning,
     snakeCaseToCamelCase,
 } from './utils.js';
 
 // `@apify/consts` has no boolean counterpart to `INTEGER_ENV_VARS`.
 const BOOLEAN_ENV_VARS: readonly string[] = [APIFY_ENV_VARS.USER_IS_PAYING];
+
+// Still listed in `@apify/consts`, but no longer read by the SDK.
+const IGNORED_ENV_VARS: readonly string[] = [
+    APIFY_ENV_VARS.DISABLE_OUTDATED_WARNING,
+    APIFY_ENV_VARS.SDK_LATEST_VERSION,
+];
 
 /**
  * {@link parseInputValue} with the parser error wrapped as an {@apilink ActorInputError}, so a malformed
@@ -273,7 +278,6 @@ export interface ApifyEnv {
     apiPublicBaseUrl: string | null;
     chromeExecutablePath: string | null;
     dedicatedCpus: string | null;
-    disableOutdatedWarning: 1 | null;
     fact: string | null;
     inputSecretsPrivateKeyFile: string | null;
     inputSecretsPrivateKeyPassphrase: string | null;
@@ -303,7 +307,6 @@ export interface ApifyEnv {
      * The key of the input record in the Actor’s default key-value store (ACTOR_INPUT_KEY)
      */
     inputKey: string | null;
-    sdkLatestVersion: string | null;
     systemInfoIntervalMillis: string | null;
     workflowKey: string | null;
     actorBuildNumber: string | null;
@@ -670,7 +673,6 @@ export class Actor<Data extends Dictionary = Dictionary> {
 
         checkCrawleeVersion();
         log.info('System info', getSystemInfo());
-        printOutdatedSdkWarning();
 
         // Register this Actor's config as the global one so crawlee storages and
         // the event manager resolve the same instance (`availableMemoryRatio` /
@@ -1892,6 +1894,8 @@ export class Actor<Data extends Dictionary = Dictionary> {
             ...APIFY_ENV_VARS,
             ...this.getModifiedActorEnvVars(),
         })) {
+            if (IGNORED_ENV_VARS.includes(fullName)) continue;
+
             const camelCaseName = snakeCaseToCamelCase(shortName) as keyof ApifyEnv;
             let value: string | number | boolean | Date | undefined = env[fullName];
 
