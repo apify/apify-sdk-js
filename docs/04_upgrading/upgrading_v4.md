@@ -231,6 +231,18 @@ await Actor.call('my-actor', 'some=body', { contentType: 'application/x-www-form
 await Actor.call('my-actor', { some: 'body' }, { contentType: 'application/x-www-form-urlencoded' });
 ```
 
+## `maxItems` option removed
+
+`Actor.start()`, `Actor.call()`, `Actor.startTask()`, `Actor.callTask()` and `Actor.resurrect()` no longer include the `maxItems` option. It applied only to the pay-per-result pricing model. Instead, use `maxTotalChargeUsd`, which caps the cost of a run for any pricing model.
+
+```ts
+// v3
+await Actor.call('my-actor', input, { maxItems: 100 });
+
+// v4
+await Actor.call('my-actor', input, { maxTotalChargeUsd: 5 });
+```
+
 ## `Actor.setStatusMessage()` resolves `undefined` when no run was updated
 
 `Actor.setStatusMessage()` used to resolve an empty object cast to `ActorRun` when there was no run to update (locally) or when the update failed or timed out, so there was no way to tell that nothing happened. It now returns `Promise<ActorRun | undefined>` and resolves `undefined` in those cases. A failed or timed-out update still logs a warning rather than throwing.
