@@ -136,12 +136,11 @@ describe('child run tracking with `runName`', () => {
                 build: 'beta',
                 memory: 1024,
                 timeout: 60,
-                maxItems: 10,
                 webhooks: [],
             });
 
             expect(startSpy).not.toBeCalled();
-            expect(resurrectSpy).toBeCalledWith({ build: 'beta', memory: 1024, runTimeoutSecs: 60, maxItems: 10 });
+            expect(resurrectSpy).toBeCalledWith({ build: 'beta', memory: 1024, runTimeoutSecs: 60 });
             expect(run).toEqual(startedRun);
             expect(await getChildRunLedger(actor)).toEqual({ [runName]: { ...stored, history: [] } });
         },
