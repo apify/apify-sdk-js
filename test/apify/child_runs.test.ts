@@ -521,18 +521,25 @@ describe('child run tracking with `runName`', () => {
             expect(abortedRunIds()).toEqual([startedRun.id]);
         });
 
-        test('removing all `aborting` listeners keeps aborting the child runs started with `abortWithParent`', async () => {
-            const { actor, events } = await newInitializedActor();
-            await actor.start(actId, input, { runName, abortWithParent: true });
-            const listener = vitest.fn();
-            actor.on(ACTOR_EVENT_NAMES.ABORTING, listener);
+        test.each([
+            ['Actor.off()', (actor: Actor) => actor.off(ACTOR_EVENT_NAMES.ABORTING)],
+            ['the event manager', (_: Actor, events: PlatformEventManager) => events.off(ACTOR_EVENT_NAMES.ABORTING)],
+        ])(
+            'removing all `aborting` listeners through %s keeps aborting the child runs started with `abortWithParent`',
+            async (_, removeAll) => {
+                const { actor, events } = await newInitializedActor();
+                await actor.start(actId, input, { runName, abortWithParent: true });
+                const listener = vitest.fn();
+                actor.on(ACTOR_EVENT_NAMES.ABORTING, listener);
 
-            actor.off(ACTOR_EVENT_NAMES.ABORTING);
-            await abortParent(events);
+                removeAll(actor, events);
+                expect(events.listeners(ACTOR_EVENT_NAMES.ABORTING)).toEqual([]);
+                await abortParent(events);
 
-            expect(listener).not.toBeCalled();
-            expect(abortedRunIds()).toEqual([startedRun.id]);
-        });
+                expect(listener).not.toBeCalled();
+                expect(abortedRunIds()).toEqual([startedRun.id]);
+            },
+        );
 
         test('a child run that fails to abort is logged and does not stop the others', async () => {
             const exceptionSpy = vitest.spyOn(log, 'exception');
@@ -611,6 +618,17 @@ describe('child run tracking with `runName`', () => {
             order.push('exited');
 
             expect(order).toEqual(['aborted', 'exited']);
+        });
+
+        test('an `aborting` event that arrives while exit() closes the events still aborts the child runs', async () => {
+            const { actor, events } = await newInitializedActor();
+            await actor.start(actId, input, { runName, abortWithParent: true });
+            // The final `persistState` is emitted while the events are closing.
+            actor.on(ACTOR_EVENT_NAMES.PERSIST_STATE, () => events.emit(ACTOR_EVENT_NAMES.ABORTING));
+
+            await actor.exit({ exit: false });
+
+            expect(abortedRunIds()).toEqual([startedRun.id]);
         });
     });
 });

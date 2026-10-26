@@ -1,5 +1,6 @@
 import { setTimeout as sleep } from 'node:timers/promises';
 
+import type { EventTypeName } from '@crawlee/core';
 import { EventManager, EventType } from '@crawlee/core';
 import { WebSocket } from 'ws';
 
@@ -89,6 +90,15 @@ export class PlatformEventManager extends EventManager {
     /** Backoff for rapid reconnections; reset after a connection that stayed open long enough to count as healthy. */
     #backoff?: Generator<number, never>;
 
+    /**
+     * Listeners of the SDK itself, which `off()` doesn't remove and `listeners()` doesn't return, so that user code
+     * removing all listeners of an event keeps the SDK's own handling of it.
+     */
+    #internalListeners = new Map<EventTypeName, Set<(...args: any[]) => unknown>>();
+
+    /** Calls of the internal listeners that are still in progress. */
+    #internalListenerCalls = new Set<Promise<unknown>>();
+
     constructor(readonly configuration = Configuration.getGlobalConfiguration()) {
         super({
             persistStateIntervalMillis: configuration.persistStateIntervalMillis,
@@ -144,6 +154,41 @@ export class PlatformEventManager extends EventManager {
         this.#eventsWs?.close();
     }
 
+    /**
+     * Registers a listener of the SDK itself, which `off()` doesn't remove.
+     *
+     * @internal
+     */
+    onInternal(event: EventTypeName, listener: (...args: any[]) => unknown) {
+        if (!this.#internalListeners.has(event)) this.#internalListeners.set(event, new Set());
+        this.#internalListeners.get(event)!.add(listener);
+    }
+
+    /**
+     * Removes a listener registered by `onInternal()`.
+     *
+     * @internal
+     */
+    offInternal(event: EventTypeName, listener: (...args: any[]) => unknown) {
+        this.#internalListeners.get(event)?.delete(listener);
+    }
+
+    override emit(event: EventTypeName, ...args: unknown[]) {
+        super.emit(event, ...args);
+
+        for (const listener of this.#internalListeners.get(event) ?? []) {
+            const call = (async () => listener(...args))()
+                .catch((err) => this.log.exception(err as Error, `Internal listener of the "${event}" event failed`))
+                .finally(() => this.#internalListenerCalls.delete(call));
+            this.#internalListenerCalls.add(call);
+        }
+    }
+
+    override async waitForAllListenersToComplete() {
+        const [completed] = await Promise.all([super.waitForAllListenersToComplete(), ...this.#internalListenerCalls]);
+        return completed;
+    }
+
     /** Opens a new connection; resolves once it is established and rejects if it fails before that. */
     async #connect(eventsWsUrl: string) {
         await new Promise<void>((resolve, reject) => {
@@ -185,7 +230,7 @@ export class PlatformEventManager extends EventManager {
 
         try {
             const { name, data } = JSON.parse(String(message));
-            this.events.emit(name, data);
+            this.emit(name, data);
 
             if (name === ACTOR_EVENT_NAMES.MIGRATING) {
                 betterClearInterval(this.intervals.persistState!); // Don't send any other persist state event.

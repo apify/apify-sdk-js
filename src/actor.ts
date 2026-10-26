@@ -729,7 +729,11 @@ export class Actor<Data extends Dictionary = Dictionary> {
             this.on(ACTOR_EVENT_NAMES.MIGRATING, this.#gracefulShutdownHandlers.migrating);
         }
 
-        this.on(ACTOR_EVENT_NAMES.ABORTING, this.#abortChildRunsWithParent);
+        // Only the platform emits `aborting`, and it does so through `PlatformEventManager`.
+        const events = serviceLocator.getEventManager();
+        if (events instanceof PlatformEventManager) {
+            events.onInternal(ACTOR_EVENT_NAMES.ABORTING, this.#abortChildRunsWithParent);
+        }
 
         // Crawlee crawlers, for instance, broadcast their status messages as `statusMessage` events.
         this.#statusMessageForwarder = async ({ message, isStatusMessageTerminal }: EventStatusMessageData) =>
@@ -739,7 +743,6 @@ export class Actor<Data extends Dictionary = Dictionary> {
         // Attach listeners queued before init(), then connect to the platform events only after all handlers
         // are registered, so that an event sent right after the connection opens (e.g. an already pending
         // `aborting`) is not missed.
-        const events = serviceLocator.getEventManager();
         if (this.#pendingListeners.length > 0) {
             for (const [event, listener] of this.#pendingListeners) {
                 events.on(event, listener);
@@ -802,11 +805,15 @@ export class Actor<Data extends Dictionary = Dictionary> {
         if (this.#gracefulShutdownHandlers.migrating) {
             this.off(ACTOR_EVENT_NAMES.MIGRATING, this.#gracefulShutdownHandlers.migrating);
         }
-        this.off(ACTOR_EVENT_NAMES.ABORTING, this.#abortChildRunsWithParent);
 
         // Close the event manager and emit the final PERSIST_STATE event
         await events.close();
         log.debug(`Events closed`);
+
+        // Removed only after the close, so that an `aborting` event that arrives meanwhile still aborts the child runs.
+        if (events instanceof PlatformEventManager) {
+            events.offInternal(ACTOR_EVENT_NAMES.ABORTING, this.#abortChildRunsWithParent);
+        }
 
         // Emit the exit event
         events.emit(EventType.EXIT, options);
@@ -908,13 +915,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
             return;
         }
 
-        const events = serviceLocator.getEventManager();
-        // Removing all listeners keeps the SDK's own one that aborts the child runs started with `abortWithParent`.
-        const keepsChildRunAbort = !listener && events.listeners(event).includes(this.#abortChildRunsWithParent);
-
-        events.off(event, listener);
-
-        if (keepsChildRunAbort) events.on(event, this.#abortChildRunsWithParent);
+        serviceLocator.getEventManager().off(event, listener);
     }
 
     /**
