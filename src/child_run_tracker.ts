@@ -7,6 +7,7 @@ import { NotFoundError } from 'apify-client';
 import { z } from 'zod';
 
 import log from '@apify/log';
+import { addTimeoutToPromise, TimeoutError } from '@apify/timeout';
 
 import { ReentrantAsyncLock } from './utils.js';
 import type { ApifyClient } from './index.js';
@@ -102,6 +103,12 @@ const SETTLING_STATUSES = ['ABORTING', 'TIMING-OUT'];
 const RESURRECTABLE_STATUSES = ['ABORTED', 'TIMED-OUT'];
 const REUSABLE_STATUSES = ['READY', 'RUNNING', 'SUCCEEDED', ...RESURRECTABLE_STATUSES];
 const ABORTED_STATUSES = ['ABORTING', 'ABORTED'];
+
+/**
+ * How long `abortRunsWithParent()` waits for the child runs to be aborted. The platform force-stops a gracefully aborted
+ * run 30 seconds after the `aborting` event, which has to leave `Actor.exit()` time for the rest of its work.
+ */
+export const ABORT_WITH_PARENT_TIMEOUT_MILLIS = 10_000;
 
 export class ChildRunTracker {
     private trackedRuns: Record<string, TrackedChildRun> = {};
@@ -252,14 +259,15 @@ export class ChildRunTracker {
 
     /**
      * Gracefully aborts the current run under each name tracked with `abortWithParent`, and makes any later start with
-     * `abortWithParent` throw. A start in flight is waited for, so the run it starts is aborted too.
+     * `abortWithParent` throw. A start in flight is waited for, so the run it starts is aborted too. Resolves after
+     * {@link ABORT_WITH_PARENT_TIMEOUT_MILLIS} at the latest, leaving the aborts still in progress to go on.
      */
     async abortRunsWithParent(defaultClient: ApifyClient) {
         this.isParentAborting = true;
         const trackedRuns = await this.load();
         const runNames = new Set([...Object.keys(trackedRuns), ...this.locks.keys()]);
 
-        await Promise.all(
+        const aborts = Promise.all(
             [...runNames].map(async (runName) =>
                 this.getLock(runName).runExclusive(async () => {
                     const tracked = await this.get(runName);
@@ -281,6 +289,16 @@ export class ChildRunTracker {
                 }),
             ),
         );
+
+        // `Actor.exit()` waits for this listener without a timeout of its own.
+        await addTimeoutToPromise(
+            async () => aborts,
+            ABORT_WITH_PARENT_TIMEOUT_MILLIS,
+            `Aborting the child runs with the parent timed out after ${ABORT_WITH_PARENT_TIMEOUT_MILLIS / 1000}s`,
+        ).catch((error) => {
+            if (!(error instanceof TimeoutError)) throw error;
+            log.warning(error.message);
+        });
     }
 
     private getLock(runName: string) {

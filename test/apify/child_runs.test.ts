@@ -12,6 +12,7 @@ import { ACTOR_ENV_VARS, ACTOR_EVENT_NAMES, APIFY_ENV_VARS } from '@apify/consts
 import log from '@apify/log';
 
 import type { TrackedChildRun } from '../../src/child_run_tracker.js';
+import { ABORT_WITH_PARENT_TIMEOUT_MILLIS } from '../../src/child_run_tracker.js';
 import { createIsolatedActor } from '../createIsolatedActor.js';
 
 // Skips the delays between the lookups of a tracked run that the API reports as missing.
@@ -629,6 +630,25 @@ describe('child run tracking with `runName`', () => {
             await actor.exit({ exit: false });
 
             expect(abortedRunIds()).toEqual([startedRun.id]);
+        });
+
+        test('the child runs are waited for to be aborted for a limited time only', async () => {
+            const warningSpy = vitest.spyOn(log, 'warning');
+            const { actor, events } = await newInitializedActor();
+            await actor.start(actId, input, { runName, abortWithParent: true });
+            abortSpy.mockReturnValue(new Promise(() => {}));
+
+            vitest.useFakeTimers();
+            try {
+                events.emit(ACTOR_EVENT_NAMES.ABORTING);
+                const completed = events.waitForAllListenersToComplete();
+                await vitest.advanceTimersByTimeAsync(ABORT_WITH_PARENT_TIMEOUT_MILLIS);
+                await completed;
+            } finally {
+                vitest.useRealTimers();
+            }
+
+            expect(warningSpy).toBeCalledWith('Aborting the child runs with the parent timed out after 10s');
         });
     });
 });
