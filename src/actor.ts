@@ -576,7 +576,9 @@ export class Actor<Data extends Dictionary = Dictionary> {
             this.configuration = new Configuration(configOptions);
         }
         this.apifyClient = this.newClient();
-        this.eventManager = new PlatformEventManager(this.configuration);
+        this.eventManager = new PlatformEventManager(this.configuration, {
+            [ACTOR_EVENT_NAMES.ABORTING]: this.#abortChildRunsWithParent,
+        });
         this.#chargingManager = new ChargingManager(this.configuration, this.apifyClient);
         this.#childRunTracker = new ChildRunTracker();
     }
@@ -732,12 +734,6 @@ export class Actor<Data extends Dictionary = Dictionary> {
             this.on(ACTOR_EVENT_NAMES.MIGRATING, this.#gracefulShutdownHandlers.migrating);
         }
 
-        // Only the platform emits `aborting`, and it does so through `PlatformEventManager`.
-        const events = serviceLocator.getEventManager();
-        if (events instanceof PlatformEventManager) {
-            events.onInternal(ACTOR_EVENT_NAMES.ABORTING, this.#abortChildRunsWithParent);
-        }
-
         // Crawlee crawlers, for instance, broadcast their status messages as `statusMessage` events.
         this.#statusMessageForwarder = async ({ message, isStatusMessageTerminal }: EventStatusMessageData) =>
             this.#updateRunStatusMessage(message, isStatusMessageTerminal);
@@ -746,6 +742,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
         // Attach listeners queued before init(), then connect to the platform events only after all handlers
         // are registered, so that an event sent right after the connection opens (e.g. an already pending
         // `aborting`) is not missed.
+        const events = serviceLocator.getEventManager();
         if (this.#pendingListeners.length > 0) {
             for (const [event, listener] of this.#pendingListeners) {
                 events.on(event, listener);
@@ -812,11 +809,6 @@ export class Actor<Data extends Dictionary = Dictionary> {
         // Close the event manager and emit the final PERSIST_STATE event
         await events.close();
         log.debug(`Events closed`);
-
-        // Removed only after the close, so that an `aborting` event that arrives meanwhile still aborts the child runs.
-        if (events instanceof PlatformEventManager) {
-            events.offInternal(ACTOR_EVENT_NAMES.ABORTING, this.#abortChildRunsWithParent);
-        }
 
         // Emit the exit event
         events.emit(EventType.EXIT, options);
