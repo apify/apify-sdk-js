@@ -349,6 +349,9 @@ export interface ChildRunOptions {
      * The latest call under the same `runName` sets the value. Once this run is being aborted, a call with this option
      * throws instead of starting, resurrecting or returning a run. A hard abort, timeout or crash of this run leaves
      * the child run running.
+     *
+     * A run started with a custom `token` is aborted with that token, except for a run started before a migration or
+     * resurrection of this run, which is aborted with the default client.
      * @default false
      */
     abortWithParent?: boolean;

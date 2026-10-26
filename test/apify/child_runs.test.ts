@@ -522,6 +522,22 @@ describe('child run tracking with `runName`', () => {
             expect(abortedRunIds()).toEqual([startedRun.id]);
         });
 
+        test('aborting the parent uses the token a child run was started with in this process', async () => {
+            startSpy.mockResolvedValueOnce({ ...startedRun, id: 'before-migration' });
+            await newActor().start(actId, input, { runName: 'before-migration', abortWithParent: true });
+
+            const { actor, events } = await newInitializedActor();
+            startSpy.mockResolvedValueOnce({ ...startedRun, id: 'custom-token' });
+            await actor.start(actId, input, { runName: 'custom-token', token: 'custom-token', abortWithParent: true });
+            await abortParent(events);
+
+            const clients = new Map(
+                (abortSpy.mock.contexts as RunClient[]).map((runClient) => [runClient.id, runClient.apifyClient]),
+            );
+            expect(clients.get('before-migration')).toBe(actor.apifyClient);
+            expect(clients.get('custom-token')!.token).toBe('custom-token');
+        });
+
         test.each([
             ['Actor.off()', (actor: Actor) => actor.off(ACTOR_EVENT_NAMES.ABORTING)],
             ['the event manager', (_: Actor, events: PlatformEventManager) => events.off(ACTOR_EVENT_NAMES.ABORTING)],

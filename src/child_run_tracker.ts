@@ -7,7 +7,7 @@ import { NotFoundError } from 'apify-client';
 import { z } from 'zod';
 
 import log from '@apify/log';
-import { addTimeoutToPromise, TimeoutError } from '@apify/timeout';
+import { addTimeoutToPromise } from '@apify/timeout';
 
 import { ReentrantAsyncLock } from './utils.js';
 import type { ApifyClient } from './index.js';
@@ -295,10 +295,7 @@ export class ChildRunTracker {
             async () => aborts,
             ABORT_WITH_PARENT_TIMEOUT_MILLIS,
             `Aborting the child runs with the parent timed out after ${ABORT_WITH_PARENT_TIMEOUT_MILLIS / 1000}s`,
-        ).catch((error) => {
-            if (!(error instanceof TimeoutError)) throw error;
-            log.warning(error.message);
-        });
+        ).catch((error) => log.warning(error.message));
     }
 
     private getLock(runName: string) {
