@@ -10,6 +10,7 @@ import type {
     UseStateOptions,
 } from '@crawlee/core';
 import {
+    coerceBoolean,
     Dataset,
     EventType,
     KeyValueStore,
@@ -75,6 +76,9 @@ import {
     printOutdatedSdkWarning,
     snakeCaseToCamelCase,
 } from './utils.js';
+
+// `@apify/consts` has no boolean counterpart to `INTEGER_ENV_VARS`.
+const BOOLEAN_ENV_VARS: readonly string[] = [APIFY_ENV_VARS.USER_IS_PAYING];
 
 /**
  * {@link parseInputValue} with the parser error wrapped as an {@apilink ActorInputError}, so a malformed
@@ -204,9 +208,9 @@ export interface ApifyEnv {
     userId: string | null;
 
     /**
-     * If it is `1`, it means that the user who started the Actor is a paying user. (APIFY_USER_IS_PAYING)
+     * Whether the user who started the Actor is a paying user. `false` when not set. (APIFY_USER_IS_PAYING)
      */
-    userIsPaying: string | null;
+    userIsPaying: boolean;
 
     /**
      * Authentication token representing privileges given to the Actor run,
@@ -350,13 +354,15 @@ export interface ChildRunOptions {
     abortWithParent?: boolean;
 }
 
-export interface CallOptions extends Omit<ActorCallOptions, 'runTimeoutSecs'>, Token, Timeout, ChildRunOptions {}
+export interface CallOptions
+    extends Omit<ActorCallOptions, 'runTimeoutSecs' | 'maxItems'>, Token, Timeout, ChildRunOptions {}
 export interface StartOptions
-    extends Omit<ActorStartOptions, 'waitForFinish' | 'runTimeoutSecs'>, Token, Timeout, ChildRunOptions {}
-export interface CallTaskOptions extends Omit<TaskCallOptions, 'runTimeoutSecs'>, Token, Timeout, ChildRunOptions {}
-export interface ResurrectOptions extends Omit<RunResurrectOptions, 'runTimeoutSecs'>, Token, Timeout {}
+    extends Omit<ActorStartOptions, 'waitForFinish' | 'runTimeoutSecs' | 'maxItems'>, Token, Timeout, ChildRunOptions {}
+export interface CallTaskOptions
+    extends Omit<TaskCallOptions, 'runTimeoutSecs' | 'maxItems'>, Token, Timeout, ChildRunOptions {}
+export interface ResurrectOptions extends Omit<RunResurrectOptions, 'runTimeoutSecs' | 'maxItems'>, Token, Timeout {}
 export interface StartTaskOptions
-    extends Omit<TaskStartOptions, 'waitForFinish' | 'runTimeoutSecs'>, Token, Timeout, ChildRunOptions {}
+    extends Omit<TaskStartOptions, 'waitForFinish' | 'runTimeoutSecs' | 'maxItems'>, Token, Timeout, ChildRunOptions {}
 
 export interface AbortOptions extends RunAbortOptions, Token {
     /** Exit with given status message */
@@ -528,7 +534,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
     /**
      * Reference to the crawlee status message forwarder, so it can be removed during cleanup.
      */
-    #statusMessageForwarder?: (data: EventStatusMessageData) => Promise<ClientActorRun>;
+    #statusMessageForwarder?: (data: EventStatusMessageData) => Promise<ClientActorRun | undefined>;
 
     #chargingManager: ChargingManager;
 
@@ -540,6 +546,9 @@ export class Actor<Data extends Dictionary = Dictionary> {
 
     /** Lazily built by the `#storageBackend` getter. */
     #cachedStorageBackend?: SmartApifyStorageBackend;
+
+    /** Listeners registered via `on()` before `init()`; attached to the event manager by `init()`. */
+    #pendingListeners: [event: EventTypeName, listener: (...args: any[]) => any][] = [];
 
     constructor(options: ActorOptions = {}) {
         const { configuration, ...configOptions } = options;
@@ -645,9 +654,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
                 await this.exit(options);
             } catch (err: any) {
                 log.exception(err, err.message);
-                await this.exit({
-                    exitCode: EXIT_CODES.ERROR_USER_FUNCTION_THREW,
-                });
+                await this.exit({ ...options, exitCode: EXIT_CODES.ERROR_USER_FUNCTION_THREW });
             }
 
             return ret!;
@@ -696,10 +703,6 @@ export class Actor<Data extends Dictionary = Dictionary> {
             this.installStorageBackend(options.storage);
         }
 
-        // Init the event manager the config uses
-        await serviceLocator.getEventManager().init();
-        log.debug(`Events initialized`);
-
         // Register handlers for aborting and migrating events for automatic graceful shutdown.
         // - aborting: calls Actor.exit() to terminate the run gracefully
         // - migrating: calls Actor.reboot() to speed up migration (the run continues on a new worker)
@@ -732,6 +735,20 @@ export class Actor<Data extends Dictionary = Dictionary> {
         this.#statusMessageForwarder = async ({ message, isStatusMessageTerminal }: EventStatusMessageData) =>
             this.#updateRunStatusMessage(message, isStatusMessageTerminal);
         this.on(EventType.STATUS_MESSAGE, this.#statusMessageForwarder);
+
+        // Attach listeners queued before init(), then connect to the platform events only after all handlers
+        // are registered, so that an event sent right after the connection opens (e.g. an already pending
+        // `aborting`) is not missed.
+        const events = serviceLocator.getEventManager();
+        if (this.#pendingListeners.length > 0) {
+            for (const [event, listener] of this.#pendingListeners) {
+                events.on(event, listener);
+            }
+            log.debug(`Attached ${this.#pendingListeners.length} listener(s) registered before Actor.init()`);
+            this.#pendingListeners = [];
+        }
+        await events.init();
+        log.debug(`Events initialized`);
 
         await purgeDefaultStorages({
             configuration: this.configuration,
@@ -860,13 +877,22 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @ignore
      */
     async fail(messageOrOptions?: string | ExitOptions, options: ExitOptions = {}): Promise<void> {
-        return this.exit(messageOrOptions, { exitCode: 1, ...options });
+        const exitCode =
+            options.exitCode ?? (typeof messageOrOptions === 'object' ? messageOrOptions.exitCode : undefined) ?? 1;
+        return this.exit(messageOrOptions, { ...options, exitCode });
     }
 
     /**
      * @ignore
      */
     on(event: EventTypeName, listener: (...args: any[]) => any): void {
+        // Before init() the service locator must stay untouched, otherwise it
+        // creates a default Configuration that init() then conflicts with.
+        if (!this.initialized) {
+            this.#pendingListeners.push([event, listener]);
+            return;
+        }
+
         serviceLocator.getEventManager().on(event, listener);
     }
 
@@ -874,6 +900,14 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @ignore
      */
     off(event: EventTypeName, listener?: (...args: any[]) => any): void {
+        if (!this.initialized) {
+            this.#pendingListeners = this.#pendingListeners.filter(
+                ([pendingEvent, pendingListener]) =>
+                    pendingEvent !== event || (listener !== undefined && pendingListener !== listener),
+            );
+            return;
+        }
+
         const events = serviceLocator.getEventManager();
         // Removing all listeners keeps the SDK's own one that aborts the child runs started with `abortWithParent`.
         const keepsChildRunAbort = !listener && events.listeners(event).includes(this.#abortChildRunsWithParent);
@@ -1001,13 +1035,13 @@ export class Actor<Data extends Dictionary = Dictionary> {
         const { token, statusMessage, ...rest } = options;
         const client = token ? this.newClient({ token }) : this.apifyClient;
 
+        const runClient = client.run(runId);
+
         if (statusMessage) {
-            await this.setStatusMessage(statusMessage, {
-                isStatusMessageTerminal: true,
-            });
+            await runClient.update({ statusMessage, isStatusMessageTerminal: true });
         }
 
-        return client.run(runId).abort(rest);
+        return runClient.abort(rest);
     }
 
     /**
@@ -1273,11 +1307,15 @@ export class Actor<Data extends Dictionary = Dictionary> {
     /**
      * Sets the status message for the current Actor run.
      *
-     * @returns The return value is the Run object.
+     * @returns The updated Run object, or `undefined` when no run was updated: when run locally,
+     * or when the update failed or timed out (a warning is logged in that case).
      * For more information, see the [Actor Runs](https://docs.apify.com/api/v2#/reference/actor-runs/) API endpoints.
      * @ignore
      */
-    async setStatusMessage(statusMessage: string, options?: SetStatusMessageOptions): Promise<ClientActorRun> {
+    async setStatusMessage(
+        statusMessage: string,
+        options?: SetStatusMessageOptions,
+    ): Promise<ClientActorRun | undefined> {
         const { isStatusMessageTerminal, level } = options || {};
         parseArgument(statusMessage, z.string());
         parseArgument(isStatusMessageTerminal, z.boolean().optional());
@@ -1306,24 +1344,26 @@ export class Actor<Data extends Dictionary = Dictionary> {
 
     /**
      * Propagates a status message to the current run, without logging it locally.
+     * Resolves `undefined` when there is no run to update, or when the update failed or timed out.
      */
-    async #updateRunStatusMessage(statusMessage: string, isStatusMessageTerminal?: boolean): Promise<ClientActorRun> {
+    async #updateRunStatusMessage(
+        statusMessage: string,
+        isStatusMessageTerminal?: boolean,
+    ): Promise<ClientActorRun | undefined> {
         const runId = this.configuration.actorRunId!;
-
-        if (runId) {
-            // just to be sure, this should be fast
-            const run = await addTimeoutToPromise(
-                async () => this.apifyClient.run(runId).update({ statusMessage, isStatusMessageTerminal }),
-                1000,
-                'Setting status message timed out after 1s',
-            ).catch((e) => log.warning(e.message));
-
-            if (run) {
-                return run;
-            }
+        if (!runId) {
+            return undefined;
         }
 
-        return {} as ClientActorRun;
+        // just to be sure, this should be fast
+        return addTimeoutToPromise(
+            async () => this.apifyClient.run(runId).update({ statusMessage, isStatusMessageTerminal }),
+            1000,
+            'Setting status message timed out after 1s',
+        ).catch((e) => {
+            log.warning(e.message);
+            return undefined;
+        });
     }
 
     /**
@@ -1479,11 +1519,41 @@ export class Actor<Data extends Dictionary = Dictionary> {
      *   if the record is missing.
      * @ignore
      */
-    async getValue<T = unknown>(key: string): Promise<T | null> {
+    async getValue<T = unknown>(key: string): Promise<T | null>;
+    /**
+     * Gets a value from the default {@apilink KeyValueStore} associated with the current Actor run.
+     *
+     * This is just a convenient shortcut for {@apilink KeyValueStore.getValue}.
+     * For example, calling the following code:
+     * ```js
+     * const value = await Actor.getValue('my-key');
+     * ```
+     *
+     * is equivalent to:
+     * ```js
+     * const store = await Actor.openKeyValueStore();
+     * const value = await store.getValue('my-key');
+     * ```
+     *
+     * To store the value to the default key-value store, you can use the {@apilink Actor.setValue} function.
+     *
+     * For more information, see  {@apilink Actor.openKeyValueStore}
+     * and  {@apilink KeyValueStore.getValue}.
+     *
+     * @param key Unique record key.
+     * @param defaultValue Fallback that will be returned if no value if present in the storage.
+     * @returns
+     *   Returns a promise that resolves to an object, string
+     *   or [`Buffer`](https://nodejs.org/api/buffer.html), depending
+     *   on the MIME content type of the record, or the provided default value.
+     * @ignore
+     */
+    async getValue<T = unknown>(key: string, defaultValue: T): Promise<T>;
+    async getValue<T = unknown>(key: string, defaultValue?: T): Promise<T | null> {
         this.ensureActorInit('getValue');
 
         const store = await this.openKeyValueStore();
-        return store.getValue<T>(key);
+        return store.getValue<T>(key, defaultValue as T);
     }
 
     /**
@@ -1531,11 +1601,12 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * A record stored as `application/octet-stream` — which is what a local input file without an
      * extension is read as — is parsed with JSON5 when it parses, and returned as a `Buffer` otherwise.
      *
-     * When running locally and the store holds no such record, the input is read from a `<inputKey>` or
-     * `<inputKey>.json` file in the current working directory, then in the storage directory.
+     * When running locally, the input may instead be a `<inputKey>` or `<inputKey>.json` file in the current
+     * working directory. A storage backend that doesn't read the default key-value store's directory under
+     * the storage directory (e.g. in-memory storage) also gets the file `apify run` writes there.
      *
-     * Throws an {@apilink ActorInputError} when no input is found (`code: 'NOT_FOUND'`), when both input
-     * files exist in the working/storage directory (`'MULTIPLE_FILES'`), when a JSON input does not parse
+     * Throws an {@apilink ActorInputError} when no input is found (`code: 'NOT_FOUND'`), when the input is
+     * found in more than one place (`'MULTIPLE_FILES'`), when a JSON input does not parse
      * (`'PARSE_FAILED'`) or when its secret fields cannot be decrypted (`'DECRYPTION_FAILED'`). If your
      * Actor can run without input, catch the `'NOT_FOUND'` case and rethrow the rest.
      *
@@ -1556,19 +1627,40 @@ export class Actor<Data extends Dictionary = Dictionary> {
     async getInput<T = Dictionary | string | Buffer>(): Promise<T> {
         this.ensureActorInit('getInput');
 
-        const { inputKey, inputSecretsPrivateKeyFile, inputSecretsPrivateKeyPassphrase } = this.configuration;
+        const {
+            inputKey,
+            inputSecretsPrivateKeyFile,
+            inputSecretsPrivateKeyPassphrase,
+            storageDir,
+            defaultKeyValueStoreId,
+        } = this.configuration;
+        // Where `apify run` writes the input (apify-cli `getLocalKeyValueStorePath`).
+        const defaultStoreDir = join(storageDir, 'key_value_stores', defaultKeyValueStoreId);
 
         const store = await this.openKeyValueStore();
         const record = await store.getRecord(inputKey);
-        const rawInput = record
+        // Not a conflict check: under the file-system backend the record *is* the store directory's file.
+        const storeInput = record
             ? parseInput(record.value, record.contentType, `the "${inputKey}" record of the default key-value store`)
-            : ((await this.readInputFromDirectory(inputKey, process.cwd(), 'working directory')) ??
-              (await this.readInputFromDirectory(inputKey, this.configuration.storageDir, 'storage directory')));
+            : await this.readInputFromDirectory(inputKey, defaultStoreDir, 'default key-value store directory');
+
+        const cwdInput = await this.readInputFromDirectory(inputKey, process.cwd(), 'working directory');
+
+        if (storeInput != null && cwdInput != null) {
+            throw new ActorInputError(
+                'MULTIPLE_FILES',
+                `Found the input both in the default key-value store and in a "${inputKey}" or "${inputKey}.json" file in the working directory. Keep only one of them.`,
+            );
+        }
+
+        const rawInput = storeInput ?? cwdInput;
 
         if (rawInput == null) {
             const locations = [`the "${inputKey}" record of the default key-value store`];
             if (!this.configuration.isAtHome) {
-                locations.push(`a "${inputKey}" or "${inputKey}.json" file in the working or storage directory`);
+                locations.push(
+                    `a "${inputKey}" or "${inputKey}.json" file in the working or default key-value store directory`,
+                );
             }
             throw new ActorInputError('NOT_FOUND', `Input does not exist. Expected ${locations.join(' or ')}.`);
         }
@@ -1836,17 +1928,19 @@ export class Actor<Data extends Dictionary = Dictionary> {
             ...this.getModifiedActorEnvVars(),
         })) {
             const camelCaseName = snakeCaseToCamelCase(shortName) as keyof ApifyEnv;
-            let value: string | number | Date | undefined = env[fullName];
+            let value: string | number | boolean | Date | undefined = env[fullName];
 
-            // Parse dates and integers.
-            if (value && fullName.endsWith('_AT')) {
+            // Parse booleans, dates and integers.
+            if (BOOLEAN_ENV_VARS.includes(fullName)) {
+                value = !!value && coerceBoolean.parse(value);
+            } else if (value && fullName.endsWith('_AT')) {
                 const unix = Date.parse(value);
                 value = unix > 0 ? new Date(unix) : undefined;
             } else if ((INTEGER_ENV_VARS as readonly string[]).includes(fullName)) {
                 value = parseInt(value!, 10);
             }
 
-            Reflect.set(envVars, camelCaseName, value || value === 0 ? value : null);
+            Reflect.set(envVars, camelCaseName, value || value === 0 || value === false ? value : null);
         }
 
         return envVars;
@@ -2253,10 +2347,14 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @param [options]
      * @param [options.isStatusMessageTerminal] If `true`, the status message will be marked as terminal.
      *          This is required for the last status message of the run. Default value is `false`.
-     * @returns The return value is the Run object. When run locally, this method returns empty object (`{}`).
+     * @returns The updated Run object, or `undefined` when no run was updated: when run locally,
+     * or when the update failed or timed out (a warning is logged in that case).
      * For more information, see the [Actor Runs](https://docs.apify.com/api/v2#/reference/actor-runs/) API endpoints.
      */
-    static async setStatusMessage(statusMessage: string, options?: SetStatusMessageOptions): Promise<ClientActorRun> {
+    static async setStatusMessage(
+        statusMessage: string,
+        options?: SetStatusMessageOptions,
+    ): Promise<ClientActorRun | undefined> {
         return Actor.getDefaultInstance().setStatusMessage(statusMessage, options);
     }
 
@@ -2402,8 +2500,37 @@ export class Actor<Data extends Dictionary = Dictionary> {
      *   on the MIME content type of the record, or `null`
      *   if the record is missing.
      */
-    static async getValue<T = unknown>(key: string): Promise<T | null> {
-        return Actor.getDefaultInstance().getValue(key);
+    static async getValue<T = unknown>(key: string): Promise<T | null>;
+    /**
+     * Gets a value from the default {@apilink KeyValueStore} associated with the current Actor run.
+     *
+     * This is just a convenient shortcut for {@apilink KeyValueStore.getValue}.
+     * For example, calling the following code:
+     * ```js
+     * const value = await Actor.getValue('my-key');
+     * ```
+     *
+     * is equivalent to:
+     * ```js
+     * const store = await Actor.openKeyValueStore();
+     * const value = await store.getValue('my-key');
+     * ```
+     *
+     * To store the value to the default key-value store, you can use the {@apilink Actor.setValue} function.
+     *
+     * For more information, see  {@apilink Actor.openKeyValueStore}
+     * and  {@apilink KeyValueStore.getValue}.
+     *
+     * @param key Unique record key.
+     * @param defaultValue Fallback that will be returned if no value if present in the storage.
+     * @returns
+     *   Returns a promise that resolves to an object, string
+     *   or [`Buffer`](https://nodejs.org/api/buffer.html), depending
+     *   on the MIME content type of the record, or the provided default value.
+     */
+    static async getValue<T = unknown>(key: string, defaultValue: T): Promise<T>;
+    static async getValue<T = unknown>(key: string, defaultValue?: T): Promise<T | null> {
+        return Actor.getDefaultInstance().getValue<T>(key, defaultValue as T);
     }
 
     /**
@@ -2451,11 +2578,11 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * A record stored as `application/octet-stream` — which is what a local input file without an
      * extension is read as — is parsed with JSON5 when it parses, and returned as a `Buffer` otherwise.
      *
-     * When running locally and the store holds no such record, the input is read from a `<inputKey>` or
-     * `<inputKey>.json` file in the current working directory instead.
+     * When running locally, the input may instead be a `<inputKey>` or `<inputKey>.json` file in the current
+     * working directory.
      *
-     * Throws an {@apilink ActorInputError} when no input is found (`code: 'NOT_FOUND'`), when both input
-     * files exist in the working directory (`'MULTIPLE_FILES'`), when a JSON input does not parse
+     * Throws an {@apilink ActorInputError} when no input is found (`code: 'NOT_FOUND'`), when the input is
+     * found in more than one place (`'MULTIPLE_FILES'`), when a JSON input does not parse
      * (`'PARSE_FAILED'`) or when its secret fields cannot be decrypted (`'DECRYPTION_FAILED'`). If your
      * Actor can run without input, catch the `'NOT_FOUND'` case and rethrow the rest:
      * ```js

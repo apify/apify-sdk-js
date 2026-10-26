@@ -45,4 +45,17 @@ export {
     LoggerText,
 } from '@crawlee/core';
 export type { QueueOperationInfo } from '@crawlee/types';
-export { ApifyClient, ApifyClientOptions } from 'apify-client';
+export {
+    ApifyClient,
+    ApifyClientOptions,
+    ApifyApiError,
+    InvalidRequestError,
+    UnauthorizedError,
+    ForbiddenError,
+    NotFoundError,
+    ConflictError,
+    RateLimitError,
+    ServerError,
+    InvalidResponseBodyError,
+    ResponseValidationError,
+} from 'apify-client';

@@ -1,8 +1,8 @@
-import { EventType, serviceLocator } from '@crawlee/core';
+import { EventType, MemoryStorageBackend, serviceLocator } from '@crawlee/core';
 import type { Dictionary } from '@crawlee/types';
 import { sleep } from '@crawlee/utils';
 import { Actor, Configuration, PlatformEventManager } from 'apify';
-import { WebSocketServer } from 'ws';
+import { type WebSocket, WebSocketServer } from 'ws';
 
 import { ACTOR_ENV_VARS, ACTOR_EVENT_NAMES, APIFY_ENV_VARS } from '@apify/consts';
 
@@ -248,4 +248,221 @@ describe('graceful exit handlers', () => {
         expect(exitCalled).toBe(false);
         exitSpy.mockRestore();
     }, 10e3);
+});
+
+describe('reconnection', () => {
+    const port = 9095;
+    const url = `ws://localhost:${port}/someRunId`;
+    let wss: WebSocketServer | undefined;
+    let events: PlatformEventManager = null!;
+    /** Server-side sockets of the currently open connections. */
+    let clients: WebSocket[] = [];
+    /** Number of connections the server has accepted so far. */
+    let attempts = 0;
+
+    const startServer = async (onConnection?: (ws: WebSocket) => void) => {
+        await new Promise<void>((resolve) => {
+            wss = new WebSocketServer({ port }, resolve);
+            wss.on('connection', (ws) => {
+                attempts++;
+                clients.push(ws);
+                ws.on('close', () => clients.splice(clients.indexOf(ws), 1));
+                onConnection?.(ws);
+            });
+        });
+    };
+
+    const stopServer = async () => {
+        const server = wss;
+        wss = undefined;
+        if (!server) return;
+        for (const client of server.clients) client.terminate();
+        await new Promise<void>((resolve) => server.close(() => resolve()));
+    };
+
+    const waitFor = async (condition: () => boolean, timeoutMillis = 10e3) => {
+        const deadline = Date.now() + timeoutMillis;
+        while (!condition()) {
+            if (Date.now() > deadline) throw new Error('Timed out waiting for condition');
+            await sleep(20);
+        }
+    };
+
+    const sendEvent = (ws: WebSocket, data: Dictionary) => ws.send(JSON.stringify({ name: 'systemInfo', data }));
+
+    beforeEach(() => {
+        clients = [];
+        attempts = 0;
+        // Make the first backoff delay (`Math.random() * 5000`) deterministic.
+        vitest.spyOn(Math, 'random').mockReturnValue(0);
+        events = new PlatformEventManager(new Configuration({ actorEventsWsUrl: url }));
+    });
+
+    afterEach(async () => {
+        await events.close();
+        await stopServer();
+    });
+
+    test('init() rejects when the first connection cannot be established', async () => {
+        await expect(events.init()).rejects.toThrow('Error connecting to platform events websocket!');
+        expect(events.isInitialized()).toBe(false);
+    });
+
+    test.each([
+        [1000, 'was closed (code=1000', 'info'],
+        [1011, 'was lost (code=1011', 'warning'],
+    ] as const)('reconnects after the server closes the connection with code %i', async (code, expectedLog, level) => {
+        await startServer();
+        const logSpy = vitest.spyOn(events['log'], level);
+        const infoSpy = vitest.spyOn(events['log'], 'info');
+        const received: unknown[] = [];
+        events.on(EventType.SYSTEM_INFO, (data) => received.push(data));
+
+        await events.init();
+        expect(attempts).toBe(1);
+
+        clients[0].close(code, 'Simulated connection drop');
+        await waitFor(() => attempts === 2 && clients.length === 1);
+
+        sendEvent(clients[0], { foo: 'bar' });
+        await waitFor(() => received.length === 1);
+        expect(received).toEqual([{ foo: 'bar' }]);
+
+        expect(logSpy).toHaveBeenCalledWith(expect.stringContaining(expectedLog));
+        expect(infoSpy).toHaveBeenCalledWith('Reconnected to the platform events websocket.');
+    });
+
+    test('does not reconnect after a non-retryable close code', async () => {
+        await startServer((ws) => ws.close(1008, 'policy violation'));
+        const errorSpy = vitest.spyOn(events['log'], 'error');
+
+        await events.init();
+        await sleep(500);
+
+        expect(attempts).toBe(1);
+        expect(errorSpy).toHaveBeenCalledWith(expect.stringContaining('non-retryable code (code=1008'));
+    });
+
+    test('backs off on repeated rapid closes', async () => {
+        await startServer((ws) => ws.close(1011, 'internal error'));
+        const warningSpy = vitest.spyOn(events['log'], 'warning');
+
+        await events.init();
+        // The first two drops retry immediately, the third waits 3.1 s. Without backoff this would be hundreds.
+        await sleep(1500);
+
+        expect(attempts).toBeGreaterThanOrEqual(2);
+        expect(attempts).toBeLessThanOrEqual(3);
+        expect(warningSpy).toHaveBeenCalledWith(expect.stringContaining('was lost (code=1011'));
+    });
+
+    test('reconnects once an unreachable server is back', async () => {
+        await startServer();
+        const infoSpy = vitest.spyOn(events['log'], 'info');
+        const received: unknown[] = [];
+        events.on(EventType.SYSTEM_INFO, (data) => received.push(data));
+
+        await events.init();
+        await stopServer();
+
+        // Let a couple of attempts fail against the closed port before bringing the server back.
+        await sleep(200);
+        expect(attempts).toBe(1);
+        await startServer();
+        await waitFor(() => attempts === 2);
+
+        sendEvent(clients[0], { foo: 'bar' });
+        await waitFor(() => received.length === 1);
+        expect(infoSpy).toHaveBeenCalledWith('Reconnected to the platform events websocket.');
+    });
+
+    test('close() stops a pending reconnection', async () => {
+        vitest.spyOn(Math, 'random').mockReturnValue(0.1); // first backoff delay of 500 ms
+        await startServer();
+
+        await events.init();
+        await stopServer();
+        await sleep(100);
+        await events.close();
+
+        await startServer();
+        await sleep(1000);
+        expect(attempts).toBe(1);
+    });
+});
+
+describe('listeners registered before init()', () => {
+    // These tests use the global locator on purpose: the bug only shows up when
+    // `on()` runs before anything seeded the locator with a configuration.
+    beforeEach(() => {
+        serviceLocator.reset();
+        Actor.setDefaultInstance();
+    });
+
+    afterEach(async () => {
+        if (Actor.getDefaultInstance().initialized) {
+            await Actor.exit({ exit: false });
+        }
+        Actor.setDefaultInstance();
+        serviceLocator.reset();
+    });
+
+    test('on() before init() does not break init() and the listener receives events', async () => {
+        const received: unknown[] = [];
+        Actor.on(ACTOR_EVENT_NAMES.ABORTING, (data) => received.push(data));
+
+        await Actor.init({ storage: new MemoryStorageBackend() });
+
+        serviceLocator.getEventManager().emit(ACTOR_EVENT_NAMES.ABORTING, { foo: 'bar' });
+        expect(received).toEqual([{ foo: 'bar' }]);
+    });
+
+    test('off() before init() removes a queued listener', async () => {
+        const kept = vitest.fn();
+        const removed = vitest.fn();
+        Actor.on(ACTOR_EVENT_NAMES.ABORTING, kept);
+        Actor.on(ACTOR_EVENT_NAMES.ABORTING, removed);
+        Actor.off(ACTOR_EVENT_NAMES.ABORTING, removed);
+
+        await Actor.init({ storage: new MemoryStorageBackend() });
+
+        serviceLocator.getEventManager().emit(ACTOR_EVENT_NAMES.ABORTING, {});
+        expect(kept).toHaveBeenCalledTimes(1);
+        expect(removed).not.toHaveBeenCalled();
+    });
+
+    test('off() without a listener before init() removes all queued listeners for the event', async () => {
+        const aborting = vitest.fn();
+        const migrating = vitest.fn();
+        Actor.on(ACTOR_EVENT_NAMES.ABORTING, aborting);
+        Actor.on(ACTOR_EVENT_NAMES.ABORTING, vitest.fn());
+        Actor.on(ACTOR_EVENT_NAMES.MIGRATING, migrating);
+        Actor.off(ACTOR_EVENT_NAMES.ABORTING);
+
+        await Actor.init({ storage: new MemoryStorageBackend() });
+
+        const events = serviceLocator.getEventManager();
+        events.emit(ACTOR_EVENT_NAMES.ABORTING, {});
+        events.emit(ACTOR_EVENT_NAMES.MIGRATING, {});
+        expect(aborting).not.toHaveBeenCalled();
+        expect(migrating).toHaveBeenCalledTimes(1);
+    });
+
+    test('on() and off() after init() go straight to the event manager', async () => {
+        await Actor.init({ storage: new MemoryStorageBackend() });
+        const events = serviceLocator.getEventManager();
+
+        // init() registers its own graceful-shutdown handler for this event.
+        const before = events.listenerCount(ACTOR_EVENT_NAMES.ABORTING);
+
+        const listener = vitest.fn();
+        Actor.on(ACTOR_EVENT_NAMES.ABORTING, listener);
+        expect(events.listenerCount(ACTOR_EVENT_NAMES.ABORTING)).toBe(before + 1);
+
+        events.emit(ACTOR_EVENT_NAMES.ABORTING, {});
+        expect(listener).toHaveBeenCalledTimes(1);
+
+        Actor.off(ACTOR_EVENT_NAMES.ABORTING, listener);
+        expect(events.listenerCount(ACTOR_EVENT_NAMES.ABORTING)).toBe(before);
+    });
 });

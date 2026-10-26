@@ -31,6 +31,7 @@ const getEmptyEnv = () => {
         actorId: null,
         actorRunId: null,
         userId: null,
+        userIsPaying: false,
         token: null,
         startedAt: null,
         timeoutAt: null,
@@ -44,6 +45,7 @@ const setEnv = (env: ApifyEnv) => {
     delete process.env.ACTOR_ID;
     delete process.env.ACTOR_RUN_ID;
     delete process.env.APIFY_USER_ID;
+    delete process.env.APIFY_USER_IS_PAYING;
     delete process.env.APIFY_TOKEN;
     delete process.env.ACTOR_STARTED_AT;
     delete process.env.ACTOR_TIMEOUT_AT;
@@ -54,6 +56,7 @@ const setEnv = (env: ApifyEnv) => {
     if (env.actorId) process.env.ACTOR_ID = env.actorId;
     if (env.actorRunId) process.env.ACTOR_RUN_ID = env.actorRunId;
     if (env.userId) process.env.APIFY_USER_ID = env.userId;
+    if (env.userIsPaying) process.env.APIFY_USER_IS_PAYING = '1';
     if (env.token) process.env.APIFY_TOKEN = env.token;
     if (env.startedAt) process.env.ACTOR_STARTED_AT = env.startedAt.toISOString();
     if (env.timeoutAt) process.env.ACTOR_TIMEOUT_AT = env.timeoutAt.toISOString();
@@ -107,6 +110,7 @@ describe('Actor', () => {
                     actorId: 'test actId',
                     actorRunId: 'test actId',
                     userId: 'some user',
+                    userIsPaying: true,
                     token: 'auth token',
                     startedAt: new Date('2017-01-01'),
                     timeoutAt: new Date(),
@@ -118,6 +122,20 @@ describe('Actor', () => {
 
                 const env = new Actor().getEnv();
                 expect(env).toMatchObject(expectedEnv);
+            });
+
+            test.each([
+                ['1', true],
+                ['true', true],
+                ['0', false],
+                ['false', false],
+                ['', false],
+                [undefined, false],
+            ])('parses APIFY_USER_IS_PAYING=%j as %s', (raw, expected) => {
+                if (raw === undefined) delete process.env.APIFY_USER_IS_PAYING;
+                else process.env.APIFY_USER_IS_PAYING = raw;
+
+                expect(new Actor().getEnv().userIsPaying).toBe(expected);
             });
         });
 
@@ -162,6 +180,83 @@ describe('Actor', () => {
                     throw new Error('Test exception I');
                 });
                 expect(exitSpy).toBeCalledWith(91);
+            });
+
+            test('on exception with `exit: false` the process keeps running', async () => {
+                const exitSpy = vitest.spyOn(process, 'exit').mockImplementation((() => {}) as any);
+                await Actor.main(
+                    async () => {
+                        throw new Error('Test exception I');
+                    },
+                    { exit: false },
+                );
+                expect(exitSpy).not.toHaveBeenCalled();
+            });
+
+            test('on exception the exit options are passed to exit() with exit code 91', async () => {
+                const actor = new Actor();
+                const exitSpy = vitest.spyOn(actor, 'exit');
+                await actor.main(
+                    async () => {
+                        throw new Error('Test exception I');
+                    },
+                    { exit: false, statusMessage: 'Something broke', timeoutSecs: 5, exitCode: 5 },
+                );
+                expect(exitSpy).toHaveBeenCalledWith({
+                    exit: false,
+                    statusMessage: 'Something broke',
+                    timeoutSecs: 5,
+                    exitCode: 91,
+                });
+            });
+
+            test('on exception a caller exit code is overridden by 91', async () => {
+                const exitSpy = vitest.spyOn(process, 'exit').mockImplementation((() => {}) as any);
+                await Actor.main(
+                    async () => {
+                        throw new Error('Test exception I');
+                    },
+                    { exitCode: 5 },
+                );
+                expect(exitSpy).toBeCalledWith(91);
+            });
+
+            test('on success a caller exit code is respected', async () => {
+                const exitSpy = vitest.spyOn(process, 'exit').mockImplementation((() => {}) as any);
+                await Actor.main(async () => {}, { exitCode: 5 });
+                expect(exitSpy).toBeCalledWith(5);
+            });
+        });
+
+        describe('fail()', () => {
+            test('honors exitCode passed in the options object', async () => {
+                const exitSpy = vitest.spyOn(process, 'exit').mockImplementation((() => {}) as any);
+                const { actor } = createIsolatedActor();
+                await actor.init();
+
+                await actor.fail({ exitCode: 5 });
+
+                expect(exitSpy).toBeCalledWith(5);
+            });
+
+            test('honors exitCode passed alongside a status message', async () => {
+                const exitSpy = vitest.spyOn(process, 'exit').mockImplementation((() => {}) as any);
+                const { actor } = createIsolatedActor();
+                await actor.init();
+
+                await actor.fail('Something went wrong', { exitCode: 5 });
+
+                expect(exitSpy).toBeCalledWith(5);
+            });
+
+            test('defaults exitCode to 1', async () => {
+                const exitSpy = vitest.spyOn(process, 'exit').mockImplementation((() => {}) as any);
+                const { actor } = createIsolatedActor();
+                await actor.init();
+
+                await actor.fail();
+
+                expect(exitSpy).toBeCalledWith(1);
             });
         });
 
@@ -670,8 +765,30 @@ describe('Actor', () => {
 
                 const val = await sdk.getValue('key-1');
                 expect(getValueSpy).toBeCalledTimes(1);
-                expect(getValueSpy).toBeCalledWith('key-1');
+                expect(getValueSpy).toBeCalledWith('key-1', undefined);
                 expect(val).toBe(123);
+            });
+
+            test('getValue() returns the default value when the key is missing', async () => {
+                await expect(sdk.getValue('missing', { fallback: true })).resolves.toEqual({ fallback: true });
+            });
+
+            test('getValue() ignores the default value when the key is present', async () => {
+                await sdk.setValue('key-1', { foo: 'bar' });
+                await expect(sdk.getValue('key-1', { fallback: true })).resolves.toEqual({ foo: 'bar' });
+            });
+
+            test('getValue() without a default value resolves to null for a missing key', async () => {
+                await expect(sdk.getValue('missing')).resolves.toBeNull();
+            });
+
+            test('getValue() drops null from the return type when a default value is given', () => {
+                expectTypeOf(sdk.getValue('key', { fallback: true })).resolves.toEqualTypeOf<{ fallback: boolean }>();
+                expectTypeOf(sdk.getValue<string>('key')).resolves.toEqualTypeOf<string | null>();
+                expectTypeOf(Actor.getValue('key', { fallback: true })).resolves.toEqualTypeOf<{
+                    fallback: boolean;
+                }>();
+                expectTypeOf(Actor.getValue<string>('key')).resolves.toEqualTypeOf<string | null>();
             });
 
             test('pushData()', async () => {
@@ -876,6 +993,7 @@ describe('Actor', () => {
                     actorId: 'test actId',
                     actorRunId: 'test actId',
                     userId: 'some user',
+                    userIsPaying: true,
                     token: 'auth token',
                     startedAt: new Date('2017-01-01'),
                     timeoutAt: new Date(),
@@ -1083,7 +1201,7 @@ describe('Actor', () => {
         const { finishedRun } = runConfigs;
 
         test('works as expected', async () => {
-            const options = { build, memory: 1024, timeout: 60, maxItems: 100, restartOnError: true };
+            const options = { build, memory: 1024, timeout: 60, restartOnError: true };
 
             const runSpy = vitest.spyOn(ApifyClient.prototype, 'run');
             const resurrectSpy = vitest.spyOn(RunClient.prototype, 'resurrect').mockResolvedValue(finishedRun);
@@ -1095,7 +1213,6 @@ describe('Actor', () => {
                 build,
                 memory: 1024,
                 runTimeoutSecs: 60,
-                maxItems: 100,
                 restartOnError: true,
             });
         });
@@ -1107,6 +1224,66 @@ describe('Actor', () => {
 
             expect(newClientSpy).toBeCalledWith({ token });
             expect(resurrectSpy).toBeCalledWith({ build });
+        });
+    });
+
+    describe('Actor.abort()', () => {
+        const { runId, token } = globalOptions;
+        const { finishedRun } = runConfigs;
+        const ownRunId = 'own-run-id';
+
+        beforeEach(() => {
+            process.env[ACTOR_ENV_VARS.RUN_ID] = ownRunId;
+        });
+
+        afterEach(() => {
+            delete process.env[ACTOR_ENV_VARS.RUN_ID];
+        });
+
+        test('works as expected', async () => {
+            const runSpy = vitest.spyOn(ApifyClient.prototype, 'run');
+            const updateSpy = vitest.spyOn(RunClient.prototype, 'update');
+            const abortSpy = vitest.spyOn(RunClient.prototype, 'abort').mockResolvedValue(finishedRun);
+            const run = await Actor.abort(runId, { gracefully: true });
+
+            expect(run).toEqual(finishedRun);
+            expect(runSpy).toBeCalledWith(runId);
+            expect(updateSpy).not.toBeCalled();
+            expect(abortSpy).toBeCalledWith({ gracefully: true });
+        });
+
+        test('sets the status message on the aborted run, not on the current one', async () => {
+            const runSpy = vitest.spyOn(ApifyClient.prototype, 'run');
+            const updateSpy = vitest.spyOn(RunClient.prototype, 'update').mockResolvedValue(finishedRun);
+            const abortSpy = vitest.spyOn(RunClient.prototype, 'abort').mockResolvedValue(finishedRun);
+            const setStatusMessageSpy = vitest.spyOn(Actor.prototype, 'setStatusMessage');
+            await Actor.abort(runId, { statusMessage: 'Stopping' });
+
+            expect(runSpy).toBeCalledTimes(1);
+            expect(runSpy).toBeCalledWith(runId);
+            expect(runSpy).not.toBeCalledWith(ownRunId);
+            expect(updateSpy).toBeCalledWith({ statusMessage: 'Stopping', isStatusMessageTerminal: true });
+            expect(abortSpy).toBeCalledWith({});
+            expect(setStatusMessageSpy).not.toBeCalled();
+            expect(updateSpy.mock.invocationCallOrder[0]).toBeLessThan(abortSpy.mock.invocationCallOrder[0]);
+        });
+
+        test('works with token', async () => {
+            // Resolve the default instance before `newClient` is mocked, or it would be built with the token client.
+            const defaultRunSpy = vitest.spyOn(Actor.apifyClient, 'run');
+            const tokenClient = new ApifyClient({ token });
+            const newClientSpy = vitest.spyOn(Actor.prototype, 'newClient').mockReturnValue(tokenClient);
+            const tokenRunSpy = vitest.spyOn(tokenClient, 'run');
+            const updateSpy = vitest.spyOn(RunClient.prototype, 'update').mockResolvedValue(finishedRun);
+            const abortSpy = vitest.spyOn(RunClient.prototype, 'abort').mockResolvedValue(finishedRun);
+            await Actor.abort(runId, { token, statusMessage: 'Stopping' });
+
+            expect(newClientSpy).toBeCalledWith({ token });
+            expect(defaultRunSpy).not.toBeCalled();
+            expect(tokenRunSpy).toBeCalledTimes(1);
+            expect(tokenRunSpy).toBeCalledWith(runId);
+            expect(updateSpy).toBeCalledWith({ statusMessage: 'Stopping', isStatusMessageTerminal: true });
+            expect(abortSpy).toBeCalledWith({});
         });
     });
 
@@ -1420,9 +1597,8 @@ describe('Actor', () => {
 
     describe('Actor.setStatusMessage()', () => {
         const runId = 'status-message-run-id';
-        // A `RunClient.update()` stub — the tests only assert on the payload it receives,
-        // so the resolved run is never inspected.
-        const stubRun = {} as unknown as Run;
+        // A `RunClient.update()` stub. Most tests only assert on the payload it receives.
+        const stubRun = { id: runId, statusMessage: 'almost there' } as unknown as Run;
 
         beforeEach(() => {
             process.env[ACTOR_ENV_VARS.RUN_ID] = runId;
@@ -1432,14 +1608,57 @@ describe('Actor', () => {
             delete process.env[ACTOR_ENV_VARS.RUN_ID];
         });
 
-        test('updates the run', async () => {
+        test('updates the run and resolves it', async () => {
             const { actor } = createIsolatedActor();
             const updateSpy = vitest.spyOn(RunClient.prototype, 'update').mockResolvedValue(stubRun);
 
             await actor.init();
-            await actor.setStatusMessage('almost there', { isStatusMessageTerminal: true });
+            const run = await actor.setStatusMessage('almost there', { isStatusMessageTerminal: true });
 
             expect(updateSpy).toHaveBeenCalledWith({ statusMessage: 'almost there', isStatusMessageTerminal: true });
+            expect(run).toBe(stubRun);
+        });
+
+        test('resolves undefined locally, without a run id', async () => {
+            delete process.env[ACTOR_ENV_VARS.RUN_ID];
+            const { actor } = createIsolatedActor();
+            const updateSpy = vitest.spyOn(RunClient.prototype, 'update').mockResolvedValue(stubRun);
+
+            await actor.init();
+            const run = await actor.setStatusMessage('almost there');
+
+            expect(run).toBeUndefined();
+            expect(updateSpy).not.toHaveBeenCalled();
+        });
+
+        test('resolves undefined and warns when the update fails', async () => {
+            const { actor } = createIsolatedActor();
+            vitest.spyOn(RunClient.prototype, 'update').mockRejectedValue(new Error('Boom'));
+            const warningSpy = vitest.spyOn(log, 'warning').mockImplementation(() => {});
+
+            await actor.init();
+            const run = await actor.setStatusMessage('almost there');
+
+            expect(run).toBeUndefined();
+            expect(warningSpy).toHaveBeenCalledWith('Boom');
+        });
+
+        test('resolves undefined and warns when the update times out', async () => {
+            const { actor } = createIsolatedActor();
+            vitest.spyOn(RunClient.prototype, 'update').mockReturnValue(new Promise(() => {}));
+            const warningSpy = vitest.spyOn(log, 'warning').mockImplementation(() => {});
+
+            await actor.init();
+            vitest.useFakeTimers();
+            try {
+                const runPromise = actor.setStatusMessage('almost there');
+                await vitest.advanceTimersByTimeAsync(1000);
+
+                await expect(runPromise).resolves.toBeUndefined();
+                expect(warningSpy).toHaveBeenCalledWith('Setting status message timed out after 1s');
+            } finally {
+                vitest.useRealTimers();
+            }
         });
 
         test('forwards crawlee status messages to the run', async () => {
@@ -1558,11 +1777,15 @@ describe('Actor', () => {
                 await expect(actor.getInput()).resolves.toEqual({ from: 'cli' });
             });
 
-            test('prefers the store record over the file', async () => {
+            test('throws MULTIPLE_FILES when both the store record and the file exist', async () => {
                 await writeFile(join(cwd, 'INPUT.json'), '{ "from": "file" }');
                 const actor = isolatedActor();
                 await actor.setValue(KEY_VALUE_STORE_KEYS.INPUT, { from: 'store' });
-                await expect(actor.getInput()).resolves.toEqual({ from: 'store' });
+
+                const error = await actor.getInput().catch((e) => e);
+                expect(error).toBeInstanceOf(ActorInputError);
+                expect(error.code).toBe('MULTIPLE_FILES');
+                expect(error.message).toMatch(/both in the default key-value store and in/);
             });
 
             test('throws MULTIPLE_FILES when both INPUT and INPUT.json exist', async () => {
@@ -1596,14 +1819,20 @@ describe('Actor', () => {
                 await expect(actor.getInput()).rejects.toThrowError('Input does not exist');
             });
 
-            test('falls back to the storage directory, after the working directory', async () => {
+            test('reads the default key-value store directory, and rejects it next to a working directory file', async () => {
+                // Where `apify run` writes the input; the in-memory backend never reads it.
                 const storageDir = await mkdtemp(join(tmpdir(), 'apify-sdk-input-storage-'));
-                await writeFile(join(storageDir, 'INPUT.json'), '{ "from": "storage" }');
+                await mkdir(join(storageDir, 'key_value_stores', 'default'), { recursive: true });
+                await writeFile(join(storageDir, 'key_value_stores', 'default', 'INPUT.json'), '{ "from": "storage" }');
                 const actor = () => isolatedActor(new Configuration({ storageDir }));
                 await expect(actor().getInput()).resolves.toEqual({ from: 'storage' });
 
                 await writeFile(join(cwd, 'INPUT.json'), '{ "from": "cwd" }');
-                await expect(actor().getInput()).resolves.toEqual({ from: 'cwd' });
+                const error = await actor()
+                    .getInput()
+                    .catch((e) => e);
+                expect(error).toBeInstanceOf(ActorInputError);
+                expect(error.code).toBe('MULTIPLE_FILES');
                 await rm(storageDir, { recursive: true, force: true });
             });
         });
@@ -1705,7 +1934,16 @@ describe('Actor', () => {
 
             await Actor.getValue('key-1');
 
-            expect(getValueSpy).toHaveBeenCalledWith('key-1');
+            expect(getValueSpy).toHaveBeenCalledWith('key-1', undefined);
+        });
+
+        test('forwards the default value to the store', async () => {
+            const defaultStore = await KeyValueStore.open();
+            const getValueSpy = vitest.spyOn(defaultStore, 'getValue');
+
+            await expect(Actor.getValue('missing', 'fallback')).resolves.toBe('fallback');
+
+            expect(getValueSpy).toHaveBeenCalledWith('missing', 'fallback');
         });
     });
 
