@@ -88,7 +88,7 @@ jobs:
         name: Update changelog
         if: (!contains(github.event.head_commit.message, '[skip ci]') && !contains(github.event.head_commit.message, 'docs:'))
         needs: [release_metadata, build_and_test]
-        runs-on: ubuntu-22.04
+        runs-on: ubuntu-26.04
         outputs:
             changelog_commitish: ${{ steps.commit.outputs.commit_long_sha }}
             version_number: ${{ needs.release_metadata.outputs.version_number }}
@@ -148,7 +148,7 @@ jobs:
         name: Version docs
         if: ${{ inputs.release_type == 'minor' || inputs.release_type == 'major' }}
         needs: [update_changelog]
-        runs-on: ubuntu-22.04
+        runs-on: ubuntu-26.04
         steps:
             - name: Checkout repository
               uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -182,7 +182,7 @@ jobs:
 
     publish_to_npm:
         name: Publish to npm
-        runs-on: ubuntu-22.04
+        runs-on: ubuntu-26.04
         needs: [update_changelog]
         steps:
             - name: Publish to npm
