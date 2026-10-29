@@ -344,6 +344,18 @@ export interface ChildRunOptions {
      * by a new one. Reusing the name for a different Actor, task or input throws, unless the tracked run is replaced.
      */
     runName?: string;
+    /**
+     * Gracefully abort the child run when this run is gracefully aborted. Requires `runName`.
+     *
+     * The latest call under the same `runName` sets the value. Once this run is being aborted, a call with this option
+     * throws instead of starting, resurrecting or returning a run. A hard abort, timeout or crash of this run leaves
+     * the child run running.
+     *
+     * A run started with a custom `token` is aborted with that token, except for a run started before a migration or
+     * resurrection of this run, which is aborted with the default client.
+     * @default false
+     */
+    abortWithParent?: boolean;
 }
 
 export interface CallOptions
@@ -534,6 +546,9 @@ export class Actor<Data extends Dictionary = Dictionary> {
 
     #actorPromise?: Promise<ActorResource | undefined>;
 
+    /** Aborts the child runs started with `abortWithParent` on the `aborting` event. */
+    readonly #abortChildRunsWithParent = async () => this.#childRunTracker.abortRunsWithParent(this.apifyClient);
+
     /** How Apify platform request queues are consumed; set from {@link InitOptions.requestQueueAccess}. */
     #requestQueueAccess: RequestQueueAccessMode = 'single';
 
@@ -566,7 +581,9 @@ export class Actor<Data extends Dictionary = Dictionary> {
             this.configuration = new Configuration(configOptions);
         }
         this.apifyClient = this.newClient();
-        this.eventManager = new PlatformEventManager(this.configuration);
+        this.eventManager = new PlatformEventManager(this.configuration, {
+            [ACTOR_EVENT_NAMES.ABORTING]: this.#abortChildRunsWithParent,
+        });
         this.#chargingManager = new ChargingManager(
             this.configuration,
             this.apifyClient,
@@ -939,8 +956,10 @@ export class Actor<Data extends Dictionary = Dictionary> {
      */
     async call(actorId: string, input?: ActorInput, options: CallOptions = {}): Promise<ClientActorRun> {
         const runTimeoutSecs = options.timeout === 'inherit' ? this.getRemainingTimeSecs() : options.timeout;
-        const { token, timeout: _timeout, runName, ...rest } = options;
+        const { token, timeout: _timeout, runName, abortWithParent = false, ...rest } = options;
         const client = token ? this.newClient({ token }) : this.apifyClient;
+
+        if (abortWithParent && !runName) throw new Error('`abortWithParent` requires `runName`.');
 
         if (!runName) return client.actor(actorId).call(input, { ...rest, runTimeoutSecs });
 
@@ -951,6 +970,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
             runName,
             { type: 'actor', id: actorId, input },
             startOptions,
+            abortWithParent,
             async () => client.actor(actorId).start(input, startOptions),
         );
 
@@ -991,8 +1011,10 @@ export class Actor<Data extends Dictionary = Dictionary> {
      */
     async start(actorId: string, input?: ActorInput, options: StartOptions = {}): Promise<ClientActorRun> {
         const runTimeoutSecs = options.timeout === 'inherit' ? this.getRemainingTimeSecs() : options.timeout;
-        const { token, timeout: _timeout, runName, ...rest } = options;
+        const { token, timeout: _timeout, runName, abortWithParent = false, ...rest } = options;
         const client = token ? this.newClient({ token }) : this.apifyClient;
+
+        if (abortWithParent && !runName) throw new Error('`abortWithParent` requires `runName`.');
 
         if (!runName) return client.actor(actorId).start(input, { ...rest, runTimeoutSecs });
 
@@ -1002,6 +1024,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
             runName,
             { type: 'actor', id: actorId, input },
             startOptions,
+            abortWithParent,
             async () => client.actor(actorId).start(input, startOptions),
         );
         return run;
@@ -1089,8 +1112,10 @@ export class Actor<Data extends Dictionary = Dictionary> {
      */
     async callTask(taskId: string, input?: Dictionary, options: CallTaskOptions = {}): Promise<ClientActorRun> {
         const runTimeoutSecs = options.timeout === 'inherit' ? this.getRemainingTimeSecs() : options.timeout;
-        const { token, timeout: _timeout, runName, ...rest } = options;
+        const { token, timeout: _timeout, runName, abortWithParent = false, ...rest } = options;
         const client = token ? this.newClient({ token }) : this.apifyClient;
+
+        if (abortWithParent && !runName) throw new Error('`abortWithParent` requires `runName`.');
 
         if (!runName) return client.task(taskId).call(input, { ...rest, runTimeoutSecs });
 
@@ -1101,6 +1126,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
             runName,
             { type: 'task', id: taskId, input },
             startOptions,
+            abortWithParent,
             async () => client.task(taskId).start(input, startOptions),
         );
         const finishedRun = await client.run(run.id).waitForFinish({ waitSecs, timeoutSecs, signal });
@@ -1150,8 +1176,10 @@ export class Actor<Data extends Dictionary = Dictionary> {
      */
     async startTask(taskId: string, input?: Dictionary, options: StartTaskOptions = {}): Promise<ClientActorRun> {
         const runTimeoutSecs = options.timeout === 'inherit' ? this.getRemainingTimeSecs() : options.timeout;
-        const { token, timeout: _timeout, runName, ...rest } = options;
+        const { token, timeout: _timeout, runName, abortWithParent = false, ...rest } = options;
         const client = token ? this.newClient({ token }) : this.apifyClient;
+
+        if (abortWithParent && !runName) throw new Error('`abortWithParent` requires `runName`.');
 
         if (!runName) return client.task(taskId).start(input, { ...rest, runTimeoutSecs });
 
@@ -1161,6 +1189,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
             runName,
             { type: 'task', id: taskId, input },
             startOptions,
+            abortWithParent,
             async () => client.task(taskId).start(input, startOptions),
         );
         return run;

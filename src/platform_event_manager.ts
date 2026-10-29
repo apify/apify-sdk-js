@@ -1,5 +1,6 @@
 import { setTimeout as sleep } from 'node:timers/promises';
 
+import type { EventTypeName } from '@crawlee/core';
 import { EventManager, EventType } from '@crawlee/core';
 import { WebSocket } from 'ws';
 
@@ -89,10 +90,40 @@ export class PlatformEventManager extends EventManager {
     /** Backoff for rapid reconnections; reset after a connection that stayed open long enough to count as healthy. */
     #backoff?: Generator<number, never>;
 
-    constructor(readonly configuration = Configuration.getGlobalConfiguration()) {
+    readonly #internalListeners: Partial<Record<string, (...args: any[]) => unknown>>;
+
+    /** Calls of the internal listeners that are still in progress. */
+    readonly #internalListenerCalls = new Set<Promise<unknown>>();
+
+    /**
+     * @param internalListeners Listeners of the SDK itself, kept apart from the ones registered with `on()`, so that
+     *  user code can neither remove them with `off()` nor see them in `listeners()`.
+     */
+    constructor(
+        readonly configuration = Configuration.getGlobalConfiguration(),
+        internalListeners: Partial<Record<EventTypeName, (...args: any[]) => unknown>> = {},
+    ) {
         super({
             persistStateIntervalMillis: configuration.persistStateIntervalMillis,
         });
+        this.#internalListeners = internalListeners;
+    }
+
+    override emit(event: EventTypeName, ...args: unknown[]) {
+        super.emit(event, ...args);
+
+        const listener = this.#internalListeners[event];
+        if (!listener) return;
+
+        const call = (async () => listener(...args))()
+            .catch((err) => this.log.exception(err as Error, `Internal listener of the "${event}" event failed`))
+            .finally(() => this.#internalListenerCalls.delete(call));
+        this.#internalListenerCalls.add(call);
+    }
+
+    override async waitForAllListenersToComplete() {
+        const [completed] = await Promise.all([super.waitForAllListenersToComplete(), ...this.#internalListenerCalls]);
+        return completed;
     }
 
     /**
@@ -185,7 +216,7 @@ export class PlatformEventManager extends EventManager {
 
         try {
             const { name, data } = JSON.parse(String(message));
-            this.events.emit(name, data);
+            this.emit(name, data);
 
             if (name === ACTOR_EVENT_NAMES.MIGRATING) {
                 betterClearInterval(this.intervals.persistState!); // Don't send any other persist state event.
