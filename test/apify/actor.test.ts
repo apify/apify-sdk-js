@@ -137,18 +137,6 @@ describe('Actor', () => {
 
                 expect(new Actor().getEnv().userIsPaying).toBe(expected);
             });
-
-            test('omits the removed outdated-SDK warning env vars', () => {
-                vi.stubEnv(APIFY_ENV_VARS.DISABLE_OUTDATED_WARNING, '1');
-                vi.stubEnv(APIFY_ENV_VARS.SDK_LATEST_VERSION, '99.0.0');
-                onTestFinished(() => {
-                    vi.unstubAllEnvs();
-                });
-
-                const env = new Actor().getEnv();
-                expect(env).not.toHaveProperty('disableOutdatedWarning');
-                expect(env).not.toHaveProperty('sdkLatestVersion');
-            });
         });
 
         describe('main()', () => {

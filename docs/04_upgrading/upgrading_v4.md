@@ -262,6 +262,8 @@ if (run) {
 
 `Actor.init()` no longer logs a warning when a newer SDK version is available. The SDK stopped reading `APIFY_DISABLE_OUTDATED_WARNING` and `APIFY_SDK_LATEST_VERSION`, and `Actor.getEnv()` no longer returns the matching `disableOutdatedWarning` and `sdkLatestVersion` fields.
 
+To get notified about new SDK versions instead, set up [Renovate](https://docs.renovatebot.com/) on your Actor's GitHub repository. It opens a pull request whenever a new `apify` version is released.
+
 ## Argument validation (`ow` → `zod`)
 
 Runtime argument validation (e.g. `Actor.addWebhook()`, `Actor.setStatusMessage()`, `Actor.openDataset()` / `openKeyValueStore()` / `openRequestQueue()`, and the `ProxyConfiguration` constructor) now uses [`zod`](https://zod.dev) instead of `ow`. Validation is just as strict — invalid arguments still throw synchronously, before any work is done — but the **error messages changed**.
