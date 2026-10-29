@@ -6,7 +6,6 @@ import { join } from 'node:path';
 
 import { EventType, MemoryStorageBackend, serviceLocator } from '@crawlee/core';
 import { sleep } from '@crawlee/utils';
-import type { ApifyEnv } from 'apify';
 import { Actor, ActorInputError, Configuration, Dataset, KeyValueStore, ProxyConfiguration, RequestQueue } from 'apify';
 import type { Run, WebhookUpdateData } from 'apify-client';
 import { ActorClient, ApifyClient, RunClient, TaskClient } from 'apify-client';
@@ -24,46 +23,6 @@ import log from '@apify/log';
 
 import { createIsolatedActor, initIsolatedDefaultActor } from '../createIsolatedActor.js';
 import { resetGlobalState } from '../resetGlobalState.js';
-
-const getEmptyEnv = () => {
-    return {
-        // internalPort: null,
-        actorId: null,
-        actorRunId: null,
-        userId: null,
-        userIsPaying: false,
-        token: null,
-        startedAt: null,
-        timeoutAt: null,
-        defaultKeyValueStoreId: null,
-        defaultDatasetId: null,
-        memoryMbytes: null,
-    } as ApifyEnv;
-};
-
-const setEnv = (env: ApifyEnv) => {
-    delete process.env.ACTOR_ID;
-    delete process.env.ACTOR_RUN_ID;
-    delete process.env.APIFY_USER_ID;
-    delete process.env.APIFY_USER_IS_PAYING;
-    delete process.env.APIFY_TOKEN;
-    delete process.env.ACTOR_STARTED_AT;
-    delete process.env.ACTOR_TIMEOUT_AT;
-    delete process.env.ACTOR_DEFAULT_KEY_VALUE_STORE_ID;
-    delete process.env.ACTOR_DEFAULT_DATASET_ID;
-    delete process.env.ACTOR_MEMORY_MBYTES;
-
-    if (env.actorId) process.env.ACTOR_ID = env.actorId;
-    if (env.actorRunId) process.env.ACTOR_RUN_ID = env.actorRunId;
-    if (env.userId) process.env.APIFY_USER_ID = env.userId;
-    if (env.userIsPaying) process.env.APIFY_USER_IS_PAYING = '1';
-    if (env.token) process.env.APIFY_TOKEN = env.token;
-    if (env.startedAt) process.env.ACTOR_STARTED_AT = env.startedAt.toISOString();
-    if (env.timeoutAt) process.env.ACTOR_TIMEOUT_AT = env.timeoutAt.toISOString();
-    if (env.defaultKeyValueStoreId) process.env.ACTOR_DEFAULT_KEY_VALUE_STORE_ID = env.defaultKeyValueStoreId;
-    if (env.defaultDatasetId) process.env.ACTOR_DEFAULT_DATASET_ID = env.defaultDatasetId;
-    if (env.memoryMbytes) process.env.ACTOR_MEMORY_MBYTES = env.memoryMbytes.toString();
-};
 
 const testingPublicKey = createPublicKey({
     key: Buffer.from(
@@ -85,60 +44,6 @@ describe('Actor', () => {
     });
 
     describe('new Actor({ ... })', () => {
-        describe('getEnv()', () => {
-            let prevEnv: ApifyEnv;
-
-            beforeAll(() => {
-                prevEnv = new Actor().getEnv();
-            });
-            afterAll(() => {
-                setEnv(prevEnv);
-            });
-
-            test('works with null values', () => {
-                const expectedEnv = getEmptyEnv();
-                setEnv(expectedEnv);
-
-                const env = new Actor().getEnv();
-                expect(env).toMatchObject(expectedEnv);
-            });
-
-            test('works with with non-null values', () => {
-                const expectedEnv = {
-                    ...getEmptyEnv(),
-                    // internalPort: 12345,
-                    actorId: 'test actId',
-                    actorRunId: 'test actId',
-                    userId: 'some user',
-                    userIsPaying: true,
-                    token: 'auth token',
-                    startedAt: new Date('2017-01-01'),
-                    timeoutAt: new Date(),
-                    defaultKeyValueStoreId: 'some store',
-                    defaultDatasetId: 'some dataset',
-                    memoryMbytes: 1234,
-                };
-                setEnv(expectedEnv);
-
-                const env = new Actor().getEnv();
-                expect(env).toMatchObject(expectedEnv);
-            });
-
-            test.each([
-                ['1', true],
-                ['true', true],
-                ['0', false],
-                ['false', false],
-                ['', false],
-                [undefined, false],
-            ])('parses APIFY_USER_IS_PAYING=%j as %s', (raw, expected) => {
-                if (raw === undefined) delete process.env.APIFY_USER_IS_PAYING;
-                else process.env.APIFY_USER_IS_PAYING = raw;
-
-                expect(new Actor().getEnv().userIsPaying).toBe(expected);
-            });
-        });
-
         describe('main()', () => {
             test('throws on invalid args', async () => {
                 // @ts-expect-error invalid options
@@ -965,49 +870,6 @@ describe('Actor', () => {
             return this;
         },
     }.init();
-
-    describe('Actor.getEnv()', () => {
-        let prevEnv: ApifyEnv;
-
-        beforeAll(() => {
-            prevEnv = Actor.getEnv();
-        });
-
-        afterAll(() => {
-            setEnv(prevEnv);
-        });
-
-        test('works with null values', () => {
-            const expectedEnv = getEmptyEnv();
-            setEnv(expectedEnv);
-
-            const env = Actor.getEnv();
-            expect(env).toMatchObject(expectedEnv);
-        });
-
-        test('works with with non-null values', () => {
-            const expectedEnv = {
-                ...getEmptyEnv(),
-                ...{
-                    // internalPort: 12345,
-                    actorId: 'test actId',
-                    actorRunId: 'test actId',
-                    userId: 'some user',
-                    userIsPaying: true,
-                    token: 'auth token',
-                    startedAt: new Date('2017-01-01'),
-                    timeoutAt: new Date(),
-                    defaultKeyValueStoreId: 'some store',
-                    defaultDatasetId: 'some dataset',
-                    memoryMbytes: 1234,
-                },
-            };
-            setEnv(expectedEnv);
-
-            const env = Actor.getEnv();
-            expect(env).toMatchObject(expectedEnv);
-        });
-    });
 
     describe('inherit timeout option', () => {
         const { actId, input } = globalOptions;

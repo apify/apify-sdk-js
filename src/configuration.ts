@@ -19,6 +19,23 @@ import { ACTOR_ENV_VARS, APIFY_ENV_VARS, LOCAL_ACTOR_ENV_VARS, LOCAL_APIFY_ENV_V
 // `new Configuration({ isAtHome: true })` won't flip these — env is the source.
 const isAtHome = () => !!process.env[APIFY_ENV_VARS.IS_AT_HOME];
 
+// Zod preprocessors for the Apify-specific field types; crawlee's
+// `coerceBoolean` / `coerceNumber` cover the rest.
+const coerceDate = z.preprocess((val) => {
+    if (typeof val === 'string') return new Date(Date.parse(val));
+    return val;
+}, z.date());
+
+const coerceStringList = z.preprocess((val) => {
+    if (typeof val === 'string') {
+        return val
+            .split(',')
+            .map((item) => item.trim())
+            .filter(Boolean);
+    }
+    return val;
+}, z.array(z.string()));
+
 /**
  * Extend a crawlee config field with Apify-specific env-var aliases. The Apify
  * vars take precedence; crawlee's own `CRAWLEE_*` var is reused as the fallback
@@ -106,6 +123,18 @@ export const apifyConfigFields = {
     actorId: field(z.string().optional(), [ACTOR_ENV_VARS.ID, APIFY_ENV_VARS.ACTOR_ID]),
     actorRunId: field(z.string().optional(), [ACTOR_ENV_VARS.RUN_ID, APIFY_ENV_VARS.ACTOR_RUN_ID]),
     actorTaskId: field(z.string().optional(), [ACTOR_ENV_VARS.TASK_ID, APIFY_ENV_VARS.ACTOR_TASK_ID]),
+    actorBuildId: field(z.string().optional(), [ACTOR_ENV_VARS.BUILD_ID, APIFY_ENV_VARS.ACTOR_BUILD_ID]),
+    actorBuildNumber: field(z.string().optional(), [ACTOR_ENV_VARS.BUILD_NUMBER, APIFY_ENV_VARS.ACTOR_BUILD_NUMBER]),
+    actorBuildTags: field(coerceStringList.optional(), ACTOR_ENV_VARS.BUILD_TAGS),
+    actorFullName: field(z.string().optional(), ACTOR_ENV_VARS.FULL_NAME),
+    workflowKey: field(z.string().optional(), APIFY_ENV_VARS.WORKFLOW_KEY),
+    startedAt: field(coerceDate.optional(), [ACTOR_ENV_VARS.STARTED_AT, APIFY_ENV_VARS.STARTED_AT]),
+    timeoutAt: field(coerceDate.optional(), [ACTOR_ENV_VARS.TIMEOUT_AT, APIFY_ENV_VARS.TIMEOUT_AT]),
+    maxPaidDatasetItems: field(coerceNumber.optional(), [
+        ACTOR_ENV_VARS.MAX_PAID_DATASET_ITEMS,
+        APIFY_ENV_VARS.ACTOR_MAX_PAID_DATASET_ITEMS,
+    ]),
+    dedicatedCpus: field(coerceNumber.optional(), APIFY_ENV_VARS.DEDICATED_CPUS),
     apiBaseUrl: field(z.string().default('https://api.apify.com/'), APIFY_ENV_VARS.API_BASE_URL),
     apiPublicBaseUrl: field(z.string().default('https://api.apify.com'), APIFY_ENV_VARS.API_PUBLIC_BASE_URL),
     containerPort: field(coerceNumber.default(+LOCAL_ACTOR_ENV_VARS[ACTOR_ENV_VARS.WEB_SERVER_PORT]), [
@@ -221,6 +250,15 @@ export interface Configuration extends ApifyResolvedConfigValues {}
  * `actorId` | `ACTOR_ID` | -
  * `actorRunId` | `ACTOR_RUN_ID` | -
  * `actorTaskId` | `ACTOR_TASK_ID` | -
+ * `actorBuildId` | `ACTOR_BUILD_ID` | -
+ * `actorBuildNumber` | `ACTOR_BUILD_NUMBER` | -
+ * `actorBuildTags` | `ACTOR_BUILD_TAGS` | -
+ * `actorFullName` | `ACTOR_FULL_NAME` | -
+ * `workflowKey` | `APIFY_WORKFLOW_KEY` | -
+ * `startedAt` | `ACTOR_STARTED_AT` | -
+ * `timeoutAt` | `ACTOR_TIMEOUT_AT` | -
+ * `maxPaidDatasetItems` | `ACTOR_MAX_PAID_DATASET_ITEMS` | -
+ * `dedicatedCpus` | `APIFY_DEDICATED_CPUS` | -
  * `apiBaseUrl` | `APIFY_API_BASE_URL` | `'https://api.apify.com/'`
  * `containerPort` | `ACTOR_WEB_SERVER_PORT` | `4321`
  * `containerUrl` | `ACTOR_WEB_SERVER_URL` | `'http://localhost:4321'`
