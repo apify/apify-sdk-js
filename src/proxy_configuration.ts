@@ -273,39 +273,29 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
      * Loads proxy password if token is provided and checks access to Apify Proxy and provided proxy groups
      * if Apify Proxy configuration is used.
      * Also checks if country has access to Apify Proxy groups if the country code is provided.
+     * Throws if no password is available or the status check rejects the connection.
      *
      * You should use the {@apilink createProxyConfiguration} function to create a pre-initialized
      * `ProxyConfiguration` instance instead of calling this manually.
      */
-    async initialize(options?: { checkAccess?: boolean }): Promise<boolean> {
-        if (this.#usesApifyProxy) {
-            if (!this.#password) {
-                await this.setPasswordIfToken();
-            }
+    async initialize(options?: { checkAccess?: boolean }): Promise<void> {
+        if (!this.#usesApifyProxy) return;
 
-            if (!this.#password) {
-                if (Actor.isAtHome()) {
-                    throw new Error(
-                        `Apify Proxy password must be provided using options.password or the "${APIFY_ENV_VARS.PROXY_PASSWORD}" environment variable. ` +
-                            `You can also provide your Apify token via the "${APIFY_ENV_VARS.TOKEN}" environment variable, ` +
-                            `so that the SDK can fetch the proxy password from Apify API, when ${APIFY_ENV_VARS.PROXY_PASSWORD} is not defined`,
-                    );
-                } else {
-                    this.log.warning(
-                        `No proxy password or token detected, running without proxy. To use Apify Proxy locally, ` +
-                            `provide options.password or "${APIFY_ENV_VARS.PROXY_PASSWORD}" environment variable. ` +
-                            `You can also provide your Apify token via the "${APIFY_ENV_VARS.TOKEN}" environment variable, ` +
-                            `so that the SDK can fetch the proxy password from Apify API, when ${APIFY_ENV_VARS.PROXY_PASSWORD} is not defined`,
-                    );
-                }
-            }
-
-            if (options?.checkAccess !== false) {
-                return this.checkAccess();
-            }
+        if (!this.#password) {
+            await this.setPasswordIfToken();
         }
 
-        return true;
+        if (!this.#password) {
+            throw new Error(
+                `Apify Proxy password must be provided using options.password or the "${APIFY_ENV_VARS.PROXY_PASSWORD}" environment variable. ` +
+                    `You can also provide your Apify token via the "${APIFY_ENV_VARS.TOKEN}" environment variable, ` +
+                    `so that the SDK can fetch the proxy password from Apify API, when ${APIFY_ENV_VARS.PROXY_PASSWORD} is not defined`,
+            );
+        }
+
+        if (options?.checkAccess !== false) {
+            await this.checkAccess();
+        }
     }
 
     /**
@@ -398,26 +388,16 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
         const { token } = this.configuration;
 
         if (!token) return;
-        try {
-            const user = await Actor.apifyClient.user().get();
-            this.#password = user?.proxy?.password;
-        } catch (error) {
-            if (Actor.isAtHome()) {
-                throw error;
-            } else {
-                this.log.warning(`Failed to fetch user data using token`, {
-                    error,
-                });
-            }
-        }
+        const user = await Actor.apifyClient.user().get();
+        this.#password = user?.proxy?.password;
     }
 
     /**
-     * Checks whether the user has access to the proxies specified in the provided ProxyConfigurationOptions.
-     * If the check can not be made, it only prints a warning and allows the program to continue. This is to
-     * prevent program crashes caused by short downtimes of Proxy.
+     * Checks whether the user has access to the proxies specified in the provided ProxyConfigurationOptions
+     * and throws if not. If the check can not be made, it only prints a warning and allows the program to
+     * continue. This is to prevent program crashes caused by short downtimes of Proxy.
      */
-    protected async checkAccess(): Promise<boolean> {
+    protected async checkAccess(): Promise<void> {
         const status = await this.fetchStatus();
 
         if (!status) {
@@ -425,7 +405,7 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
                 'Apify Proxy access check timed out. Watch out for errors with status code 407. ' +
                     "If you see some, it most likely means you don't have access to either all or some of the proxies you're trying to use.",
             );
-            return true;
+            return;
         }
 
         const { connected, connectionError, isManInTheMiddle } = status;
@@ -433,19 +413,9 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
         // learns the actual value, so bypass the readonly marker.
         (this as { isManInTheMiddle: boolean }).isManInTheMiddle = isManInTheMiddle;
 
-        if (connected) {
-            return true;
-        }
-
-        // Throw only on the platform, locally we just print a warning and run requests without the proxy.
-        // This is because the user might not have set up things correctly yet.
-        // It still fails on the platform, where we don't want to allow this behavior.
-        if (Actor.isAtHome()) {
+        if (!connected) {
             throw new Error(connectionError);
         }
-
-        this.log.warning(connectionError);
-        return false;
     }
 
     /**

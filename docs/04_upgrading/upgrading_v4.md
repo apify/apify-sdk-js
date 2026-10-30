@@ -98,6 +98,14 @@ The `protected` methods of `ProxyConfiguration` lost their underscore prefix, wh
 
 In addition, `_setPasswordIfToken()` is now `private setPasswordIfToken()` (it was never meant to be part of the subclassing surface), and `_throwCannotCombineCustomMethods()` was removed — the Crawlee base class already performs the same validation with the same error message.
 
+## ProxyConfiguration: missing credentials throw locally
+
+Local runs now fail the same way as runs on the platform. When Apify Proxy is requested, `Actor.createProxyConfiguration()` throws if no proxy password is available, if fetching it with `APIFY_TOKEN` fails, or if the proxy status check rejects the connection. Previously these cases only logged a warning, and the Actor then either crawled from your own IP or sent every request with `undefined` as the proxy password. A status check that times out still only logs a warning.
+
+To run locally without a proxy, pass `useApifyProxy: false`. To use Apify Proxy, set `APIFY_PROXY_PASSWORD` or `APIFY_TOKEN`.
+
+Since `ProxyConfiguration.initialize()` can no longer fail without throwing, it and the protected `checkAccess()` now return `Promise<void>` instead of `Promise<boolean>`.
+
 ## EventManager
 
 `PlatformEventManager` now extends Crawlee v4's `EventManager` and integrates with the new service locator. Use `Configuration.getGlobalConfiguration()` (or pass a `Configuration` instance explicitly) when constructing it directly — the constructor no longer accepts a `config` override via the `override` keyword pattern because Crawlee's base class manages the configuration through `serviceLocator` instead of a `config` field.
