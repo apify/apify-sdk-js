@@ -84,7 +84,7 @@
         "@crawlee/fs-storage": "4.0.0-rc.1",
         "@crawlee/types": "4.0.0-rc.1",
         "@crawlee/utils": "4.0.0-rc.1",
-        "apify-client": "^3.0.0-rc.0",
+        "apify-client": "3.0.0-beta.80",
         "minimatch": "^10.2.6",
         "tslib": "^2.8.1",
         "ws": "^8.22.0",

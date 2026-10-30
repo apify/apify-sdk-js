@@ -1,5 +1,5 @@
 import { Dataset, KeyValueStore } from '@crawlee/core';
-import type { ActorRunPricingInfo, ApifyClient } from 'apify-client';
+import type { ActorResource, ActorRunPricingInfo, ApifyClient, Run as ClientActorRun } from 'apify-client';
 
 import log from '@apify/log';
 
@@ -23,6 +23,20 @@ const IDEMPOTENCY_KEY_TTL_MILLIS = 3 * 60 * 1000;
 
 export const DEFAULT_DATASET_ITEM_EVENT = 'apify-default-dataset-item';
 
+/**
+ * The pricing history includes scheduled future changes, so the effective entry is the latest one
+ * with `startedAt <= now`, not the last one.
+ *
+ * Resolved once at init on purpose. A change kicking in mid-run only affects local event titles and
+ * "unknown event" warnings; the platform prices each charge from its own current pricing anyway.
+ */
+function getEffectivePricingInfo(pricingInfos: ActorRunPricingInfo[], now = new Date()) {
+    return pricingInfos
+        .filter((info) => new Date(info.startedAt) <= now)
+        .sort((a, b) => new Date(a.startedAt).getTime() - new Date(b.startedAt).getTime())
+        .at(-1);
+}
+
 export interface ChargeOptions {
     /**
      * The name of the event type to charge for.
@@ -42,6 +56,13 @@ export interface ChargeOptions {
      * the original call, or zero if it names a different event. Like the platform, the key is forgotten afterwards.
      */
     idempotencyKey?: string;
+
+    /**
+     * ID of the Server Actor request being charged, taken from the `X-Actor-Request-ID` header of the incoming request.
+     * Required for multi-tenant Server Actor runs, where it maps the charge to the caller's account instead of the account that started the run.
+     * Ignored elsewhere.
+     */
+    requestId?: string;
 }
 
 export interface ChargeResult {
@@ -95,6 +116,8 @@ export class ChargingManager {
     #isAtHome: boolean;
     #actorRunId?: string;
     #pricingModel?: ActorRunPricingInfo['pricingModel'];
+    /** Multi-tenant Server Actor runs carry no pricing snapshot; pricing comes from the Actor and the platform prices per caller. */
+    #isMultiTenant = false;
     #purgeChargingLogDataset: boolean;
     #useChargingLogDataset: boolean;
     #notPpeWarningPrinted = false;
@@ -110,8 +133,15 @@ export class ChargingManager {
 
     #apifyClient: ApifyClient;
     #configuration: Configuration;
+    #getCurrentRun: () => Promise<ClientActorRun | undefined>;
+    #getCurrentActor: () => Promise<ActorResource | undefined>;
 
-    constructor(configuration: Configuration, apifyClient: ApifyClient) {
+    constructor(
+        configuration: Configuration,
+        apifyClient: ApifyClient,
+        getCurrentRun: () => Promise<ClientActorRun | undefined>,
+        getCurrentActor: () => Promise<ActorResource | undefined>,
+    ) {
         this.#configuration = configuration;
         this.#maxTotalChargeUsd = configuration.maxTotalChargeUsd || Infinity; // convert `0` to `Infinity` in case the value is an empty string
         this.#isAtHome = configuration.isAtHome;
@@ -120,6 +150,8 @@ export class ChargingManager {
         this.#useChargingLogDataset = configuration.useChargingLogDataset;
 
         this.#apifyClient = apifyClient;
+        this.#getCurrentRun = getCurrentRun;
+        this.#getCurrentActor = getCurrentActor;
     }
 
     /** A shortcut - true if the Actor runs with the pay-per-event pricing model. */
@@ -145,9 +177,24 @@ export class ChargingManager {
                 throw new Error('Actor run ID not found even though the Actor is running on Apify');
             }
 
-            const run = await this.#apifyClient.run(this.#actorRunId).get();
+            const run = await this.#getCurrentRun();
             if (run === undefined) {
                 throw new Error('Actor run not found');
+            }
+
+            if (run.standby?.deployment.startsWith('MULTI_TENANT')) {
+                const actor = await this.#getCurrentActor();
+                if (actor === undefined) {
+                    throw new Error('Actor not found');
+                }
+
+                this.#isMultiTenant = true;
+
+                return {
+                    pricingInfo: getEffectivePricingInfo(actor.pricingInfos ?? []),
+                    chargedEventCounts: run.chargedEventCounts,
+                    maxTotalChargeUsd: Infinity, // the platform prices and limits per caller
+                };
             }
 
             return {
@@ -289,9 +336,15 @@ export class ChargingManager {
      *
      * @param options The name of the event to charge for and the number of events to be charged.
      */
-    async charge({ eventName, count = 1, idempotencyKey }: ChargeOptions): Promise<ChargeResult> {
+    async charge({ eventName, count = 1, idempotencyKey, requestId }: ChargeOptions): Promise<ChargeResult> {
         if (idempotencyKey !== undefined && idempotencyKey.trim() === '') {
             throw new Error('idempotencyKey must not be blank');
+        }
+
+        if (this.#isMultiTenant && requestId === undefined && !eventName.startsWith('apify-')) {
+            throw new Error(
+                `Charging for '${eventName}' in a multi-tenant Server Actor run requires \`requestId\` - pass the value of the incoming request's X-Actor-Request-ID header to Actor.charge().`,
+            );
         }
 
         if (!this.isPayPerEvent) {
@@ -379,6 +432,7 @@ export class ChargingManager {
                         eventName,
                         count: chargedCount,
                         idempotencyKey,
+                        requestId,
                     });
                 } else {
                     log.warning(`Attempting to charge for an unknown event '${eventName}'`);
@@ -407,6 +461,7 @@ export class ChargingManager {
                     eventPriceUsd: pricingInfo.price,
                     chargedCount,
                     idempotencyKey,
+                    requestId,
                     timestamp: new Date().toISOString(),
                 });
             }
