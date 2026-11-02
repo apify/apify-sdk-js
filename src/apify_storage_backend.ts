@@ -189,9 +189,6 @@ export class ApifyStorageBackend implements StorageBackend {
         if (alias === DEFAULT_STORAGE_ALIAS) {
             const defaultId = this.#config?.[DEFAULT_ID_CONFIG_KEY[type]];
             if (defaultId) return defaultId;
-        } else {
-            const declaredId = this.aliasFromActorStorages(alias, type);
-            if (declaredId) return declaredId;
         }
 
         return this.resolveAliasId(alias, type);
@@ -210,17 +207,16 @@ export class ApifyStorageBackend implements StorageBackend {
         const key = [type, alias, this.credentialsHash()].join(',');
 
         return this.#aliasLock.runExclusive(async () => {
-            const knownId = this.#aliasIdCache.get(key);
-            if (knownId) return knownId;
-
             const store = this.aliasMappingStore();
             this.#persistedAliasIds ??= store ? await readAliasMapping(store) : {};
 
-            // A persisted id can point at a storage the user has since deleted.
-            const persistedId = this.#persistedAliasIds[key];
-            if (persistedId && (await this.resourceClient(persistedId, type).get())) {
-                this.#aliasIdCache.set(key, persistedId);
-                return persistedId;
+            // A known id can point at a storage deleted since it was resolved. The persisted id wins
+            // over the declared one, as it only exists if the declared storage was gone.
+            const knownId =
+                this.#aliasIdCache.get(key) ?? this.#persistedAliasIds[key] ?? this.aliasFromActorStorages(alias, type);
+            if (knownId && (await this.resourceClient(knownId, type).get())) {
+                this.#aliasIdCache.set(key, knownId);
+                return knownId;
             }
 
             const { id } = await this.collectionClient(type).getOrCreate();

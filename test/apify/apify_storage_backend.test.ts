@@ -1,4 +1,4 @@
-import { RequestQueue } from '@crawlee/core';
+import { Dataset, RequestQueue } from '@crawlee/core';
 import type { ApifyClient, DatasetClient, KeyValueStoreClient } from 'apify-client';
 import { describe, expect, test, vi } from 'vitest';
 
@@ -42,6 +42,9 @@ function createMockApifyClient() {
                       pendingRequestCount: 0,
                   },
         ),
+        delete: vi.fn(async () => {
+            deletedIds.add(id);
+        }),
         getRecord,
         setRecord,
     });
@@ -117,6 +120,22 @@ describe('ApifyStorageBackend', () => {
         expect(client.dataset).toHaveBeenCalledWith('declared-dataset-id');
     });
 
+    test('replaces a declared storage that has since been deleted', async () => {
+        const client = createMockApifyClient();
+        const backend = new ApifyStorageBackend(asApifyClient(client), {
+            configuration: new Configuration({
+                isAtHome: true,
+                defaultKeyValueStoreId: 'default-kvs',
+                actorStoragesJson: JSON.stringify({ datasets: { results: 'declared-dataset-id' } }),
+            }),
+        });
+        client.deletedIds.add('declared-dataset-id');
+
+        await backend.createDatasetBackend({ alias: 'results' });
+
+        expect(client.dataset).toHaveBeenLastCalledWith('unnamed-1');
+    });
+
     test('rejects malformed Actor schema storages', async () => {
         const client = createMockApifyClient();
         const backend = new ApifyStorageBackend(asApifyClient(client), {
@@ -171,6 +190,18 @@ describe('ApifyStorageBackend', () => {
 
         expect(client.dataset).toHaveBeenLastCalledWith('unnamed-2');
         expect(Object.values(client.records.get(ALIAS_MAPPING_RECORD_KEY) as object)).toEqual(['unnamed-2']);
+    });
+
+    test('replaces a storage dropped in this process when its alias is reopened', async () => {
+        const client = createMockApifyClient();
+        const backend = new ApifyStorageBackend(asApifyClient(client), {
+            configuration: new Configuration({ isAtHome: false }),
+        });
+
+        await (await Dataset.open({ alias: 'tmp' }, { storageBackend: backend })).drop();
+        const reopened = await Dataset.open({ alias: 'tmp' }, { storageBackend: backend });
+
+        expect(reopened.id).toBe('unnamed-2');
     });
 
     test('opens a single storage when one alias is resolved concurrently', async () => {
