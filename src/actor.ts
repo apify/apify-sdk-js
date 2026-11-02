@@ -133,6 +133,15 @@ export interface InitOptions {
      * @default 0
      */
     gracefulShutdownDelayMillis?: number;
+    /**
+     * Maximum number of child runs started with `runName` that are in progress at the same time, including the runs
+     * started before a migration or resurrection of this run. At the limit, `Actor.start()`, `call()`, `startTask()`
+     * and `callTask()` with a `runName` wait to start or resurrect a run until another one finishes.
+     *
+     * A run is known to have finished once `call()` or `callTask()` waits for it, otherwise its status is checked
+     * every 10 seconds while a start waits. Child runs started without `runName` are not counted.
+     */
+    maxConcurrentChildRuns?: number;
 }
 
 /**
@@ -688,6 +697,14 @@ export class Actor<Data extends Dictionary = Dictionary> {
             );
         }
 
+        const { maxConcurrentChildRuns } = options;
+        if (
+            maxConcurrentChildRuns !== undefined &&
+            !(Number.isInteger(maxConcurrentChildRuns) && maxConcurrentChildRuns > 0)
+        ) {
+            throw new Error('`maxConcurrentChildRuns` must be a positive integer.');
+        }
+
         this.initialized = true;
 
         checkCrawleeVersion();
@@ -762,6 +779,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
         log.debug(`Default storages purged`);
 
         await this.#childRunTracker.load();
+        this.#childRunTracker.maxConcurrentRuns = maxConcurrentChildRuns ?? Infinity;
 
         await this.#chargingManager.init();
         log.debug(`ChargingManager initialized`, this.#chargingManager.getPricingInfo());
@@ -951,6 +969,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
         const startOptions = { ...otherOptions, runTimeoutSecs, timeoutSecs, signal };
         const { run, resumed } = await this.#childRunTracker.startOrResumeChildRun(
             client,
+            this.apifyClient,
             runName,
             { type: 'actor', id: actorId, input },
             startOptions,
@@ -1005,6 +1024,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
         const startOptions = { ...rest, runTimeoutSecs };
         const { run } = await this.#childRunTracker.startOrResumeChildRun(
             client,
+            this.apifyClient,
             runName,
             { type: 'actor', id: actorId, input },
             startOptions,
@@ -1107,6 +1127,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
         const startOptions = { ...otherOptions, runTimeoutSecs, timeoutSecs, signal };
         const { run } = await this.#childRunTracker.startOrResumeChildRun(
             client,
+            this.apifyClient,
             runName,
             { type: 'task', id: taskId, input },
             startOptions,
@@ -1170,6 +1191,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
         const startOptions = { ...rest, runTimeoutSecs };
         const { run } = await this.#childRunTracker.startOrResumeChildRun(
             client,
+            this.apifyClient,
             runName,
             { type: 'task', id: taskId, input },
             startOptions,
