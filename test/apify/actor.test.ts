@@ -1947,6 +1947,20 @@ describe('Actor', () => {
         });
     });
 
+    describe('Actor.useState', () => {
+        test('does not purge storages the Actor kept with purgeOnStart disabled', async () => {
+            const storageDir = join(process.env.CRAWLEE_STORAGE_DIR!, 'use-state-no-purge');
+            const storeDir = join(storageDir, 'key_value_stores', 'default');
+            await mkdir(storeDir, { recursive: true });
+            await writeFile(join(storeDir, 'KEEP.json'), '{}');
+
+            await initIsolatedDefaultActor({ config: new Configuration({ storageDir, purgeOnStart: false }) });
+            await Actor.useState('STATE');
+
+            expect(existsSync(join(storeDir, 'KEEP.json'))).toBe(true);
+        });
+    });
+
     describe('Actor.pushData', () => {
         test('should work', async () => {
             const defaultStore = await Dataset.open();

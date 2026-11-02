@@ -65,15 +65,15 @@ jobs:
     docs:
         name: Docs build
         if: ${{ !contains(github.event.head_commit.message, '[skip ci]') }}
-        runs-on: ubuntu-24.04
+        runs-on: ubuntu-26.04
         steps:
             - name: Checkout Source code
               uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-            - name: Use Node.js 24
+            - name: Use Node.js
               uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
               with:
-                  node-version: 24
+                  node-version: 26
 
             - name: Install pnpm and dependencies
               uses: apify/actions/pnpm-install@v1.6.2
@@ -138,15 +138,15 @@ jobs:
 
     lint:
         name: Lint
-        runs-on: ubuntu-22.04
+        runs-on: ubuntu-26.04
         steps:
             - name: Checkout repository
               uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-            - name: Use Node.js 24
+            - name: Use Node.js
               uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
               with:
-                  node-version: 24
+                  node-version: 26
 
             - name: Install pnpm and dependencies
               uses: apify/actions/pnpm-install@v1.6.2
@@ -163,7 +163,7 @@ jobs:
     publish:
         name: Publish
         if: (github.ref == 'refs/heads/master') && !contains(github.event.head_commit.message, 'docs:')
-        runs-on: ubuntu-22.04
+        runs-on: ubuntu-26.04
         needs: [lint, build_and_test]
         steps:
             - name: Checkout Source code
@@ -172,10 +172,10 @@ jobs:
                   fetch-depth: 0 # we need to pull everything to have correct dev version suffix
                   ref: ${{ github.ref_name }}
 
-            - name: Use Node.js 24
+            - name: Use Node.js
               uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
               with:
-                  node-version: 24
+                  node-version: 26
 
             - name: Install pnpm and dependencies
               uses: apify/actions/pnpm-install@v1.6.2
