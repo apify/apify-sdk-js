@@ -334,6 +334,10 @@ export class ChargingManager {
      * rather than batching via `count` — this gives finer control over budget consumption
      * and avoids situations where more work is requested than the budget allows.
      *
+     * **Note:** `idempotencyKey` is scoped to the whole run, not to `requestId`. In a multi-tenant
+     * Server Actor run, a key reused across requests charges only the first caller, so it must
+     * be globally unique (e.g. derived from `requestId`).
+     *
      * @param options The name of the event to charge for and the number of events to be charged.
      */
     async charge({ eventName, count = 1, idempotencyKey, requestId }: ChargeOptions): Promise<ChargeResult> {
