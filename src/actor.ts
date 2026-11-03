@@ -808,6 +808,9 @@ export class Actor<Data extends Dictionary = Dictionary> {
             this.off(ACTOR_EVENT_NAMES.MIGRATING, this.#gracefulShutdownHandlers.migrating);
         }
 
+        // Writes the charged event counts one last time, so that a resurrected run continues from them.
+        await this.#chargingManager.teardown();
+
         // Close the event manager and emit the final PERSIST_STATE event
         await events.close();
         log.debug(`Events closed`);
