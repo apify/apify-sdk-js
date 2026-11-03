@@ -5,7 +5,7 @@ import {
     withStorageTransaction,
 } from '@crawlee/core';
 import { Actor } from 'apify';
-import type { KeyValueStoreResource, RunClient } from 'apify-client';
+import type { ActorClient, KeyValueStoreResource, RunClient } from 'apify-client';
 import { KeyValueStoreClient } from 'apify-client';
 import type { MockInstance } from 'vitest';
 import { afterEach, beforeEach, describe, expect, onTestFinished, test } from 'vitest';
@@ -91,6 +91,8 @@ describe('ChargingManager', () => {
         delete process.env.APIFY_IS_AT_HOME;
         delete process.env.APIFY_TOKEN;
         delete process.env.ACTOR_RUN_ID;
+        delete process.env.ACTOR_ID;
+        delete process.env.APIFY_META_ORIGIN;
     });
 
     describe('charge()', () => {
@@ -280,7 +282,71 @@ describe('ChargingManager', () => {
                 eventName: 'test-event',
                 count: 1,
             });
+
+            await Actor.charge({ eventName: 'test-event', requestId: 'some-request-id' });
+            expect(chargeSpy).toHaveBeenLastCalledWith({
+                eventName: 'test-event',
+                count: 1,
+                requestId: 'some-request-id',
+            });
             expect(result2.chargedCount).toBe(1);
+        });
+
+        test('should charge via Actor pricing and require requestId in a multi-tenant Server Actor run', async () => {
+            // Shared-pool runs carry no pricing snapshot, so the SDK must fall back to the Actor's pricing history.
+            setUpPlatformEnv();
+            process.env.APIFY_META_ORIGIN = 'STANDBY';
+            process.env.ACTOR_ID = 'test-actor-id';
+
+            const ppe = (eventPriceUsd: number, startedAt: Date) => ({
+                pricingModel: 'PAY_PER_EVENT',
+                startedAt,
+                pricingPerEvent: { actorChargeEvents: { 'test-event': { eventTitle: 'Test Event', eventPriceUsd } } },
+            });
+            const runGetSpy = vitest
+                .fn()
+                .mockResolvedValue({ standby: { deployment: 'MULTI_TENANT_PAYING_USERS' }, options: {} });
+            const actorGetSpy = vitest.fn().mockResolvedValue({
+                pricingInfos: [
+                    ppe(1, new Date('2020-01-01')),
+                    ppe(2, new Date('2021-01-01')),
+                    ppe(3, new Date('2999-01-01')),
+                ],
+            });
+            const chargeSpy = vitest.fn().mockResolvedValue(undefined);
+
+            // Spies must be in place before init(), which preheats both fetches.
+            const isolated = createIsolatedActor();
+            vitest
+                .spyOn(isolated.actor.apifyClient, 'run')
+                .mockReturnValue({ get: runGetSpy, charge: chargeSpy } as unknown as RunClient);
+            vitest
+                .spyOn(isolated.actor.apifyClient, 'actor')
+                .mockReturnValue({ get: actorGetSpy } as unknown as ActorClient);
+            Actor.setDefaultInstance(isolated.actor);
+            onTestFinished(async () => {
+                await isolated.actor.exit({ exit: false }).catch(() => {});
+                Actor.setDefaultInstance();
+            });
+            await isolated.actor.init();
+            useInMemoryStorage(isolated.serviceLocator);
+
+            // Latest `startedAt <= now`, not the last entry (a scheduled future change).
+            expect(Actor.getChargingManager().getPricingInfo()).toMatchObject({
+                isPayPerEvent: true,
+                maxTotalChargeUsd: Infinity,
+                perEventPrices: { 'test-event': 2 },
+            });
+
+            await expect(Actor.charge({ eventName: 'test-event' })).rejects.toThrow(/requestId/);
+            expect(chargeSpy).not.toHaveBeenCalled();
+
+            const result = await Actor.charge({ eventName: 'test-event', requestId: 'some-request-id' });
+            expect(result.chargedCount).toBe(1);
+            expect(chargeSpy).toHaveBeenCalledWith(expect.objectContaining({ requestId: 'some-request-id' }));
+            // Preheated in init() and cached, so charge() didn't refetch.
+            expect(runGetSpy).toHaveBeenCalledTimes(1);
+            expect(actorGetSpy).toHaveBeenCalledTimes(1);
         });
 
         test('forwards the idempotency key the platform deduplicates on', async () => {

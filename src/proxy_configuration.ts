@@ -400,7 +400,7 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
         if (!token) return;
         try {
             const user = await Actor.apifyClient.user().get();
-            this.#password = user?.proxy?.password;
+            this.#password = user?.proxy?.password ?? undefined;
         } catch (error) {
             if (Actor.isAtHome()) {
                 throw error;

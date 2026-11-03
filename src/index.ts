@@ -48,6 +48,7 @@ export type { QueueOperationInfo } from '@crawlee/types';
 export {
     ApifyClient,
     ApifyClientOptions,
+    ApifyClientError,
     ApifyApiError,
     InvalidRequestError,
     UnauthorizedError,
