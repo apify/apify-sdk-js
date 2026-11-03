@@ -529,20 +529,39 @@ describe('Actor.createProxyConfiguration()', () => {
         getUserSpy.mockRestore();
     });
 
-    // TODO: test that on platform we throw but locally we only print warning
-    test('should throw missing password', async () => {
+    test('should throw missing password on the platform', async () => {
         delete process.env[APIFY_ENV_VARS.PROXY_PASSWORD];
         delete process.env[APIFY_ENV_VARS.TOKEN];
         process.env[APIFY_ENV_VARS.IS_AT_HOME] = '1';
 
-        const status = { connected: true };
-
-        requestStatusSpy.mockResolvedValueOnce(status);
+        requestStatusSpy.mockResolvedValue({ connected: true });
 
         await expect(Actor.createProxyConfiguration()).rejects.toThrow('Apify Proxy password must be provided');
+        await expect(Actor.createProxyConfiguration({ checkAccess: false })).rejects.toThrow(
+            'Apify Proxy password must be provided',
+        );
+    });
 
-        delete process.env[APIFY_ENV_VARS.IS_AT_HOME];
-        await expect(Actor.createProxyConfiguration()).resolves.toBeInstanceOf(ProxyConfiguration);
+    test('should run without proxy locally when the password is missing', async () => {
+        delete process.env[APIFY_ENV_VARS.PROXY_PASSWORD];
+        delete process.env[APIFY_ENV_VARS.TOKEN];
+        const newUrlSpy = vitest.spyOn(ProxyConfiguration.prototype, 'newUrl');
+
+        // The default status mock times out, which on its own would only log a warning.
+        await expect(Actor.createProxyConfiguration()).resolves.toBeUndefined();
+        await expect(Actor.createProxyConfiguration({ checkAccess: false })).resolves.toBeUndefined();
+
+        // No proxy URL (with an `undefined` password) is ever composed.
+        expect(newUrlSpy).not.toHaveBeenCalled();
+        expect(requestStatusSpy).not.toHaveBeenCalled();
+    });
+
+    test('should run without proxy locally when the password fetch fails', async () => {
+        delete process.env[APIFY_ENV_VARS.PROXY_PASSWORD];
+        process.env[APIFY_ENV_VARS.TOKEN] = '123456789';
+        vitest.spyOn(UserClient.prototype, 'get').mockRejectedValue(new Error('Invalid token'));
+
+        await expect(Actor.createProxyConfiguration({ checkAccess: false })).resolves.toBeUndefined();
     });
 
     test('should throw when group is not available', async () => {
@@ -553,14 +572,15 @@ describe('Actor.createProxyConfiguration()', () => {
         const status = { connected: false, connectionError };
         const getUserSpy = vitest.spyOn(UserClient.prototype, 'get');
         getUserSpy.mockResolvedValue(userData as any);
-        requestStatusSpy.mockResolvedValueOnce(status);
+        requestStatusSpy.mockResolvedValue(status);
 
         await expect(Actor.createProxyConfiguration({ groups })).rejects.toThrow(connectionError);
 
-        getUserSpy.mockRestore();
-
+        // Locally, the rejected status check only warns and the run goes without proxy.
         delete process.env[APIFY_ENV_VARS.IS_AT_HOME];
-        await expect(Actor.createProxyConfiguration({ groups })).resolves.toBeInstanceOf(ProxyConfiguration);
+        await expect(Actor.createProxyConfiguration({ groups })).resolves.toBeUndefined();
+
+        getUserSpy.mockRestore();
     });
 
     test('should not throw when access check is unresponsive', async () => {
