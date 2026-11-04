@@ -102,7 +102,7 @@
         "husky": "^9.1.7",
         "lint-staged": "^17.6.0",
         "oxfmt": "0.76.0",
-        "oxlint": "1.90.0",
+        "oxlint": "1.91.0",
         "oxlint-tsgolint": "7.0.2005",
         "playwright": "^1.63.0",
         "puppeteer": "^25.12.0",
