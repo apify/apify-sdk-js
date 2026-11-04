@@ -286,8 +286,8 @@ importers:
   website:
     dependencies:
       '@apify/docs-theme':
-        specifier: ^1.0.279
-        version: 1.0.279(509f677477265586ee7eab594ba84417)
+        specifier: ^1.0.280
+        version: 1.0.280(509f677477265586ee7eab594ba84417)
       '@apify/docusaurus-plugin-typedoc-api':
         specifier: ^5.1.16
         version: 5.1.16(26d2f94dd5e67d597f86e49acbbb636c)
@@ -567,8 +567,8 @@ packages:
       react: '> 18.0.0'
       react-dom: '> 18.0.0'
 
-  '@apify/docs-theme@1.0.279':
-    resolution: {integrity: sha512-9RbdA2iaR7jIyo6IvK7blBbapFjVlCxUO7SJCIzHo1Ag1vnZKAr1wXlZe4NZQUvPxe8f/0tLEF9kH6aj5PX5Ig==}
+  '@apify/docs-theme@1.0.280':
+    resolution: {integrity: sha512-6IZFFiqtq0RVlB9bHe+4BYAWmdMmKcLG3RUG3dCaEWwWcUXTzrTZNxJZsFJ8GyJ7XM0l/6z2t8nMkM39bQ9fAQ==}
     peerDependencies:
       clsx: '*'
       react: '*'
@@ -614,14 +614,14 @@ packages:
   '@apify/tsconfig@0.2.0':
     resolution: {integrity: sha512-0i6rF+hgXw6mQXhENYNTnP+Yo4WY38d698k/pk4rIpdCx/sSuEprR2N5WdtMaN628vCB+aZjff0jPN2EnQYtjQ==}
 
-  '@apify/ui-icons@1.59.0':
-    resolution: {integrity: sha512-v687njf5HctXX6O5D+Zl4tmnUU9w5njRVANmZ4hToMnmR7nsNwHL41ViQuWX4JLw9Ap6KOTWeck7jykxVPNJyw==}
+  '@apify/ui-icons@1.60.0':
+    resolution: {integrity: sha512-QJSs7SN6qXG7SYpXtKWzEDtWkwbws6OCo1KwZkFZujoSk9xey1C+SzQ+FEqpD7f44wH+9dHDRxQOzp6DfNotzQ==}
     peerDependencies:
       react: 17.x || 18.x || 19.x
       react-dom: 17.x || 18.x || 19.x
 
-  '@apify/ui-library@1.172.1':
-    resolution: {integrity: sha512-fUoYXElG6egnF6nVOyJFAyxfRz1sxZj/qbmN6cOPuqV2wMgQb9VgXQFRRE8IpuiZ1fBnxkA4YtOL00ByuWZyAQ==}
+  '@apify/ui-library@1.173.0':
+    resolution: {integrity: sha512-yTMh3QD7fq1wUfCc9Ih5cNai/0mNjBE3oaZCTUFfZU4ghoaZVtocAt+NURWA9N01A0Uj7dt6TJj5VcKiN4fdMA==}
     peerDependencies:
       react: 17.x || 18.x || 19.x
       react-dom: 17.x || 18.x || 19.x
@@ -9568,7 +9568,7 @@ snapshots:
     dependencies:
       '@algolia/autocomplete-js': 1.19.12(@algolia/client-search@5.61.0)(algoliasearch@4.27.0)(search-insights@2.17.3)
       '@algolia/autocomplete-theme-classic': 1.19.12
-      '@apify/ui-library': 1.172.1(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(styled-components@5.3.11(@babel/core@7.29.7(supports-color@8.1.1))(react-dom@19.3.1(react@19.3.1))(react-is@16.13.1)(react@19.3.1))(supports-color@8.1.1)
+      '@apify/ui-library': 1.173.0(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(styled-components@5.3.11(@babel/core@7.29.7(supports-color@8.1.1))(react-dom@19.3.1(react@19.3.1))(react-is@16.13.1)(react@19.3.1))(supports-color@8.1.1)
       algoliasearch: 4.27.0
       html-entities: 2.6.0
       react: 19.3.1
@@ -9586,11 +9586,11 @@ snapshots:
       - search-insights
       - supports-color
 
-  '@apify/docs-theme@1.0.279(509f677477265586ee7eab594ba84417)':
+  '@apify/docs-theme@1.0.280(509f677477265586ee7eab594ba84417)':
     dependencies:
       '@apify/docs-search-modal': 1.4.0(@algolia/client-search@5.61.0)(@babel/core@7.29.7(supports-color@8.1.1))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react-is@16.13.1)(react@19.3.1)(search-insights@2.17.3)(supports-color@8.1.1)
-      '@apify/ui-icons': 1.59.0(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
-      '@apify/ui-library': 1.172.1(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(styled-components@6.6.0(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(supports-color@8.1.1)
+      '@apify/ui-icons': 1.60.0(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
+      '@apify/ui-library': 1.173.0(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(styled-components@6.6.0(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(supports-color@8.1.1)
       '@docusaurus/theme-common': 3.10.2(d21a8ec13a14ee9bea4396ff6ffed5f3)
       '@stackql/docusaurus-plugin-hubspot': 1.1.0
       algoliasearch: 5.61.0
@@ -9683,15 +9683,15 @@ snapshots:
 
   '@apify/tsconfig@0.2.0': {}
 
-  '@apify/ui-icons@1.59.0(react-dom@19.3.1(react@19.3.1))(react@19.3.1)':
+  '@apify/ui-icons@1.60.0(react-dom@19.3.1(react@19.3.1))(react@19.3.1)':
     dependencies:
       clsx: 2.1.1
       react: 19.3.1
       react-dom: 19.3.1(react@19.3.1)
 
-  '@apify/ui-library@1.172.1(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(styled-components@5.3.11(@babel/core@7.29.7(supports-color@8.1.1))(react-dom@19.3.1(react@19.3.1))(react-is@16.13.1)(react@19.3.1))(supports-color@8.1.1)':
+  '@apify/ui-library@1.173.0(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(styled-components@5.3.11(@babel/core@7.29.7(supports-color@8.1.1))(react-dom@19.3.1(react@19.3.1))(react-is@16.13.1)(react@19.3.1))(supports-color@8.1.1)':
     dependencies:
-      '@apify/ui-icons': 1.59.0(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
+      '@apify/ui-icons': 1.60.0(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       '@floating-ui/react': 0.27.20(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       '@floating-ui/react-dom': 2.1.9(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       '@radix-ui/react-checkbox': 1.4.1(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
@@ -9725,9 +9725,9 @@ snapshots:
       - '@types/react-dom'
       - supports-color
 
-  '@apify/ui-library@1.172.1(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(styled-components@6.6.0(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(supports-color@8.1.1)':
+  '@apify/ui-library@1.173.0(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(styled-components@6.6.0(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(supports-color@8.1.1)':
     dependencies:
-      '@apify/ui-icons': 1.59.0(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
+      '@apify/ui-icons': 1.60.0(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       '@floating-ui/react': 0.27.20(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       '@floating-ui/react-dom': 2.1.9(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       '@radix-ui/react-checkbox': 1.4.1(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
