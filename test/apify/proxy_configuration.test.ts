@@ -163,6 +163,13 @@ describe('ProxyConfiguration', () => {
         expect(info.countryCode).toStrictEqual(apifyProxyCountry);
     });
 
+    test('accepts `checkAccess` and skips the proxy status check in initialize()', async () => {
+        const proxyConfiguration = new ProxyConfiguration({ ...basicOpts, checkAccess: false });
+
+        expect(await proxyConfiguration.initialize()).toBe(true);
+        expect(requestStatusSpy).not.toHaveBeenCalled();
+    });
+
     describe('subdivisionCode', () => {
         test('is embedded into the country username parameter', async () => {
             const proxyConfiguration = new ProxyConfiguration({
