@@ -133,6 +133,15 @@ export interface InitOptions {
      * @default 0
      */
     gracefulShutdownDelayMillis?: number;
+    /**
+     * Maximum number of child runs started by `Actor.start()`, `call()`, `startTask()` and `callTask()` that are in
+     * progress at the same time. At the limit, these wait to start or resurrect a run until another one finishes.
+     * There is no limit by default. Once this run is being aborted, a start that waits at the limit throws.
+     *
+     * Runs started with `runName` are tracked across migrations and restarts of this run. Runs started without
+     * `runName` are forgotten after a migration and no longer count towards the limit.
+     */
+    maxConcurrentChildRuns?: number;
 }
 
 /**
@@ -545,7 +554,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
     #chargingManager: ChargingManager;
 
     /** Aborts the child runs started with `abortWithParent` on the `aborting` event. */
-    readonly #abortChildRunsWithParent = async () => this.#childRunTracker.abortRunsWithParent(this.apifyClient);
+    readonly #abortChildRunsWithParent = async () => this.#childRunTracker.abortRunsWithParent();
 
     /** How Apify platform request queues are consumed; set from {@link InitOptions.requestQueueAccess}. */
     #requestQueueAccess: RequestQueueAccessMode = 'single';
@@ -583,7 +592,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
             [ACTOR_EVENT_NAMES.ABORTING]: this.#abortChildRunsWithParent,
         });
         this.#chargingManager = new ChargingManager(this.configuration, this.apifyClient);
-        this.#childRunTracker = new ChildRunTracker();
+        this.#childRunTracker = new ChildRunTracker(this.apifyClient);
     }
 
     /**
@@ -687,6 +696,13 @@ export class Actor<Data extends Dictionary = Dictionary> {
                 ].join('\n'),
             );
         }
+
+        this.#childRunTracker.maxConcurrentRuns =
+            parseArgument(
+                options.maxConcurrentChildRuns,
+                z.number().int().positive().optional(),
+                'maxConcurrentChildRuns',
+            ) ?? Infinity;
 
         this.initialized = true;
 
@@ -939,13 +955,11 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @ignore
      */
     async call(actorId: string, input?: ActorInput, options: CallOptions = {}): Promise<ClientActorRun> {
-        const runTimeoutSecs = options.timeout === 'inherit' ? this.getRemainingTimeSecs() : options.timeout;
+        const runTimeoutSecs = () => (options.timeout === 'inherit' ? this.getRemainingTimeSecs() : options.timeout);
         const { token, timeout: _timeout, runName, abortWithParent = false, ...rest } = options;
         const client = token ? this.newClient({ token }) : this.apifyClient;
 
         if (abortWithParent && !runName) throw new Error('`abortWithParent` requires `runName`.');
-
-        if (!runName) return client.actor(actorId).call(input, { ...rest, runTimeoutSecs });
 
         const { waitSecs, log, timeoutSecs = 'noTimeout', signal, ...otherOptions } = rest;
         const startOptions = { ...otherOptions, runTimeoutSecs, timeoutSecs, signal };
@@ -955,7 +969,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
             { type: 'actor', id: actorId, input },
             startOptions,
             abortWithParent,
-            async () => client.actor(actorId).start(input, startOptions),
+            async () => client.actor(actorId).start(input, { ...startOptions, runTimeoutSecs: runTimeoutSecs() }),
         );
 
         // The earlier part of a resumed run's log was already redirected before the migration.
@@ -994,13 +1008,11 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @ignore
      */
     async start(actorId: string, input?: ActorInput, options: StartOptions = {}): Promise<ClientActorRun> {
-        const runTimeoutSecs = options.timeout === 'inherit' ? this.getRemainingTimeSecs() : options.timeout;
+        const runTimeoutSecs = () => (options.timeout === 'inherit' ? this.getRemainingTimeSecs() : options.timeout);
         const { token, timeout: _timeout, runName, abortWithParent = false, ...rest } = options;
         const client = token ? this.newClient({ token }) : this.apifyClient;
 
         if (abortWithParent && !runName) throw new Error('`abortWithParent` requires `runName`.');
-
-        if (!runName) return client.actor(actorId).start(input, { ...rest, runTimeoutSecs });
 
         const startOptions = { ...rest, runTimeoutSecs };
         const { run } = await this.#childRunTracker.startOrResumeChildRun(
@@ -1009,7 +1021,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
             { type: 'actor', id: actorId, input },
             startOptions,
             abortWithParent,
-            async () => client.actor(actorId).start(input, startOptions),
+            async () => client.actor(actorId).start(input, { ...startOptions, runTimeoutSecs: runTimeoutSecs() }),
         );
         return run;
     }
@@ -1095,13 +1107,11 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @ignore
      */
     async callTask(taskId: string, input?: Dictionary, options: CallTaskOptions = {}): Promise<ClientActorRun> {
-        const runTimeoutSecs = options.timeout === 'inherit' ? this.getRemainingTimeSecs() : options.timeout;
+        const runTimeoutSecs = () => (options.timeout === 'inherit' ? this.getRemainingTimeSecs() : options.timeout);
         const { token, timeout: _timeout, runName, abortWithParent = false, ...rest } = options;
         const client = token ? this.newClient({ token }) : this.apifyClient;
 
         if (abortWithParent && !runName) throw new Error('`abortWithParent` requires `runName`.');
-
-        if (!runName) return client.task(taskId).call(input, { ...rest, runTimeoutSecs });
 
         const { waitSecs, timeoutSecs = 'noTimeout', signal, ...otherOptions } = rest;
         const startOptions = { ...otherOptions, runTimeoutSecs, timeoutSecs, signal };
@@ -1111,7 +1121,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
             { type: 'task', id: taskId, input },
             startOptions,
             abortWithParent,
-            async () => client.task(taskId).start(input, startOptions),
+            async () => client.task(taskId).start(input, { ...startOptions, runTimeoutSecs: runTimeoutSecs() }),
         );
         const finishedRun = await client.run(run.id).waitForFinish({ waitSecs, timeoutSecs, signal });
         await this.#childRunTracker.update(runName, finishedRun);
@@ -1132,7 +1142,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      */
     get childRuns(): Record<string, RunClient> {
         this.ensureActorInit('childRuns');
-        return this.#childRunTracker.getRunClients(this.apifyClient);
+        return this.#childRunTracker.getRunClients();
     }
 
     /**
@@ -1159,13 +1169,11 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @ignore
      */
     async startTask(taskId: string, input?: Dictionary, options: StartTaskOptions = {}): Promise<ClientActorRun> {
-        const runTimeoutSecs = options.timeout === 'inherit' ? this.getRemainingTimeSecs() : options.timeout;
+        const runTimeoutSecs = () => (options.timeout === 'inherit' ? this.getRemainingTimeSecs() : options.timeout);
         const { token, timeout: _timeout, runName, abortWithParent = false, ...rest } = options;
         const client = token ? this.newClient({ token }) : this.apifyClient;
 
         if (abortWithParent && !runName) throw new Error('`abortWithParent` requires `runName`.');
-
-        if (!runName) return client.task(taskId).start(input, { ...rest, runTimeoutSecs });
 
         const startOptions = { ...rest, runTimeoutSecs };
         const { run } = await this.#childRunTracker.startOrResumeChildRun(
@@ -1174,7 +1182,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
             { type: 'task', id: taskId, input },
             startOptions,
             abortWithParent,
-            async () => client.task(taskId).start(input, startOptions),
+            async () => client.task(taskId).start(input, { ...startOptions, runTimeoutSecs: runTimeoutSecs() }),
         );
         return run;
     }
