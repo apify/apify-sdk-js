@@ -70,7 +70,6 @@ const toInfo = (run: ActorRun): ChildRunInfo => ({
 });
 
 const CHILD_RUNS_KVS_KEY = '__ACTOR_CHILD_RUNS';
-const UNNAMED_CHILD_RUNS_KVS_KEY = '__ACTOR_UNNAMED_CHILD_RUNS';
 
 const childRunInfoSchema = z.object({ runId: z.string(), status: z.string(), startedAt: z.string() });
 const trackedRunsSchema = z.record(
@@ -81,17 +80,10 @@ const trackedRunsSchema = z.record(
         abortWithParent: z.boolean().default(false),
     }),
 );
-const unnamedRunsSchema = z.array(childRunInfoSchema);
-
-const parseStored = <T extends z.ZodType>(schema: T, value: unknown, key: string): z.output<T> => {
-    const parsed = schema.safeParse(value);
-    if (!parsed.success) {
-        throw new Error(`The child runs stored under the "${key}" key in the default key-value store are malformed.`, {
-            cause: parsed.error,
-        });
-    }
-    return parsed.data;
-};
+const childRunsSchema = z.object({
+    named: trackedRunsSchema.default({}),
+    unnamed: z.array(childRunInfoSchema).default([]),
+});
 
 /** How many times a tracked run that the API reports as missing is looked up again before it counts as gone. */
 const NOT_FOUND_RETRIES = 12;
@@ -170,7 +162,7 @@ export class ChildRunTracker {
             await this.load();
             const run = await start();
             this.unnamedRuns.push(toInfo(run));
-            await this.persist(UNNAMED_CHILD_RUNS_KVS_KEY, this.unnamedRuns);
+            await this.persist();
             return { run, resumed: false };
         }
 
@@ -264,7 +256,7 @@ export class ChildRunTracker {
             } else {
                 this.unnamedRuns.splice(index, 1);
             }
-            await this.persist(UNNAMED_CHILD_RUNS_KVS_KEY, this.unnamedRuns);
+            await this.persist();
             return;
         }
 
@@ -346,11 +338,11 @@ export class ChildRunTracker {
         return this.locks.get(runName)!;
     }
 
-    private async persist(key = CHILD_RUNS_KVS_KEY, value: unknown = this.trackedRuns) {
+    private async persist() {
         const write = this.lastWrite.then(async () =>
             withDirectStorageAccess(async () => {
                 const defaultStore = await KeyValueStore.open();
-                await defaultStore.setValue(key, value);
+                await defaultStore.setValue(CHILD_RUNS_KVS_KEY, { named: this.trackedRuns, unnamed: this.unnamedRuns });
             }),
         );
         this.lastWrite = write.catch(() => {});
@@ -362,22 +354,17 @@ export class ChildRunTracker {
      */
     async load() {
         this.loading ??= KeyValueStore.open()
-            .then(async (defaultStore) =>
-                Promise.all([
-                    defaultStore.getValue(CHILD_RUNS_KVS_KEY),
-                    defaultStore.getValue(UNNAMED_CHILD_RUNS_KVS_KEY),
-                ]),
-            )
-            .then(([storedRuns, storedUnnamedRuns]) => {
-                this.trackedRuns = parseStored(trackedRunsSchema, storedRuns ?? {}, CHILD_RUNS_KVS_KEY) as Record<
-                    string,
-                    TrackedChildRun
-                >;
-                this.unnamedRuns = parseStored(
-                    unnamedRunsSchema,
-                    storedUnnamedRuns ?? [],
-                    UNNAMED_CHILD_RUNS_KVS_KEY,
-                ) as ChildRunInfo[];
+            .then(async (defaultStore) => defaultStore.getValue(CHILD_RUNS_KVS_KEY))
+            .then((storedRuns) => {
+                const parsed = childRunsSchema.safeParse(storedRuns ?? {});
+                if (!parsed.success) {
+                    throw new Error(
+                        `The child runs stored under the "${CHILD_RUNS_KVS_KEY}" key in the default key-value store are malformed.`,
+                        { cause: parsed.error },
+                    );
+                }
+                this.trackedRuns = parsed.data.named as Record<string, TrackedChildRun>;
+                this.unnamedRuns = parsed.data.unnamed as ChildRunInfo[];
             })
             .catch((error) => {
                 this.loading = undefined;

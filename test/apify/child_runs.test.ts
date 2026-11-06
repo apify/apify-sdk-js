@@ -52,10 +52,12 @@ describe('child run tracking with `runName`', () => {
     let getStreamedLogSpy: MockInstance;
     let resurrectSpy: MockInstance;
 
-    const getChildRunLedger = async (actor: Actor) =>
-        (await actor.openKeyValueStore()).getValue<Record<string, TrackedChildRun>>('__ACTOR_CHILD_RUNS');
-    const getUnnamedChildRuns = async (actor: Actor) =>
-        (await actor.openKeyValueStore()).getValue<ChildRunInfo[]>('__ACTOR_UNNAMED_CHILD_RUNS');
+    const getStoredChildRuns = async (actor: Actor) =>
+        (await actor.openKeyValueStore()).getValue<{ named: Record<string, TrackedChildRun>; unnamed: ChildRunInfo[] }>(
+            '__ACTOR_CHILD_RUNS',
+        );
+    const getChildRunLedger = async (actor: Actor) => (await getStoredChildRuns(actor))?.named;
+    const getUnnamedChildRuns = async (actor: Actor) => (await getStoredChildRuns(actor))?.unnamed;
     const newActor = () => createIsolatedActor({ storageClient: storage }).actor;
 
     beforeEach(() => {
@@ -261,14 +263,14 @@ describe('child run tracking with `runName`', () => {
         expect(actor.childRuns[runName].id).toBe(startedRun.id);
     });
 
-    test.each([
-        ['__ACTOR_CHILD_RUNS', { [runName]: { runId: 42 } }],
-        ['__ACTOR_UNNAMED_CHILD_RUNS', [{ runId: 42 }]],
-    ])('init() throws when the child runs stored under %s are malformed', async (key, value) => {
-        await (await newActor().openKeyValueStore()).setValue(key, value);
+    test.each([{ named: { [runName]: { runId: 42 } } }, { unnamed: [{ runId: 42 }] }])(
+        'init() throws when the stored child runs are malformed: %o',
+        async (storedRuns) => {
+            await (await newActor().openKeyValueStore()).setValue('__ACTOR_CHILD_RUNS', storedRuns);
 
-        await expect(newActor().init()).rejects.toThrow(new RegExp(`${key}.*malformed`));
-    });
+            await expect(newActor().init()).rejects.toThrow(/__ACTOR_CHILD_RUNS.*malformed/);
+        },
+    );
 
     test('childRuns uses the token a run was started with in this process', async () => {
         await newActor().start(actId, input, { runName: 'before-migration' });
@@ -447,7 +449,7 @@ describe('child run tracking with `runName`', () => {
             await actor.start(actId, input);
 
             expect(startSpy).toBeCalledTimes(1);
-            expect(await getChildRunLedger(actor)).toBeNull();
+            expect(await getChildRunLedger(actor)).toEqual({});
             expect(await getUnnamedChildRuns(actor)).toEqual([trackedInfo]);
         });
 

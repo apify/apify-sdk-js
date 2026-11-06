@@ -345,8 +345,8 @@ export interface ChildRunOptions {
      * is resurrected with the given options, once it finishes aborting or timing out. A run that failed is replaced
      * by a new one. Reusing the name for a different Actor, task or input throws, unless the tracked run is replaced.
      *
-     * A run started without `runName` is stored in the default key-value store under the `__ACTOR_UNNAMED_CHILD_RUNS`
-     * key until `call()` or `callTask()` sees it finished.
+     * A run started without `runName` is stored under the `__ACTOR_CHILD_RUNS` key in the default key-value store too,
+     * until `call()` or `callTask()` sees it finished.
      */
     runName?: string;
     /**
