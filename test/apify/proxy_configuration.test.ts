@@ -112,6 +112,13 @@ describe('ProxyConfiguration', () => {
         expect(proxyConfiguration.countryCode).toStrictEqual(apifyProxyCountry);
     });
 
+    test('accepts `checkAccess` and skips the proxy status check in initialize()', async () => {
+        const proxyConfiguration = new ProxyConfiguration({ ...basicOpts, checkAccess: false });
+
+        expect(await proxyConfiguration.initialize()).toBe(true);
+        expect(gotScrapingSpy).not.toHaveBeenCalled();
+    });
+
     test('subdivisionCode should produce country-US_XX in proxy URL', async () => {
         const proxyConfiguration = new ProxyConfiguration({
             groups,

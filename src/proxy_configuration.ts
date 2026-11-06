@@ -190,6 +190,7 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
     private hostname: string;
     private port?: number;
     private usesApifyProxy?: boolean;
+    private checkAccess?: boolean;
 
     /**
      * @internal
@@ -260,6 +261,7 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
         this.hostname = hostname!;
         this.port = port;
         this.usesApifyProxy = !this.proxyUrls && !this.newUrlFunction;
+        this.checkAccess = options.checkAccess;
 
         if (proxyUrls && proxyUrls.some((url) => url?.includes('apify.com'))) {
             this.log.warning(
@@ -303,7 +305,7 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
                 }
             }
 
-            if (options?.checkAccess !== false) {
+            if ((options?.checkAccess ?? this.checkAccess) !== false) {
                 return this._checkAccess();
             }
         }
