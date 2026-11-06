@@ -697,13 +697,11 @@ export class Actor<Data extends Dictionary = Dictionary> {
             );
         }
 
-        const { maxConcurrentChildRuns } = options;
-        if (
-            maxConcurrentChildRuns !== undefined &&
-            !(Number.isInteger(maxConcurrentChildRuns) && maxConcurrentChildRuns > 0)
-        ) {
-            throw new Error('`maxConcurrentChildRuns` must be a positive integer.');
-        }
+        const maxConcurrentChildRuns = parseArgument(
+            options.maxConcurrentChildRuns,
+            z.number().int().positive().optional(),
+            'maxConcurrentChildRuns',
+        );
 
         this.initialized = true;
 

@@ -700,7 +700,9 @@ describe('child run tracking with `runName`', () => {
         test.each([0, -1, 1.5, NaN])(
             'init() throws with `maxConcurrentChildRuns: %s`',
             async (maxConcurrentChildRuns) => {
-                await expect(newActor().init({ maxConcurrentChildRuns })).rejects.toThrow(/positive integer/);
+                await expect(newActor().init({ maxConcurrentChildRuns })).rejects.toThrow(
+                    /in `maxConcurrentChildRuns`/,
+                );
             },
         );
 
