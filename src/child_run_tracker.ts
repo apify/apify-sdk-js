@@ -279,18 +279,31 @@ export class ChildRunTracker {
     private async refreshActiveRuns() {
         this.lastActiveRunsRefreshAt = Date.now();
         const runClients = this.getRunClients(this.defaultClient);
+        const lookUp = async (runId: string, runClient: RunClient) => {
+            try {
+                return (await getTrackedRun(runClient)) ?? { id: runId, status: 'LOST' as const };
+            } catch (error) {
+                log.warning(
+                    `Failed to look up a child run, keeping its last known status: ${(error as Error).message}`,
+                    {
+                        runId,
+                    },
+                );
+                return undefined;
+            }
+        };
         await Promise.all([
             ...Object.entries(this.trackedRuns)
                 .filter(([, { status }]) => ACTIVE_STATUSES.includes(status))
                 .map(async ([runName, { runId, status }]) => {
-                    const run = await getTrackedRun(runClients[runName]);
+                    const run = await lookUp(runId, runClients[runName]);
                     // Keeps a newer status recorded meanwhile, e.g. by `Actor.call()` once the run finished.
-                    if (this.trackedRuns[runName]?.status !== status) return;
-                    await this.update(runName, run ?? { id: runId, status: 'LOST' });
+                    if (!run || this.trackedRuns[runName]?.status !== status) return;
+                    await this.update(runName, run);
                 }),
             ...[...this.unnamedRuns].map(async ([runId, client]) => {
-                const run = await getTrackedRun(client.run(runId));
-                await this.update(undefined, run ?? { id: runId, status: 'LOST' });
+                const run = await lookUp(runId, client.run(runId));
+                if (run) await this.update(undefined, run);
             }),
         ]);
     }

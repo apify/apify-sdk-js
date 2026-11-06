@@ -831,6 +831,23 @@ describe('child run tracking with `runName`', () => {
             expect(startSpy.mock.lastCall![1].runTimeoutSecs).toBeLessThanOrEqual(300);
         });
 
+        test('a run that fails to be looked up keeps its slot instead of failing the waiting start', async () => {
+            const warningSpy = vitest.spyOn(log, 'warning');
+            const { actor } = await newLimitedActor();
+            startSpy.mockResolvedValueOnce(childRun('a')).mockResolvedValueOnce(childRun('b'));
+            await actor.start(actId, input, { runName: 'a' });
+            getSpy.mockRejectedValueOnce(new Error('Forbidden'));
+
+            const waiting = actor.start(actId, input, { runName: 'b' });
+            await vitest.advanceTimersByTimeAsync(5_000);
+            expect(warningSpy).toBeCalledWith(expect.stringContaining('Forbidden'), { runId: 'a' });
+
+            runStatuses.a = 'SUCCEEDED';
+            await vitest.advanceTimersByTimeAsync(5_000);
+
+            expect(await waiting).toEqual(childRun('b'));
+        });
+
         test('start() returns an active tracked run without waiting for a free slot', async () => {
             const { actor } = await newLimitedActor();
             startSpy.mockResolvedValueOnce(childRun('a'));
