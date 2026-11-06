@@ -6,7 +6,7 @@ import { Actor } from 'apify';
 await Actor.init();
 
 const { mode, childSleepSecs } = (await Actor.getInput()) ?? {};
-const { actorId } = Actor.getEnv();
+const { actorId } = Actor.configuration;
 const childInput = { childSleepSecs: mode === 'resurrect' ? 300 : 20 };
 const childRunId = await Actor.getValue('CHILD_RUN_ID');
 

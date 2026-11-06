@@ -10,7 +10,6 @@ import type {
     UseStateOptions,
 } from '@crawlee/core';
 import {
-    coerceBoolean,
     Dataset,
     EventType,
     KeyValueStore,
@@ -38,13 +37,7 @@ import type {
 import { ApifyClient, Run as ClientActorRun } from 'apify-client';
 import { z } from 'zod';
 
-import {
-    ACTOR_ENV_VARS,
-    ACTOR_EVENT_NAMES,
-    type ACTOR_PERMISSION_LEVEL,
-    APIFY_ENV_VARS,
-    INTEGER_ENV_VARS,
-} from '@apify/consts';
+import { ACTOR_ENV_VARS, ACTOR_EVENT_NAMES, APIFY_ENV_VARS } from '@apify/consts';
 import { decryptInputSecrets } from '@apify/input_secrets';
 import log from '@apify/log';
 import { addTimeoutToPromise } from '@apify/timeout';
@@ -73,17 +66,7 @@ import {
     isNonEmptyObject,
     JSON_CONTENT_TYPE,
     parseInputValue,
-    snakeCaseToCamelCase,
 } from './utils.js';
-
-// `@apify/consts` has no boolean counterpart to `INTEGER_ENV_VARS`.
-const BOOLEAN_ENV_VARS: readonly string[] = [APIFY_ENV_VARS.USER_IS_PAYING];
-
-// Still listed in `@apify/consts`, but no longer read by the SDK.
-const IGNORED_ENV_VARS: readonly string[] = [
-    APIFY_ENV_VARS.DISABLE_OUTDATED_WARNING,
-    APIFY_ENV_VARS.SDK_LATEST_VERSION,
-];
 
 /**
  * {@link parseInputValue} with the parser error wrapped as an {@apilink ActorInputError}, so a malformed
@@ -173,150 +156,6 @@ export interface SetStatusMessageOptions {
     level?: 'DEBUG' | 'INFO' | 'WARNING' | 'ERROR';
 }
 
-/**
- * Parsed representation of the Apify environment variables.
- * This object is returned by the {@apilink Actor.getEnv} function.
- */
-export interface ApifyEnv {
-    // TODO: if this interface hasn't been changed for a while, you
-    // are invited to check if there are any new env vars (refer to APIFY_ENV_VARS and ACTOR_ENV_VARS)
-
-    /**
-     * ID of the Actor (ACTOR_ID)
-     */
-    actorId: string | null;
-
-    /**
-     * ID of the Actor run (ACTOR_RUN_ID)
-     */
-    actorRunId: string | null;
-
-    /**
-     * ID of the Actor task (ACTOR_TASK_ID)
-     */
-    actorTaskId: string | null;
-
-    /**
-     * ID of the Actor build used in the run. (ACTOR_BUILD_ID)
-     */
-    actorBuildId: string | null;
-
-    /**
-     * [Permission level](https://docs.apify.com/platform/actors/development/permissions) the Actor is run under. (ACTOR_PERMISSION_LEVEL)
-     */
-    actorPermissionLevel: ACTOR_PERMISSION_LEVEL | null;
-
-    /**
-     * ID of the user who started the Actor - note that it might be
-     * different than the owner of the Actor (APIFY_USER_ID)
-     */
-    userId: string | null;
-
-    /**
-     * Whether the user who started the Actor is a paying user. `false` when not set. (APIFY_USER_IS_PAYING)
-     */
-    userIsPaying: boolean;
-
-    /**
-     * Authentication token representing privileges given to the Actor run,
-     * it can be passed to various Apify APIs (APIFY_TOKEN)
-     */
-    token: string | null;
-
-    /**
-     * Date when the Actor was started (ACTOR_STARTED_AT)
-     */
-    startedAt: Date | null;
-
-    /**
-     * Date when the Actor will time out (ACTOR_TIMEOUT_AT)
-     */
-    timeoutAt: Date | null;
-
-    /**
-     * ID of the key-value store where input and output data of this
-     * Actor is stored (ACTOR_DEFAULT_KEY_VALUE_STORE_ID)
-     */
-    defaultKeyValueStoreId: string | null;
-
-    /**
-     * ID of the dataset where input and output data of this
-     * Actor is stored (ACTOR_DEFAULT_DATASET_ID)
-     */
-    defaultDatasetId: string | null;
-
-    /**
-     * Amount of memory allocated for the Actor,
-     * in megabytes (ACTOR_MEMORY_MBYTES)
-     */
-    memoryMbytes: number | null;
-
-    /**
-     * If set to "1", the web browsers inside the Actor should run in headless
-     * mode because there is no windowing system available. (APIFY_HEADLESS)
-     */
-    headless: string | null;
-
-    /**
-     * Is set to "1" if the Actor is running on Apify servers.
-     * (APIFY_IS_AT_HOME)
-     */
-    isAtHome: string | null;
-
-    /**
-     * The Apify Proxy password of the user who started the Actor. (APIFY_PROXY_PASSWORD)
-     */
-    proxyPassword: string | null;
-    proxyHostname: string | null;
-    proxyPort: string | null;
-
-    /**
-     * You can visit this page to troubleshoot your proxy connection. (APIFY_PROXY_STATUS_URL)
-     */
-    proxyStatusUrl: string | null;
-    apiBaseUrl: string | null;
-    apiPublicBaseUrl: string | null;
-    chromeExecutablePath: string | null;
-    dedicatedCpus: string | null;
-    fact: string | null;
-    inputSecretsPrivateKeyFile: string | null;
-    inputSecretsPrivateKeyPassphrase: string | null;
-
-    /**
-     * Defines the path to a local directory where KeyValueStore, Dataset, and RequestQueue
-     * store their data. Typically, it is set to ./storage. If omitted, you should define the
-     * APIFY_TOKEN environment variable instead. See more info on combination of this and
-     * APIFY_TOKEN [here](https://docs.apify.com/sdk/js/docs/concepts/environment-variables#combinations-of-apify_local_storage_dir-and-apify_token)(CRAWLEE_STORAGE_DIR)
-     */
-    localStorageDir: string | null;
-
-    /**
-     * Specifies the minimum log level, which can be one of the following values (in order of severity): DEBUG, INFO, WARNING and ERROR
-     * (APIFY_LOG_LEVEL)
-     */
-    logLevel: string | null;
-    logFormat: string | null;
-
-    /**
-     * Origin for the Actor run, i.e. how it was started. See [here](https://docs.apify.com/platform/actors/running/runs-and-builds#origin)
-     * for more details. (APIFY_META_ORIGIN)
-     */
-    metaOrigin: string | null;
-
-    /**
-     * The key of the input record in the Actor’s default key-value store (ACTOR_INPUT_KEY)
-     */
-    inputKey: string | null;
-    systemInfoIntervalMillis: string | null;
-    workflowKey: string | null;
-    actorBuildNumber: string | null;
-    actorEventsWsUrl: string | null;
-    actorMaxPaidDatasetItems: number | null;
-    containerPort: number | null;
-    containerUrl: string | null;
-    defaultRequestQueueId: string | null;
-}
-
 export type UserFunc<T = unknown> = () => Awaitable<T>;
 
 export interface Token {
@@ -400,8 +239,7 @@ export interface WebhookOptions {
     /**
      * Idempotency key enables you to ensure that a webhook will not be added multiple times in case of
      * an Actor restart or other situation that would cause the `addWebhook()` function to be called again.
-     * We suggest using the Actor run ID as the idempotency key. You can get the run ID by calling
-     * {@apilink Actor.getEnv} function.
+     * We suggest using the Actor run ID as the idempotency key, available as `Actor.configuration.actorRunId`.
      */
     idempotencyKey?: string;
 
@@ -1891,62 +1729,6 @@ export class Actor<Data extends Dictionary = Dictionary> {
     }
 
     /**
-     * Modifies Actor env vars so parsing respects the structure of {@apilink ApifyEnv} interface.
-     */
-    private getModifiedActorEnvVars() {
-        const modifiedActorEnvVars: Record<string, string> = {};
-
-        Object.entries(ACTOR_ENV_VARS).forEach(([k, v]) => {
-            // Prepend `ACTOR_` to env vars so ApifyEnv structure is preserved
-            if (['ID', 'RUN_ID', 'TASK_ID'].includes(k)) {
-                modifiedActorEnvVars[`ACTOR_${k}`] = v;
-            } else {
-                modifiedActorEnvVars[k] = v;
-            }
-        });
-
-        return modifiedActorEnvVars;
-    }
-
-    /**
-     * Returns a new {@apilink ApifyEnv} object which contains information parsed from all the Apify environment variables.
-     *
-     * For the list of the Apify environment variables, see
-     * [Actor documentation](https://docs.apify.com/platform/actors/development/programming-interface/environment-variables).
-     * If some variables are not defined or are invalid, the corresponding value in the resulting object will be null.
-     * @ignore
-     */
-    getEnv(): ApifyEnv {
-        // NOTE: Don't throw if env vars are invalid to simplify local development and debugging of Actors
-        const env = process.env || {};
-        const envVars = {} as ApifyEnv;
-
-        for (const [shortName, fullName] of Object.entries({
-            ...APIFY_ENV_VARS,
-            ...this.getModifiedActorEnvVars(),
-        })) {
-            if (IGNORED_ENV_VARS.includes(fullName)) continue;
-
-            const camelCaseName = snakeCaseToCamelCase(shortName) as keyof ApifyEnv;
-            let value: string | number | boolean | Date | undefined = env[fullName];
-
-            // Parse booleans, dates and integers.
-            if (BOOLEAN_ENV_VARS.includes(fullName)) {
-                value = !!value && coerceBoolean.parse(value);
-            } else if (value && fullName.endsWith('_AT')) {
-                const unix = Date.parse(value);
-                value = unix > 0 ? new Date(unix) : undefined;
-            } else if ((INTEGER_ENV_VARS as readonly string[]).includes(fullName)) {
-                value = parseInt(value!, 10);
-            }
-
-            Reflect.set(envVars, camelCaseName, value || value === 0 || value === false ? value : null);
-        }
-
-        return envVars;
-    }
-
-    /**
      * Returns a new instance of the Apify API client. The `ApifyClient` class is provided
      * by the [apify-client](https://www.npmjs.com/package/apify-client)
      * NPM package, and it is automatically configured using the `APIFY_API_BASE_URL`, and `APIFY_TOKEN`
@@ -2730,17 +2512,6 @@ export class Actor<Data extends Dictionary = Dictionary> {
     }
 
     /**
-     * Returns a new {@apilink ApifyEnv} object which contains information parsed from all the Apify environment variables.
-     *
-     * For the list of the Apify environment variables, see
-     * [Actor documentation](https://docs.apify.com/platform/actors/development/programming-interface/environment-variables).
-     * If some of the variables are not defined or are invalid, the corresponding value in the resulting object will be null.
-     */
-    static getEnv(): ApifyEnv {
-        return Actor.getDefaultInstance().getEnv();
-    }
-
-    /**
      * Returns a new instance of the Apify API client. The `ApifyClient` class is provided
      * by the [apify-client](https://www.npmjs.com/package/apify-client)
      * NPM package, and it is automatically configured using the `APIFY_API_BASE_URL`, and `APIFY_TOKEN`
@@ -2883,10 +2654,10 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * Returns `undefined` if not on the Apify platform or the current run was started without a timeout.
      */
     private getRemainingTimeSecs(): number | undefined {
-        const env = this.getEnv();
+        const { timeoutAt } = this.configuration;
         const MINIMUM_API_TIMEOUT_SECS = 1;
-        if (this.isAtHome() && env.timeoutAt !== null) {
-            return Math.max(Math.ceil((env.timeoutAt.getTime() - Date.now()) / 1000), MINIMUM_API_TIMEOUT_SECS);
+        if (this.isAtHome() && timeoutAt !== undefined) {
+            return Math.max(Math.ceil((timeoutAt.getTime() - Date.now()) / 1000), MINIMUM_API_TIMEOUT_SECS);
         }
         log.warning(
             'Using `inherit` argument is only possible when the Actor is running on the Apify platform and when the ' +
