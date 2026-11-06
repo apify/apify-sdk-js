@@ -741,7 +741,7 @@ describe('child run tracking with `runName`', () => {
 
             finishFirst();
             await first;
-            await vitest.advanceTimersByTimeAsync(1_000);
+            await vitest.advanceTimersByTimeAsync(0);
 
             expect(startSpy).toBeCalledTimes(2);
             await second;
@@ -877,6 +877,24 @@ describe('child run tracking with `runName`', () => {
             expect(resurrectSpy).toBeCalledTimes(1);
         });
 
+        test('a start that fails wakes a start waiting for its slot', async () => {
+            const { actor } = await newLimitedActor();
+            const failingStart = Promise.withResolvers<ActorRun>();
+            startSpy.mockReturnValueOnce(failingStart.promise).mockResolvedValueOnce(childRun('b'));
+
+            const first = expect(actor.start(actId, input, { runName: 'a' })).rejects.toThrow('boom');
+            const second = actor.start(actId, input, { runName: 'b' });
+            await vitest.advanceTimersByTimeAsync(5_000);
+            expect(startSpy).toBeCalledTimes(1);
+
+            failingStart.reject(new Error('boom'));
+            await first;
+            await vitest.advanceTimersByTimeAsync(0);
+
+            expect(startSpy).toBeCalledTimes(2);
+            expect(await second).toEqual(childRun('b'));
+        });
+
         test('a start that fails frees its slot', async () => {
             const { actor } = await newLimitedActor();
             startSpy.mockRejectedValueOnce(new Error('boom'));
@@ -896,8 +914,9 @@ describe('child run tracking with `runName`', () => {
             const waiting = expect(
                 actor.start(actId, input, { runName: 'b', signal: controller.signal }),
             ).rejects.toThrow('cancelled');
+            await vitest.advanceTimersByTimeAsync(5_000);
             controller.abort(new Error('cancelled'));
-            await vitest.advanceTimersByTimeAsync(1_000);
+            await vitest.advanceTimersByTimeAsync(0);
 
             await waiting;
             expect(startSpy).toBeCalledTimes(1);

@@ -111,7 +111,6 @@ const REUSABLE_STATUSES = ['READY', 'RUNNING', 'SUCCEEDED', ...RESURRECTABLE_STA
 const ABORTED_STATUSES = ['ABORTING', 'ABORTED'];
 const ACTIVE_STATUSES = ['READY', 'RUNNING', ...SETTLING_STATUSES];
 
-const SLOT_POLL_INTERVAL_MILLIS = 1_000;
 /**
  * How often the active runs are looked up while a start waits for a free slot, as a run that nobody waited for
  * in this process (e.g. one started with `Actor.start()`) is not known to have finished otherwise.
@@ -142,6 +141,8 @@ export class ChildRunTracker {
     /** Runs being started or resurrected, which hold a slot before their active status is tracked. */
     private reservedSlots = 0;
     private waitingForSlot = new Set<string>();
+    /** Wake the starts waiting for a free slot, called whenever one may have been freed. */
+    private slotWaiters = new Set<() => void>();
     private lastActiveRunsRefreshAt = 0;
 
     constructor(private readonly defaultClient: ApifyClient) {}
@@ -251,10 +252,11 @@ export class ChildRunTracker {
         if (runName) this.waitingForSlot.add(runName);
         try {
             while (!this.hasFreeSlot()) {
-                if (Date.now() - this.lastActiveRunsRefreshAt >= ACTIVE_RUNS_REFRESH_INTERVAL_MILLIS) {
+                const refreshInMillis = this.lastActiveRunsRefreshAt + ACTIVE_RUNS_REFRESH_INTERVAL_MILLIS - Date.now();
+                if (refreshInMillis <= 0) {
                     await this.refreshActiveRuns();
                 } else {
-                    await sleep(SLOT_POLL_INTERVAL_MILLIS);
+                    await this.waitForFreedSlot(refreshInMillis, signal);
                 }
                 signal?.throwIfAborted();
                 this.assertCanStart(runName, abortWithParent);
@@ -268,7 +270,28 @@ export class ChildRunTracker {
             return await fn();
         } finally {
             this.reservedSlots--;
+            this.notifySlotWaiters();
         }
+    }
+
+    /** Resolves once a slot may have been freed, after `timeoutMillis`, or once `signal` is aborted. */
+    private async waitForFreedSlot(timeoutMillis: number, signal: AbortSignal | undefined) {
+        const { promise, resolve } = Promise.withResolvers<void>();
+        const wake = () => resolve();
+        const timeout = setTimeout(wake, timeoutMillis);
+        this.slotWaiters.add(wake);
+        signal?.addEventListener('abort', wake);
+        try {
+            await promise;
+        } finally {
+            clearTimeout(timeout);
+            this.slotWaiters.delete(wake);
+            signal?.removeEventListener('abort', wake);
+        }
+    }
+
+    private notifySlotWaiters() {
+        for (const wake of this.slotWaiters) wake();
     }
 
     private hasFreeSlot() {
@@ -351,7 +374,10 @@ export class ChildRunTracker {
      */
     async update(runName: string | undefined, run: { id: string; status: ChildRunStatus }) {
         if (!runName) {
-            if (!ACTIVE_STATUSES.includes(run.status)) this.unnamedRuns.delete(run.id);
+            if (!ACTIVE_STATUSES.includes(run.status)) {
+                this.unnamedRuns.delete(run.id);
+                this.notifySlotWaiters();
+            }
             return;
         }
 
@@ -361,6 +387,7 @@ export class ChildRunTracker {
         if (tracked?.runId !== run.id || tracked.status === run.status) return;
 
         tracked.status = run.status;
+        this.notifySlotWaiters();
         await this.persist();
     }
 
@@ -392,6 +419,7 @@ export class ChildRunTracker {
      */
     async abortRunsWithParent() {
         this.isParentAborting = true;
+        this.notifySlotWaiters();
         const trackedRuns = await this.load();
         // A start waiting for a free slot holds the lock of a name with no active run, and throws by itself if it
         // has `abortWithParent`.
