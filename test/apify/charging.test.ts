@@ -1076,6 +1076,28 @@ describe('ChargingManager', () => {
             expect(chargingManager.calculateMaxEventChargeCountWithinLimit('search')).toBe(987);
         });
 
+        test('are written directly when a reboot from inside a storage transaction persists them', async () => {
+            setUpPlatformEnv({ maxTotalChargeUsd: '10', pricingInfo, chargedEventCounts: { search: 1, scrape: 2 } });
+            await initIsolatedDefaultActor({ storage: new MemoryStorageBackend() });
+            vitest.spyOn(Actor.apifyClient, 'run').mockReturnValue({
+                charge: vitest.fn().mockResolvedValue(undefined),
+                reboot: vitest.fn().mockResolvedValue(undefined),
+            } as any);
+            await Actor.charge({ eventName: 'search' });
+
+            // A crawler runs its request handler inside a storage transaction, which buffers key-value store
+            // writes until the handler commits. A reboot from the handler never commits.
+            const transaction = createStorageTransaction();
+            try {
+                await transaction.run(async () => Actor.reboot({ customAfterSleepMillis: 0 }));
+                transaction.rollback();
+            } finally {
+                transaction.dispose();
+            }
+
+            expect(await Actor.getValue(CHARGING_STATE_KEY)).toEqual({ chargedEventCounts: { search: 2, scrape: 2 } });
+        });
+
         test('are kept in memory only in a local run', async () => {
             setUpLocalTestEnv({ maxTotalChargeUsd: '10' });
             const { events } = await initIsolatedDefaultActor({ storage: new MemoryStorageBackend() });
