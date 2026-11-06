@@ -2,7 +2,7 @@ import { setTimeout } from 'node:timers/promises';
 
 import { MemoryStorageBackend } from '@crawlee/core';
 import { sleep } from '@crawlee/utils';
-import type { Actor, PlatformEventManager } from 'apify';
+import type { Actor, InitOptions, PlatformEventManager } from 'apify';
 import type { Run as ActorRun } from 'apify-client';
 import { ActorClient, NotFoundError, RunClient, TaskClient } from 'apify-client';
 import type { MockInstance } from 'vitest';
@@ -55,6 +55,11 @@ describe('child run tracking with `runName`', () => {
     const getChildRunLedger = async (actor: Actor) =>
         (await actor.openKeyValueStore()).getValue<Record<string, TrackedChildRun>>('__ACTOR_CHILD_RUNS');
     const newActor = () => createIsolatedActor({ storageClient: storage }).actor;
+    const newInitializedActor = async (options: InitOptions = {}) => {
+        const { actor, events } = createIsolatedActor({ storageClient: storage });
+        await actor.init({ gracefulShutdown: false, ...options });
+        return { actor, events };
+    };
 
     beforeEach(() => {
         storage = new MemoryStorageBackend();
@@ -458,11 +463,6 @@ describe('child run tracking with `runName`', () => {
     describe('abortWithParent', () => {
         let abortSpy: MockInstance;
 
-        const newInitializedActor = async () => {
-            const { actor, events } = createIsolatedActor({ storageClient: storage });
-            await actor.init({ gracefulShutdown: false });
-            return { actor, events };
-        };
         const abortParent = async (events: PlatformEventManager) => {
             events.emit(ACTOR_EVENT_NAMES.ABORTING);
             await events.waitForAllListenersToComplete();
@@ -674,10 +674,11 @@ describe('child run tracking with `runName`', () => {
         let runStatuses: Record<string, ActorRun['status']>;
 
         const childRun = (id: string) => ({ ...startedRun, id }) as ActorRun;
-        const newLimitedActor = async () => {
-            const { actor, events } = createIsolatedActor({ storageClient: storage });
-            await actor.init({ gracefulShutdown: false, maxConcurrentChildRuns: 1 });
-            return { actor, events };
+        const newLimitedActor = async () => newInitializedActor({ maxConcurrentChildRuns: 1 });
+        const finishFirstLater = () => {
+            const { promise, resolve } = Promise.withResolvers<ActorRun>();
+            waitForFinishSpy.mockReturnValueOnce(promise);
+            return () => resolve({ ...childRun('a'), status: 'SUCCEEDED' });
         };
 
         beforeEach(() => {
@@ -725,18 +726,16 @@ describe('child run tracking with `runName`', () => {
             expect((await getChildRunLedger(actor))!.a.status).toBe('SUCCEEDED');
         });
 
-        test('call() frees the slot of the run it waited for', async () => {
+        test.each([
+            ['a', 'b'],
+            [undefined, undefined],
+        ])('call() frees the slot of the run it waited for (run names %s, %s)', async (firstName, secondName) => {
             const { actor } = await newLimitedActor();
             startSpy.mockResolvedValueOnce(childRun('a')).mockResolvedValueOnce(childRun('b'));
-            let finishFirst!: () => void;
-            waitForFinishSpy.mockReturnValueOnce(
-                new Promise((resolve) => {
-                    finishFirst = () => resolve({ ...childRun('a'), status: 'SUCCEEDED' });
-                }),
-            );
+            const finishFirst = finishFirstLater();
 
-            const first = actor.call(actId, input, { runName: 'a' });
-            const second = actor.call(actId, input, { runName: 'b' });
+            const first = actor.call(actId, input, { runName: firstName });
+            const second = actor.call(actId, input, { runName: secondName });
             await vitest.advanceTimersByTimeAsync(5_000);
             expect(startSpy).toBeCalledTimes(1);
 
@@ -751,18 +750,9 @@ describe('child run tracking with `runName`', () => {
         test('looking up the active runs keeps a status that call() recorded meanwhile', async () => {
             const { actor } = await newLimitedActor();
             startSpy.mockResolvedValueOnce(childRun('a')).mockResolvedValueOnce(childRun('b'));
-            let finishFirst!: () => void;
-            waitForFinishSpy.mockReturnValueOnce(
-                new Promise((resolve) => {
-                    finishFirst = () => resolve({ ...childRun('a'), status: 'SUCCEEDED' });
-                }),
-            );
-            let respondToLookup!: () => void;
-            getSpy.mockReturnValueOnce(
-                new Promise((resolve) => {
-                    respondToLookup = () => resolve(childRun('a'));
-                }),
-            );
+            const finishFirst = finishFirstLater();
+            const lookup = Promise.withResolvers<ActorRun>();
+            getSpy.mockReturnValueOnce(lookup.promise);
 
             const first = actor.call(actId, input, { runName: 'a' });
             await vitest.advanceTimersByTimeAsync(0);
@@ -770,7 +760,7 @@ describe('child run tracking with `runName`', () => {
             await vitest.advanceTimersByTimeAsync(0);
             finishFirst();
             await first;
-            respondToLookup();
+            lookup.resolve(childRun('a'));
             await vitest.advanceTimersByTimeAsync(1_000);
 
             expect(startSpy).toBeCalledTimes(2);
@@ -793,12 +783,15 @@ describe('child run tracking with `runName`', () => {
             expect((await getChildRunLedger(actor))!.a.status).toBe('LOST');
         });
 
-        test('start() without a run name waits for a free slot', async () => {
+        test.each([
+            ['a', undefined],
+            [undefined, 'b'],
+        ])('a run holds a slot until it is seen finished (run names %s, %s)', async (firstName, secondName) => {
             const { actor } = await newLimitedActor();
             startSpy.mockResolvedValueOnce(childRun('a')).mockResolvedValueOnce(childRun('b'));
-            await actor.start(actId, input, { runName: 'a' });
+            await actor.start(actId, input, { runName: firstName });
 
-            const waiting = actor.start(actId, input);
+            const waiting = actor.start(actId, input, { runName: secondName });
             await vitest.advanceTimersByTimeAsync(5_000);
             expect(startSpy).toBeCalledTimes(1);
 
@@ -806,45 +799,6 @@ describe('child run tracking with `runName`', () => {
             await vitest.advanceTimersByTimeAsync(5_000);
 
             expect(await waiting).toEqual(childRun('b'));
-        });
-
-        test('a run started without a run name holds a slot until it is seen finished', async () => {
-            const { actor } = await newLimitedActor();
-            startSpy.mockResolvedValueOnce(childRun('a')).mockResolvedValueOnce(childRun('b'));
-            await actor.start(actId, input);
-
-            const waiting = actor.start(actId, input, { runName: 'b' });
-            await vitest.advanceTimersByTimeAsync(5_000);
-            expect(startSpy).toBeCalledTimes(1);
-
-            runStatuses.a = 'SUCCEEDED';
-            await vitest.advanceTimersByTimeAsync(5_000);
-
-            expect(await waiting).toEqual(childRun('b'));
-            expect((getSpy.mock.contexts as RunClient[]).map(({ id }) => id)).toContain('a');
-        });
-
-        test('call() without a run name frees its slot once the run finishes', async () => {
-            const { actor } = await newLimitedActor();
-            startSpy.mockResolvedValueOnce(childRun('a')).mockResolvedValueOnce(childRun('b'));
-            let finishFirst!: () => void;
-            waitForFinishSpy.mockReturnValueOnce(
-                new Promise((resolve) => {
-                    finishFirst = () => resolve({ ...childRun('a'), status: 'SUCCEEDED' });
-                }),
-            );
-
-            const first = actor.call(actId, input);
-            const second = actor.call(actId, input);
-            await vitest.advanceTimersByTimeAsync(5_000);
-            expect(startSpy).toBeCalledTimes(1);
-
-            finishFirst();
-            await first;
-            await vitest.advanceTimersByTimeAsync(1_000);
-
-            expect(startSpy).toBeCalledTimes(2);
-            await second;
         });
 
         test('runs started without a run name are forgotten on a migration', async () => {

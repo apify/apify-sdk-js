@@ -935,7 +935,6 @@ describe('Actor', () => {
             id: globalOptions.runId,
             actId: globalOptions.actId,
             defaultKeyValueStoreId: globalOptions.defaultKeyValueStoreId,
-            startedAt: new Date('2026-01-01T00:00:00.000Z'),
         },
         output: {
             contentType: globalOptions.contentType,
@@ -966,6 +965,11 @@ describe('Actor', () => {
             return this;
         },
     }.init();
+
+    beforeEach(() => {
+        vitest.spyOn(RunClient.prototype, 'getStreamedLog').mockResolvedValue(undefined);
+        vitest.spyOn(RunClient.prototype, 'waitForFinish').mockResolvedValue(runConfigs.finishedRun);
+    });
 
     describe('Actor.getEnv()', () => {
         let prevEnv: ApifyEnv;
@@ -1021,8 +1025,6 @@ describe('Actor', () => {
             process.env[ACTOR_ENV_VARS.TIMEOUT_AT] = new Date(testStartTime.getTime() + actorTimeout).toISOString();
             process.env[APIFY_ENV_VARS.IS_AT_HOME] = '1';
             vi.setSystemTime(new Date(testStartTime.getTime() + usedTime));
-            vitest.spyOn(RunClient.prototype, 'getStreamedLog').mockResolvedValue(undefined);
-            vitest.spyOn(RunClient.prototype, 'waitForFinish').mockResolvedValue(runConfigs.finishedRun);
         });
 
         afterEach(() => {
@@ -1109,11 +1111,6 @@ describe('Actor', () => {
     describe('Actor.call()', () => {
         const { contentType, build, actId, input, token } = globalOptions;
 
-        beforeEach(() => {
-            vitest.spyOn(RunClient.prototype, 'getStreamedLog').mockResolvedValue(undefined);
-            vitest.spyOn(RunClient.prototype, 'waitForFinish').mockResolvedValue(runConfigs.finishedRun);
-        });
-
         test('works as expected', async () => {
             const memory = 1024;
             const timeout = 60;
@@ -1174,10 +1171,6 @@ describe('Actor', () => {
 
         const { input, taskId, token, build } = globalOptions;
         const { run, finishedRun } = runConfigs;
-
-        beforeEach(() => {
-            vitest.spyOn(RunClient.prototype, 'waitForFinish').mockResolvedValue(finishedRun);
-        });
 
         test('works as expected', async () => {
             const taskSpy = vitest.spyOn(ApifyClient.prototype, 'task');

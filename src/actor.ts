@@ -592,7 +592,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
             [ACTOR_EVENT_NAMES.ABORTING]: this.#abortChildRunsWithParent,
         });
         this.#chargingManager = new ChargingManager(this.configuration, this.apifyClient);
-        this.#childRunTracker = new ChildRunTracker();
+        this.#childRunTracker = new ChildRunTracker(this.apifyClient);
     }
 
     /**
@@ -697,11 +697,12 @@ export class Actor<Data extends Dictionary = Dictionary> {
             );
         }
 
-        const maxConcurrentChildRuns = parseArgument(
-            options.maxConcurrentChildRuns,
-            z.number().int().positive().optional(),
-            'maxConcurrentChildRuns',
-        );
+        this.#childRunTracker.maxConcurrentRuns =
+            parseArgument(
+                options.maxConcurrentChildRuns,
+                z.number().int().positive().optional(),
+                'maxConcurrentChildRuns',
+            ) ?? Infinity;
 
         this.initialized = true;
 
@@ -777,7 +778,6 @@ export class Actor<Data extends Dictionary = Dictionary> {
         log.debug(`Default storages purged`);
 
         await this.#childRunTracker.load();
-        this.#childRunTracker.maxConcurrentRuns = maxConcurrentChildRuns ?? Infinity;
 
         await this.#chargingManager.init();
         log.debug(`ChargingManager initialized`, this.#chargingManager.getPricingInfo());
@@ -965,7 +965,6 @@ export class Actor<Data extends Dictionary = Dictionary> {
         const startOptions = { ...otherOptions, runTimeoutSecs, timeoutSecs, signal };
         const { run, resumed } = await this.#childRunTracker.startOrResumeChildRun(
             client,
-            this.apifyClient,
             runName,
             { type: 'actor', id: actorId, input },
             startOptions,
@@ -1018,7 +1017,6 @@ export class Actor<Data extends Dictionary = Dictionary> {
         const startOptions = { ...rest, runTimeoutSecs };
         const { run } = await this.#childRunTracker.startOrResumeChildRun(
             client,
-            this.apifyClient,
             runName,
             { type: 'actor', id: actorId, input },
             startOptions,
@@ -1119,7 +1117,6 @@ export class Actor<Data extends Dictionary = Dictionary> {
         const startOptions = { ...otherOptions, runTimeoutSecs, timeoutSecs, signal };
         const { run } = await this.#childRunTracker.startOrResumeChildRun(
             client,
-            this.apifyClient,
             runName,
             { type: 'task', id: taskId, input },
             startOptions,
@@ -1181,7 +1178,6 @@ export class Actor<Data extends Dictionary = Dictionary> {
         const startOptions = { ...rest, runTimeoutSecs };
         const { run } = await this.#childRunTracker.startOrResumeChildRun(
             client,
-            this.apifyClient,
             runName,
             { type: 'task', id: taskId, input },
             startOptions,

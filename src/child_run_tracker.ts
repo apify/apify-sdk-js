@@ -103,10 +103,8 @@ const SETTLING_STATUSES = ['ABORTING', 'TIMING-OUT'];
 const RESURRECTABLE_STATUSES = ['ABORTED', 'TIMED-OUT'];
 const REUSABLE_STATUSES = ['READY', 'RUNNING', 'SUCCEEDED', ...RESURRECTABLE_STATUSES];
 const ABORTED_STATUSES = ['ABORTING', 'ABORTED'];
-/** Statuses of a run that counts towards `maxConcurrentRuns`. */
 const ACTIVE_STATUSES = ['READY', 'RUNNING', ...SETTLING_STATUSES];
 
-/** How often a start waiting for a free slot under `maxConcurrentRuns` checks again. */
 const SLOT_POLL_INTERVAL_MILLIS = 1_000;
 /**
  * How often the active runs are looked up while a start waits for a free slot, as a run that nobody waited for
@@ -129,7 +127,6 @@ export class ChildRunTracker {
     private locks = new Map<string, ReentrantAsyncLock>();
     /** Set once this run is being gracefully aborted, after which no run with `abortWithParent` is started. */
     private isParentAborting = false;
-    /** Maximum number of active child runs, see `InitOptions.maxConcurrentChildRuns`. */
     maxConcurrentRuns = Infinity;
     /**
      * Clients of the runs started without a `runName` in this process that were not seen finished yet, keyed by
@@ -138,9 +135,10 @@ export class ChildRunTracker {
     private unnamedRuns = new Map<string, ApifyClient>();
     /** Runs being started or resurrected, which hold a slot before their active status is tracked. */
     private reservedSlots = 0;
-    /** Names whose lock is held by a start waiting for a free slot. */
     private waitingForSlot = new Set<string>();
     private lastActiveRunsRefreshAt = 0;
+
+    constructor(private readonly defaultClient: ApifyClient) {}
 
     /**
      * Throws if the run tracked under `runName` was started for a different Actor / task or input,
@@ -168,7 +166,6 @@ export class ChildRunTracker {
      */
     async startOrResumeChildRun(
         client: ApifyClient,
-        defaultClient: ApifyClient,
         runName: string | undefined,
         request: ChildRunRequest,
         startOptions: RunResurrectOptions,
@@ -178,7 +175,7 @@ export class ChildRunTracker {
         if (!runName) {
             if (this.maxConcurrentRuns === Infinity) return { run: await start(), resumed: false };
 
-            const run = await this.withSlot(undefined, false, defaultClient, startOptions.signal, async () => {
+            const run = await this.withSlot(undefined, false, startOptions.signal, async () => {
                 const startedRun = await start();
                 this.unnamedRuns.set(startedRun.id, client);
                 return startedRun;
@@ -197,11 +194,12 @@ export class ChildRunTracker {
             if (trackedRun && SETTLING_STATUSES.includes(trackedRun.status)) {
                 trackedRun = await client.run(trackedRun.id).waitForFinish({ timeoutSecs, signal });
             }
+            if (tracked) await this.update(runName, trackedRun ?? { id: tracked.runId, status: 'LOST' });
 
             if (trackedRun && REUSABLE_STATUSES.includes(trackedRun.status)) {
                 await this.verifyRequest(runName, request);
                 const run = RESURRECTABLE_STATUSES.includes(trackedRun.status)
-                    ? await this.withSlot(runName, abortWithParent, defaultClient, signal, async () => {
+                    ? await this.withSlot(runName, abortWithParent, signal, async () => {
                           const resurrectedRun = await client.run(trackedRun.id).resurrect({
                               build,
                               memory,
@@ -220,12 +218,11 @@ export class ChildRunTracker {
                     tracked!.abortWithParent = abortWithParent;
                     await this.persist();
                 }
-                await this.update(runName, run);
                 this.clients.set(runName, client);
                 return { run, resumed: true };
             }
 
-            const run = await this.withSlot(runName, abortWithParent, defaultClient, signal, async () => {
+            const run = await this.withSlot(runName, abortWithParent, signal, async () => {
                 const startedRun = await start();
                 await this.track(runName, startedRun, request, trackedRun?.status ?? 'LOST', abortWithParent);
                 return startedRun;
@@ -236,21 +233,20 @@ export class ChildRunTracker {
     }
 
     /**
-     * Waits until fewer than `maxConcurrentRuns` runs other than the one under `runName` are active, then runs `fn`,
-     * which starts or resurrects that run and tracks its status, while holding a slot for it.
+     * Waits until fewer than `maxConcurrentRuns` runs are active, then runs `fn`, which starts or resurrects a run
+     * and tracks its status, while holding a slot for it.
      */
     private async withSlot(
         runName: string | undefined,
         abortWithParent: boolean,
-        defaultClient: ApifyClient,
         signal: AbortSignal | undefined,
         fn: () => Promise<ActorRun>,
     ) {
         if (runName) this.waitingForSlot.add(runName);
         try {
-            while (!this.hasFreeSlot(runName)) {
+            while (!this.hasFreeSlot()) {
                 if (Date.now() - this.lastActiveRunsRefreshAt >= ACTIVE_RUNS_REFRESH_INTERVAL_MILLIS) {
-                    await this.refreshActiveRuns(defaultClient);
+                    await this.refreshActiveRuns();
                 } else {
                     await sleep(SLOT_POLL_INTERVAL_MILLIS);
                 }
@@ -269,20 +265,19 @@ export class ChildRunTracker {
         }
     }
 
-    private hasFreeSlot(runName: string | undefined) {
-        const activeRuns = Object.entries(this.trackedRuns).filter(
-            ([name, { status }]) => name !== runName && ACTIVE_STATUSES.includes(status),
-        );
+    private hasFreeSlot() {
+        const activeRuns = Object.values(this.trackedRuns).filter(({ status }) => ACTIVE_STATUSES.includes(status));
         return activeRuns.length + this.unnamedRuns.size + this.reservedSlots < this.maxConcurrentRuns;
     }
 
-    private async refreshActiveRuns(defaultClient: ApifyClient) {
+    private async refreshActiveRuns() {
         this.lastActiveRunsRefreshAt = Date.now();
+        const runClients = this.getRunClients(this.defaultClient);
         await Promise.all([
             ...Object.entries(this.trackedRuns)
                 .filter(([, { status }]) => ACTIVE_STATUSES.includes(status))
                 .map(async ([runName, { runId, status }]) => {
-                    const run = await getTrackedRun((this.clients.get(runName) ?? defaultClient).run(runId));
+                    const run = await getTrackedRun(runClients[runName]);
                     // Keeps a newer status recorded meanwhile, e.g. by `Actor.call()` once the run finished.
                     if (this.trackedRuns[runName]?.status !== status) return;
                     await this.update(runName, run ?? { id: runId, status: 'LOST' });
