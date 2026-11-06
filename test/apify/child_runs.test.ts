@@ -11,7 +11,7 @@ import { onTestFinished } from 'vitest';
 import { ACTOR_ENV_VARS, ACTOR_EVENT_NAMES, APIFY_ENV_VARS } from '@apify/consts';
 import log from '@apify/log';
 
-import type { TrackedChildRun } from '../../src/child_run_tracker.js';
+import type { ChildRunInfo, TrackedChildRun } from '../../src/child_run_tracker.js';
 import { ABORT_WITH_PARENT_TIMEOUT_MILLIS } from '../../src/child_run_tracker.js';
 import { createIsolatedActor } from '../createIsolatedActor.js';
 
@@ -54,6 +54,8 @@ describe('child run tracking with `runName`', () => {
 
     const getChildRunLedger = async (actor: Actor) =>
         (await actor.openKeyValueStore()).getValue<Record<string, TrackedChildRun>>('__ACTOR_CHILD_RUNS');
+    const getUnnamedChildRuns = async (actor: Actor) =>
+        (await actor.openKeyValueStore()).getValue<ChildRunInfo[]>('__ACTOR_UNNAMED_CHILD_RUNS');
     const newActor = () => createIsolatedActor({ storageClient: storage }).actor;
 
     beforeEach(() => {
@@ -64,15 +66,6 @@ describe('child run tracking with `runName`', () => {
         waitForFinishSpy = vitest.spyOn(RunClient.prototype, 'waitForFinish').mockResolvedValue(finishedRun);
         getStreamedLogSpy = vitest.spyOn(RunClient.prototype, 'getStreamedLog').mockResolvedValue(undefined);
         resurrectSpy = vitest.spyOn(RunClient.prototype, 'resurrect').mockResolvedValue(startedRun);
-    });
-
-    test('start() without a run name does not track the run', async () => {
-        const actor = newActor();
-
-        await actor.start(actId, input);
-
-        expect(startSpy).toBeCalledTimes(1);
-        expect(await getChildRunLedger(actor)).toBeNull();
     });
 
     test('start() starts a new run and tracks it', async () => {
@@ -268,10 +261,13 @@ describe('child run tracking with `runName`', () => {
         expect(actor.childRuns[runName].id).toBe(startedRun.id);
     });
 
-    test('init() throws when the stored child runs are malformed', async () => {
-        await (await newActor().openKeyValueStore()).setValue('__ACTOR_CHILD_RUNS', { [runName]: { runId: 42 } });
+    test.each([
+        ['__ACTOR_CHILD_RUNS', { [runName]: { runId: 42 } }],
+        ['__ACTOR_UNNAMED_CHILD_RUNS', [{ runId: 42 }]],
+    ])('init() throws when the child runs stored under %s are malformed', async (key, value) => {
+        await (await newActor().openKeyValueStore()).setValue(key, value);
 
-        await expect(newActor().init()).rejects.toThrow(/__ACTOR_CHILD_RUNS.*malformed/);
+        await expect(newActor().init()).rejects.toThrow(new RegExp(`${key}.*malformed`));
     });
 
     test('childRuns uses the token a run was started with in this process', async () => {
@@ -409,15 +405,6 @@ describe('child run tracking with `runName`', () => {
         expect(streamedLog.stop).toBeCalledTimes(1);
     });
 
-    test('call() without a run name uses `ActorClient.call`', async () => {
-        const callSpy = vitest.spyOn(ActorClient.prototype, 'call').mockResolvedValue(finishedRun);
-
-        await newActor().call(actId, input);
-
-        expect(callSpy).toBeCalledTimes(1);
-        expect(startSpy).not.toBeCalled();
-    });
-
     test('startTask() returns the tracked run instead of starting a new one', async () => {
         await newActor().startTask(taskId, input, { runName });
         taskStartSpy.mockClear();
@@ -451,6 +438,54 @@ describe('child run tracking with `runName`', () => {
 
         expect(taskStartSpy).toBeCalledWith(input, expect.objectContaining({ signal, timeoutSecs: 30 }));
         expect(waitForFinishSpy).toBeCalledWith({ timeoutSecs: 30, signal });
+    });
+
+    describe('without `runName`', () => {
+        test('start() tracks the run', async () => {
+            const actor = newActor();
+
+            await actor.start(actId, input);
+
+            expect(startSpy).toBeCalledTimes(1);
+            expect(await getChildRunLedger(actor)).toBeNull();
+            expect(await getUnnamedChildRuns(actor)).toEqual([trackedInfo]);
+        });
+
+        test('call() tracks the run until it finishes', async () => {
+            const actor = newActor();
+            waitForFinishSpy.mockImplementation(async () => {
+                expect(await getUnnamedChildRuns(actor)).toEqual([trackedInfo]);
+                return finishedRun;
+            });
+
+            const run = await actor.call(actId, input);
+
+            expect(run).toEqual(finishedRun);
+            expect(startSpy).toBeCalledTimes(1);
+            expect(getStreamedLogSpy).toBeCalledWith(expect.objectContaining({ fromStart: true }));
+            expect(await getUnnamedChildRuns(actor)).toEqual([]);
+        });
+
+        test('callTask() keeps tracking a run that has not finished yet', async () => {
+            const actor = newActor();
+            taskStartSpy.mockResolvedValue({ ...startedRun, status: 'READY' });
+            waitForFinishSpy.mockResolvedValue(startedRun);
+
+            const run = await actor.callTask(taskId, input, { waitSecs: 1 });
+
+            expect(run).toEqual(startedRun);
+            expect(await getUnnamedChildRuns(actor)).toEqual([trackedInfo]);
+        });
+
+        test('the runs tracked before a migration stay tracked', async () => {
+            await newActor().start(actId, input);
+            startSpy.mockResolvedValue({ ...startedRun, id: 'another-run' });
+
+            const actor = newActor();
+            await actor.start(actId, input);
+
+            expect(await getUnnamedChildRuns(actor)).toEqual([trackedInfo, { ...trackedInfo, runId: 'another-run' }]);
+        });
     });
 
     describe('abortWithParent', () => {

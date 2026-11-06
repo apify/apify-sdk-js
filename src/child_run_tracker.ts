@@ -70,6 +70,7 @@ const toInfo = (run: ActorRun): ChildRunInfo => ({
 });
 
 const CHILD_RUNS_KVS_KEY = '__ACTOR_CHILD_RUNS';
+const UNNAMED_CHILD_RUNS_KVS_KEY = '__ACTOR_UNNAMED_CHILD_RUNS';
 
 const childRunInfoSchema = z.object({ runId: z.string(), status: z.string(), startedAt: z.string() });
 const trackedRunsSchema = z.record(
@@ -80,6 +81,17 @@ const trackedRunsSchema = z.record(
         abortWithParent: z.boolean().default(false),
     }),
 );
+const unnamedRunsSchema = z.array(childRunInfoSchema);
+
+const parseStored = <T extends z.ZodType>(schema: T, value: unknown, key: string): z.output<T> => {
+    const parsed = schema.safeParse(value);
+    if (!parsed.success) {
+        throw new Error(`The child runs stored under the "${key}" key in the default key-value store are malformed.`, {
+            cause: parsed.error,
+        });
+    }
+    return parsed.data;
+};
 
 /** How many times a tracked run that the API reports as missing is looked up again before it counts as gone. */
 const NOT_FOUND_RETRIES = 12;
@@ -103,6 +115,8 @@ const SETTLING_STATUSES = ['ABORTING', 'TIMING-OUT'];
 const RESURRECTABLE_STATUSES = ['ABORTED', 'TIMED-OUT'];
 const REUSABLE_STATUSES = ['READY', 'RUNNING', 'SUCCEEDED', ...RESURRECTABLE_STATUSES];
 const ABORTED_STATUSES = ['ABORTING', 'ABORTED'];
+/** Statuses of a run that has not finished yet. */
+const ACTIVE_STATUSES = ['READY', 'RUNNING', ...SETTLING_STATUSES];
 
 /**
  * How long `abortRunsWithParent()` waits for the child runs to be aborted. The platform force-stops a gracefully aborted
@@ -112,6 +126,8 @@ export const ABORT_WITH_PARENT_TIMEOUT_MILLIS = 10_000;
 
 export class ChildRunTracker {
     private trackedRuns: Record<string, TrackedChildRun> = {};
+    /** Runs started without a `runName` that were not seen finished yet. */
+    private unnamedRuns: ChildRunInfo[] = [];
     private loading?: Promise<void>;
     /** Client each name was last started or resumed with in this process, so a custom `token` is kept. */
     private clients = new Map<string, ApifyClient>();
@@ -139,15 +155,25 @@ export class ChildRunTracker {
      * with `startOptions` if it was aborted or timed out (waiting for it to finish aborting or timing out first).
      * Otherwise (the run failed or is gone), starts a new one using `start` and tracks it under `runName`,
      * keeping the previous one in the history. `abortWithParent` replaces the value tracked under `runName`.
+     *
+     * Without a `runName`, starts a new run using `start` and tracks it until it is seen finished.
      */
     async startOrResumeChildRun(
         client: ApifyClient,
-        runName: string,
+        runName: string | undefined,
         request: ChildRunRequest,
         startOptions: RunResurrectOptions,
         abortWithParent: boolean,
         start: () => Promise<ActorRun>,
     ): Promise<{ run: ActorRun; resumed: boolean }> {
+        if (!runName) {
+            await this.load();
+            const run = await start();
+            this.unnamedRuns.push(toInfo(run));
+            await this.persist(UNNAMED_CHILD_RUNS_KVS_KEY, this.unnamedRuns);
+            return { run, resumed: false };
+        }
+
         return this.getLock(runName).runExclusive(async () => {
             if (abortWithParent && this.isParentAborting) {
                 throw new Error(
@@ -224,9 +250,24 @@ export class ChildRunTracker {
     }
 
     /**
-     * Records the latest observed state of the run tracked under `runName`.
+     * Records the latest observed state of the run tracked under `runName`, or of a run started without a `runName`,
+     * which stops being tracked once it is finished.
      */
-    async update(runName: string, run: ActorRun) {
+    async update(runName: string | undefined, run: ActorRun) {
+        if (!runName) {
+            await this.load();
+            const index = this.unnamedRuns.findIndex(({ runId }) => runId === run.id);
+            if (index === -1 || this.unnamedRuns[index].status === run.status) return;
+
+            if (ACTIVE_STATUSES.includes(run.status)) {
+                this.unnamedRuns[index].status = run.status;
+            } else {
+                this.unnamedRuns.splice(index, 1);
+            }
+            await this.persist(UNNAMED_CHILD_RUNS_KVS_KEY, this.unnamedRuns);
+            return;
+        }
+
         const trackedRuns = await this.load();
         const tracked = trackedRuns[runName];
 
@@ -305,11 +346,11 @@ export class ChildRunTracker {
         return this.locks.get(runName)!;
     }
 
-    private async persist() {
+    private async persist(key = CHILD_RUNS_KVS_KEY, value: unknown = this.trackedRuns) {
         const write = this.lastWrite.then(async () =>
             withDirectStorageAccess(async () => {
                 const defaultStore = await KeyValueStore.open();
-                await defaultStore.setValue(CHILD_RUNS_KVS_KEY, this.trackedRuns);
+                await defaultStore.setValue(key, value);
             }),
         );
         this.lastWrite = write.catch(() => {});
@@ -321,16 +362,22 @@ export class ChildRunTracker {
      */
     async load() {
         this.loading ??= KeyValueStore.open()
-            .then(async (defaultStore) => defaultStore.getValue(CHILD_RUNS_KVS_KEY))
-            .then((storedRuns) => {
-                const parsed = trackedRunsSchema.safeParse(storedRuns ?? {});
-                if (!parsed.success) {
-                    throw new Error(
-                        `The child runs stored under the "${CHILD_RUNS_KVS_KEY}" key in the default key-value store are malformed.`,
-                        { cause: parsed.error },
-                    );
-                }
-                this.trackedRuns = parsed.data as Record<string, TrackedChildRun>;
+            .then(async (defaultStore) =>
+                Promise.all([
+                    defaultStore.getValue(CHILD_RUNS_KVS_KEY),
+                    defaultStore.getValue(UNNAMED_CHILD_RUNS_KVS_KEY),
+                ]),
+            )
+            .then(([storedRuns, storedUnnamedRuns]) => {
+                this.trackedRuns = parseStored(trackedRunsSchema, storedRuns ?? {}, CHILD_RUNS_KVS_KEY) as Record<
+                    string,
+                    TrackedChildRun
+                >;
+                this.unnamedRuns = parseStored(
+                    unnamedRunsSchema,
+                    storedUnnamedRuns ?? [],
+                    UNNAMED_CHILD_RUNS_KVS_KEY,
+                ) as ChildRunInfo[];
             })
             .catch((error) => {
                 this.loading = undefined;

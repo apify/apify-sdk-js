@@ -344,6 +344,9 @@ export interface ChildRunOptions {
      * starting a new one, including after a migration or resurrection of this run. A run that was aborted or timed out
      * is resurrected with the given options, once it finishes aborting or timing out. A run that failed is replaced
      * by a new one. Reusing the name for a different Actor, task or input throws, unless the tracked run is replaced.
+     *
+     * A run started without `runName` is stored in the default key-value store under the `__ACTOR_UNNAMED_CHILD_RUNS`
+     * key until `call()` or `callTask()` sees it finished.
      */
     runName?: string;
     /**
@@ -945,8 +948,6 @@ export class Actor<Data extends Dictionary = Dictionary> {
 
         if (abortWithParent && !runName) throw new Error('`abortWithParent` requires `runName`.');
 
-        if (!runName) return client.actor(actorId).call(input, { ...rest, runTimeoutSecs });
-
         const { waitSecs, log, timeoutSecs = 'noTimeout', signal, ...otherOptions } = rest;
         const startOptions = { ...otherOptions, runTimeoutSecs, timeoutSecs, signal };
         const { run, resumed } = await this.#childRunTracker.startOrResumeChildRun(
@@ -999,8 +1000,6 @@ export class Actor<Data extends Dictionary = Dictionary> {
         const client = token ? this.newClient({ token }) : this.apifyClient;
 
         if (abortWithParent && !runName) throw new Error('`abortWithParent` requires `runName`.');
-
-        if (!runName) return client.actor(actorId).start(input, { ...rest, runTimeoutSecs });
 
         const startOptions = { ...rest, runTimeoutSecs };
         const { run } = await this.#childRunTracker.startOrResumeChildRun(
@@ -1101,8 +1100,6 @@ export class Actor<Data extends Dictionary = Dictionary> {
 
         if (abortWithParent && !runName) throw new Error('`abortWithParent` requires `runName`.');
 
-        if (!runName) return client.task(taskId).call(input, { ...rest, runTimeoutSecs });
-
         const { waitSecs, timeoutSecs = 'noTimeout', signal, ...otherOptions } = rest;
         const startOptions = { ...otherOptions, runTimeoutSecs, timeoutSecs, signal };
         const { run } = await this.#childRunTracker.startOrResumeChildRun(
@@ -1164,8 +1161,6 @@ export class Actor<Data extends Dictionary = Dictionary> {
         const client = token ? this.newClient({ token }) : this.apifyClient;
 
         if (abortWithParent && !runName) throw new Error('`abortWithParent` requires `runName`.');
-
-        if (!runName) return client.task(taskId).start(input, { ...rest, runTimeoutSecs });
 
         const startOptions = { ...rest, runTimeoutSecs };
         const { run } = await this.#childRunTracker.startOrResumeChildRun(
