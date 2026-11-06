@@ -137,9 +137,8 @@ export interface InitOptions {
      * Maximum number of child runs started by `Actor.start()`, `call()`, `startTask()` and `callTask()` that are in
      * progress at the same time. At the limit, these wait to start or resurrect a run until another one finishes.
      *
-     * A run is known to have finished once `call()` or `callTask()` waits for it, otherwise its status is checked
-     * every 10 seconds while a start waits. Runs started with `runName` are counted including the ones started before
-     * a migration or resurrection of this run, runs started without it only within the current process.
+     * Runs started with `runName` are tracked across migrations and restarts of this run. Runs started without
+     * `runName` are forgotten after a migration and no longer count towards the limit.
      */
     maxConcurrentChildRuns?: number;
 }
