@@ -811,6 +811,26 @@ describe('child run tracking with `runName`', () => {
             expect(await getChildRunLedger(actor)).toBeNull();
         });
 
+        test("`timeout: 'inherit'` leaves out the time spent waiting for a free slot", async () => {
+            const { actor } = await newLimitedActor();
+            startSpy.mockResolvedValueOnce(childRun('a')).mockResolvedValueOnce(childRun('b'));
+            await actor.start(actId, input, { runName: 'a' });
+            process.env[APIFY_ENV_VARS.IS_AT_HOME] = '1';
+            process.env[ACTOR_ENV_VARS.TIMEOUT_AT] = new Date(Date.now() + 600_000).toISOString();
+            onTestFinished(() => {
+                delete process.env[APIFY_ENV_VARS.IS_AT_HOME];
+                delete process.env[ACTOR_ENV_VARS.TIMEOUT_AT];
+            });
+
+            const waiting = actor.start(actId, input, { runName: 'b', timeout: 'inherit' });
+            await vitest.advanceTimersByTimeAsync(300_000);
+            runStatuses.a = 'SUCCEEDED';
+            await vitest.advanceTimersByTimeAsync(10_000);
+            await waiting;
+
+            expect(startSpy.mock.lastCall![1].runTimeoutSecs).toBeLessThanOrEqual(300);
+        });
+
         test('start() returns an active tracked run without waiting for a free slot', async () => {
             const { actor } = await newLimitedActor();
             startSpy.mockResolvedValueOnce(childRun('a'));

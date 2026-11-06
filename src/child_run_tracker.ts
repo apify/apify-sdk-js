@@ -36,6 +36,12 @@ export interface TrackedChildRun extends ChildRunInfo {
     abortWithParent: boolean;
 }
 
+/**
+ * Options to start or resurrect a child run with. `runTimeoutSecs` is a function, so that `timeout: 'inherit'` is
+ * computed when the run starts, after a possible wait for a free slot.
+ */
+type ChildRunStartOptions = Omit<RunResurrectOptions, 'runTimeoutSecs'> & { runTimeoutSecs: () => number | undefined };
+
 export interface ChildRunRequest {
     type: 'actor' | 'task';
     id: string;
@@ -168,7 +174,7 @@ export class ChildRunTracker {
         client: ApifyClient,
         runName: string | undefined,
         request: ChildRunRequest,
-        startOptions: RunResurrectOptions,
+        startOptions: ChildRunStartOptions,
         abortWithParent: boolean,
         start: () => Promise<ActorRun>,
     ): Promise<{ run: ActorRun; resumed: boolean }> {
@@ -203,7 +209,7 @@ export class ChildRunTracker {
                           const resurrectedRun = await client.run(trackedRun.id).resurrect({
                               build,
                               memory,
-                              runTimeoutSecs,
+                              runTimeoutSecs: runTimeoutSecs(),
                               maxItems,
                               maxTotalChargeUsd,
                               restartOnError,

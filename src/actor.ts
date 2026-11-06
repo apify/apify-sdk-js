@@ -954,7 +954,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @ignore
      */
     async call(actorId: string, input?: ActorInput, options: CallOptions = {}): Promise<ClientActorRun> {
-        const runTimeoutSecs = options.timeout === 'inherit' ? this.getRemainingTimeSecs() : options.timeout;
+        const runTimeoutSecs = () => (options.timeout === 'inherit' ? this.getRemainingTimeSecs() : options.timeout);
         const { token, timeout: _timeout, runName, abortWithParent = false, ...rest } = options;
         const client = token ? this.newClient({ token }) : this.apifyClient;
 
@@ -968,7 +968,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
             { type: 'actor', id: actorId, input },
             startOptions,
             abortWithParent,
-            async () => client.actor(actorId).start(input, startOptions),
+            async () => client.actor(actorId).start(input, { ...startOptions, runTimeoutSecs: runTimeoutSecs() }),
         );
 
         // The earlier part of a resumed run's log was already redirected before the migration.
@@ -1007,7 +1007,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @ignore
      */
     async start(actorId: string, input?: ActorInput, options: StartOptions = {}): Promise<ClientActorRun> {
-        const runTimeoutSecs = options.timeout === 'inherit' ? this.getRemainingTimeSecs() : options.timeout;
+        const runTimeoutSecs = () => (options.timeout === 'inherit' ? this.getRemainingTimeSecs() : options.timeout);
         const { token, timeout: _timeout, runName, abortWithParent = false, ...rest } = options;
         const client = token ? this.newClient({ token }) : this.apifyClient;
 
@@ -1020,7 +1020,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
             { type: 'actor', id: actorId, input },
             startOptions,
             abortWithParent,
-            async () => client.actor(actorId).start(input, startOptions),
+            async () => client.actor(actorId).start(input, { ...startOptions, runTimeoutSecs: runTimeoutSecs() }),
         );
         return run;
     }
@@ -1106,7 +1106,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @ignore
      */
     async callTask(taskId: string, input?: Dictionary, options: CallTaskOptions = {}): Promise<ClientActorRun> {
-        const runTimeoutSecs = options.timeout === 'inherit' ? this.getRemainingTimeSecs() : options.timeout;
+        const runTimeoutSecs = () => (options.timeout === 'inherit' ? this.getRemainingTimeSecs() : options.timeout);
         const { token, timeout: _timeout, runName, abortWithParent = false, ...rest } = options;
         const client = token ? this.newClient({ token }) : this.apifyClient;
 
@@ -1120,7 +1120,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
             { type: 'task', id: taskId, input },
             startOptions,
             abortWithParent,
-            async () => client.task(taskId).start(input, startOptions),
+            async () => client.task(taskId).start(input, { ...startOptions, runTimeoutSecs: runTimeoutSecs() }),
         );
         const finishedRun = await client.run(run.id).waitForFinish({ waitSecs, timeoutSecs, signal });
         await this.#childRunTracker.update(runName, finishedRun);
@@ -1168,7 +1168,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @ignore
      */
     async startTask(taskId: string, input?: Dictionary, options: StartTaskOptions = {}): Promise<ClientActorRun> {
-        const runTimeoutSecs = options.timeout === 'inherit' ? this.getRemainingTimeSecs() : options.timeout;
+        const runTimeoutSecs = () => (options.timeout === 'inherit' ? this.getRemainingTimeSecs() : options.timeout);
         const { token, timeout: _timeout, runName, abortWithParent = false, ...rest } = options;
         const client = token ? this.newClient({ token }) : this.apifyClient;
 
@@ -1181,7 +1181,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
             { type: 'task', id: taskId, input },
             startOptions,
             abortWithParent,
-            async () => client.task(taskId).start(input, startOptions),
+            async () => client.task(taskId).start(input, { ...startOptions, runTimeoutSecs: runTimeoutSecs() }),
         );
         return run;
     }
