@@ -14,6 +14,7 @@ export {
     type UrlPatternFilters,
     type UrlPatternRequestOptions,
 } from './enqueue_links_filters.js';
+export { ApifyRequestList, type ApifyRequestListOpenOptions } from './apify_request_list.js';
 export type { OpenStorageOptions, StorageAlias, StorageId, StorageName, StorageIdentifier } from './storage.js';
 export { ChargeOptions, ChargeResult, ActorPricingInfo, ChargingManager } from './charging.js';
 export * from './configuration.js';
