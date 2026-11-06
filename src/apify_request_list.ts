@@ -47,9 +47,8 @@ export interface ApifyRequestListOpenOptions {
  * a plain `RequestList`.
  *
  * ```ts
- * const input = await Actor.getInput<{ startUrls: Dictionary[] }>();
- * const requestList = await ApifyRequestList.open({ requestListSourcesInput: input.startUrls });
- * const crawler = new CheerioCrawler({ requestList, requestHandler });
+ * const { startUrls } = await Actor.getInput<{ startUrls: Dictionary[] }>();
+ * await crawler.run(await ApifyRequestList.open({ requestListSourcesInput: startUrls }));
  * ```
  */
 export class ApifyRequestList {
