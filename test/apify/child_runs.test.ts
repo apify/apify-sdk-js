@@ -409,13 +409,15 @@ describe('child run tracking with `runName`', () => {
         expect(streamedLog.stop).toBeCalledTimes(1);
     });
 
-    test('call() without a run name uses `ActorClient.call`', async () => {
-        const callSpy = vitest.spyOn(ActorClient.prototype, 'call').mockResolvedValue(finishedRun);
+    test('call() without a run name does not track the run', async () => {
+        const actor = newActor();
 
-        await newActor().call(actId, input);
+        const run = await actor.call(actId, input);
 
-        expect(callSpy).toBeCalledTimes(1);
-        expect(startSpy).not.toBeCalled();
+        expect(run).toEqual(finishedRun);
+        expect(startSpy).toBeCalledTimes(1);
+        expect(getStreamedLogSpy).toBeCalledWith(expect.objectContaining({ fromStart: true }));
+        expect(await getChildRunLedger(actor)).toBeNull();
     });
 
     test('startTask() returns the tracked run instead of starting a new one', async () => {
@@ -789,6 +791,70 @@ describe('child run tracking with `runName`', () => {
 
             expect(await waiting).toEqual(childRun('b'));
             expect((await getChildRunLedger(actor))!.a.status).toBe('LOST');
+        });
+
+        test('start() without a run name waits for a free slot', async () => {
+            const { actor } = await newLimitedActor();
+            startSpy.mockResolvedValueOnce(childRun('a')).mockResolvedValueOnce(childRun('b'));
+            await actor.start(actId, input, { runName: 'a' });
+
+            const waiting = actor.start(actId, input);
+            await vitest.advanceTimersByTimeAsync(5_000);
+            expect(startSpy).toBeCalledTimes(1);
+
+            runStatuses.a = 'SUCCEEDED';
+            await vitest.advanceTimersByTimeAsync(5_000);
+
+            expect(await waiting).toEqual(childRun('b'));
+        });
+
+        test('a run started without a run name holds a slot until it is seen finished', async () => {
+            const { actor } = await newLimitedActor();
+            startSpy.mockResolvedValueOnce(childRun('a')).mockResolvedValueOnce(childRun('b'));
+            await actor.start(actId, input);
+
+            const waiting = actor.start(actId, input, { runName: 'b' });
+            await vitest.advanceTimersByTimeAsync(5_000);
+            expect(startSpy).toBeCalledTimes(1);
+
+            runStatuses.a = 'SUCCEEDED';
+            await vitest.advanceTimersByTimeAsync(5_000);
+
+            expect(await waiting).toEqual(childRun('b'));
+            expect((getSpy.mock.contexts as RunClient[]).map(({ id }) => id)).toContain('a');
+        });
+
+        test('call() without a run name frees its slot once the run finishes', async () => {
+            const { actor } = await newLimitedActor();
+            startSpy.mockResolvedValueOnce(childRun('a')).mockResolvedValueOnce(childRun('b'));
+            let finishFirst!: () => void;
+            waitForFinishSpy.mockReturnValueOnce(
+                new Promise((resolve) => {
+                    finishFirst = () => resolve({ ...childRun('a'), status: 'SUCCEEDED' });
+                }),
+            );
+
+            const first = actor.call(actId, input);
+            const second = actor.call(actId, input);
+            await vitest.advanceTimersByTimeAsync(5_000);
+            expect(startSpy).toBeCalledTimes(1);
+
+            finishFirst();
+            await first;
+            await vitest.advanceTimersByTimeAsync(1_000);
+
+            expect(startSpy).toBeCalledTimes(2);
+            await second;
+        });
+
+        test('runs started without a run name are forgotten on a migration', async () => {
+            startSpy.mockResolvedValueOnce(childRun('a')).mockResolvedValueOnce(childRun('b'));
+            await (await newLimitedActor()).actor.start(actId, input);
+
+            const { actor } = await newLimitedActor();
+
+            expect(await actor.start(actId, input)).toEqual(childRun('b'));
+            expect(await getChildRunLedger(actor)).toBeNull();
         });
 
         test('start() returns an active tracked run without waiting for a free slot', async () => {

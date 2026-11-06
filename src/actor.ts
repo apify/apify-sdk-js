@@ -134,12 +134,12 @@ export interface InitOptions {
      */
     gracefulShutdownDelayMillis?: number;
     /**
-     * Maximum number of child runs started with `runName` that are in progress at the same time, including the runs
-     * started before a migration or resurrection of this run. At the limit, `Actor.start()`, `call()`, `startTask()`
-     * and `callTask()` with a `runName` wait to start or resurrect a run until another one finishes.
+     * Maximum number of child runs started by `Actor.start()`, `call()`, `startTask()` and `callTask()` that are in
+     * progress at the same time. At the limit, these wait to start or resurrect a run until another one finishes.
      *
      * A run is known to have finished once `call()` or `callTask()` waits for it, otherwise its status is checked
-     * every 10 seconds while a start waits. Child runs started without `runName` are not counted.
+     * every 10 seconds while a start waits. Runs started with `runName` are counted including the ones started before
+     * a migration or resurrection of this run, runs started without it only within the current process.
      */
     maxConcurrentChildRuns?: number;
 }
@@ -961,8 +961,6 @@ export class Actor<Data extends Dictionary = Dictionary> {
 
         if (abortWithParent && !runName) throw new Error('`abortWithParent` requires `runName`.');
 
-        if (!runName) return client.actor(actorId).call(input, { ...rest, runTimeoutSecs });
-
         const { waitSecs, log, timeoutSecs = 'noTimeout', signal, ...otherOptions } = rest;
         const startOptions = { ...otherOptions, runTimeoutSecs, timeoutSecs, signal };
         const { run, resumed } = await this.#childRunTracker.startOrResumeChildRun(
@@ -1016,8 +1014,6 @@ export class Actor<Data extends Dictionary = Dictionary> {
         const client = token ? this.newClient({ token }) : this.apifyClient;
 
         if (abortWithParent && !runName) throw new Error('`abortWithParent` requires `runName`.');
-
-        if (!runName) return client.actor(actorId).start(input, { ...rest, runTimeoutSecs });
 
         const startOptions = { ...rest, runTimeoutSecs };
         const { run } = await this.#childRunTracker.startOrResumeChildRun(
@@ -1119,8 +1115,6 @@ export class Actor<Data extends Dictionary = Dictionary> {
 
         if (abortWithParent && !runName) throw new Error('`abortWithParent` requires `runName`.');
 
-        if (!runName) return client.task(taskId).call(input, { ...rest, runTimeoutSecs });
-
         const { waitSecs, timeoutSecs = 'noTimeout', signal, ...otherOptions } = rest;
         const startOptions = { ...otherOptions, runTimeoutSecs, timeoutSecs, signal };
         const { run } = await this.#childRunTracker.startOrResumeChildRun(
@@ -1183,8 +1177,6 @@ export class Actor<Data extends Dictionary = Dictionary> {
         const client = token ? this.newClient({ token }) : this.apifyClient;
 
         if (abortWithParent && !runName) throw new Error('`abortWithParent` requires `runName`.');
-
-        if (!runName) return client.task(taskId).start(input, { ...rest, runTimeoutSecs });
 
         const startOptions = { ...rest, runTimeoutSecs };
         const { run } = await this.#childRunTracker.startOrResumeChildRun(
