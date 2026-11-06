@@ -553,7 +553,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
     #chargingManager: ChargingManager;
 
     /** Aborts the child runs started with `abortWithParent` on the `aborting` event. */
-    readonly #abortChildRunsWithParent = async () => this.#childRunTracker.abortRunsWithParent(this.apifyClient);
+    readonly #abortChildRunsWithParent = async () => this.#childRunTracker.abortRunsWithParent();
 
     /** How Apify platform request queues are consumed; set from {@link InitOptions.requestQueueAccess}. */
     #requestQueueAccess: RequestQueueAccessMode = 'single';
@@ -1141,7 +1141,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      */
     get childRuns(): Record<string, RunClient> {
         this.ensureActorInit('childRuns');
-        return this.#childRunTracker.getRunClients(this.apifyClient);
+        return this.#childRunTracker.getRunClients();
     }
 
     /**

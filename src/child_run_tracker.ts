@@ -278,7 +278,7 @@ export class ChildRunTracker {
 
     private async refreshActiveRuns() {
         this.lastActiveRunsRefreshAt = Date.now();
-        const runClients = this.getRunClients(this.defaultClient);
+        const runClients = this.getRunClients();
         const lookUp = async (runId: string, runClient: RunClient) => {
             try {
                 return (await getTrackedRun(runClient)) ?? { id: runId, status: 'LOST' as const };
@@ -374,13 +374,13 @@ export class ChildRunTracker {
 
     /**
      * Returns a `RunClient` for the current run under each name loaded so far. The client is the one the name was
-     * last started or resumed with in this process, or `defaultClient` (e.g. for a run tracked before a migration).
+     * last started or resumed with in this process, or the default client (e.g. for a run tracked before a migration).
      */
-    getRunClients(defaultClient: ApifyClient): Record<string, RunClient> {
+    getRunClients(): Record<string, RunClient> {
         return Object.fromEntries(
             Object.entries(this.trackedRuns).map(([runName, { runId }]) => [
                 runName,
-                (this.clients.get(runName) ?? defaultClient).run(runId),
+                (this.clients.get(runName) ?? this.defaultClient).run(runId),
             ]),
         );
     }
@@ -390,7 +390,7 @@ export class ChildRunTracker {
      * `abortWithParent` throw. A start in flight is waited for, so the run it starts is aborted too. Resolves after
      * {@link ABORT_WITH_PARENT_TIMEOUT_MILLIS} at the latest, leaving the aborts still in progress to go on.
      */
-    async abortRunsWithParent(defaultClient: ApifyClient) {
+    async abortRunsWithParent() {
         this.isParentAborting = true;
         const trackedRuns = await this.load();
         // A start waiting for a free slot holds the lock of a name with no active run, and throws by itself if it
@@ -404,7 +404,7 @@ export class ChildRunTracker {
                     if (!tracked?.abortWithParent) return;
 
                     try {
-                        const run = await (this.clients.get(runName) ?? defaultClient)
+                        const run = await (this.clients.get(runName) ?? this.defaultClient)
                             .run(tracked.runId)
                             .abort({ gracefully: true });
                         if (ABORTED_STATUSES.includes(run.status)) {
