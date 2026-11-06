@@ -300,6 +300,7 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
                             `You can also provide your Apify token via the "${APIFY_ENV_VARS.TOKEN}" environment variable, ` +
                             `so that the SDK can fetch the proxy password from Apify API, when ${APIFY_ENV_VARS.PROXY_PASSWORD} is not defined`,
                     );
+                    return false;
                 }
             }
 
