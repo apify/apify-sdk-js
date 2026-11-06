@@ -922,7 +922,7 @@ describe('child run tracking with `runName`', () => {
             expect(startSpy).toBeCalledTimes(1);
         });
 
-        test('starts waiting for a free slot do not hold up aborting the child runs with the parent', async () => {
+        test('starts waiting for a free slot throw once the parent is being aborted', async () => {
             const abortSpy = vitest
                 .spyOn(RunClient.prototype, 'abort')
                 .mockResolvedValue({ ...startedRun, status: 'ABORTING' } as ActorRun);
@@ -932,16 +932,17 @@ describe('child run tracking with `runName`', () => {
             const withParent = expect(
                 actor.start(actId, input, { runName: 'b', abortWithParent: true }),
             ).rejects.toThrow(/being aborted/);
-            void actor.start(actId, input, { runName: 'c' });
+            const withoutParent = expect(actor.start(actId, input)).rejects.toThrow(/being aborted/);
             await vitest.advanceTimersByTimeAsync(1_000);
 
             const listenersCompleted = vitest.fn();
             events.emit(ACTOR_EVENT_NAMES.ABORTING);
             void events.waitForAllListenersToComplete().then(listenersCompleted);
-            await vitest.advanceTimersByTimeAsync(1_000);
+            await vitest.advanceTimersByTimeAsync(0);
 
             expect(listenersCompleted).toBeCalled();
             await withParent;
+            await withoutParent;
             expect((abortSpy.mock.contexts as RunClient[]).map(({ id }) => id)).toEqual(['a']);
         });
     });

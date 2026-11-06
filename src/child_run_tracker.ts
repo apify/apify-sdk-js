@@ -130,7 +130,10 @@ export class ChildRunTracker {
     private clients = new Map<string, ApifyClient>();
     private lastWrite: Promise<void> = Promise.resolve();
     private locks = new Map<string, ReentrantAsyncLock>();
-    /** Set once this run is being gracefully aborted, after which no run with `abortWithParent` is started. */
+    /**
+     * Set once this run is being gracefully aborted, after which no run with `abortWithParent` is started and no start
+     * waits for a free slot.
+     */
     private isParentAborting = false;
     maxConcurrentRuns = Infinity;
     /**
@@ -140,7 +143,6 @@ export class ChildRunTracker {
     private unnamedRuns = new Map<string, ApifyClient>();
     /** Runs being started or resurrected, which hold a slot before their active status is tracked. */
     private reservedSlots = 0;
-    private waitingForSlot = new Set<string>();
     /** Wake the starts waiting for a free slot, called whenever one may have been freed. */
     private slotWaiters = new Set<() => void>();
     private lastActiveRunsRefreshAt = 0;
@@ -249,21 +251,22 @@ export class ChildRunTracker {
         signal: AbortSignal | undefined,
         fn: () => Promise<ActorRun>,
     ) {
-        if (runName) this.waitingForSlot.add(runName);
-        try {
-            while (!this.hasFreeSlot()) {
-                const refreshInMillis = this.lastActiveRunsRefreshAt + ACTIVE_RUNS_REFRESH_INTERVAL_MILLIS - Date.now();
-                if (refreshInMillis <= 0) {
-                    await this.refreshActiveRuns();
-                } else {
-                    await this.waitForFreedSlot(refreshInMillis, signal);
-                }
-                signal?.throwIfAborted();
-                this.assertCanStart(runName, abortWithParent);
+        while (!this.hasFreeSlot()) {
+            if (this.isParentAborting) {
+                throw new Error(
+                    'A child run waiting for a free slot under `maxConcurrentChildRuns` was not started, because this ' +
+                        'run is being aborted.',
+                );
             }
-        } finally {
-            if (runName) this.waitingForSlot.delete(runName);
+            const refreshInMillis = this.lastActiveRunsRefreshAt + ACTIVE_RUNS_REFRESH_INTERVAL_MILLIS - Date.now();
+            if (refreshInMillis <= 0) {
+                await this.refreshActiveRuns();
+            } else {
+                await this.waitForFreedSlot(refreshInMillis, signal);
+            }
+            signal?.throwIfAborted();
         }
+        this.assertCanStart(runName, abortWithParent);
 
         this.reservedSlots++;
         try {
@@ -421,9 +424,7 @@ export class ChildRunTracker {
         this.isParentAborting = true;
         this.notifySlotWaiters();
         const trackedRuns = await this.load();
-        // A start waiting for a free slot holds the lock of a name with no active run, and throws by itself if it
-        // has `abortWithParent`.
-        const runNames = new Set([...Object.keys(trackedRuns), ...this.locks.keys()]).difference(this.waitingForSlot);
+        const runNames = new Set([...Object.keys(trackedRuns), ...this.locks.keys()]);
 
         const aborts = Promise.all(
             [...runNames].map(async (runName) =>
