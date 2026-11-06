@@ -204,6 +204,7 @@ export class ChildRunTracker {
 
             if (trackedRun && REUSABLE_STATUSES.includes(trackedRun.status)) {
                 await this.verifyRequest(runName, request);
+                this.clients.set(runName, client);
                 const run = RESURRECTABLE_STATUSES.includes(trackedRun.status)
                     ? await this.withSlot(runName, abortWithParent, signal, async () => {
                           const resurrectedRun = await client.run(trackedRun.id).resurrect({
@@ -224,16 +225,15 @@ export class ChildRunTracker {
                     tracked!.abortWithParent = abortWithParent;
                     await this.persist();
                 }
-                this.clients.set(runName, client);
                 return { run, resumed: true };
             }
 
             const run = await this.withSlot(runName, abortWithParent, signal, async () => {
                 const startedRun = await start();
+                this.clients.set(runName, client);
                 await this.track(runName, startedRun, request, trackedRun?.status ?? 'LOST', abortWithParent);
                 return startedRun;
             });
-            this.clients.set(runName, client);
             return { run, resumed: false };
         });
     }
