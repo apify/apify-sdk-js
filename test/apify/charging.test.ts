@@ -1,6 +1,7 @@
 import {
     createStorageTransaction,
     EventType,
+    KeyValueStore,
     MemoryStorageBackend,
     withDirectStorageAccess,
     withStorageTransaction,
@@ -1096,6 +1097,39 @@ describe('ChargingManager', () => {
             }
 
             expect(await Actor.getValue(CHARGING_STATE_KEY)).toEqual({ chargedEventCounts: { search: 2, scrape: 2 } });
+        });
+
+        test('are written in order when two persists overlap', async () => {
+            setUpPlatformEnv({ maxTotalChargeUsd: '10', pricingInfo, chargedEventCounts: { search: 1, scrape: 2 } });
+            const { events } = await initIsolatedDefaultActor({ storage: new MemoryStorageBackend() });
+            mockChargeApi();
+
+            // The first write snapshots the counts when it starts and is held until the second one is requested,
+            // as a slow write overlapping a reboot's would be.
+            let releaseFirstWrite!: () => void;
+            const firstWriteReleased = new Promise<void>((resolve) => {
+                releaseFirstWrite = resolve;
+            });
+            const { setValue } = KeyValueStore.prototype;
+            vitest.spyOn(KeyValueStore.prototype, 'setValue').mockImplementationOnce(async function (
+                this: KeyValueStore,
+                key,
+                value,
+                options,
+            ) {
+                const snapshot = structuredClone(value);
+                await firstWriteReleased;
+                await setValue.call(this, key, snapshot, options);
+            });
+
+            await Actor.charge({ eventName: 'search' });
+            events.emit(EventType.PERSIST_STATE, { isMigrating: false });
+            await Actor.charge({ eventName: 'search' });
+            events.emit(EventType.PERSIST_STATE, { isMigrating: false });
+            releaseFirstWrite();
+            await events.waitForAllListenersToComplete();
+
+            expect(await Actor.getValue(CHARGING_STATE_KEY)).toEqual({ chargedEventCounts: { search: 3, scrape: 2 } });
         });
 
         test('are kept in memory only in a local run', async () => {

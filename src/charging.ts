@@ -109,6 +109,8 @@ export class ChargingManager {
     #chargingState?: ChargingState;
     /** The store the charging state is persisted to, set only while persistence is on. */
     #chargingStateStore?: KeyValueStore;
+    /** The last write of the charging state, which the next one waits for, so that writes land in order. */
+    #lastChargingStateWrite: Promise<void> = Promise.resolve();
     #chargingLogDataset?: Dataset;
 
     /** Charges made with an idempotency key, by key, in insertion (and therefore expiry) order. */
@@ -222,7 +224,7 @@ export class ChargingManager {
         if (this.#isAtHome && this.isPayPerEvent) {
             this.#chargingStateStore = await KeyValueStore.open();
             await this.loadChargingState(this.#chargingStateStore);
-            serviceLocator.getEventManager().on(EventType.PERSIST_STATE, this.persistChargingState);
+            serviceLocator.getEventManager().on(EventType.PERSIST_STATE, this.#persistChargingState);
         }
 
         const { chargedEventCounts: counts } = this.#chargingState;
@@ -272,8 +274,8 @@ export class ChargingManager {
             return;
         }
 
-        serviceLocator.getEventManager().off(EventType.PERSIST_STATE, this.persistChargingState);
-        await this.persistChargingState();
+        serviceLocator.getEventManager().off(EventType.PERSIST_STATE, this.#persistChargingState);
+        await this.#persistChargingState();
         this.#chargingStateStore = undefined;
     }
 
@@ -302,11 +304,18 @@ export class ChargingManager {
      * inside a storage transaction - a reboot from a request handler - is not buffered into a transaction that never
      * commits. A failed write is logged, since a periodic persist is not meant to stop the run.
      */
-    private readonly persistChargingState = async (): Promise<void> => {
-        try {
-            await withDirectStorageAccess(async () =>
+    readonly #persistChargingState = async (): Promise<void> => {
+        // The counts are serialized when the write starts, so two writes in flight at once - the periodic one and
+        // a reboot's - could land in the wrong order. Each write waits for the previous one.
+        const write = this.#lastChargingStateWrite.then(async () =>
+            withDirectStorageAccess(async () =>
                 this.#chargingStateStore?.setValue(CHARGING_STATE_KEY, this.#chargingState),
-            );
+            ),
+        );
+        this.#lastChargingStateWrite = write.catch(() => {});
+
+        try {
+            await write;
         } catch (error) {
             log.warning('Failed to persist the charged event counts to the default key-value store.', { error });
         }
