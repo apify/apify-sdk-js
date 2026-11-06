@@ -922,6 +922,24 @@ describe('child run tracking with `runName`', () => {
             expect(startSpy).toBeCalledTimes(1);
         });
 
+        test('a start with an already aborted signal throws without waiting for a free slot', async () => {
+            const { actor } = await newLimitedActor();
+            startSpy.mockResolvedValueOnce(childRun('a'));
+            await actor.start(actId, input, { runName: 'a' });
+            void actor.start(actId, input, { runName: 'b' });
+            await vitest.advanceTimersByTimeAsync(0);
+            const controller = new AbortController();
+            controller.abort(new Error('cancelled'));
+
+            const cancelled = expect(
+                actor.start(actId, input, { runName: 'c', signal: controller.signal }),
+            ).rejects.toThrow('cancelled');
+            await vitest.advanceTimersByTimeAsync(0);
+
+            await cancelled;
+            expect(startSpy).toBeCalledTimes(1);
+        });
+
         test('starts waiting for a free slot throw once the parent is being aborted', async () => {
             const abortSpy = vitest
                 .spyOn(RunClient.prototype, 'abort')

@@ -252,6 +252,7 @@ export class ChildRunTracker {
         fn: () => Promise<ActorRun>,
     ) {
         while (!this.hasFreeSlot()) {
+            signal?.throwIfAborted();
             if (this.isParentAborting) {
                 throw new Error(
                     'A child run waiting for a free slot under `maxConcurrentChildRuns` was not started, because this ' +
@@ -264,7 +265,6 @@ export class ChildRunTracker {
             } else {
                 await this.waitForFreedSlot(refreshInMillis, signal);
             }
-            signal?.throwIfAborted();
         }
         this.assertCanStart(runName, abortWithParent);
 
