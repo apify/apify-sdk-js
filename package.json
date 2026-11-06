@@ -111,11 +111,11 @@
         "typescript": "~7.0.2",
         "vitest": "^5.1.0"
     },
-    "packageManager": "pnpm@12.16.1",
+    "packageManager": "pnpm@12.18.0",
     "devEngines": {
         "packageManager": {
             "name": "pnpm",
-            "version": "12.16.1",
+            "version": "12.18.0",
             "onFail": "warn"
         }
     }
