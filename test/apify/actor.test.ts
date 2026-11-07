@@ -1433,11 +1433,45 @@ describe('Actor', () => {
             // Do the listeners get called?
             expect(migratingSpy).toBeCalledTimes(1);
             expect(persistStateSpy).toBeCalledTimes(1);
+            expect(persistStateSpy).toBeCalledWith({ isMigrating: true });
 
             // Do the listeners finish?
             expect(persistenceStore.length).toBe(2);
 
             // Did the client's reboot method get called?
+            expect(rebootMock).toBeCalledTimes(1);
+        });
+
+        test('reboot can be retried after a failed attempt', async () => {
+            const rebootMock = vitest.fn();
+            rebootMock.mockRejectedValueOnce(new Error('reboot failed')).mockResolvedValueOnce(run);
+            vitest.spyOn(ApifyClient.prototype, 'run').mockReturnValue({ reboot: rebootMock } as any);
+
+            await expect(Actor.reboot({ customAfterSleepMillis: 1 })).rejects.toThrow('reboot failed');
+            await Actor.reboot({ customAfterSleepMillis: 1 });
+
+            expect(rebootMock).toBeCalledTimes(2);
+        });
+
+        test('reboot proceeds when a listener fails or does not finish in time', async () => {
+            const rebootMock = vitest.fn();
+            rebootMock.mockResolvedValueOnce(run);
+            vitest.spyOn(ApifyClient.prototype, 'run').mockReturnValueOnce({ reboot: rebootMock } as any);
+
+            const failingListener = async () => {
+                throw new Error('persist failed');
+            };
+            const hangingListener = async () => new Promise<void>(() => {});
+            const events = serviceLocator.getEventManager();
+
+            events.on(EventType.PERSIST_STATE, failingListener);
+            events.on(EventType.MIGRATING, hangingListener);
+
+            await Actor.reboot({ timeoutSecs: 0.1, customAfterSleepMillis: 1 });
+
+            events.off(EventType.PERSIST_STATE, failingListener);
+            events.off(EventType.MIGRATING, hangingListener);
+
             expect(rebootMock).toBeCalledTimes(1);
         });
     });
