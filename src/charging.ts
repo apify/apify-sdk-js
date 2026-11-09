@@ -303,6 +303,16 @@ export class ChargingManager {
             };
         }
 
+        // Match the Python SDK: a non-positive count never reaches the platform and never
+        // mutates local charge state (a negative count would otherwise decrement the budget).
+        if (count <= 0) {
+            return {
+                eventChargeLimitReached: false,
+                chargedCount: 0,
+                chargeableWithinLimit: calculateChargeableWithinLimit(),
+            };
+        }
+
         if (this.chargingState === undefined) {
             throw new Error('ChargingManager is not initialized');
         }
