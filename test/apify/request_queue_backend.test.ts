@@ -239,8 +239,8 @@ describe('ApifyRequestQueueSharedBackend', () => {
         const api = createMockApiClient();
         const backend = new ApifyRequestQueueSharedBackend(asApiClient(api));
 
-        await backend.setExpectedRequestProcessingTimeSecs(600);
-        await backend.setExpectedRequestProcessingTimeSecs(60);
+        await backend.setExpectedRequestProcessingTime(600);
+        await backend.setExpectedRequestProcessingTime(60);
         await backend.fetchNextRequest();
 
         expect(api.listAndLockHead).toHaveBeenCalledWith({ limit: 25, lockSecs: 600 });

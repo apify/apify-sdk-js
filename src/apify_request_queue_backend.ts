@@ -78,7 +78,7 @@ export abstract class ApifyRequestQueueBackend implements RequestQueueBackend {
 
     abstract isFinished(): Promise<boolean>;
 
-    async setExpectedRequestProcessingTimeSecs(_secs: number): Promise<void> {
+    async setExpectedRequestProcessingTime(_processingTimeSecs: number): Promise<void> {
         // Only relevant for backends that reserve requests via locking; see the shared backend.
     }
 
