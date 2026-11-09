@@ -1,15 +1,20 @@
-import { Dataset, KeyValueStore } from '@crawlee/core';
+import { Dataset, EventType, KeyValueStore, serviceLocator, withDirectStorageAccess } from '@crawlee/core';
 import type { ActorRunPricingInfo, ApifyClient } from 'apify-client';
+import { z } from 'zod';
 
 import log from '@apify/log';
 
 import type { Configuration } from './configuration.js';
 import { ReentrantAsyncLock } from './utils.js';
 
-interface ChargingStateItem {
-    chargeCount: number;
-    totalChargedAmount: number;
-}
+/** Key of the default key-value store record that carries the charged event counts across a container restart. */
+export const CHARGING_STATE_KEY = '__ACTOR_CHARGING_STATE';
+
+const chargingStateSchema = z.object({
+    chargedEventCounts: z.record(z.string(), z.number().int().nonnegative()),
+});
+
+type ChargingState = z.infer<typeof chargingStateSchema>;
 
 interface IdempotentCharge {
     eventName: string;
@@ -100,7 +105,12 @@ export class ChargingManager {
     #notPpeWarningPrinted = false;
 
     #pricingInfo: Record<string, { price: number; title: string }> = {};
-    #chargingState?: Record<string, ChargingStateItem>;
+    /** The charged event counts, persisted to the default key-value store in a pay-per-event run on the platform. */
+    #chargingState?: ChargingState;
+    /** The store the charging state is persisted to, set only while persistence is on. */
+    #chargingStateStore?: KeyValueStore;
+    /** The last write of the charging state, which the next one waits for, so that writes land in order. */
+    #lastChargingStateWrite: Promise<void> = Promise.resolve();
     #chargingLogDataset?: Dataset;
 
     /** Charges made with an idempotency key, by key, in insertion (and therefore expiry) order. */
@@ -206,13 +216,20 @@ export class ChargingManager {
             this.#maxTotalChargeUsd = maxTotalChargeUsd;
         }
 
-        this.#chargingState = {};
+        // The platform fills the env var with the counts recorded when the run started, so after a reboot, migration
+        // or restart they miss what an earlier container charged. On the platform the counts are therefore also kept
+        // in the default key-value store, and the persisted ones take over where they are higher.
+        this.#chargingState = { chargedEventCounts: {} };
 
+        if (this.#isAtHome && this.isPayPerEvent) {
+            this.#chargingStateStore = await KeyValueStore.open();
+            await this.loadChargingState(this.#chargingStateStore);
+            serviceLocator.getEventManager().on(EventType.PERSIST_STATE, this.#persistChargingState);
+        }
+
+        const { chargedEventCounts: counts } = this.#chargingState;
         for (const [eventName, chargeCount] of Object.entries(chargedEventCounts ?? {})) {
-            this.#chargingState[eventName] = {
-                chargeCount,
-                totalChargedAmount: chargeCount * (this.#pricingInfo[eventName]?.price ?? 0),
-            };
+            counts[eventName] = Math.max(counts[eventName] ?? 0, chargeCount);
         }
 
         if (!this.isPayPerEvent || !this.#useChargingLogDataset) {
@@ -246,6 +263,63 @@ export class ChargingManager {
         await defaultStore.setValue(this.#PLATFORM_CHARGING_LOG_DATASET_ID_KEY, dataset.id);
         return dataset.id;
     }
+
+    /**
+     * Persist the charged event counts one last time and stop listening for the persist state events.
+     *
+     * @internal
+     */
+    async teardown(): Promise<void> {
+        if (this.#chargingStateStore === undefined) {
+            return;
+        }
+
+        serviceLocator.getEventManager().off(EventType.PERSIST_STATE, this.#persistChargingState);
+        await this.#persistChargingState();
+        this.#chargingStateStore = undefined;
+    }
+
+    /** Reads the counts persisted by an earlier container of this run, if there are any. */
+    private async loadChargingState(store: KeyValueStore): Promise<void> {
+        const stored = await withDirectStorageAccess(async () => store.getValue(CHARGING_STATE_KEY));
+
+        if (stored === null) {
+            return;
+        }
+
+        const parsed = chargingStateSchema.safeParse(stored);
+
+        if (!parsed.success) {
+            throw new Error(
+                `The charging state stored under the "${CHARGING_STATE_KEY}" key in the default key-value store is malformed.`,
+                { cause: parsed.error },
+            );
+        }
+
+        this.#chargingState = parsed.data;
+    }
+
+    /**
+     * Writes the charged event counts to the default key-value store directly, so that a `PERSIST_STATE` dispatched
+     * inside a storage transaction - a reboot from a request handler - is not buffered into a transaction that never
+     * commits. A failed write is logged, since a periodic persist is not meant to stop the run.
+     */
+    readonly #persistChargingState = async (): Promise<void> => {
+        // The counts are serialized when the write starts, so two writes in flight at once - the periodic one and
+        // a reboot's - could land in the wrong order. Each write waits for the previous one.
+        const write = this.#lastChargingStateWrite.then(async () =>
+            withDirectStorageAccess(async () =>
+                this.#chargingStateStore?.setValue(CHARGING_STATE_KEY, this.#chargingState),
+            ),
+        );
+        this.#lastChargingStateWrite = write.catch(() => {});
+
+        try {
+            await write;
+        } catch (error) {
+            log.warning('Failed to persist the charged event counts to the default key-value store.', { error });
+        }
+    };
 
     /**
      * Whether {@link ChargingManager.init} has run. All charging operations (including
@@ -309,11 +383,11 @@ export class ChargingManager {
             };
         }
 
-        const chargingState = this.#chargingState;
-
-        if (chargingState === undefined) {
+        if (this.#chargingState === undefined) {
             throw new Error('ChargingManager is not initialized');
         }
+
+        const { chargedEventCounts } = this.#chargingState;
 
         return await this.withChargeLock(async () => {
             // A repeat the platform would discard is resolved here too - counting it would inflate the charging state
@@ -387,12 +461,7 @@ export class ChargingManager {
 
             // Count the charge only after the API call succeeds, so a failed call retried under the same key
             // is counted once.
-            chargingState[eventName] ??= {
-                chargeCount: 0,
-                totalChargedAmount: 0,
-            };
-            chargingState[eventName].chargeCount += chargedCount;
-            chargingState[eventName].totalChargedAmount += chargedCount * pricingInfo.price;
+            chargedEventCounts[eventName] = (chargedEventCounts[eventName] ?? 0) + chargedCount;
 
             // Remember the key for every charge that was counted, including events the API never receives,
             // such as synthetic ones - those are counted locally and a repeat would count them twice.
@@ -460,7 +529,7 @@ export class ChargingManager {
             throw new Error('ChargingManager is not initialized');
         }
 
-        return this.#chargingState[eventName]?.chargeCount ?? 0;
+        return this.#chargingState.chargedEventCounts[eventName] ?? 0;
     }
 
     /**
@@ -479,8 +548,8 @@ export class ChargingManager {
             throw new Error('ChargingManager is not initialized');
         }
 
-        const result = Object.values(this.#chargingState)
-            .map(({ totalChargedAmount }) => totalChargedAmount)
+        const result = Object.entries(this.#chargingState.chargedEventCounts)
+            .map(([eventName, count]) => count * (this.calculateEventPrice(eventName) ?? 0))
             .reduce((sum, inc) => sum + inc, 0);
 
         // Keeping float precision issues at bay

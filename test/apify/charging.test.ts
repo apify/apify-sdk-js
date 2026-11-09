@@ -1,5 +1,7 @@
 import {
     createStorageTransaction,
+    EventType,
+    KeyValueStore,
     MemoryStorageBackend,
     withDirectStorageAccess,
     withStorageTransaction,
@@ -12,7 +14,7 @@ import { afterEach, beforeEach, describe, expect, onTestFinished, test } from 'v
 
 import log from '@apify/log';
 
-import { DEFAULT_DATASET_ITEM_EVENT } from '../../src/charging.js';
+import { CHARGING_STATE_KEY, DEFAULT_DATASET_ITEM_EVENT } from '../../src/charging.js';
 import { createIsolatedActor, initIsolatedDefaultActor, useInMemoryStorage } from '../createIsolatedActor.js';
 import { resetGlobalState } from '../resetGlobalState.js';
 
@@ -1029,6 +1031,116 @@ describe('ChargingManager', () => {
                 eventName: 'task',
                 count: 1,
             });
+        });
+    });
+
+    describe('charged event counts across container restarts', () => {
+        const pricingInfo = {
+            search: { eventTitle: 'Search', eventPriceUsd: 0.01 },
+            scrape: { eventTitle: 'Scrape', eventPriceUsd: 0.05 },
+        };
+
+        function mockChargeApi() {
+            vitest.spyOn(Actor.apifyClient, 'run').mockReturnValue({
+                charge: vitest.fn().mockResolvedValue(undefined),
+            } as any);
+        }
+
+        test('are persisted on the persist state event', async () => {
+            setUpPlatformEnv({ maxTotalChargeUsd: '10', pricingInfo, chargedEventCounts: { search: 1, scrape: 2 } });
+            const { events } = await initIsolatedDefaultActor({ storage: new MemoryStorageBackend() });
+            mockChargeApi();
+
+            await Actor.charge({ eventName: 'search', count: 2 });
+            events.emit(EventType.PERSIST_STATE, { isMigrating: true });
+            await events.waitForAllListenersToComplete();
+
+            expect(await Actor.getValue(CHARGING_STATE_KEY)).toEqual({ chargedEventCounts: { search: 3, scrape: 2 } });
+        });
+
+        test('are restored from the default key-value store where higher than the env var counts', async () => {
+            const storage = new MemoryStorageBackend();
+            setUpPlatformEnv({ maxTotalChargeUsd: '10', pricingInfo, chargedEventCounts: { search: 1, scrape: 2 } });
+
+            // The first container charges and exits, which persists the counts.
+            const first = await initIsolatedDefaultActor({ storage });
+            mockChargeApi();
+            await Actor.charge({ eventName: 'search', count: 2 });
+            await first.actor.exit({ exit: false });
+
+            // The second container starts from the env var counts, which the platform recorded when the run started.
+            await initIsolatedDefaultActor({ storage });
+            const chargingManager = Actor.getChargingManager();
+
+            expect(chargingManager.getChargedEventCount('search')).toBe(3);
+            expect(chargingManager.getChargedEventCount('scrape')).toBe(2);
+            expect(chargingManager.calculateMaxEventChargeCountWithinLimit('search')).toBe(987);
+        });
+
+        test('are written directly when a reboot from inside a storage transaction persists them', async () => {
+            setUpPlatformEnv({ maxTotalChargeUsd: '10', pricingInfo, chargedEventCounts: { search: 1, scrape: 2 } });
+            await initIsolatedDefaultActor({ storage: new MemoryStorageBackend() });
+            vitest.spyOn(Actor.apifyClient, 'run').mockReturnValue({
+                charge: vitest.fn().mockResolvedValue(undefined),
+                reboot: vitest.fn().mockResolvedValue(undefined),
+            } as any);
+            await Actor.charge({ eventName: 'search' });
+
+            // A crawler runs its request handler inside a storage transaction, which buffers key-value store
+            // writes until the handler commits. A reboot from the handler never commits.
+            const transaction = createStorageTransaction();
+            try {
+                await transaction.run(async () => Actor.reboot({ customAfterSleepMillis: 0 }));
+                transaction.rollback();
+            } finally {
+                transaction.dispose();
+            }
+
+            expect(await Actor.getValue(CHARGING_STATE_KEY)).toEqual({ chargedEventCounts: { search: 2, scrape: 2 } });
+        });
+
+        test('are written in order when two persists overlap', async () => {
+            setUpPlatformEnv({ maxTotalChargeUsd: '10', pricingInfo, chargedEventCounts: { search: 1, scrape: 2 } });
+            const { events } = await initIsolatedDefaultActor({ storage: new MemoryStorageBackend() });
+            mockChargeApi();
+
+            // The first write snapshots the counts when it starts and is held until the second one is requested,
+            // as a slow write overlapping a reboot's would be.
+            let releaseFirstWrite!: () => void;
+            const firstWriteReleased = new Promise<void>((resolve) => {
+                releaseFirstWrite = resolve;
+            });
+            const { setValue } = KeyValueStore.prototype;
+            vitest.spyOn(KeyValueStore.prototype, 'setValue').mockImplementationOnce(async function (
+                this: KeyValueStore,
+                key,
+                value,
+                options,
+            ) {
+                const snapshot = structuredClone(value);
+                await firstWriteReleased;
+                await setValue.call(this, key, snapshot, options);
+            });
+
+            await Actor.charge({ eventName: 'search' });
+            events.emit(EventType.PERSIST_STATE, { isMigrating: false });
+            await Actor.charge({ eventName: 'search' });
+            events.emit(EventType.PERSIST_STATE, { isMigrating: false });
+            releaseFirstWrite();
+            await events.waitForAllListenersToComplete();
+
+            expect(await Actor.getValue(CHARGING_STATE_KEY)).toEqual({ chargedEventCounts: { search: 3, scrape: 2 } });
+        });
+
+        test('are kept in memory only in a local run', async () => {
+            setUpLocalTestEnv({ maxTotalChargeUsd: '10' });
+            const { events } = await initIsolatedDefaultActor({ storage: new MemoryStorageBackend() });
+
+            await Actor.charge({ eventName: 'search' });
+            events.emit(EventType.PERSIST_STATE, { isMigrating: true });
+            await events.waitForAllListenersToComplete();
+
+            expect(await Actor.getValue(CHARGING_STATE_KEY)).toBeNull();
         });
     });
 });
