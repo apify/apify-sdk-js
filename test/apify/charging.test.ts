@@ -114,6 +114,23 @@ describe('ChargingManager', () => {
             expect(zeroResult.chargedCount).toBe(0);
         });
 
+        test('should ignore a negative count and leave the local charge state unchanged', async () => {
+            // Local PPE mode (beforeEach): every event costs $1, maxTotalChargeUsd is 10.
+            await initIsolatedDefaultActor();
+
+            const first = await Actor.charge({ eventName: 'test-event', count: 2 });
+            expect(first.chargedCount).toBe(2);
+
+            const chargingManager = Actor.getChargingManager();
+            const before = chargingManager.getChargedEventCount('test-event');
+
+            const negative = await Actor.charge({ eventName: 'test-event', count: -1 });
+            expect(negative.chargedCount).toBe(0);
+            expect(negative.eventChargeLimitReached).toBe(false);
+
+            expect(chargingManager.getChargedEventCount('test-event')).toBe(before);
+        });
+
         test('should charge events when ACTOR_MAX_TOTAL_CHARGE_USD is set to "" (cost-unlimited)', async () => {
             process.env.ACTOR_MAX_TOTAL_CHARGE_USD = '';
 
