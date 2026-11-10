@@ -101,7 +101,7 @@
         "crawlee": "4.0.0-rc.1",
         "husky": "^9.1.7",
         "lint-staged": "^17.6.0",
-        "oxfmt": "0.77.0",
+        "oxfmt": "0.78.0",
         "oxlint": "1.93.0",
         "oxlint-tsgolint": "7.0.2006",
         "playwright": "^1.65.0",
