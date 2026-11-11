@@ -20,15 +20,35 @@ export default defineConfig({
         },
         clearMocks: true,
         restoreMocks: true,
-        // Give each test file its own storage dir - parallel workers must not
-        // share (and purge) the same on-disk `./storage`.
-        setupFiles: ['./test/isolateStorageDir.ts'],
-        testTimeout: 60_000,
-        hookTimeout: 60_000,
         alias: [
             {
                 find: 'apify',
                 replacement: resolve(__dirname, './src'),
+            },
+        ],
+        projects: [
+            {
+                extends: true,
+                test: {
+                    name: 'unit',
+                    include: ['test/apify/**/*.test.ts'],
+                    // Give each test file its own storage dir - parallel workers must not
+                    // share (and purge) the same on-disk `./storage`.
+                    setupFiles: ['./test/isolateStorageDir.ts'],
+                    testTimeout: 60_000,
+                    hookTimeout: 60_000,
+                },
+            },
+            {
+                extends: true,
+                test: {
+                    name: 'e2e',
+                    include: ['test/e2e/**/*.test.ts'],
+                    globalSetup: ['./test/e2e/global-setup.ts'],
+                    // Platform builds plus runs; a file shares one Actor across its tests.
+                    testTimeout: 15 * 60_000,
+                    hookTimeout: 30 * 60_000,
+                },
             },
         ],
     },

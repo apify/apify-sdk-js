@@ -5,13 +5,11 @@ FROM node:22-alpine AS builder
 # Needed to install dependencies referenced by a git URL.
 RUN apk add --no-cache git
 
+# `packages/` holds the tarballs of the code under test; package.json pins deps to them.
 COPY /package*.json ./
+COPY /packages ./packages
 RUN npm --quiet set progress=false \
-    && npm install --omit=dev --no-audit \
-    && npm update
-
-COPY /apify.tgz /apify.tgz
-RUN npm --quiet install /apify.tgz
+    && npm install --omit=dev --no-audit
 
 FROM apify/actor-node:22
 

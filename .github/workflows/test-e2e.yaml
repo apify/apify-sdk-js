@@ -10,8 +10,9 @@ on:
         - cron: '0 2 * * *'
 
 concurrency:
-    group: ${{ github.workflow }}-${{ github.ref }}
-    cancel-in-progress: true
+    # Runs re-upload version 0.98 of the shared test Actors, so two suites must not overlap.
+    group: e2e
+    cancel-in-progress: false
 
 jobs:
     build_and_test:
@@ -37,4 +38,4 @@ jobs:
             - name: Test
               run: pnpm test:e2e
               env:
-                  APIFY_TOKEN: ${{ secrets.APIFY_SCRAPER_TESTS_API_TOKEN }}
+                  TESTER_APIFY_TOKEN: ${{ secrets.APIFY_SCRAPER_TESTS_API_TOKEN }}
