@@ -87,7 +87,7 @@
         "apify-client": "^3.0.0-rc.0",
         "minimatch": "^11.0.5",
         "tslib": "^2.9.1",
-        "ws": "^8.22.1",
+        "ws": "^8.22.2",
         "zod": "^4.6.7"
     },
     "devDependencies": {
