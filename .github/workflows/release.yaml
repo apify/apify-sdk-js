@@ -46,6 +46,7 @@ jobs:
               uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
               with:
                   node-version: ${{ matrix.node-version }}
+                  check-latest: true
 
             - name: Install pnpm and dependencies
               uses: apify/actions/pnpm-install@v1.6.2
@@ -106,6 +107,7 @@ jobs:
               uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
               with:
                   node-version: 26
+                  check-latest: true
                   registry-url: 'https://registry.npmjs.org'
 
             - name: Install pnpm and dependencies
@@ -137,7 +139,7 @@ jobs:
             GITHUB_TOKEN: ${{ secrets.APIFY_SERVICE_ACCOUNT_GITHUB_TOKEN }}
         steps:
             - name: Create release
-              uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3.0.3
+              uses: softprops/action-gh-release@8a0cd651e5b2365bd640854a3fa5dfc70e4875f3 # v3.0.4
               with:
                   tag_name: ${{ needs.update_changelog.outputs.tag_name }}
                   name: ${{ needs.update_changelog.outputs.version_number }}
@@ -162,6 +164,7 @@ jobs:
               uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
               with:
                   node-version: 26
+                  check-latest: true
 
             - name: Install pnpm and dependencies
               uses: apify/actions/pnpm-install@v1.6.2
