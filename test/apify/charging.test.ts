@@ -309,27 +309,16 @@ describe('ChargingManager', () => {
             expect(result2.chargedCount).toBe(1);
         });
 
-        test('should charge via Actor pricing and require requestId in a multi-tenant Server Actor run', async () => {
-            // Shared-pool runs carry no pricing snapshot, so the SDK must fall back to the Actor's pricing history.
+        /** Starts a multi-tenant Server Actor run whose Actor has the given pricing history. */
+        async function initMultiTenantActor(pricingInfos: unknown[]) {
             setUpPlatformEnv();
             process.env.APIFY_META_ORIGIN = 'STANDBY';
             process.env.ACTOR_ID = 'test-actor-id';
 
-            const ppe = (eventPriceUsd: number, startedAt: Date) => ({
-                pricingModel: 'PAY_PER_EVENT',
-                startedAt,
-                pricingPerEvent: { actorChargeEvents: { 'test-event': { eventTitle: 'Test Event', eventPriceUsd } } },
-            });
             const runGetSpy = vitest
                 .fn()
                 .mockResolvedValue({ standby: { deployment: 'MULTI_TENANT_PAYING_USERS' }, options: {} });
-            const actorGetSpy = vitest.fn().mockResolvedValue({
-                pricingInfos: [
-                    ppe(1, new Date('2020-01-01')),
-                    ppe(2, new Date('2021-01-01')),
-                    ppe(3, new Date('2999-01-01')),
-                ],
-            });
+            const actorGetSpy = vitest.fn().mockResolvedValue({ pricingInfos });
             const chargeSpy = vitest.fn().mockResolvedValue(undefined);
 
             // Spies must be in place before init(), which preheats both fetches.
@@ -348,6 +337,23 @@ describe('ChargingManager', () => {
             await isolated.actor.init();
             useInMemoryStorage(isolated.serviceLocator);
 
+            return { runGetSpy, actorGetSpy, chargeSpy };
+        }
+
+        const ppe = (eventPriceUsd: number, startedAt = new Date('2020-01-01')) => ({
+            pricingModel: 'PAY_PER_EVENT',
+            startedAt,
+            pricingPerEvent: { actorChargeEvents: { 'test-event': { eventTitle: 'Test Event', eventPriceUsd } } },
+        });
+
+        test('should charge via Actor pricing and require requestId in a multi-tenant Server Actor run', async () => {
+            // Shared-pool runs carry no pricing snapshot, so the SDK must fall back to the Actor's pricing history.
+            const { runGetSpy, actorGetSpy, chargeSpy } = await initMultiTenantActor([
+                ppe(1, new Date('2020-01-01')),
+                ppe(2, new Date('2021-01-01')),
+                ppe(3, new Date('2999-01-01')),
+            ]);
+
             // Latest `startedAt <= now`, not the last entry (a scheduled future change).
             expect(Actor.getChargingManager().getPricingInfo()).toMatchObject({
                 isPayPerEvent: true,
@@ -355,8 +361,13 @@ describe('ChargingManager', () => {
                 perEventPrices: { 'test-event': 2 },
             });
 
-            await expect(Actor.charge({ eventName: 'test-event' })).rejects.toThrow(/requestId/);
+            for (const requestId of [undefined, '']) {
+                await expect(Actor.charge({ eventName: 'test-event', requestId })).rejects.toThrow(/requestId/);
+            }
             expect(chargeSpy).not.toHaveBeenCalled();
+
+            // Synthetic `apify-*` events are exempt from the `requestId` requirement.
+            await Actor.charge({ eventName: 'apify-actor-start' });
 
             const result = await Actor.charge({ eventName: 'test-event', requestId: 'some-request-id' });
             expect(result.chargedCount).toBe(1);
@@ -364,6 +375,25 @@ describe('ChargingManager', () => {
             // Preheated in init() and cached, so charge() didn't refetch.
             expect(runGetSpy).toHaveBeenCalledTimes(1);
             expect(actorGetSpy).toHaveBeenCalledTimes(1);
+        });
+
+        test('leaves counting and deduplication to the platform in a multi-tenant Server Actor run', async () => {
+            const { chargeSpy } = await initMultiTenantActor([ppe(1)]);
+
+            for (const requestId of ['request-a', 'request-b']) {
+                const result = await Actor.charge({ eventName: 'test-event', idempotencyKey: 'shared-key', requestId });
+                expect(result.chargedCount).toBe(1);
+            }
+
+            expect(chargeSpy).toHaveBeenCalledTimes(2);
+            expect(Actor.getChargingManager().getChargedEventCount('test-event')).toBe(0);
+        });
+
+        test('ignores a charge without requestId in a multi-tenant run without pay-per-event pricing', async () => {
+            const { chargeSpy } = await initMultiTenantActor([]);
+
+            expect((await Actor.charge({ eventName: 'test-event' })).chargedCount).toBe(0);
+            expect(chargeSpy).not.toHaveBeenCalled();
         });
 
         test('forwards the idempotency key the platform deduplicates on', async () => {
