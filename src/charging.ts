@@ -54,7 +54,7 @@ export interface ChargeOptions {
      * A unique key preventing a retried operation from being charged for twice - e.g. a request handler rerun by a retry.
      * A repeat under the same key within three minutes is not sent to the API and reports the `chargedCount` of
      * the original call, or zero if it names a different event. Like the platform, the key is forgotten afterwards.
-     * Multi-tenant Server Actor runs send every call and leave the deduplication to the platform.
+     * In a multi-tenant Server Actor run, every call is sent and the platform deduplicates it.
      */
     idempotencyKey?: string;
 
@@ -160,6 +160,11 @@ export class ChargingManager {
         return this.#pricingModel === 'PAY_PER_EVENT';
     }
 
+    /** True in a multi-tenant Server Actor run, which charges per request with `requestId` only. */
+    get isMultiTenant(): boolean {
+        return this.#isMultiTenant;
+    }
+
     private async fetchPricingInfo(): Promise<{
         pricingInfo?: ActorRunPricingInfo;
         chargedEventCounts?: Record<string, number>;
@@ -193,7 +198,7 @@ export class ChargingManager {
 
                 return {
                     pricingInfo: getEffectivePricingInfo(actor.pricingInfos ?? []),
-                    chargedEventCounts: run.chargedEventCounts,
+                    chargedEventCounts: {}, // the run's counts mix all callers
                     maxTotalChargeUsd: Infinity, // the platform prices and limits per caller
                 };
             }
@@ -496,8 +501,8 @@ export class ChargingManager {
 
     /**
      * The platform prices, limits and deduplicates each caller's charges itself, so nothing is counted or enforced
-     * locally - run-wide counts would mix all callers, and a local idempotency cache would let one caller's key skip
-     * another caller's charge.
+     * locally, and every call is sent - the platform discards a repeat under an idempotency key used earlier in the
+     * run, even by another caller.
      */
     private async chargeServerRequest(
         eventName: string,
@@ -505,7 +510,11 @@ export class ChargingManager {
         idempotencyKey: string | undefined,
         requestId: string | undefined,
     ): Promise<ChargeResult> {
-        if (!requestId && !eventName.startsWith('apify-')) {
+        if (eventName.startsWith('apify-')) {
+            throw new Error(`Cannot charge for synthetic event '${eventName}' in a multi-tenant Server Actor run`);
+        }
+
+        if (!requestId) {
             throw new Error(
                 `Charging for '${eventName}' in a multi-tenant Server Actor run requires \`requestId\` - pass the value of the incoming request's X-Actor-Request-ID header to Actor.charge().`,
             );
@@ -515,9 +524,6 @@ export class ChargingManager {
 
         if (count <= 0) {
             // Nothing to charge.
-        } else if (eventName.startsWith('apify-')) {
-            // Synthetic events (e.g. apify-default-dataset-item) are charged by the platform based on dataset writes.
-            chargedCount = count;
         } else if (this.#pricingInfo[eventName] === undefined) {
             log.warning(`Attempting to charge for an unknown event '${eventName}'`);
         } else {

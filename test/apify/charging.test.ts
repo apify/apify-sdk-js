@@ -310,14 +310,16 @@ describe('ChargingManager', () => {
         });
 
         /** Starts a multi-tenant Server Actor run whose Actor has the given pricing history. */
-        async function initMultiTenantActor(pricingInfos: unknown[]) {
+        async function initMultiTenantActor(pricingInfos: unknown[], chargedEventCounts: Record<string, number> = {}) {
             setUpPlatformEnv();
             process.env.APIFY_META_ORIGIN = 'STANDBY';
             process.env.ACTOR_ID = 'test-actor-id';
 
-            const runGetSpy = vitest
-                .fn()
-                .mockResolvedValue({ standby: { deployment: 'MULTI_TENANT_PAYING_USERS' }, options: {} });
+            const runGetSpy = vitest.fn().mockResolvedValue({
+                standby: { deployment: 'MULTI_TENANT_PAYING_USERS' },
+                options: {},
+                chargedEventCounts,
+            });
             const actorGetSpy = vitest.fn().mockResolvedValue({ pricingInfos });
             const chargeSpy = vitest.fn().mockResolvedValue(undefined);
 
@@ -366,8 +368,9 @@ describe('ChargingManager', () => {
             }
             expect(chargeSpy).not.toHaveBeenCalled();
 
-            // Synthetic `apify-*` events are exempt from the `requestId` requirement.
-            await Actor.charge({ eventName: 'apify-actor-start' });
+            await expect(
+                Actor.charge({ eventName: 'apify-default-dataset-item', requestId: 'some-request-id' }),
+            ).rejects.toThrow(/synthetic/);
 
             const result = await Actor.charge({ eventName: 'test-event', requestId: 'some-request-id' });
             expect(result.chargedCount).toBe(1);
@@ -378,7 +381,8 @@ describe('ChargingManager', () => {
         });
 
         test('leaves counting and deduplication to the platform in a multi-tenant Server Actor run', async () => {
-            const { chargeSpy } = await initMultiTenantActor([ppe(1)]);
+            // The run-wide counts mix all callers, so they must not show up as this run's counts.
+            const { chargeSpy } = await initMultiTenantActor([ppe(1)], { 'test-event': 7 });
 
             for (const requestId of ['request-a', 'request-b']) {
                 const result = await Actor.charge({ eventName: 'test-event', idempotencyKey: 'shared-key', requestId });
@@ -393,6 +397,15 @@ describe('ChargingManager', () => {
             const { chargeSpy } = await initMultiTenantActor([]);
 
             expect((await Actor.charge({ eventName: 'test-event' })).chargedCount).toBe(0);
+            expect(chargeSpy).not.toHaveBeenCalled();
+        });
+
+        test('rejects pushData() with a charged event in a multi-tenant run before pushing anything', async () => {
+            const { chargeSpy } = await initMultiTenantActor([ppe(1)]);
+
+            await expect(Actor.pushData([{ id: 1 }], 'test-event')).rejects.toThrow(/multi-tenant/);
+
+            expect((await (await Actor.openDataset()).getData()).items).toEqual([]);
             expect(chargeSpy).not.toHaveBeenCalled();
         });
 

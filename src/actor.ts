@@ -786,7 +786,11 @@ export class Actor<Data extends Dictionary = Dictionary> {
 
         // Only knowable once the pricing is loaded. Reachable with a caller-supplied backend or one
         // registered with crawlee directly; the storages the Actor installs itself are wrapped.
-        if (this.#chargingManager.isPayPerEvent && !this.#chargesDefaultDatasetItems()) {
+        if (
+            this.#chargingManager.isPayPerEvent &&
+            !this.#chargingManager.isMultiTenant &&
+            !this.#chargesDefaultDatasetItems()
+        ) {
             log.warning(
                 'Items pushed to the default dataset will not be charged for, because this run does not use Apify ' +
                     'storage - the platform only counts items it stores itself.',
@@ -1408,6 +1412,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @param item Object or array of objects containing data to be stored in the default dataset.
      * The objects must be serializable to JSON and the JSON representation of each object must be smaller than 9MB.
      * @param eventName If provided, the method will attempt to charge for the event for each pushed item.
+     * Not supported in multi-tenant Server Actor runs, which charge per request with `Actor.charge()`.
      * @ignore
      */
     async pushData(item: Data | Data[], eventName?: string | undefined): Promise<ChargeResult> {
@@ -1415,6 +1420,12 @@ export class Actor<Data extends Dictionary = Dictionary> {
 
         if (eventName?.startsWith('apify-')) {
             throw new Error(`Cannot charge for synthetic event '${eventName}' manually`);
+        }
+
+        if (eventName !== undefined && this.#chargingManager.isMultiTenant) {
+            throw new Error(
+                'Charging for pushed items is not supported in a multi-tenant Server Actor run - use Actor.charge() with the `requestId` of the incoming request instead.',
+            );
         }
 
         if (eventName !== undefined) {
@@ -2472,6 +2483,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @param item Object or array of objects containing data to be stored in the default dataset.
      * The objects must be serializable to JSON and the JSON representation of each object must be smaller than 9MB.
      * @param eventName If provided, the method will attempt to charge for the event for each pushed item.
+     * Not supported in multi-tenant Server Actor runs, which charge per request with `Actor.charge()`.
      */
     static async pushData<Data extends Dictionary = Dictionary>(
         item: Data | Data[],
@@ -2501,6 +2513,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @param item Object or array of objects containing data to be stored in the default dataset.
      * The objects must be serializable to JSON and the JSON representation of each object must be smaller than 9MB.
      * @param eventName If provided, the method will attempt to charge for the event for each pushed item.
+     * Not supported in multi-tenant Server Actor runs, which charge per request with `Actor.charge()`.
      */
     static async pushData<Data extends Dictionary = Dictionary>(
         item: Data | Data[],
