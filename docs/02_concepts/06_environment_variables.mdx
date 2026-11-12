@@ -16,29 +16,18 @@ to set the env vars for you. [Apify platform](./actor-lifecycle) also sets the v
 The following environment variables have large impact on the way Apify SDK works and its behavior
 can be changed significantly by setting or unsetting them.
 
-### `APIFY_LOCAL_STORAGE_DIR`
+### `CRAWLEE_STORAGE_DIR`
 
-Defines the path to a local directory where <ApiLink to="apify/class/KeyValueStore">`KeyValueStore`</ApiLink>, <ApiLink to="apify/class/Dataset">`Dataset`</ApiLink>, and <ApiLink to="apify/class/RequestQueue">`RequestQueue`</ApiLink> store their data. Typically, it is set to `./storage`. If omitted, you should define the [`APIFY_TOKEN`](#apify_token) environment variable instead.
+Defines the path to a local directory where <ApiLink to="apify/class/KeyValueStore">`KeyValueStore`</ApiLink>, <ApiLink to="apify/class/Dataset">`Dataset`</ApiLink>, and <ApiLink to="apify/class/RequestQueue">`RequestQueue`</ApiLink> store their data. Defaults to `./storage`.
 
 ### `APIFY_TOKEN`
 
 The API token for your Apify account. It is used to access the Apify API, e.g. to access cloud storage
 or to run an actor on the Apify platform. You can find your API token on the
-[Account - Integrations](https://console.apify.com/account#/integrations) page. If omitted,
-you should define the `APIFY_LOCAL_STORAGE_DIR` environment variable instead.
+[Account - Integrations](https://console.apify.com/account#/integrations) page.
 
-### Combinations of `APIFY_LOCAL_STORAGE_DIR` and `APIFY_TOKEN`
-
-By combining the env vars in various ways, you can greatly influence the behavior of Apify SDK.
-
-| Env Vars                                    | API | Storages       |
-| ------------------------------------------- | --- | -------------- |
-| none OR `APIFY_LOCAL_STORAGE_DIR`           | no  | local          |
-| `APIFY_TOKEN`                               | yes | Apify platform |
-| `APIFY_TOKEN` AND `APIFY_LOCAL_STORAGE_DIR` | yes | local+platform |
-
-When using both `APIFY_TOKEN` and `APIFY_LOCAL_STORAGE_DIR`, you can use all the Apify platform
-features and your data will be stored locally by default. If you want to access platform storages,
+When running locally with `APIFY_TOKEN` set, you can use all the Apify platform
+features and your data will still be stored locally by default. If you want to access platform storages,
 you can use the `{ forceCloud: true }` option in their respective functions.
 
 ```js

@@ -6,11 +6,11 @@ title: Result storage
 import ApiLink from '@site/src/components/ApiLink';
 
 The Apify SDK has several result storage types that are useful for specific tasks. The data is stored either on local disk to a directory defined by the
-`APIFY_LOCAL_STORAGE_DIR` environment variable, or on the [Apify platform](./actor-lifecycle) under the user account
-identified by the API token defined by the `APIFY_TOKEN` environment variable. If neither of these variables is defined, by default Apify SDK sets
-`APIFY_LOCAL_STORAGE_DIR` to `./storage` in the current working directory and prints a warning.
+`CRAWLEE_STORAGE_DIR` environment variable, or on the [Apify platform](./actor-lifecycle) under the user account
+identified by the API token defined by the `APIFY_TOKEN` environment variable. If `CRAWLEE_STORAGE_DIR` is not defined,
+Apify SDK uses `./storage` in the current working directory.
 
-Typically, you will be developing the code on your local computer and thus set the `APIFY_LOCAL_STORAGE_DIR` environment variable. Once the code is
+Typically, you will be developing the code on your local computer and thus set the `CRAWLEE_STORAGE_DIR` environment variable. Once the code is
 ready, you will deploy it to the Apify platform, where it will automatically set the `APIFY_TOKEN` environment variable and thus use cloud storage. No
 code changes are needed.
 
@@ -33,10 +33,10 @@ although it can be any other format.
 In the Apify SDK, the key-value store is represented by the <ApiLink to="apify/class/KeyValueStore">`KeyValueStore`</ApiLink> class. In order to simplify access to the default
 key-value store, the SDK also provides <ApiLink to="apify/class/Actor#getValue">`Actor.getValue()`</ApiLink> and <ApiLink to="apify/class/Actor#setValue">`Actor.setValue()`</ApiLink> functions.
 
-In local configuration, the data is stored in the directory specified by the `APIFY_LOCAL_STORAGE_DIR` environment variable as follows:
+In local configuration, the data is stored in the directory specified by the `CRAWLEE_STORAGE_DIR` environment variable as follows:
 
 ```
-{APIFY_LOCAL_STORAGE_DIR}/key_value_stores/{STORE_ID}/{KEY}.{EXT}
+{CRAWLEE_STORAGE_DIR}/key_value_stores/{STORE_ID}/{KEY}.{EXT}
 ```
 
 Note that `{STORE_ID}` is the name or ID of the key-value store. The default key value store has ID `default`, unless you override it by setting the
@@ -87,10 +87,10 @@ results specific for the actor run. Its usage is optional.
 In the Apify SDK, the dataset is represented by the <ApiLink to="apify/class/Dataset">`Dataset`</ApiLink> class. In order to simplify writes to the default dataset, the SDK
 also provides the <ApiLink to="apify/class/Actor#pushData">`Actor.pushData()`</ApiLink> function.
 
-In local configuration, the data is stored in the directory specified by the `APIFY_LOCAL_STORAGE_DIR` environment variable as follows:
+In local configuration, the data is stored in the directory specified by the `CRAWLEE_STORAGE_DIR` environment variable as follows:
 
 ```
-{APIFY_LOCAL_STORAGE_DIR}/datasets/{DATASET_ID}/{INDEX}.json
+{CRAWLEE_STORAGE_DIR}/datasets/{DATASET_ID}/{INDEX}.json
 ```
 
 Note that `{DATASET_ID}` is the name or ID of the dataset. The default dataset has ID `default`, unless you override it by setting the
