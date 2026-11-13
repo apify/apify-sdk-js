@@ -966,6 +966,11 @@ describe('Actor', () => {
         },
     }.init();
 
+    beforeEach(() => {
+        vitest.spyOn(RunClient.prototype, 'getStreamedLog').mockResolvedValue(undefined);
+        vitest.spyOn(RunClient.prototype, 'waitForFinish').mockResolvedValue(runConfigs.finishedRun);
+    });
+
     describe('Actor.getEnv()', () => {
         let prevEnv: ApifyEnv;
 
@@ -1034,27 +1039,31 @@ describe('Actor', () => {
             async ({ methodName }) => {
                 const options = { timeout: 'inherit' as const };
 
-                const callSpy = vitest.spyOn(ActorClient.prototype, methodName).mockReturnValue(undefined as any);
+                const startSpy = vitest.spyOn(ActorClient.prototype, 'start').mockResolvedValue(runConfigs.run);
                 await Actor[methodName](actId, input, options);
-                expect(callSpy).toBeCalledWith(input, {
-                    // The client expects the timeout in seconds, while the remaining time is computed in milliseconds.
-                    runTimeoutSecs: (actorTimeout - usedTime) / 1000,
-                });
+                expect(startSpy).toBeCalledWith(
+                    input,
+                    expect.objectContaining({
+                        // The client expects the timeout in seconds, while the remaining time is computed in milliseconds.
+                        runTimeoutSecs: (actorTimeout - usedTime) / 1000,
+                    }),
+                );
             },
         );
 
-        test.each([
-            { methodName: 'callTask' as const, clientMethodName: 'call' as const },
-            { methodName: 'startTask' as const, clientMethodName: 'start' as const },
-        ])(`Actor.$methodName({timeout: 'inherit'})`, async ({ methodName, clientMethodName }) => {
-            const options = { timeout: 'inherit' as const };
+        test.each([{ methodName: 'callTask' as const }, { methodName: 'startTask' as const }])(
+            `Actor.$methodName({timeout: 'inherit'})`,
+            async ({ methodName }) => {
+                const options = { timeout: 'inherit' as const };
 
-            const callSpy = vitest.spyOn(TaskClient.prototype, clientMethodName).mockReturnValue(undefined as any);
-            await Actor[methodName](actId, input, options);
-            expect(callSpy).toBeCalledWith(input, {
-                runTimeoutSecs: (actorTimeout - usedTime) / 1000,
-            });
-        });
+                const startSpy = vitest.spyOn(TaskClient.prototype, 'start').mockResolvedValue(runConfigs.run);
+                await Actor[methodName](actId, input, options);
+                expect(startSpy).toBeCalledWith(
+                    input,
+                    expect.objectContaining({ runTimeoutSecs: (actorTimeout - usedTime) / 1000 }),
+                );
+            },
+        );
 
         test(`Actor.resurrect({timeout: 'inherit'})`, async () => {
             const resurrectSpy = vitest.spyOn(RunClient.prototype, 'resurrect').mockReturnValue(undefined as any);
@@ -1067,11 +1076,12 @@ describe('Actor', () => {
         test(`inherited timeout is rounded up to a whole second`, async () => {
             vi.setSystemTime(new Date(testStartTime.getTime() + usedTime + 500));
 
-            const callSpy = vitest.spyOn(ActorClient.prototype, 'call').mockReturnValue(undefined as any);
+            const startSpy = vitest.spyOn(ActorClient.prototype, 'start').mockResolvedValue(runConfigs.run);
             await Actor.call(actId, input, { timeout: 'inherit' });
-            expect(callSpy).toBeCalledWith(input, {
-                runTimeoutSecs: (actorTimeout - usedTime) / 1000,
-            });
+            expect(startSpy).toBeCalledWith(
+                input,
+                expect.objectContaining({ runTimeoutSecs: (actorTimeout - usedTime) / 1000 }),
+            );
         });
 
         test.each([{ methodName: 'call' as const }, { methodName: 'start' as const }])(
@@ -1079,27 +1089,20 @@ describe('Actor', () => {
             async ({ methodName }) => {
                 vi.setSystemTime(new Date(testStartTime.getTime() + actorTimeout + 5000));
 
-                const callSpy = vitest.spyOn(ActorClient.prototype, methodName).mockReturnValue(undefined as any);
+                const startSpy = vitest.spyOn(ActorClient.prototype, 'start').mockResolvedValue(runConfigs.run);
                 await Actor[methodName](actId, input, { timeout: 'inherit' });
-                expect(callSpy).toBeCalledWith(input, {
-                    runTimeoutSecs: 1,
-                });
+                expect(startSpy).toBeCalledWith(input, expect.objectContaining({ runTimeoutSecs: 1 }));
             },
         );
 
-        test.each([
-            { methodName: 'callTask' as const, clientMethodName: 'call' as const },
-            { methodName: 'startTask' as const, clientMethodName: 'start' as const },
-        ])(
+        test.each([{ methodName: 'callTask' as const }, { methodName: 'startTask' as const }])(
             `Actor.$methodName({timeout: 'inherit'}) is clamped to 1 second when the run is already past its timeout`,
-            async ({ methodName, clientMethodName }) => {
+            async ({ methodName }) => {
                 vi.setSystemTime(new Date(testStartTime.getTime() + actorTimeout + 5000));
 
-                const callSpy = vitest.spyOn(TaskClient.prototype, clientMethodName).mockReturnValue(undefined as any);
+                const startSpy = vitest.spyOn(TaskClient.prototype, 'start').mockResolvedValue(runConfigs.run);
                 await Actor[methodName](actId, input, { timeout: 'inherit' });
-                expect(callSpy).toBeCalledWith(input, {
-                    runTimeoutSecs: 1,
-                });
+                expect(startSpy).toBeCalledWith(input, expect.objectContaining({ runTimeoutSecs: 1 }));
             },
         );
     });
@@ -1116,11 +1119,18 @@ describe('Actor', () => {
             const options = { contentType, build, memory, timeout, webhooks };
 
             const actorSpy = vitest.spyOn(ApifyClient.prototype, 'actor');
-            const callSpy = vitest.spyOn(ActorClient.prototype, 'call').mockReturnValue(runConfigs.finishedRun);
+            const startSpy = vitest.spyOn(ActorClient.prototype, 'start').mockResolvedValue(runConfigs.run);
             await Actor.call(actId, input, options);
 
             expect(actorSpy).toBeCalledWith(actId);
-            expect(callSpy).toBeCalledWith(input, { contentType, build, memory, runTimeoutSecs: timeout, webhooks });
+            expect(startSpy).toBeCalledWith(input, {
+                contentType,
+                build,
+                memory,
+                runTimeoutSecs: timeout,
+                webhooks,
+                timeoutSecs: 'noTimeout',
+            });
         });
 
         test('works with token', async () => {
@@ -1130,7 +1140,7 @@ describe('Actor', () => {
 
             const newClientSpy = vitest.spyOn(Actor.prototype, 'newClient');
             const actorSpy = vitest.spyOn(ApifyClient.prototype, 'actor');
-            const callSpy = vitest.spyOn(ActorClient.prototype, 'call').mockReturnValue(runConfigs.finishedRun);
+            const startSpy = vitest.spyOn(ActorClient.prototype, 'start').mockResolvedValue(runConfigs.run);
             await Actor.call(actId, input, {
                 contentType,
                 build,
@@ -1142,12 +1152,13 @@ describe('Actor', () => {
 
             expect(newClientSpy).toBeCalledWith({ token });
             expect(actorSpy).toBeCalledWith(actId);
-            expect(callSpy).toBeCalledWith(input, {
+            expect(startSpy).toBeCalledWith(input, {
                 build,
                 contentType,
                 memory,
                 runTimeoutSecs: timeout,
                 webhooks,
+                timeoutSecs: 'noTimeout',
             });
         });
     });
@@ -1159,11 +1170,11 @@ describe('Actor', () => {
         const webhooks = [{ a: 'a' }, { b: 'b' }] as unknown as WebhookUpdateData[];
 
         const { input, taskId, token, build } = globalOptions;
-        const { finishedRun } = runConfigs;
+        const { run, finishedRun } = runConfigs;
 
         test('works as expected', async () => {
             const taskSpy = vitest.spyOn(ApifyClient.prototype, 'task');
-            const callSpy = vitest.spyOn(TaskClient.prototype, 'call').mockReturnValue(finishedRun);
+            const startSpy = vitest.spyOn(TaskClient.prototype, 'start').mockResolvedValue(run);
 
             const options = { memory, timeout, build, webhooks };
             const callOutput = await Actor.callTask(taskId, input, options);
@@ -1173,8 +1184,14 @@ describe('Actor', () => {
             expect(taskSpy).toBeCalledTimes(1);
             expect(taskSpy).toBeCalledWith(taskId);
 
-            expect(callSpy).toBeCalledTimes(1);
-            expect(callSpy).toBeCalledWith(input, { memory, runTimeoutSecs: timeout, build, webhooks });
+            expect(startSpy).toBeCalledTimes(1);
+            expect(startSpy).toBeCalledWith(input, {
+                memory,
+                runTimeoutSecs: timeout,
+                build,
+                webhooks,
+                timeoutSecs: 'noTimeout',
+            });
         });
 
         test('works with token', async () => {
@@ -1182,7 +1199,7 @@ describe('Actor', () => {
 
             const newClientSpy = vitest.spyOn(Actor.prototype, 'newClient');
             const taskSpy = vitest.spyOn(ApifyClient.prototype, 'task');
-            const callSpy = vitest.spyOn(TaskClient.prototype, 'call').mockReturnValue(finishedRun);
+            const startSpy = vitest.spyOn(TaskClient.prototype, 'start').mockResolvedValue(run);
             const callOutput = await Actor.callTask(taskId, input, {
                 token,
                 ...options,
@@ -1190,7 +1207,13 @@ describe('Actor', () => {
 
             expect(newClientSpy).toBeCalledWith({ token });
             expect(taskSpy).toBeCalledWith(taskId);
-            expect(callSpy).toBeCalledWith(input, { memory, runTimeoutSecs: timeout, build, webhooks });
+            expect(startSpy).toBeCalledWith(input, {
+                memory,
+                runTimeoutSecs: timeout,
+                build,
+                webhooks,
+                timeoutSecs: 'noTimeout',
+            });
 
             expect(callOutput).toEqual(finishedRun);
         });
