@@ -23,7 +23,7 @@ allowBuilds:
 
 overrides:
   webpack-dev-server: ^6.0.0
-  '@apify/ui-library': 1.176.4
+  '@apify/ui-library': 1.176.6
 
 nodeLinker: hoisted
 linkWorkspacePackages: true
