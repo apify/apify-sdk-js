@@ -1,5 +1,5 @@
 import { Dataset, KeyValueStore } from '@crawlee/core';
-import type { ActorRunPricingInfo, ApifyClient } from 'apify-client';
+import type { ActorResource, ActorRunPricingInfo, ApifyClient, Run as ClientActorRun } from 'apify-client';
 
 import log from '@apify/log';
 
@@ -23,6 +23,20 @@ const IDEMPOTENCY_KEY_TTL_MILLIS = 3 * 60 * 1000;
 
 export const DEFAULT_DATASET_ITEM_EVENT = 'apify-default-dataset-item';
 
+/**
+ * The pricing history includes scheduled future changes, so the effective entry is the latest one
+ * with `startedAt <= now`, not the last one.
+ *
+ * Resolved once at init on purpose. A change kicking in mid-run only affects local event titles and
+ * "unknown event" warnings; the platform prices each charge from its own current pricing anyway.
+ */
+function getEffectivePricingInfo(pricingInfos: ActorRunPricingInfo[], now = new Date()) {
+    return pricingInfos
+        .filter((info) => new Date(info.startedAt) <= now)
+        .sort((a, b) => new Date(a.startedAt).getTime() - new Date(b.startedAt).getTime())
+        .at(-1);
+}
+
 export interface ChargeOptions {
     /**
      * The name of the event type to charge for.
@@ -40,8 +54,16 @@ export interface ChargeOptions {
      * A unique key preventing a retried operation from being charged for twice - e.g. a request handler rerun by a retry.
      * A repeat under the same key within three minutes is not sent to the API and reports the `chargedCount` of
      * the original call, or zero if it names a different event. Like the platform, the key is forgotten afterwards.
+     * In a multi-tenant Server Actor run, every call is sent and the platform deduplicates it.
      */
     idempotencyKey?: string;
+
+    /**
+     * ID of the Server Actor request being charged, taken from the `X-Actor-Request-ID` header of the incoming request.
+     * Required for multi-tenant Server Actor runs, where it maps the charge to the caller's account instead of the account that started the run.
+     * Ignored elsewhere.
+     */
+    requestId?: string;
 }
 
 export interface ChargeResult {
@@ -95,6 +117,8 @@ export class ChargingManager {
     #isAtHome: boolean;
     #actorRunId?: string;
     #pricingModel?: ActorRunPricingInfo['pricingModel'];
+    /** Multi-tenant Server Actor runs carry no pricing snapshot; pricing comes from the Actor and the platform prices per caller. */
+    #isMultiTenant = false;
     #purgeChargingLogDataset: boolean;
     #useChargingLogDataset: boolean;
     #notPpeWarningPrinted = false;
@@ -110,8 +134,15 @@ export class ChargingManager {
 
     #apifyClient: ApifyClient;
     #configuration: Configuration;
+    #getCurrentRun: () => Promise<ClientActorRun | undefined>;
+    #getCurrentActor: () => Promise<ActorResource | undefined>;
 
-    constructor(configuration: Configuration, apifyClient: ApifyClient) {
+    constructor(
+        configuration: Configuration,
+        apifyClient: ApifyClient,
+        getCurrentRun: () => Promise<ClientActorRun | undefined>,
+        getCurrentActor: () => Promise<ActorResource | undefined>,
+    ) {
         this.#configuration = configuration;
         this.#maxTotalChargeUsd = configuration.maxTotalChargeUsd || Infinity; // convert `0` to `Infinity` in case the value is an empty string
         this.#isAtHome = configuration.isAtHome;
@@ -120,11 +151,18 @@ export class ChargingManager {
         this.#useChargingLogDataset = configuration.useChargingLogDataset;
 
         this.#apifyClient = apifyClient;
+        this.#getCurrentRun = getCurrentRun;
+        this.#getCurrentActor = getCurrentActor;
     }
 
     /** A shortcut - true if the Actor runs with the pay-per-event pricing model. */
     get isPayPerEvent(): boolean {
         return this.#pricingModel === 'PAY_PER_EVENT';
+    }
+
+    /** True in a multi-tenant Server Actor run, which charges per request with `requestId` only. */
+    get isMultiTenant(): boolean {
+        return this.#isMultiTenant;
     }
 
     private async fetchPricingInfo(): Promise<{
@@ -145,9 +183,24 @@ export class ChargingManager {
                 throw new Error('Actor run ID not found even though the Actor is running on Apify');
             }
 
-            const run = await this.#apifyClient.run(this.#actorRunId).get();
+            const run = await this.#getCurrentRun();
             if (run === undefined) {
                 throw new Error('Actor run not found');
+            }
+
+            if (run.standby?.deployment.startsWith('MULTI_TENANT')) {
+                const actor = await this.#getCurrentActor();
+                if (actor === undefined) {
+                    throw new Error('Actor not found');
+                }
+
+                this.#isMultiTenant = true;
+
+                return {
+                    pricingInfo: getEffectivePricingInfo(actor.pricingInfos ?? []),
+                    chargedEventCounts: {}, // the run's counts mix all callers
+                    maxTotalChargeUsd: Infinity, // the platform prices and limits per caller
+                };
             }
 
             return {
@@ -287,9 +340,13 @@ export class ChargingManager {
      * rather than batching via `count` — this gives finer control over budget consumption
      * and avoids situations where more work is requested than the budget allows.
      *
+     * **Note:** `idempotencyKey` is scoped to the whole run, not to `requestId`. In a multi-tenant
+     * Server Actor run, a key reused across requests charges only the first caller, so it must
+     * be globally unique (e.g. derived from `requestId`).
+     *
      * @param options The name of the event to charge for and the number of events to be charged.
      */
-    async charge({ eventName, count = 1, idempotencyKey }: ChargeOptions): Promise<ChargeResult> {
+    async charge({ eventName, count = 1, idempotencyKey, requestId }: ChargeOptions): Promise<ChargeResult> {
         if (idempotencyKey !== undefined && idempotencyKey.trim() === '') {
             throw new Error('idempotencyKey must not be blank');
         }
@@ -307,6 +364,10 @@ export class ChargingManager {
                 chargedCount: 0,
                 chargeableWithinLimit: this.calculateChargeableWithinLimit(),
             };
+        }
+
+        if (this.#isMultiTenant) {
+            return await this.chargeServerRequest(eventName, count, idempotencyKey, requestId);
         }
 
         // Match the Python SDK: a non-positive count never reaches the platform and never
@@ -389,6 +450,7 @@ export class ChargingManager {
                         eventName,
                         count: chargedCount,
                         idempotencyKey,
+                        requestId,
                     });
                 } else {
                     log.warning(`Attempting to charge for an unknown event '${eventName}'`);
@@ -417,6 +479,7 @@ export class ChargingManager {
                     eventPriceUsd: pricingInfo.price,
                     chargedCount,
                     idempotencyKey,
+                    requestId,
                     timestamp: new Date().toISOString(),
                 });
             }
@@ -434,6 +497,45 @@ export class ChargingManager {
                 chargeableWithinLimit: this.calculateChargeableWithinLimit(),
             };
         });
+    }
+
+    /**
+     * The platform prices, limits and deduplicates each caller's charges itself, so nothing is counted or enforced
+     * locally, and every call is sent - the platform discards a repeat under an idempotency key used earlier in the
+     * run, even by another caller.
+     */
+    private async chargeServerRequest(
+        eventName: string,
+        count: number,
+        idempotencyKey: string | undefined,
+        requestId: string | undefined,
+    ): Promise<ChargeResult> {
+        if (eventName.startsWith('apify-')) {
+            throw new Error(`Cannot charge for synthetic event '${eventName}' in a multi-tenant Server Actor run`);
+        }
+
+        if (!requestId) {
+            throw new Error(
+                `Charging for '${eventName}' in a multi-tenant Server Actor run requires \`requestId\` - pass the value of the incoming request's X-Actor-Request-ID header to Actor.charge().`,
+            );
+        }
+
+        let chargedCount = 0;
+
+        if (count <= 0) {
+            // Nothing to charge.
+        } else if (this.#pricingInfo[eventName] === undefined) {
+            log.warning(`Attempting to charge for an unknown event '${eventName}'`);
+        } else {
+            await this.#apifyClient.run(this.#actorRunId!).charge({ eventName, count, idempotencyKey, requestId });
+            chargedCount = count;
+        }
+
+        return {
+            eventChargeLimitReached: false,
+            chargedCount,
+            chargeableWithinLimit: this.calculateChargeableWithinLimit(),
+        };
     }
 
     private getIdempotentCharge(idempotencyKey: string): IdempotentCharge | undefined {
