@@ -7,9 +7,9 @@ import ApiLink from '@site/src/components/ApiLink';
 import { CrawleeApiLink } from '@site/src/components/CrawleeLinks';
 
 The Apify SDK has several request storage types that are useful for specific tasks. The requests are stored either on local disk to a directory defined by the
-`APIFY_LOCAL_STORAGE_DIR` environment variable, or on the [Apify platform](./actor-lifecycle) under the user account identified by the API token defined by the `APIFY_TOKEN` environment variable. If neither of these variables is defined, by default Apify SDK sets `APIFY_LOCAL_STORAGE_DIR` to `./storage` in the current working directory and prints a warning.
+`CRAWLEE_STORAGE_DIR` environment variable, or on the [Apify platform](./actor-lifecycle) under the user account identified by the API token defined by the `APIFY_TOKEN` environment variable. If `CRAWLEE_STORAGE_DIR` is not defined, Apify SDK uses `./storage` in the current working directory.
 
-Typically, you will be developing the code on your local computer and thus set the `APIFY_LOCAL_STORAGE_DIR` environment variable. Once the code is ready, you will deploy it to the Apify platform, where it will automatically set the `APIFY_TOKEN` environment variable and thus use cloud storage. No code changes are needed.
+Typically, you will be developing the code on your local computer and thus set the `CRAWLEE_STORAGE_DIR` environment variable. Once the code is ready, you will deploy it to the Apify platform, where it will automatically set the `APIFY_TOKEN` environment variable and thus use cloud storage. No code changes are needed.
 
 **Related links**
 
@@ -25,10 +25,10 @@ Each actor run is associated with a **default request queue**, which is created 
 
 In Apify SDK, the request queue is represented by the <ApiLink to="apify/class/RequestQueue">`RequestQueue`</ApiLink> class.
 
-In local configuration, the request queue is emulated by [@apify/storage-local](https://github.com/apify/apify-storage-local-js) NPM package and its data is stored in SQLite database in the directory specified by the `APIFY_LOCAL_STORAGE_DIR` environment variable as follows:
+In local configuration, the request queue is emulated by [@apify/storage-local](https://github.com/apify/apify-storage-local-js) NPM package and its data is stored in SQLite database in the directory specified by the `CRAWLEE_STORAGE_DIR` environment variable as follows:
 
 ```
-{APIFY_LOCAL_STORAGE_DIR}/request_queues/{QUEUE_ID}/db.sqlite
+{CRAWLEE_STORAGE_DIR}/request_queues/{QUEUE_ID}/db.sqlite
 ```
 
 Note that `{QUEUE_ID}` is the name or ID of the request queue. The default queue has ID `default`, unless you override it by setting the `APIFY_DEFAULT_REQUEST_QUEUE_ID` environment variable.

@@ -80,10 +80,11 @@ import {
 // `@apify/consts` has no boolean counterpart to `INTEGER_ENV_VARS`.
 const BOOLEAN_ENV_VARS: readonly string[] = [APIFY_ENV_VARS.USER_IS_PAYING];
 
-// Still listed in `@apify/consts`, but no longer read by the SDK.
+// Still listed in `@apify/consts`, but not read by the SDK.
 const IGNORED_ENV_VARS: readonly string[] = [
     APIFY_ENV_VARS.DISABLE_OUTDATED_WARNING,
     APIFY_ENV_VARS.SDK_LATEST_VERSION,
+    APIFY_ENV_VARS.LOCAL_STORAGE_DIR,
 ];
 
 /**
@@ -282,14 +283,6 @@ export interface ApifyEnv {
     fact: string | null;
     inputSecretsPrivateKeyFile: string | null;
     inputSecretsPrivateKeyPassphrase: string | null;
-
-    /**
-     * Defines the path to a local directory where KeyValueStore, Dataset, and RequestQueue
-     * store their data. Typically, it is set to ./storage. If omitted, you should define the
-     * APIFY_TOKEN environment variable instead. See more info on combination of this and
-     * APIFY_TOKEN [here](https://docs.apify.com/sdk/js/docs/concepts/environment-variables#combinations-of-apify_local_storage_dir-and-apify_token)(CRAWLEE_STORAGE_DIR)
-     */
-    localStorageDir: string | null;
 
     /**
      * Specifies the minimum log level, which can be one of the following values (in order of severity): DEBUG, INFO, WARNING and ERROR
