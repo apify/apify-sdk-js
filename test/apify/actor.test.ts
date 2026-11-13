@@ -1735,6 +1735,17 @@ describe('Actor', () => {
             await expect(actor.getInput()).resolves.toEqual({ hello: 'world' });
         });
 
+        test('replaces Google Sheets sharing links in requestsFromUrl entries with CSV export links', async () => {
+            const { actor } = createIsolatedActor({ storageClient: new MemoryStorageBackend() });
+            await actor.setValue(KEY_VALUE_STORE_KEYS.INPUT, {
+                startUrls: [{ requestsFromUrl: 'https://docs.google.com/spreadsheets/d/abc-123/edit?usp=sharing' }],
+            });
+
+            await expect(actor.getInput()).resolves.toEqual({
+                startUrls: [{ requestsFromUrl: 'https://docs.google.com/spreadsheets/d/abc-123/gviz/tq?tqx=out:csv' }],
+            });
+        });
+
         describe('working directory fallback', () => {
             const originalCwd = process.cwd();
             let cwd: string;

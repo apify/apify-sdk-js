@@ -61,6 +61,7 @@ import { ChildRunTracker } from './child_run_tracker.js';
 import type { ConfigurationOptions } from './configuration.js';
 import { Configuration } from './configuration.js';
 import { ActorInputError } from './errors.js';
+import { fixGoogleSheetsUrls } from './google_sheets.js';
 import { getDefaultsFromInputSchema, noActorInputSchemaDefinedMarker, readInputSchema } from './input-schemas.js';
 import { PlatformEventManager } from './platform_event_manager.js';
 import type { ProxyConfigurationOptions } from './proxy_configuration.js';
@@ -1632,6 +1633,9 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * working directory. A storage backend that doesn't read the default key-value store's directory under
      * the storage directory (e.g. in-memory storage) also gets the file `apify run` writes there.
      *
+     * Google Sheets sharing links in `requestsFromUrl` entries (from the "Link remote text file" option) are
+     * replaced with the links of their CSV exports.
+     *
      * Throws an {@apilink ActorInputError} when no input is found (`code: 'NOT_FOUND'`), when the input is
      * found in more than one place (`'MULTIPLE_FILES'`), when a JSON input does not parse
      * (`'PARSE_FAILED'`) or when its secret fields cannot be decrypted (`'DECRYPTION_FAILED'`). If your
@@ -1710,7 +1714,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
         }
 
         if (isNonEmptyObject(input) && !Buffer.isBuffer(input)) {
-            input = await this.inferDefaultsFromInputSchema(input);
+            input = fixGoogleSheetsUrls(await this.inferDefaultsFromInputSchema(input));
         }
 
         return input;
@@ -2655,6 +2659,9 @@ export class Actor<Data extends Dictionary = Dictionary> {
      *
      * When running locally, the input may instead be a `<inputKey>` or `<inputKey>.json` file in the current
      * working directory.
+     *
+     * Google Sheets sharing links in `requestsFromUrl` entries (from the "Link remote text file" option) are
+     * replaced with the links of their CSV exports.
      *
      * Throws an {@apilink ActorInputError} when no input is found (`code: 'NOT_FOUND'`), when the input is
      * found in more than one place (`'MULTIPLE_FILES'`), when a JSON input does not parse
