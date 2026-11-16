@@ -314,6 +314,8 @@ describe('ChargingManager', () => {
             setUpPlatformEnv();
             process.env.APIFY_META_ORIGIN = 'STANDBY';
             process.env.ACTOR_ID = 'test-actor-id';
+            // What the platform sets in multi-tenant runs; detection must not stop at this empty snapshot.
+            process.env.APIFY_ACTOR_PRICING_INFO = '{}';
 
             const runGetSpy = vitest.fn().mockResolvedValue({
                 standby: { deployment: 'MULTI_TENANT_PAYING_USERS' },
