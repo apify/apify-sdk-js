@@ -48,6 +48,7 @@ import {
 import { decryptInputSecrets } from '@apify/input_secrets';
 import log from '@apify/log';
 import { addTimeoutToPromise } from '@apify/timeout';
+import { timeoutPromise } from '@apify/utilities';
 import { parseArgument } from '@apify/validations';
 
 import { ApifyFileSystemStorageBackend } from './apify_file_system_storage_backend.js';
@@ -1203,40 +1204,33 @@ export class Actor<Data extends Dictionary = Dictionary> {
 
         const { timeoutSecs = 30, customAfterSleepMillis = this.configuration.metamorphAfterSleepMillis } = options;
 
+        const callListeners = (event: EventType, data: Dictionary) =>
+            serviceLocator
+                .getEventManager()
+                .listeners(event)
+                .map(async (listener: (...args: unknown[]) => unknown) => {
+                    try {
+                        await listener(data);
+                    } catch (err) {
+                        log.exception(err as Error, 'A pre-reboot event listener failed');
+                    }
+                });
+
+        // Waiting for all the listeners to finish, as `.reboot()` kills the container.
+        // Not using `addTimeoutToPromise`, its timeout would also cancel the enclosing one (e.g. a request handler).
+        await timeoutPromise(
+            Promise.all([
+                // `persistState` for individual RequestLists, RequestQueue... instances to be persisted
+                ...callListeners(EventType.PERSIST_STATE, { isMigrating: true }),
+                // `migrating` to pause Apify crawlers
+                ...callListeners(EventType.MIGRATING, {}),
+            ]),
+            timeoutSecs * 1000,
+            `Pre-reboot event listeners did not finish within ${timeoutSecs} seconds, proceeding with the reboot`,
+        ).catch((err) => log.warning((err as Error).message));
+
+        const runId = this.configuration.actorRunId!;
         try {
-            const callListeners = (event: EventType, data: Dictionary) =>
-                serviceLocator
-                    .getEventManager()
-                    .listeners(event)
-                    .map(async (listener: (...args: unknown[]) => unknown) => {
-                        try {
-                            await listener(data);
-                        } catch (err) {
-                            log.exception(err as Error, 'A pre-reboot event listener failed');
-                        }
-                    });
-
-            // Waiting for all the listeners to finish, as `.reboot()` kills the container.
-            // Not using `addTimeoutToPromise`, its timeout would also cancel the enclosing one (e.g. a request handler).
-            let timeout: ReturnType<typeof setTimeout> | undefined;
-            await Promise.race([
-                Promise.all([
-                    // `persistState` for individual RequestLists, RequestQueue... instances to be persisted
-                    ...callListeners(EventType.PERSIST_STATE, { isMigrating: true }),
-                    // `migrating` to pause Apify crawlers
-                    ...callListeners(EventType.MIGRATING, {}),
-                ]),
-                new Promise<void>((resolve) => {
-                    timeout = setTimeout(() => {
-                        log.warning(
-                            `Pre-reboot event listeners did not finish within ${timeoutSecs} seconds, proceeding with the reboot`,
-                        );
-                        resolve();
-                    }, timeoutSecs * 1000);
-                }),
-            ]).finally(() => clearTimeout(timeout));
-
-            const runId = this.configuration.actorRunId!;
             await this.apifyClient.run(runId).reboot();
         } catch (err) {
             // Reset the flag so that a failed reboot can be retried.
