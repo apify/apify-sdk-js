@@ -49,6 +49,7 @@ import {
 import { decryptInputSecrets } from '@apify/input_secrets';
 import log from '@apify/log';
 import { addTimeoutToPromise } from '@apify/timeout';
+import { timeoutPromise } from '@apify/utilities';
 import { parseArgument } from '@apify/validations';
 
 import { ApifyFileSystemStorageBackend } from './apify_file_system_storage_backend.js';
@@ -456,6 +457,12 @@ export interface MetamorphOptions {
 }
 
 export interface RebootOptions {
+    /**
+     * Amount of time, in seconds, to wait for the `persistState` and `migrating` event handlers before rebooting.
+     * @default 30
+     */
+    timeoutSecs?: number;
+
     /** @internal */
     customAfterSleepMillis?: number;
 }
@@ -1244,25 +1251,43 @@ export class Actor<Data extends Dictionary = Dictionary> {
 
         this.#isRebooting = true;
 
+        const { timeoutSecs = 30, customAfterSleepMillis = this.configuration.metamorphAfterSleepMillis } = options;
+
+        const callListeners = (event: EventType, data: Dictionary) =>
+            serviceLocator
+                .getEventManager()
+                .listeners(event)
+                .map(async (listener: (...args: unknown[]) => unknown) => {
+                    try {
+                        await listener(data);
+                    } catch (err) {
+                        log.exception(err as Error, 'A pre-reboot event listener failed');
+                    }
+                });
+
         // Waiting for all the listeners to finish, as `.reboot()` kills the container.
-        await Promise.all([
-            // `persistState` for individual RequestLists, RequestQueue... instances to be persisted
-            ...serviceLocator
-                .getEventManager()
-                .listeners(EventType.PERSIST_STATE)
-                .map(async (x: (...args: unknown[]) => unknown) => x({})),
-            // `migrating` to pause Apify crawlers
-            ...serviceLocator
-                .getEventManager()
-                .listeners(EventType.MIGRATING)
-                .map(async (x: (...args: unknown[]) => unknown) => x({})),
-        ]);
+        // Not using `addTimeoutToPromise`, its timeout would also cancel the enclosing one (e.g. a request handler).
+        await timeoutPromise(
+            Promise.all([
+                // `persistState` for individual RequestLists, RequestQueue... instances to be persisted
+                ...callListeners(EventType.PERSIST_STATE, { isMigrating: true }),
+                // `migrating` to pause Apify crawlers
+                ...callListeners(EventType.MIGRATING, {}),
+            ]),
+            timeoutSecs * 1000,
+            `Pre-reboot event listeners did not finish within ${timeoutSecs} seconds, proceeding with the reboot`,
+        ).catch((err) => log.warning((err as Error).message));
 
         const runId = this.configuration.actorRunId!;
-        await this.apifyClient.run(runId).reboot();
+        try {
+            await this.apifyClient.run(runId).reboot();
+        } catch (err) {
+            // Reset the flag so that a failed reboot can be retried.
+            this.#isRebooting = false;
+            throw err;
+        }
 
         // Wait some time for container to be stopped.
-        const { customAfterSleepMillis = this.configuration.metamorphAfterSleepMillis } = options;
         await sleep(customAfterSleepMillis);
     }
 

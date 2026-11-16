@@ -21,6 +21,7 @@ import {
 } from '@apify/consts';
 import { encryptInputSecrets } from '@apify/input_secrets';
 import log from '@apify/log';
+import { addTimeoutToPromise, tryCancel } from '@apify/timeout';
 
 import { createIsolatedActor, initIsolatedDefaultActor } from '../createIsolatedActor.js';
 import { resetGlobalState } from '../resetGlobalState.js';
@@ -1391,6 +1392,7 @@ describe('Actor', () => {
     describe('Actor.reboot()', () => {
         const { actId, runId } = globalOptions;
         const { run } = runConfigs;
+        const hangingListener = () => new Promise<void>(() => {});
 
         beforeEach(() => {
             process.env[APIFY_ENV_VARS.IS_AT_HOME] = '1';
@@ -1433,12 +1435,52 @@ describe('Actor', () => {
             // Do the listeners get called?
             expect(migratingSpy).toBeCalledTimes(1);
             expect(persistStateSpy).toBeCalledTimes(1);
+            expect(persistStateSpy).toBeCalledWith({ isMigrating: true });
 
             // Do the listeners finish?
             expect(persistenceStore.length).toBe(2);
 
             // Did the client's reboot method get called?
             expect(rebootMock).toBeCalledTimes(1);
+        });
+
+        test('reboot can be retried after a failed attempt', async () => {
+            const rebootMock = vitest.fn().mockRejectedValueOnce(new Error('reboot failed'));
+            vitest.spyOn(ApifyClient.prototype, 'run').mockReturnValue({ reboot: rebootMock } as any);
+
+            await expect(Actor.reboot({ customAfterSleepMillis: 1 })).rejects.toThrow('reboot failed');
+            await Actor.reboot({ customAfterSleepMillis: 1 });
+
+            expect(rebootMock).toBeCalledTimes(2);
+        });
+
+        test('reboot proceeds when a listener fails or does not finish in time', async () => {
+            const rebootMock = vitest.fn();
+            vitest.spyOn(ApifyClient.prototype, 'run').mockReturnValueOnce({ reboot: rebootMock } as any);
+
+            const events = serviceLocator.getEventManager();
+            events.on(EventType.PERSIST_STATE, async () => {
+                throw new Error('persist failed');
+            });
+            events.on(EventType.MIGRATING, hangingListener);
+
+            await Actor.reboot({ timeoutSecs: 0.1, customAfterSleepMillis: 1 });
+
+            expect(rebootMock).toBeCalledTimes(1);
+        });
+
+        test('reboot timeout does not cancel the enclosing timeout context', async () => {
+            vitest.spyOn(ApifyClient.prototype, 'run').mockReturnValueOnce({ reboot: vitest.fn() } as any);
+            serviceLocator.getEventManager().on(EventType.MIGRATING, hangingListener);
+
+            await addTimeoutToPromise(
+                async () => {
+                    await Actor.reboot({ timeoutSecs: 0.1, customAfterSleepMillis: 1 });
+                    expect(() => tryCancel()).not.toThrow();
+                },
+                10_000,
+                'enclosing handler timed out',
+            );
         });
     });
 
