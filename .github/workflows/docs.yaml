@@ -9,12 +9,9 @@ on:
 jobs:
     build:
         if: ${{ !contains(github.event.head_commit.message, '[skip ci]') }}
-        environment:
-            name: github-pages
         permissions:
             contents: write
             pages: write
-            id-token: write
         runs-on: ubuntu-26.04
 
         steps:
@@ -56,6 +53,16 @@ jobs:
               with:
                   path: ./website/build
 
+    deploy:
+        needs: build
+        environment:
+            name: github-pages
+        permissions:
+            pages: write
+            id-token: write
+        runs-on: ubuntu-26.04
+
+        steps:
             - name: Deploy artifact to GitHub Pages
               uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
 
