@@ -266,6 +266,18 @@ if (run) {
 
 To get notified about new SDK versions instead, set up [Renovate](https://docs.renovatebot.com/) on your Actor's GitHub repository. It opens a pull request whenever a new `apify` version is released.
 
+## Internal key-value store records renamed
+
+The SDK's internal records in the default key-value store now use the `SDK_UPPER_SNAKE_CASE` convention:
+
+| Record | v3 key | v4 key |
+|---|---|---|
+| `Actor.useState()` without a name | `APIFY_GLOBAL_STATE` | `SDK_GLOBAL_STATE` |
+| Storage alias mapping | `__STORAGE_ALIASES_MAPPING` | `SDK_STORAGE_ALIASES_MAPPING` |
+| Child runs (`Actor.childRuns`) | `__ACTOR_CHILD_RUNS` | `SDK_ACTOR_CHILD_RUNS` |
+
+Records persisted under the old keys by a v3 run are not picked up after upgrading. The `CHARGING_LOG_DATASET_ID` record is gone. The charging log dataset is only used locally, where it is the named `charging_log` dataset.
+
 ## Argument validation (`ow` → `zod`)
 
 Runtime argument validation (e.g. `Actor.addWebhook()`, `Actor.setStatusMessage()`, `Actor.openDataset()` / `openKeyValueStore()` / `openRequestQueue()`, and the `ProxyConfiguration` constructor) now uses [`zod`](https://zod.dev) instead of `ow`. Validation is just as strict — invalid arguments still throw synchronously, before any work is done — but the **error messages changed**.

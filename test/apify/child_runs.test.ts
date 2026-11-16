@@ -53,7 +53,7 @@ describe('child run tracking with `runName`', () => {
     let resurrectSpy: MockInstance;
 
     const getChildRunLedger = async (actor: Actor) =>
-        (await actor.openKeyValueStore()).getValue<Record<string, TrackedChildRun>>('__ACTOR_CHILD_RUNS');
+        (await actor.openKeyValueStore()).getValue<Record<string, TrackedChildRun>>('SDK_ACTOR_CHILD_RUNS');
     const newActor = () => createIsolatedActor({ storageClient: storage }).actor;
 
     beforeEach(() => {
@@ -269,9 +269,9 @@ describe('child run tracking with `runName`', () => {
     });
 
     test('init() throws when the stored child runs are malformed', async () => {
-        await (await newActor().openKeyValueStore()).setValue('__ACTOR_CHILD_RUNS', { [runName]: { runId: 42 } });
+        await (await newActor().openKeyValueStore()).setValue('SDK_ACTOR_CHILD_RUNS', { [runName]: { runId: 42 } });
 
-        await expect(newActor().init()).rejects.toThrow(/__ACTOR_CHILD_RUNS.*malformed/);
+        await expect(newActor().init()).rejects.toThrow(/SDK_ACTOR_CHILD_RUNS.*malformed/);
     });
 
     test('childRuns uses the token a run was started with in this process', async () => {

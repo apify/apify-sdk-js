@@ -69,7 +69,7 @@ const toInfo = (run: ActorRun): ChildRunInfo => ({
     startedAt: run.startedAt.toISOString(),
 });
 
-const CHILD_RUNS_KVS_KEY = '__ACTOR_CHILD_RUNS';
+const CHILD_RUNS_KVS_KEY = 'SDK_ACTOR_CHILD_RUNS';
 
 const childRunInfoSchema = z.object({ runId: z.string(), status: z.string(), startedAt: z.string() });
 const trackedRunsSchema = z.record(
