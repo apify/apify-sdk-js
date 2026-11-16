@@ -27,7 +27,7 @@ import type {
     Webhook,
     WebhookEventType,
 } from 'apify-client';
-import { ActorRun as ClientActorRun } from 'apify-client';
+import { ActorRun as ClientActorRun, type Actor as ClientActor } from 'apify-client';
 import ow from 'ow';
 
 import {
@@ -36,6 +36,7 @@ import {
     type ACTOR_PERMISSION_LEVEL,
     APIFY_ENV_VARS,
     INTEGER_ENV_VARS,
+    META_ORIGINS,
 } from '@apify/consts';
 import { decryptInputSecrets } from '@apify/input_secrets';
 import log from '@apify/log';
@@ -428,6 +429,10 @@ export class Actor<Data extends Dictionary = Dictionary> {
 
     private chargingManager: ChargingManager;
 
+    private runPromise?: Promise<ClientActorRun | undefined>;
+
+    private actorPromise?: Promise<ClientActor | undefined>;
+
     /**
      * Tracks which aliased storages have been purged during this session,
      * so we only purge them once (on first open) when running locally.
@@ -440,7 +445,12 @@ export class Actor<Data extends Dictionary = Dictionary> {
         this.config = Object.keys(options).length === 0 ? Configuration.getGlobalConfig() : new Configuration(options);
         this.apifyClient = this.newClient();
         this.eventManager = new PlatformEventManager(this.config);
-        this.chargingManager = new ChargingManager(this.config, this.apifyClient);
+        this.chargingManager = new ChargingManager(
+            this.config,
+            this.apifyClient,
+            async () => this.getCurrentRun(),
+            async () => this.getCurrentActor(),
+        );
     }
 
     /**
@@ -603,6 +613,14 @@ export class Actor<Data extends Dictionary = Dictionary> {
         log.debug(`Default storages purged`);
 
         Configuration.storage.enterWith(this.config);
+
+        this.runPromise = undefined;
+        this.actorPromise = undefined;
+        if (this.isAtHome() && this.config.get('metaOrigin') === META_ORIGINS.STANDBY) {
+            // Server Actor runs live long enough to make the fetches worth it up front; `charge()` needs them anyway.
+            void this.getCurrentRun().catch(() => {});
+            void this.getCurrentActor().catch(() => {});
+        }
 
         await this.chargingManager.init();
         log.debug(`ChargingManager initialized`, this.chargingManager.getPricingInfo());
@@ -1056,6 +1074,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @param item Object or array of objects containing data to be stored in the default dataset.
      * The objects must be serializable to JSON and the JSON representation of each object must be smaller than 9MB.
      * @param eventName If provided, the method will attempt to charge for the event for each pushed item.
+     * Not supported in multi-tenant Server Actor runs, which charge per request with `Actor.charge()`.
      * @ignore
      */
     async pushData(item: Data | Data[], eventName?: string | undefined): Promise<ChargeResult> {
@@ -1063,6 +1082,12 @@ export class Actor<Data extends Dictionary = Dictionary> {
 
         if (eventName?.startsWith('apify-')) {
             throw new Error(`Cannot charge for synthetic event '${eventName}' manually`);
+        }
+
+        if (eventName !== undefined && this.chargingManager.isMultiTenant) {
+            throw new Error(
+                'Charging for pushed items is not supported in a multi-tenant Server Actor run - use Actor.charge() with the `requestId` of the incoming request instead.',
+            );
         }
 
         const dataset = await this.openDataset();
@@ -1407,6 +1432,10 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * rather than batching via `count` — this gives finer control over budget consumption
      * and avoids situations where more work is requested than the budget allows.
      *
+     * **Note:** `idempotencyKey` is scoped to the whole run, not to `requestId`. In a multi-tenant
+     * Server Actor run, a key reused across requests charges only the first caller, so it must
+     * be globally unique (e.g. derived from `requestId`).
+     *
      * @param options The name of the event to charge for and the number of events to be charged.
      * @ignore
      */
@@ -1422,6 +1451,46 @@ export class Actor<Data extends Dictionary = Dictionary> {
     getChargingManager(): ChargingManager {
         this._ensureActorInit('getChargingManager');
         return this.chargingManager;
+    }
+
+    /**
+     * Fetches the current Actor run from the Apify API. The result is cached for the lifetime of the Actor,
+     * so use `Actor.apifyClient.run(runId).get()` instead when you need fresh data such as the run status.
+     * Resolves to `undefined` when not running on the Apify platform.
+     */
+    async getCurrentRun(): Promise<ClientActorRun | undefined> {
+        const runId = this.config.get('actorRunId');
+        if (!runId) {
+            return undefined;
+        }
+
+        this.runPromise ??= this.apifyClient
+            .run(runId)
+            .get()
+            .catch((err) => {
+                this.runPromise = undefined;
+                throw err;
+            });
+
+        return this.runPromise;
+    }
+
+    /** Cached for the lifetime of the Actor; only the charging manager needs it. */
+    private async getCurrentActor(): Promise<ClientActor | undefined> {
+        const actorId = this.config.get('actorId');
+        if (!actorId) {
+            return undefined;
+        }
+
+        this.actorPromise ??= this.apifyClient
+            .actor(actorId)
+            .get()
+            .catch((err) => {
+                this.actorPromise = undefined;
+                throw err;
+            });
+
+        return this.actorPromise;
     }
 
     /**
@@ -1880,6 +1949,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @param item Object or array of objects containing data to be stored in the default dataset.
      * The objects must be serializable to JSON and the JSON representation of each object must be smaller than 9MB.
      * @param eventName If provided, the method will attempt to charge for the event for each pushed item.
+     * Not supported in multi-tenant Server Actor runs, which charge per request with `Actor.charge()`.
      */
     static async pushData<Data extends Dictionary = Dictionary>(
         item: Data | Data[],
@@ -1909,6 +1979,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @param item Object or array of objects containing data to be stored in the default dataset.
      * The objects must be serializable to JSON and the JSON representation of each object must be smaller than 9MB.
      * @param eventName If provided, the method will attempt to charge for the event for each pushed item.
+     * Not supported in multi-tenant Server Actor runs, which charge per request with `Actor.charge()`.
      */
     static async pushData<Data extends Dictionary = Dictionary>(
         item: Data | Data[],
@@ -2153,6 +2224,10 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * rather than batching via `count` — this gives finer control over budget consumption
      * and avoids situations where more work is requested than the budget allows.
      *
+     * **Note:** `idempotencyKey` is scoped to the whole run, not to `requestId`. In a multi-tenant
+     * Server Actor run, a key reused across requests charges only the first caller, so it must
+     * be globally unique (e.g. derived from `requestId`).
+     *
      * @param options The name of the event to charge for and the number of events to be charged.
      */
     static async charge(options: ChargeOptions): Promise<ChargeResult> {
@@ -2193,6 +2268,15 @@ export class Actor<Data extends Dictionary = Dictionary> {
      */
     static isAtHome(): boolean {
         return Actor.getDefaultInstance().isAtHome();
+    }
+
+    /**
+     * Fetches the current Actor run from the Apify API. The result is cached for the lifetime of the Actor,
+     * so use `Actor.apifyClient.run(runId).get()` instead when you need fresh data such as the run status.
+     * Resolves to `undefined` when not running on the Apify platform.
+     */
+    static async getCurrentRun(): Promise<ClientActorRun | undefined> {
+        return Actor.getDefaultInstance().getCurrentRun();
     }
 
     /** Default {@apilink ApifyClient} instance. */
