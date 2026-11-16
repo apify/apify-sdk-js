@@ -1217,17 +1217,24 @@ export class Actor<Data extends Dictionary = Dictionary> {
                     });
 
             // Waiting for all the listeners to finish, as `.reboot()` kills the container.
-            await addTimeoutToPromise(
-                async () =>
-                    Promise.all([
-                        // `persistState` for individual RequestLists, RequestQueue... instances to be persisted
-                        ...callListeners(EventType.PERSIST_STATE, { isMigrating: true }),
-                        // `migrating` to pause Apify crawlers
-                        ...callListeners(EventType.MIGRATING, {}),
-                    ]),
-                timeoutSecs * 1000,
-                `Pre-reboot event listeners did not finish within ${timeoutSecs} seconds, proceeding with the reboot`,
-            ).catch((err) => log.warning((err as Error).message));
+            // Not using `addTimeoutToPromise`, its timeout would also cancel the enclosing one (e.g. a request handler).
+            let timeout: ReturnType<typeof setTimeout> | undefined;
+            await Promise.race([
+                Promise.all([
+                    // `persistState` for individual RequestLists, RequestQueue... instances to be persisted
+                    ...callListeners(EventType.PERSIST_STATE, { isMigrating: true }),
+                    // `migrating` to pause Apify crawlers
+                    ...callListeners(EventType.MIGRATING, {}),
+                ]),
+                new Promise<void>((resolve) => {
+                    timeout = setTimeout(() => {
+                        log.warning(
+                            `Pre-reboot event listeners did not finish within ${timeoutSecs} seconds, proceeding with the reboot`,
+                        );
+                        resolve();
+                    }, timeoutSecs * 1000);
+                }),
+            ]).finally(() => clearTimeout(timeout));
 
             const runId = this.configuration.actorRunId!;
             await this.apifyClient.run(runId).reboot();

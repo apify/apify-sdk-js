@@ -21,6 +21,7 @@ import {
 } from '@apify/consts';
 import { encryptInputSecrets } from '@apify/input_secrets';
 import log from '@apify/log';
+import { addTimeoutToPromise, tryCancel } from '@apify/timeout';
 
 import { createIsolatedActor, initIsolatedDefaultActor } from '../createIsolatedActor.js';
 import { resetGlobalState } from '../resetGlobalState.js';
@@ -1474,6 +1475,25 @@ describe('Actor', () => {
             events.off(EventType.MIGRATING, hangingListener);
 
             expect(rebootMock).toBeCalledTimes(1);
+        });
+
+        test('reboot timeout does not cancel the enclosing timeout context', async () => {
+            vitest.spyOn(ApifyClient.prototype, 'run').mockReturnValueOnce({ reboot: vitest.fn() } as any);
+
+            const hangingListener = async () => new Promise<void>(() => {});
+            const events = serviceLocator.getEventManager();
+            events.on(EventType.MIGRATING, hangingListener);
+
+            await addTimeoutToPromise(
+                async () => {
+                    await Actor.reboot({ timeoutSecs: 0.1, customAfterSleepMillis: 1 });
+                    expect(() => tryCancel()).not.toThrow();
+                },
+                10_000,
+                'enclosing handler timed out',
+            );
+
+            events.off(EventType.MIGRATING, hangingListener);
         });
     });
 
