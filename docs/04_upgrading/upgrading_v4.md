@@ -51,6 +51,8 @@ Empty-string environment variables are treated as unset (they fall through to th
 
 When a setting is exposed under several environment variables, the Apify-specific ones take precedence over Crawlee's generic one — i.e. `ACTOR_*` / `APIFY_*` are checked before `CRAWLEE_*`. For example, if both `APIFY_HEADLESS` and `CRAWLEE_HEADLESS` are set, `APIFY_HEADLESS` wins.
 
+The SDK does not read `APIFY_LOCAL_STORAGE_DIR`, so `Actor.getEnv()` no longer returns `localStorageDir`. Set the local storage directory with `CRAWLEE_STORAGE_DIR` (`./storage` by default) instead. `apify run` sets both variables, so Actors started with it are not affected.
+
 `new Actor({ configuration })` accepts a pre-built `Configuration`, but it must be the Apify SDK's `Configuration` (imported from `apify`), not a bare Crawlee one — otherwise the `APIFY_*` / `ACTOR_*` environment variables are never resolved, so the SDK now throws if given a non-Apify instance.
 
 `Actor.config` was renamed to `Actor.configuration` (both the static getter and the instance property), and `Configuration.getGlobalConfig()` to `Configuration.getGlobalConfiguration()`, following the same renames in Crawlee v4. The public `config` properties of `ProxyConfiguration` and `PlatformEventManager` were renamed to `configuration` as well.
