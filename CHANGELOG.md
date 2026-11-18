@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file.
 
+## [3.8.0](https://github.com/apify/apify-sdk-js/releases/tag/v3.8.0) (2026-11-18)
+
+### 🚀 Features
+
+- **charging:** Allow passing an idempotency key to charge() ([#724](https://github.com/apify/apify-sdk-js/pull/724)) ([667f8a0](https://github.com/apify/apify-sdk-js/commit/667f8a005103e15f37c84b525dbea246a2fd435b)) by [@ruocco-l](https://github.com/ruocco-l)
+- Thread the requestId parameter through Actor.charge (#831) ([99b45e7](https://github.com/apify/apify-sdk-js/commit/99b45e77f937808855899a400c9664e650da88d2))
+
+### 🐛 Bug Fixes
+
+- Allow Actor.newClient().dataset() without Actor.init() ([#653](https://github.com/apify/apify-sdk-js/pull/653)) ([4f151b3](https://github.com/apify/apify-sdk-js/commit/4f151b3bad3c7e9f7a57507015908c82231d5169)) by [@B4nan](https://github.com/B4nan)
+- Add trailing slash to default `apiBaseUrl` ([#661](https://github.com/apify/apify-sdk-js/pull/661)) ([97290be](https://github.com/apify/apify-sdk-js/commit/97290be9c759cb51fa926092b07c14131164533e)) by [@ruocco-l](https://github.com/ruocco-l)
+- Fix `inherit` timeout units and no-timeout-left case ([#667](https://github.com/apify/apify-sdk-js/pull/667)) ([d814901](https://github.com/apify/apify-sdk-js/commit/d814901c4e2d97b8c65d2f6f50371e5d6ddd45a2)) by [@Pijukatel](https://github.com/Pijukatel)
+- Respect `checkAccess` from `ProxyConfiguration` constructor options (#852) ([5d8c51e](https://github.com/apify/apify-sdk-js/commit/5d8c51ef191c66bae4d891294ab45246ae6ee7af))
+- Ignore non-positive Actor.charge count like the Python SDK (#854) ([1062689](https://github.com/apify/apify-sdk-js/commit/106268963afdec98b4462f2123e9badb3a1b2b87))
+
+
 ## [3.7.2](https://github.com/apify/apify-sdk-js/releases/tag/v3.7.2) (2026-05-11)
 
 ### 🐛 Bug Fixes
