@@ -1,6 +1,7 @@
 import { Dataset, KeyValueStore } from '@crawlee/core';
 import type { ActorResource, ActorRunPricingInfo, ApifyClient, Run as ClientActorRun } from 'apify-client';
 
+import { META_ORIGINS } from '@apify/consts';
 import log from '@apify/log';
 
 import type { Configuration } from './configuration.js';
@@ -171,11 +172,21 @@ export class ChargingManager {
         maxTotalChargeUsd: number;
     }> {
         if (this.#configuration.actorPricingInfo && this.#configuration.chargedEventCounts) {
-            return {
-                pricingInfo: JSON.parse(this.#configuration.actorPricingInfo) as ActorRunPricingInfo,
-                chargedEventCounts: JSON.parse(this.#configuration.chargedEventCounts) as Record<string, number>,
-                maxTotalChargeUsd: this.#configuration.maxTotalChargeUsd || Infinity,
-            };
+            const pricingInfo = JSON.parse(this.#configuration.actorPricingInfo) as ActorRunPricingInfo;
+
+            // Multi-tenant runs get an empty snapshot (`{}`); only the run tells them apart from free Server Actor runs.
+            const isMultiTenantCandidate =
+                pricingInfo.pricingModel === undefined &&
+                this.#isAtHome &&
+                this.#configuration.metaOrigin === META_ORIGINS.STANDBY;
+
+            if (!isMultiTenantCandidate) {
+                return {
+                    pricingInfo,
+                    chargedEventCounts: JSON.parse(this.#configuration.chargedEventCounts) as Record<string, number>,
+                    maxTotalChargeUsd: this.#configuration.maxTotalChargeUsd || Infinity,
+                };
+            }
         }
 
         if (this.#isAtHome) {
