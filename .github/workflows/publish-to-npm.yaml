@@ -24,6 +24,7 @@ jobs:
     publish_to_npm:
         name: Publish to NPM
         runs-on: ubuntu-latest
+        environment: npm
         steps:
             - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
               with:
@@ -31,6 +32,18 @@ jobs:
                   token: ${{ secrets.APIFY_SERVICE_ACCOUNT_GITHUB_TOKEN }}
                   fetch-depth: 0
                   fetch-tags: true
+
+            - name: Check that the ref is on a release branch
+              env:
+                  GH_TOKEN: ${{ github.token }}
+              run: |
+                  sha=$(git rev-parse HEAD)
+                  for branch in master 3.x; do
+                      status=$(gh api "repos/$GITHUB_REPOSITORY/compare/$branch...$sha" --jq .status || true)
+                      if [[ "$status" == "identical" || "$status" == "behind" ]]; then exit 0; fi
+                  done
+                  echo "::error::$sha is not on a release branch"
+                  exit 1
 
             - name: Use Node.js 24
               uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
