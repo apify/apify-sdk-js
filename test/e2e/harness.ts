@@ -1,9 +1,9 @@
 import { join } from 'node:path';
 
 import { type ActorUpdateOptions, ApifyClient } from 'apify-client';
-import { defineActor, pollUntil } from 'apify-test-tools';
+import { defineActor, pollUntil, type RunOutcome } from 'apify-test-tools';
 import { ActorSource, inlineMain } from 'apify-test-tools/ad-hoc';
-import { inject } from 'vitest';
+import { describe, inject } from 'vitest';
 
 /**
  * The Actor `apify-sdk-js-e2e-<label>`: `test/e2e/actor-base` overlaid with `overlay` dirs, with `main` (a top-level
@@ -16,6 +16,20 @@ export const sdkActor = (label: string, filename: string, main: () => unknown, .
             .pin(inject('packs')),
         syncDelayMs: 0,
     });
+
+/**
+ * For Actors that don't depend on the platform: runs them there and off it, with the SDK's local storage.
+ * `APIFY_LOCAL_RUNS_ON` decides where the local run executes.
+ */
+export const eachRuntime = (fn: (runtime: 'platform' | 'local') => void): void =>
+    describe.each(['platform', 'local'] as const)('on %s', fn);
+
+/** A JSON record of the run's default key-value store; throws if the Actor never wrote it. */
+export const getJsonRecord = async <T>(result: RunOutcome, key: string): Promise<T> => {
+    const record = await result.getRecord(key);
+    if (!record) throw new Error(`the run has no "${key}" record`);
+    return JSON.parse(record.value.toString('utf8')) as T;
+};
 
 /** For run/storage lookups by ID that `RunTestResult` doesn't cover. */
 export const client = new ApifyClient({ token: process.env.TESTER_APIFY_TOKEN });

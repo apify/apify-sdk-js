@@ -2,7 +2,7 @@ import { join } from 'node:path';
 
 import { testActor } from 'apify-test-tools';
 
-import { sdkActor } from './harness.js';
+import { getJsonRecord, sdkActor } from './harness.js';
 
 export const main = async () => {
     const { execFileSync } = await import('node:child_process');
@@ -24,8 +24,6 @@ export const main = async () => {
         });
     }
 
-    // Both lifecycle processes pushed a summary to the platform default dataset.
-    // The test script will verify both summaries.
     log.info('Both lifecycles completed successfully');
 };
 
@@ -44,12 +42,12 @@ interface LifecycleSummary {
 testActor(actor, 'aliased storages work locally and are purged on start across restarts', async ({ expect, run }) => {
     // The actor runs two lifecycle processes in sequence, sharing the same filesystem. Each
     // lifecycle inits a fresh Actor (purging the aliased dataset left behind by the previous one),
-    // opens the aliased dataset, writes data, and pushes a summary to the platform default dataset.
-    const result = await run({ input: {} });
+    // opens the aliased dataset, writes data, and stores the summaries so far.
+    const result = await run({ runtime: 'local', input: {} });
 
     expect(result.status).toBe('SUCCEEDED');
 
-    const { items } = await result.getDataset<LifecycleSummary>();
+    const items = await getJsonRecord<LifecycleSummary[]>(result, 'LIFECYCLE_SUMMARIES');
     expect(items, 'There must be exactly two summary items (one per lifecycle)').toHaveLength(2);
 
     // First lifecycle: fresh local storage, writes 3 items total (2 + 1 from second open)

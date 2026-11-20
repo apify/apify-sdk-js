@@ -39,3 +39,5 @@ jobs:
               run: pnpm test:e2e
               env:
                   TESTER_APIFY_TOKEN: ${{ secrets.APIFY_SCRAPER_TESTS_API_TOKEN }}
+                  # The `local` runs happen in the Actors' own images
+                  APIFY_LOCAL_RUNS_ON: platform

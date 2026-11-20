@@ -1,6 +1,6 @@
 import { testActor } from 'apify-test-tools';
 
-import { sdkActor } from './harness.js';
+import { eachRuntime, sdkActor } from './harness.js';
 
 export const main = async () => {
     const { Actor } = await import('apify');
@@ -11,9 +11,11 @@ export const main = async () => {
 
 const actor = sdkActor('hello-world', import.meta.filename, main);
 
-testActor(actor, 'pushes data', async ({ expect, run }) => {
-    const result = await run({ input: {} });
+eachRuntime((runtime) => {
+    testActor(actor, 'pushes data', async ({ expect, run }) => {
+        const result = await run({ runtime, input: {} });
 
-    expect(result.status).toBe('SUCCEEDED');
-    expect((await result.getDataset()).items).toEqual([{ hello: 'world' }]);
+        expect(result.status).toBe('SUCCEEDED');
+        expect((await result.getDataset()).items).toEqual([{ hello: 'world' }]);
+    });
 });

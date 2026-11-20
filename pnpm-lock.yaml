@@ -243,8 +243,8 @@ importers:
         specifier: ^8.18.2
         version: 8.18.2
       apify-test-tools:
-        specifier: file:../../apify-test-tools/apify-test-tools-0.10.2.tgz
-        version: file:../../apify-test-tools/apify-test-tools-0.10.2.tgz(debug@4.4.3(supports-color@8.1.1))(supports-color@8.1.1)(typescript@7.0.2)(vitest@5.1.0(@types/node@26.6.6)(vite@8.3.5(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.15)(yaml@2.9.1)))
+        specifier: github:apify/apify-test-tools#d85d2292ca2bf1693dbb0a543d077bb04b9ad282
+        version: https://codeload.github.com/apify/apify-test-tools/tar.gz/d85d2292ca2bf1693dbb0a543d077bb04b9ad282(debug@4.4.3(supports-color@8.1.1))(supports-color@8.1.1)(typescript@7.0.2)(vitest@5.1.0(@types/node@26.6.6)(vite@8.3.5(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.15)(yaml@2.9.1)))
       commitlint:
         specifier: ^21.2.4
         version: 21.2.4(conventional-commits-parser@7.1.4)(typescript@7.0.2)
@@ -4767,8 +4767,8 @@ packages:
     resolution: {integrity: sha512-kq7wo0AE38qWS4/msDiTXTDIgOKvgI+IJnHzdjA5ZQgg2aqb9Osmm1FFngwhSHjSlQceLfMERgdzgSu4Rt7N9A==}
     engines: {node: '>=22.13.0'}
 
-  apify-test-tools@file:../../apify-test-tools/apify-test-tools-0.10.2.tgz:
-    resolution: {integrity: sha512-//EcYiCLPNyosMI/tgkrjYr5NMuTp7q7oJsgMtsbLyFhwUW7yS34xYwC4Q7d4OucysT7ZRdpqGjd/TSgDtpiYA==, tarball: file:../../apify-test-tools/apify-test-tools-0.10.2.tgz}
+  apify-test-tools@https://codeload.github.com/apify/apify-test-tools/tar.gz/d85d2292ca2bf1693dbb0a543d077bb04b9ad282:
+    resolution: {gitHosted: true, integrity: sha512-IfF/8OsYukwdCPvK8mp0v5fsVV7k0dM1Tf/UGIQspZ9QxTI5coz3RxzCuMDWy7Rp/XyXVb8Ar+mldl8KziWpyA==, tarball: https://codeload.github.com/apify/apify-test-tools/tar.gz/d85d2292ca2bf1693dbb0a543d077bb04b9ad282}
     version: 0.10.2
     engines: {node: '>=22.0.0'}
     hasBin: true
@@ -8995,6 +8995,7 @@ packages:
 
   tldts-core@7.4.20:
     resolution: {integrity: sha512-C630TWXZCZmLq0F2bW4QqwnaaxCQ/svpAqvJwnC4JvgEM5ohhBnGsEzTLSOXcN+xjz+kEaHS5uoWIw2klnqd0A==}
+    deprecated: Partial release, see https://github.com/remusao/tldts/issues/2735. Use >=7.4.22.
 
   tldts@7.4.19:
     resolution: {integrity: sha512-48dH6aSpQnpbzDUc4vIQZ1VjB8tkK+e8c1yx05/SZK+rkssgjEOlxDd/yU8/a4vGYQ9vRgJr9dwMq9TJ0b3X2Q==}
@@ -15065,9 +15066,10 @@ snapshots:
       - kerberos
       - supports-color
 
-  apify-test-tools@file:../../apify-test-tools/apify-test-tools-0.10.2.tgz(debug@4.4.3(supports-color@8.1.1))(supports-color@8.1.1)(typescript@7.0.2)(vitest@5.1.0(@types/node@26.6.6)(vite@8.3.5(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.15)(yaml@2.9.1))):
+  apify-test-tools@https://codeload.github.com/apify/apify-test-tools/tar.gz/d85d2292ca2bf1693dbb0a543d077bb04b9ad282(debug@4.4.3(supports-color@8.1.1))(supports-color@8.1.1)(typescript@7.0.2)(vitest@5.1.0(@types/node@26.6.6)(vite@8.3.5(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.15)(yaml@2.9.1))):
     dependencies:
       '@apify/consts': 3.0.1
+      '@crawlee/fs-storage-native': 0.2.2
       '@slack/web-api': 8.3.0
       adm-zip: 0.6.1
       apify-client: 2.26.0(debug@4.4.3(supports-color@8.1.1))(supports-color@8.1.1)

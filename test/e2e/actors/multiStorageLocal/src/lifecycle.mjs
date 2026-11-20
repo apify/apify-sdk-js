@@ -1,17 +1,11 @@
-import { Actor, ApifyClient } from 'apify';
+import { readFile, writeFile } from 'node:fs/promises';
 
-const client = new ApifyClient({
-    token: process.env.APIFY_TOKEN,
-});
+import { Actor } from 'apify';
 
-// Simulate local environment by removing platform env vars
-delete process.env.APIFY_IS_AT_HOME;
-delete process.env.ACTOR_STORAGES_JSON;
+// Outside the storage directory: the next lifecycle's `init()` purges the default storages, summaries included.
+const summariesFile = new URL('./lifecycle-summaries.json', import.meta.url);
 
-const actor = new Actor({
-    isAtHome: false,
-    logLevel: 'DEBUG',
-});
+const actor = new Actor({ logLevel: 'DEBUG' });
 
 await actor.init();
 
@@ -32,13 +26,10 @@ await resultsDatasetAgain.pushData([{ url: 'https://example.net', title: 'Exampl
 // Read back all data from the aliased dataset
 const allData = await resultsDatasetAgain.getData();
 
-// Transfer results to the platform's default dataset so the test script can verify
-const run = await client.run(process.env.ACTOR_RUN_ID).get();
-await client.dataset(run.defaultDatasetId).pushItems([
-    {
-        datasetItemCount: allData.count,
-        datasetItems: allData.items,
-    },
-]);
+const summaries = JSON.parse(await readFile(summariesFile, 'utf8').catch(() => '[]'));
+summaries.push({ datasetItemCount: allData.count, datasetItems: allData.items });
+await writeFile(summariesFile, JSON.stringify(summaries));
+
+await actor.setValue('LIFECYCLE_SUMMARIES', summaries);
 
 await actor.exit();

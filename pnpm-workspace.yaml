@@ -13,6 +13,8 @@ minimumReleaseAgeExclude:
   - vitest@4.1.0
 
 allowBuilds:
+  # Installed from GitHub until the local-runs work is released; the key pins the commit, so it changes with it.
+  'apify-test-tools@https://codeload.github.com/apify/apify-test-tools/tar.gz/d85d2292ca2bf1693dbb0a543d077bb04b9ad282': true
   '@apify/ui-icons': false
   '@playwright/browser-chromium': true
   '@swc/core': true

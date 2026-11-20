@@ -95,7 +95,7 @@
         "@playwright/browser-chromium": "^1.64.1",
         "@types/node": "^26.6.6",
         "@types/ws": "^8.18.2",
-        "apify-test-tools": "file:../../apify-test-tools/apify-test-tools-0.10.2.tgz",
+        "apify-test-tools": "github:apify/apify-test-tools#d85d2292ca2bf1693dbb0a543d077bb04b9ad282",
         "commitlint": "^21.2.4",
         "crawlee": "4.0.0-rc.1",
         "husky": "^9.1.7",
