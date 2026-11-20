@@ -1266,7 +1266,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
                 });
 
         // Waiting for all the listeners to finish, as `.reboot()` kills the container.
-        // Not using `addTimeoutToPromise`, its timeout would also cancel the enclosing one (e.g. a request handler).
+        // Not using `addTimeoutToPromise`, its timeout would cancel the listeners still persisting state before the container stops.
         await timeoutPromise(
             Promise.all([
                 // `persistState` for individual RequestLists, RequestQueue... instances to be persisted
