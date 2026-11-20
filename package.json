@@ -91,7 +91,7 @@
         "zod": "^4.6.7"
     },
     "devDependencies": {
-        "@apify/oxlint-config": "^0.3.0",
+        "@apify/oxlint-config": "^0.4.0",
         "@apify/tsconfig": "^0.2.0",
         "@commitlint/config-conventional": "^21.2.4",
         "@playwright/browser-chromium": "^1.65.1",
