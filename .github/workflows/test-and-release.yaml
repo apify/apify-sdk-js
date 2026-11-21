@@ -43,7 +43,7 @@ jobs:
                   check-latest: true
 
             - name: Install pnpm and dependencies
-              uses: apify/actions/pnpm-install@v1.6.2
+              uses: apify/actions/pnpm-install@v1.9.0
 
             - name: Cache Playwright browsers
               uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
@@ -78,7 +78,7 @@ jobs:
                   check-latest: true
 
             - name: Install pnpm and dependencies
-              uses: apify/actions/pnpm-install@v1.6.2
+              uses: apify/actions/pnpm-install@v1.9.0
 
             - name: Build docs
               if: github.ref != 'refs/heads/master'
@@ -152,7 +152,7 @@ jobs:
                   check-latest: true
 
             - name: Install pnpm and dependencies
-              uses: apify/actions/pnpm-install@v1.6.2
+              uses: apify/actions/pnpm-install@v1.9.0
 
             - name: Lint
               run: pnpm lint
@@ -182,10 +182,10 @@ jobs:
                   check-latest: true
 
             - name: Install pnpm and dependencies
-              uses: apify/actions/pnpm-install@v1.6.2
+              uses: apify/actions/pnpm-install@v1.9.0
 
             - name: Publish beta to npm
-              uses: apify/actions/execute-workflow@v1.6.2
+              uses: apify/actions/execute-workflow@v1.9.0
               with:
                   workflow: publish-to-npm.yaml
                   inputs: >

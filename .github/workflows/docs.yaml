@@ -31,7 +31,7 @@ jobs:
                   check-latest: true
 
             - name: Install pnpm and dependencies
-              uses: apify/actions/pnpm-install@v1.6.2
+              uses: apify/actions/pnpm-install@v1.9.0
 
             - name: Update docs theme
               run: pnpm --filter apify-sdk-website update @apify/docs-theme
@@ -86,7 +86,7 @@ jobs:
                   name: docs-theme-update
 
             - name: Commit the updated package.json and lockfile
-              uses: apify/actions/signed-commit@v1.6.2
+              uses: apify/actions/signed-commit@v1.9.0
               with:
                   message: 'chore: Automatic theme updating workflow [skip ci]'
                   add: 'website/package.json pnpm-lock.yaml'
