@@ -2012,6 +2012,16 @@ describe('Actor', () => {
 
             expect(existsSync(join(storeDir, 'KEEP.json'))).toBe(true);
         });
+
+        test('keeps the state under the SDK_GLOBAL_STATE key by default', async () => {
+            await initIsolatedDefaultActor();
+            const store = await Actor.openKeyValueStore();
+            const getAutoSavedValue = vitest.spyOn(store, 'getAutoSavedValue');
+
+            await Actor.useState();
+
+            expect(getAutoSavedValue).toHaveBeenCalledWith('SDK_GLOBAL_STATE', {});
+        });
     });
 
     describe('Actor.pushData', () => {

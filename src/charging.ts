@@ -1,4 +1,4 @@
-import { Dataset, KeyValueStore } from '@crawlee/core';
+import { Dataset } from '@crawlee/core';
 import type { ActorResource, ActorRunPricingInfo, ApifyClient, Run as ClientActorRun } from 'apify-client';
 
 import { META_ORIGINS } from '@apify/consts';
@@ -112,7 +112,6 @@ export interface ActorPricingInfo {
  */
 export class ChargingManager {
     readonly #LOCAL_CHARGING_LOG_DATASET_NAME = 'charging_log';
-    readonly #PLATFORM_CHARGING_LOG_DATASET_ID_KEY = 'CHARGING_LOG_DATASET_ID';
 
     #maxTotalChargeUsd: number;
     #isAtHome: boolean;
@@ -283,32 +282,13 @@ export class ChargingManager {
             return;
         }
 
-        // Set up charging log dataset
-        if (this.#isAtHome) {
-            const datasetId = await this.ensureChargingLogDatasetOnPlatform();
-
-            this.#chargingLogDataset = await Dataset.open(datasetId);
-        } else {
-            if (this.#purgeChargingLogDataset) {
-                const dataset = await Dataset.open(this.#LOCAL_CHARGING_LOG_DATASET_NAME);
-                await dataset.drop();
-            }
-
-            this.#chargingLogDataset = await Dataset.open(this.#LOCAL_CHARGING_LOG_DATASET_NAME);
-        }
-    }
-
-    private async ensureChargingLogDatasetOnPlatform(): Promise<string> {
-        const defaultStore = await KeyValueStore.open();
-
-        const storedDatasetId = await defaultStore.getValue<string>(this.#PLATFORM_CHARGING_LOG_DATASET_ID_KEY);
-        if (storedDatasetId !== null) {
-            return storedDatasetId;
+        // Set up the charging log dataset. `init()` rejects the option on the platform, so this only runs locally.
+        if (this.#purgeChargingLogDataset) {
+            const dataset = await Dataset.open(this.#LOCAL_CHARGING_LOG_DATASET_NAME);
+            await dataset.drop();
         }
 
-        const dataset = await this.#apifyClient.datasets().getOrCreate();
-        await defaultStore.setValue(this.#PLATFORM_CHARGING_LOG_DATASET_ID_KEY, dataset.id);
-        return dataset.id;
+        this.#chargingLogDataset = await Dataset.open(this.#LOCAL_CHARGING_LOG_DATASET_NAME);
     }
 
     /**

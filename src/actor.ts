@@ -1151,7 +1151,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      *
      * A run started with a custom `token` uses that token, except for a run started before a migration or
      * resurrection, which uses the default client. The tracked runs, including the earlier runs replaced
-     * under the same name, are stored in the default key-value store under the `__ACTOR_CHILD_RUNS` key.
+     * under the same name, are stored in the default key-value store under the `SDK_ACTOR_CHILD_RUNS` key.
      */
     get childRuns(): Record<string, RunClient> {
         this.ensureActorInit('childRuns');
@@ -2090,7 +2090,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
         const kvStore = await KeyValueStore.open(options?.keyValueStoreName, {
             configuration: options?.configuration ?? this.configuration,
         });
-        return kvStore.getAutoSavedValue<State>(name || 'APIFY_GLOBAL_STATE', defaultValue);
+        return kvStore.getAutoSavedValue<State>(name || 'SDK_GLOBAL_STATE', defaultValue);
     }
 
     /**
@@ -2350,7 +2350,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      *
      * A run started with a custom `token` uses that token, except for a run started before a migration or
      * resurrection, which uses the default client. The tracked runs, including the earlier runs replaced
-     * under the same name, are stored in the default key-value store under the `__ACTOR_CHILD_RUNS` key.
+     * under the same name, are stored in the default key-value store under the `SDK_ACTOR_CHILD_RUNS` key.
      */
     static get childRuns(): Record<string, RunClient> {
         return Actor.getDefaultInstance().childRuns;
