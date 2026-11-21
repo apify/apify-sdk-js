@@ -49,7 +49,6 @@ import {
 import { decryptInputSecrets } from '@apify/input_secrets';
 import log from '@apify/log';
 import { addTimeoutToPromise } from '@apify/timeout';
-import { timeoutPromise } from '@apify/utilities';
 import { parseArgument } from '@apify/validations';
 
 import { ApifyFileSystemStorageBackend } from './apify_file_system_storage_backend.js';
@@ -1266,14 +1265,15 @@ export class Actor<Data extends Dictionary = Dictionary> {
                 });
 
         // Waiting for all the listeners to finish, as `.reboot()` kills the container.
-        // Not using `addTimeoutToPromise`, its timeout would cancel the listeners still persisting state before the container stops.
-        await timeoutPromise(
-            Promise.all([
-                // `persistState` for individual RequestLists, RequestQueue... instances to be persisted
-                ...callListeners(EventType.PERSIST_STATE, { isMigrating: true }),
-                // `migrating` to pause Apify crawlers
-                ...callListeners(EventType.MIGRATING, {}),
-            ]),
+        await addTimeoutToPromise(
+            async () => {
+                await Promise.all([
+                    // `persistState` for individual RequestLists, RequestQueue... instances to be persisted
+                    ...callListeners(EventType.PERSIST_STATE, { isMigrating: true }),
+                    // `migrating` to pause Apify crawlers
+                    ...callListeners(EventType.MIGRATING, {}),
+                ]);
+            },
             timeoutSecs * 1000,
             `Pre-reboot event listeners did not finish within ${timeoutSecs} seconds, proceeding with the reboot`,
         ).catch((err) => log.warning((err as Error).message));
