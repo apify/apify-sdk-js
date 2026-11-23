@@ -13,8 +13,5 @@ declare module 'vitest' {
 
 /** Packs the SDK once per run; the tests pin their Actors to that tarball. Expects `pnpm build` to have run. */
 export default async function setup(project: TestProject) {
-    if (!process.env.TESTER_APIFY_TOKEN) {
-        throw new Error('E2E tests need TESTER_APIFY_TOKEN');
-    }
     project.provide('packs', await pack(process.cwd(), await mkdtemp(join(tmpdir(), 'apify-sdk-js-packs-'))));
 }

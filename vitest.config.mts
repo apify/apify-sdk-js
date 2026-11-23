@@ -45,8 +45,7 @@ export default defineConfig({
                     name: 'e2e',
                     include: ['test/e2e/**/*.test.ts'],
                     globalSetup: ['./test/e2e/global-setup.ts'],
-                    // Platform builds plus runs; a file shares one Actor across its tests.
-                    testTimeout: 15 * 60_000,
+                    // Actor builds run in `beforeAll`.
                     hookTimeout: 30 * 60_000,
                 },
             },

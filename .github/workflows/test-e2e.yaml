@@ -9,11 +9,6 @@ on:
         # Runs at 2 am every day
         - cron: '0 2 * * *'
 
-concurrency:
-    # Runs re-upload version 0.98 of the shared test Actors, so two suites must not overlap.
-    group: e2e
-    cancel-in-progress: false
-
 jobs:
     build_and_test:
         name: Build & Test

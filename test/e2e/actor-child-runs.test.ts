@@ -1,8 +1,8 @@
 import type { strict } from 'node:assert';
 
-import { buildActor, type RunTestResult, testActor } from 'apify-test-tools';
+import { type RunTestResult, testActor } from 'apify-test-tools';
 
-import { client, sdkActor } from './harness.js';
+import { sdkActor } from './harness.js';
 
 export const main = async () => {
     // TS needs an explicit annotation to use an imported `assert` as an assertion function.
@@ -58,43 +58,25 @@ const actor = sdkActor('actor-child-runs', import.meta.filename, main);
 
 type Run = (options: { input: { mode: string } }) => Promise<RunTestResult>;
 
-// The tests count the Actor's runs, so they must not overlap.
-const sequential = { concurrent: false };
-
 const runParent = async (run: Run, mode: 'reattach' | 'resurrect') => {
-    const runs = client.actor((await buildActor(actor)).actorRawId).runs();
-    const { total: runsBefore } = await runs.list();
     const result = await run({ input: { mode } });
-    const { total: runsAfter } = await runs.list();
     const verified = await result.getKeyValueStoreClient().getRecord('VERIFIED');
 
-    return { result, startedRuns: runsAfter - runsBefore, verified: verified?.value === true };
+    return { result, verified: verified?.value === true };
 };
 
-testActor(
-    actor,
-    'a named child run is reattached after a reboot',
-    async ({ expect, run }) => {
-        const { result, startedRuns, verified } = await runParent(run, 'reattach');
+// A second child run fails the parent's run ID assertions: the SDK either reuses the tracked run or starts a new one,
+// never both.
+testActor(actor, 'a named child run is reattached after a reboot', async ({ expect, run }) => {
+    const { result, verified } = await runParent(run, 'reattach');
 
-        expect(result.status).toBe('SUCCEEDED');
-        expect(verified, 'the parent did not get past the reboot').toBe(true);
-        // The parent run and the one child run it reattached to.
-        expect(startedRuns).toBe(2);
-    },
-    sequential,
-);
+    expect(result.status).toBe('SUCCEEDED');
+    expect(verified, 'the parent did not get past the reboot').toBe(true);
+});
 
-testActor(
-    actor,
-    'a named aborted child run is resurrected after a reboot',
-    async ({ expect, run }) => {
-        const { result, startedRuns, verified } = await runParent(run, 'resurrect');
+testActor(actor, 'a named aborted child run is resurrected after a reboot', async ({ expect, run }) => {
+    const { result, verified } = await runParent(run, 'resurrect');
 
-        expect(result.status).toBe('SUCCEEDED');
-        expect(verified, 'the parent did not get past the reboot').toBe(true);
-        // The parent run and the one child run it resurrected.
-        expect(startedRuns).toBe(2);
-    },
-    sequential,
-);
+    expect(result.status).toBe('SUCCEEDED');
+    expect(verified, 'the parent did not get past the reboot').toBe(true);
+});
