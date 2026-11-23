@@ -194,8 +194,8 @@ importers:
         specifier: ^3.0.2
         version: 3.0.2
       '@apify/timeout':
-        specifier: ^1.0.1
-        version: 1.0.1
+        specifier: ^1.1.0
+        version: 1.1.0
       '@apify/utilities':
         specifier: ^3.1.1
         version: 3.1.1
@@ -556,8 +556,8 @@ packages:
     resolution: {integrity: sha512-SvckYr9apuppwk3UPL0pY7ZwNZ4Rr/Qwm4OORol1d4dQmyPtX4KBwfy7iA+j70lfu25FmvBuP8AECB4EakVc5Q==}
     engines: {node: '>=22'}
 
-  '@apify/timeout@1.0.1':
-    resolution: {integrity: sha512-sYAFPS26o4nOJ62J/VKczQOqEIbAxWkYC6qEcIr7zWoYPNkWCeD4tA2+6dwr8RSfDF3HVkhgW+95Vuk+B6lQYQ==}
+  '@apify/timeout@1.1.0':
+    resolution: {integrity: sha512-IM6gh7Q+2mH1kQnx0Jr0OmD+XajTktRcZDImPuFQtOmOobBWr52l64/RpVzHv5qdvwfA7AolbRvRs5IJ/KXSVw==}
     engines: {node: '>=22'}
 
   '@apify/tsconfig@0.2.0':
@@ -9681,7 +9681,7 @@ snapshots:
     dependencies:
       '@apify/log': 3.0.2
 
-  '@apify/timeout@1.0.1': {}
+  '@apify/timeout@1.1.0': {}
 
   '@apify/tsconfig@0.2.0': {}
 
@@ -10677,7 +10677,7 @@ snapshots:
   '@crawlee/basic@4.0.0-rc.2(supports-color@8.1.1)':
     dependencies:
       '@apify/datastructures': 3.0.1
-      '@apify/timeout': 1.0.1
+      '@apify/timeout': 1.1.0
       '@apify/utilities': 3.1.1
       '@crawlee/core': 4.0.0-rc.2(supports-color@8.1.1)
       '@crawlee/http-client': 4.0.0-rc.2
@@ -10699,7 +10699,7 @@ snapshots:
 
   '@crawlee/browser-pool@4.0.0-rc.2(playwright@1.65.1)(puppeteer@25.18.1(proxy-agent@8.0.3(supports-color@8.1.1)))(supports-color@8.1.1)':
     dependencies:
-      '@apify/timeout': 1.0.1
+      '@apify/timeout': 1.1.0
       '@crawlee/core': 4.0.0-rc.2(supports-color@8.1.1)
       '@crawlee/types': 4.0.0-rc.2
       '@crawlee/utils': 4.0.0-rc.2(supports-color@8.1.1)
@@ -10721,7 +10721,7 @@ snapshots:
 
   '@crawlee/browser@4.0.0-rc.2(playwright@1.65.1)(puppeteer@25.18.1(proxy-agent@8.0.3(supports-color@8.1.1)))(supports-color@8.1.1)':
     dependencies:
-      '@apify/timeout': 1.0.1
+      '@apify/timeout': 1.1.0
       '@crawlee/basic': 4.0.0-rc.2(supports-color@8.1.1)
       '@crawlee/browser-pool': 4.0.0-rc.2(playwright@1.65.1)(puppeteer@25.18.1(proxy-agent@8.0.3(supports-color@8.1.1)))(supports-color@8.1.1)
       '@crawlee/types': 4.0.0-rc.2
@@ -10761,7 +10761,7 @@ snapshots:
       '@apify/consts': 3.1.0
       '@apify/datastructures': 3.0.1
       '@apify/log': 3.0.2
-      '@apify/timeout': 1.0.1
+      '@apify/timeout': 1.1.0
       '@apify/utilities': 3.1.1
       '@crawlee/fs-storage': 4.0.0-rc.2(supports-color@8.1.1)
       '@crawlee/http-client': 4.0.0-rc.2
@@ -10832,7 +10832,7 @@ snapshots:
 
   '@crawlee/http@4.0.0-rc.2(supports-color@8.1.1)':
     dependencies:
-      '@apify/timeout': 1.0.1
+      '@apify/timeout': 1.1.0
       '@crawlee/basic': 4.0.0-rc.2(supports-color@8.1.1)
       '@crawlee/http-client': 4.0.0-rc.2
       '@crawlee/types': 4.0.0-rc.2
@@ -10862,7 +10862,7 @@ snapshots:
   '@crawlee/playwright@4.0.0-rc.2(playwright@1.65.1)(puppeteer@25.18.1(proxy-agent@8.0.3(supports-color@8.1.1)))(supports-color@8.1.1)':
     dependencies:
       '@apify/datastructures': 3.0.1
-      '@apify/timeout': 1.0.1
+      '@apify/timeout': 1.1.0
       '@crawlee/basic': 4.0.0-rc.2(supports-color@8.1.1)
       '@crawlee/browser': 4.0.0-rc.2(playwright@1.65.1)(puppeteer@25.18.1(proxy-agent@8.0.3(supports-color@8.1.1)))(supports-color@8.1.1)
       '@crawlee/browser-pool': 4.0.0-rc.2(playwright@1.65.1)(puppeteer@25.18.1(proxy-agent@8.0.3(supports-color@8.1.1)))(supports-color@8.1.1)
