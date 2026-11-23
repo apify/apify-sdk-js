@@ -103,7 +103,7 @@
         "lint-staged": "^17.6.1",
         "oxfmt": "0.79.0",
         "oxlint": "1.94.0",
-        "oxlint-tsgolint": "7.0.2007",
+        "oxlint-tsgolint": "7.0.2008",
         "playwright": "^1.65.1",
         "puppeteer": "^25.18.1",
         "rimraf": "^6.1.4",
