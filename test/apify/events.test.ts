@@ -1,3 +1,4 @@
+import type { EventTypeName } from '@crawlee/core';
 import { EventType, MemoryStorageBackend, serviceLocator } from '@crawlee/core';
 import type { Dictionary } from '@crawlee/types';
 import { sleep } from '@crawlee/utils';
@@ -137,7 +138,8 @@ describe('events', () => {
         expect(eventsReceived.length).toBe(5);
     });
 
-    test('does not emit cpuInfo and unknown events', async () => {
+    /** Connects `events` to the test server and runs `body` with the server-side socket and real timers. */
+    const withConnection = async (body: (send: (name: string) => void) => Promise<void>) => {
         const isWsConnected = new Promise<WebSocket>((resolve) => {
             wss.on('connection', resolve);
         });
@@ -146,26 +148,54 @@ describe('events', () => {
         vitest.useRealTimers();
 
         try {
+            await body((name) => ws.send(JSON.stringify({ name, data: { foo: name } })));
+        } finally {
+            await events.close();
+        }
+    };
+
+    test('emits only known platform events', async () => {
+        await withConnection(async (send) => {
             const emitSpy = vitest.spyOn(events, 'emit');
             const debugSpy = vitest.spyOn(events['log'], 'debug');
-            const received: unknown[] = [];
-            events.on(EventType.SYSTEM_INFO, (data) => received.push(data));
+            const warningSpy = vitest.spyOn(events['log'], 'warning');
+
+            const knownNames = [
+                EventType.SYSTEM_INFO,
+                EventType.MIGRATING,
+                EventType.ABORTING,
+                EventType.PERSIST_STATE,
+            ];
+            for (const name of ['cpuInfo', 'someNewEvent', ...knownNames]) send(name);
 
             // Messages arrive in order, so the last one being emitted means the earlier ones were handled.
-            for (const name of ['cpuInfo', 'someNewEvent', 'systemInfo']) {
-                ws.send(JSON.stringify({ name, data: { foo: name } }));
-            }
-            while (received.length === 0) await sleep(10);
+            await vitest.waitFor(() => expect(emitSpy).toHaveBeenCalledTimes(knownNames.length));
 
-            expect(emitSpy.mock.calls).toEqual([[EventType.SYSTEM_INFO, { foo: 'systemInfo' }]]);
+            expect(emitSpy.mock.calls).toEqual(knownNames.map((name) => [name, { foo: name }]));
             expect(debugSpy).toHaveBeenCalledTimes(1);
             expect(debugSpy).toHaveBeenCalledWith('Unknown platform event received', {
                 name: 'someNewEvent',
                 data: { foo: 'someNewEvent' },
             });
-        } finally {
-            await events.close();
-        }
+            expect(warningSpy).not.toHaveBeenCalled();
+        });
+    });
+
+    test('warns once when a cpuInfo listener is registered', async () => {
+        await withConnection(async (send) => {
+            const warningSpy = vitest.spyOn(events['log'], 'warning');
+            const cpuInfoListener = vitest.fn();
+            events.on('cpuInfo' as EventTypeName, cpuInfoListener);
+            const received: unknown[] = [];
+            events.on(EventType.SYSTEM_INFO, (data) => received.push(data));
+
+            for (const name of ['cpuInfo', 'cpuInfo', EventType.SYSTEM_INFO]) send(name);
+            await vitest.waitFor(() => expect(received).toHaveLength(1));
+
+            expect(cpuInfoListener).not.toHaveBeenCalled();
+            expect(warningSpy).toHaveBeenCalledTimes(1);
+            expect(warningSpy).toHaveBeenCalledWith(expect.stringContaining('"cpuInfo" event is deprecated'));
+        });
     });
 });
 

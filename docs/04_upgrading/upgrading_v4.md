@@ -104,7 +104,7 @@ In addition, `_setPasswordIfToken()` is now `private setPasswordIfToken()` (it w
 
 `PlatformEventManager` now extends Crawlee v4's `EventManager` and integrates with the new service locator. Use `Configuration.getGlobalConfiguration()` (or pass a `Configuration` instance explicitly) when constructing it directly — the constructor no longer accepts a `config` override via the `override` keyword pattern because Crawlee's base class manages the configuration through `serviceLocator` instead of a `config` field.
 
-If you only interact with events through `Actor.on()` / `Actor.off()` / `Actor.events`, no code changes are needed.
+If you only interact with events through `Actor.on()` / `Actor.off()` / `Actor.events`, no code changes are needed, unless you listen to the `cpuInfo` event (see [below](#only-known-platform-events-are-emitted)).
 
 ### Platform events websocket
 
@@ -116,7 +116,7 @@ Once connected, a dropped connection is re-established automatically with backof
 
 `PlatformEventManager` emits only the `systemInfo`, `migrating`, `aborting` and `persistState` events from the platform. Messages with any other name are dropped, and unknown names are logged at the debug level.
 
-This includes the deprecated `cpuInfo` event. Listen to `systemInfo` instead, which carries the same `isCpuOverloaded` field:
+This includes the deprecated `cpuInfo` event. If a `cpuInfo` listener is registered, the SDK logs a warning once. Listen to `systemInfo` instead, which carries the same `isCpuOverloaded` field:
 
 ```ts
 Actor.on('systemInfo', ({ isCpuOverloaded }) => {
