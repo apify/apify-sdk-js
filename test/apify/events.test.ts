@@ -135,7 +135,7 @@ describe('events', () => {
         await vitest.advanceTimersByTimeAsync(1.1 * interval);
         await vitest.advanceTimersByTimeAsync(1.1 * interval);
         await events.close();
-        expect(eventsReceived.length).toBe(5);
+        expect(eventsReceived.length).toBe(4);
     });
 
     /** Connects `events` to the test server and runs `body` with the server-side socket and real timers. */

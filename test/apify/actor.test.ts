@@ -1572,7 +1572,7 @@ describe('Actor', () => {
 
             await actor.init();
 
-            const crawler = new BasicCrawler({ eventManager: events, requestHandler: async () => {} });
+            const crawler = new BasicCrawler({ requestHandler: async () => {} });
             crawler.setStatusMessage('Finished! Total 10 requests', { isStatusMessageTerminal: true, level: 'INFO' });
             await events.waitForAllListenersToComplete();
 
@@ -1587,7 +1587,7 @@ describe('Actor', () => {
         test('stops forwarding crawlee status messages once the actor exits', async () => {
             const { actor, events } = createIsolatedActor();
             const updateSpy = vitest.spyOn(RunClient.prototype, 'update').mockResolvedValue(stubRun);
-            const crawler = new BasicCrawler({ eventManager: events, requestHandler: async () => {} });
+            const crawler = new BasicCrawler({ requestHandler: async () => {} });
 
             await actor.init();
             await actor.exit({ exit: false, statusMessage: 'All done' });

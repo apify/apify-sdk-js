@@ -5,7 +5,6 @@ import { EventManager, EventType } from '@crawlee/core';
 import { WebSocket } from 'ws';
 
 import { ACTOR_ENV_VARS, ACTOR_EVENT_NAMES } from '@apify/consts';
-import { betterClearInterval } from '@apify/utilities';
 
 import { Configuration } from './configuration.js';
 
@@ -250,7 +249,7 @@ export class PlatformEventManager extends EventManager {
             this.emit(name, data);
 
             if (name === ACTOR_EVENT_NAMES.MIGRATING) {
-                betterClearInterval(this.intervals.persistState!); // Don't send any other persist state event.
+                clearInterval(this.intervals.persistState); // Don't send any other persist state event.
                 this.events.emit(EventType.PERSIST_STATE, {
                     isMigrating: true,
                 });

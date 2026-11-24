@@ -37,7 +37,10 @@ export function createIsolatedActor(
     // platform — where `init()` calls `setEventManager(this.eventManager)` — the
     // set is a no-op rather than a conflict with a second instance.
     const events = actor.eventManager as PlatformEventManager;
-    const serviceLocator = new ServiceLocator(config, events, options.storageClient);
+    // The event manager is shared by the whole process, so the one of the previous Actor has to go first.
+    new ServiceLocator().reset();
+    const serviceLocator = new ServiceLocator(config, options.storageClient);
+    serviceLocator.setEventManager(events);
     bindMethodsToServiceLocator(serviceLocator, actor);
 
     onTestFinished(async () => {
