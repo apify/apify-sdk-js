@@ -171,7 +171,6 @@ export const apifyConfigFields = {
     ),
     metaOrigin: field(z.string().optional(), APIFY_ENV_VARS.META_ORIGIN),
     testPayPerEvent: field(coerceBoolean.default(false), 'ACTOR_TEST_PAY_PER_EVENT'),
-    useChargingLogDataset: field(coerceBoolean.default(false), 'ACTOR_USE_CHARGING_LOG_DATASET'),
     // Pay-per-event charging metadata injected by the platform (JSON strings).
     actorPricingInfo: field(z.string().optional(), 'APIFY_ACTOR_PRICING_INFO'),
     chargedEventCounts: field(z.string().optional(), 'APIFY_CHARGED_ACTOR_EVENT_COUNTS'),

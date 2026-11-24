@@ -284,6 +284,10 @@ await Actor.call('my-actor', input, { maxItems: 100 });
 await Actor.call('my-actor', input, { maxTotalChargeUsd: 5 });
 ```
 
+## Local charging log
+
+In local pay-per-event testing (`ACTOR_TEST_PAY_PER_EVENT`), the SDK now logs every charge into a dataset named `charging-log`. In v3, the log was opt-in through `ACTOR_USE_CHARGING_LOG_DATASET`, and the dataset was named `charging_log`. The SDK no longer reads `ACTOR_USE_CHARGING_LOG_DATASET`, and the `useChargingLogDataset` configuration option is removed. The `eventPriceUsd` field of each log item is rounded to three decimal places.
+
 ## `Actor.setStatusMessage()` resolves `undefined` when no run was updated
 
 `Actor.setStatusMessage()` used to resolve an empty object cast to `ActorRun` when there was no run to update (locally) or when the update failed or timed out, so there was no way to tell that nothing happened. It now returns `Promise<ActorRun | undefined>` and resolves `undefined` in those cases. A failed or timed-out update still logs a warning rather than throwing.

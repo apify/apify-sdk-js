@@ -1159,6 +1159,43 @@ describe('ChargingManager', () => {
             });
         });
     });
+
+    describe('charging log dataset', () => {
+        test('logs every charge in local pay-per-event testing, with the price rounded to three decimals', async () => {
+            process.env.APIFY_ACTOR_PRICING_INFO = JSON.stringify({
+                pricingModel: 'PAY_PER_EVENT',
+                pricingPerEvent: {
+                    actorChargeEvents: { 'priced-event': { eventTitle: 'Priced event', eventPriceUsd: 0.12345 } },
+                },
+            });
+            process.env.APIFY_CHARGED_ACTOR_EVENT_COUNTS = '{}';
+
+            await initIsolatedDefaultActor({ storage: new MemoryStorageBackend() });
+            await Actor.charge({ eventName: 'priced-event', count: 2, idempotencyKey: 'key-1' });
+
+            const { items } = await (await Actor.openDataset('charging-log')).getData();
+            expect(items).toStrictEqual([
+                {
+                    eventName: 'priced-event',
+                    eventTitle: 'Priced event',
+                    eventPriceUsd: 0.123,
+                    chargedCount: 2,
+                    idempotencyKey: 'key-1',
+                    timestamp: expect.any(String),
+                },
+            ]);
+        });
+
+        test('is not written when the Actor is not pay-per-event', async () => {
+            delete process.env.ACTOR_TEST_PAY_PER_EVENT;
+
+            await initIsolatedDefaultActor({ storage: new MemoryStorageBackend() });
+            await Actor.charge({ eventName: 'test-event', count: 1 });
+
+            const { items } = await (await Actor.openDataset('charging-log')).getData();
+            expect(items).toStrictEqual([]);
+        });
+    });
 });
 
 describe('Actor.newClient()', () => {
