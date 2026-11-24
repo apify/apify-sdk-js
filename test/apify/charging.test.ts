@@ -1,5 +1,6 @@
 import {
     createStorageTransaction,
+    Dataset,
     MemoryStorageBackend,
     withDirectStorageAccess,
     withStorageTransaction,
@@ -1161,11 +1162,11 @@ describe('ChargingManager', () => {
     });
 
     describe('charging log dataset', () => {
-        test('logs every charge in local pay-per-event testing, with the price rounded to three decimals', async () => {
+        test('logs every charge in local pay-per-event testing, with the exact price', async () => {
             process.env.APIFY_ACTOR_PRICING_INFO = JSON.stringify({
                 pricingModel: 'PAY_PER_EVENT',
                 pricingPerEvent: {
-                    actorChargeEvents: { 'priced-event': { eventTitle: 'Priced event', eventPriceUsd: 0.12345 } },
+                    actorChargeEvents: { 'priced-event': { eventTitle: 'Priced event', eventPriceUsd: 0.00005 } },
                 },
             });
             process.env.APIFY_CHARGED_ACTOR_EVENT_COUNTS = '{}';
@@ -1178,7 +1179,7 @@ describe('ChargingManager', () => {
                 {
                     eventName: 'priced-event',
                     eventTitle: 'Priced event',
-                    eventPriceUsd: 0.123,
+                    eventPriceUsd: 0.00005,
                     chargedCount: 2,
                     idempotencyKey: 'key-1',
                     timestamp: expect.any(String),
@@ -1186,14 +1187,27 @@ describe('ChargingManager', () => {
             ]);
         });
 
-        test('is not written when the Actor is not pay-per-event', async () => {
-            delete process.env.ACTOR_TEST_PAY_PER_EVENT;
-
+        test('logs a charge made in a storage transaction that is rolled back', async () => {
             await initIsolatedDefaultActor({ storage: new MemoryStorageBackend() });
-            await Actor.charge({ eventName: 'test-event', count: 1 });
+
+            await expect(
+                withStorageTransaction(async () => {
+                    await Actor.charge({ eventName: 'test-event', count: 1 });
+                    throw new Error('rollback');
+                }),
+            ).rejects.toThrow('rollback');
 
             const { items } = await (await Actor.openDataset('charging-log')).getData();
-            expect(items).toStrictEqual([]);
+            expect(items).toMatchObject([{ eventName: 'test-event', chargedCount: 1 }]);
+        });
+
+        test('is not opened when the Actor is not pay-per-event', async () => {
+            delete process.env.ACTOR_TEST_PAY_PER_EVENT;
+            const openSpy = vitest.spyOn(Dataset, 'open');
+
+            await initIsolatedDefaultActor({ storage: new MemoryStorageBackend() });
+
+            expect(openSpy).not.toHaveBeenCalledWith('charging-log');
         });
     });
 });

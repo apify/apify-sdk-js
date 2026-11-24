@@ -1,4 +1,4 @@
-import { Dataset } from '@crawlee/core';
+import { Dataset, withDirectStorageAccess } from '@crawlee/core';
 import type { ActorResource, ActorRunPricingInfo, ApifyClient, Run as ClientActorRun } from 'apify-client';
 
 import { META_ORIGINS } from '@apify/consts';
@@ -274,7 +274,7 @@ export class ChargingManager {
             return;
         }
 
-        // Local pay-per-event testing logs every charge into a dataset for debugging.
+        // Local pay-per-event runs log every charge into a dataset for debugging.
         if (this.#purgeChargingLogDataset) {
             const dataset = await Dataset.open(this.#LOCAL_CHARGING_LOG_DATASET_NAME);
             await dataset.drop();
@@ -455,16 +455,20 @@ export class ChargingManager {
                 this.setIdempotentCharge(idempotencyKey, { eventName, chargedCount });
             }
 
-            if (this.#chargingLogDataset !== undefined) {
-                await this.#chargingLogDataset.pushData({
-                    eventName,
-                    eventTitle: pricingInfo.title,
-                    eventPriceUsd: Math.round(pricingInfo.price * 1000) / 1000,
-                    chargedCount,
-                    idempotencyKey,
-                    requestId,
-                    timestamp: new Date().toISOString(),
-                });
+            // The charge is not rolled back with a storage transaction, so neither is its log entry.
+            const chargingLogDataset = this.#chargingLogDataset;
+            if (chargingLogDataset !== undefined) {
+                await withDirectStorageAccess(async () =>
+                    chargingLogDataset.pushData({
+                        eventName,
+                        eventTitle: pricingInfo.title,
+                        eventPriceUsd: pricingInfo.price,
+                        chargedCount,
+                        idempotencyKey,
+                        requestId,
+                        timestamp: new Date().toISOString(),
+                    }),
+                );
             }
 
             if (chargedCount < count) {
