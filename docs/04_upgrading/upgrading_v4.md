@@ -112,6 +112,18 @@ If you only interact with events through `Actor.on()` / `Actor.off()` / `Actor.e
 
 Once connected, a dropped connection is re-established automatically with backoff, so `migrating`, `aborting` and `persistState` keep arriving after a network blip. The connection is not re-established after a close code signalling a permanent condition, such as `1008` for an unknown run ID.
 
+### Only known platform events are emitted
+
+`PlatformEventManager` emits only the `systemInfo`, `migrating`, `aborting` and `persistState` events from the platform. Messages with any other name are dropped, and unknown names are logged at the debug level.
+
+This includes the deprecated `cpuInfo` event. Listen to `systemInfo` instead, which carries the same `isCpuOverloaded` field:
+
+```ts
+Actor.on('systemInfo', ({ isCpuOverloaded }) => {
+    if (isCpuOverloaded) console.log('The CPU is overloaded!');
+});
+```
+
 ## StorageBackend
 
 The SDK's storage layer was adapted to the new Crawlee v4 `StorageBackend` interface. The Apify platform client is wrapped via the `ApifyStorageBackend` adapter — now exported from `apify` — which implements `createDatasetBackend`, `createKeyValueStoreBackend`, and `createRequestQueueBackend`.

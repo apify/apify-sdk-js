@@ -136,6 +136,37 @@ describe('events', () => {
         await events.close();
         expect(eventsReceived.length).toBe(5);
     });
+
+    test('does not emit cpuInfo and unknown events', async () => {
+        const isWsConnected = new Promise<WebSocket>((resolve) => {
+            wss.on('connection', resolve);
+        });
+        await events.init();
+        const ws = await isWsConnected;
+        vitest.useRealTimers();
+
+        try {
+            const emitSpy = vitest.spyOn(events, 'emit');
+            const debugSpy = vitest.spyOn(events['log'], 'debug');
+            const received: unknown[] = [];
+            events.on(EventType.SYSTEM_INFO, (data) => received.push(data));
+
+            // Messages arrive in order, so the last one being emitted means the earlier ones were handled.
+            for (const name of ['cpuInfo', 'someNewEvent', 'systemInfo']) {
+                ws.send(JSON.stringify({ name, data: { foo: name } }));
+            }
+            while (received.length === 0) await sleep(10);
+
+            expect(emitSpy.mock.calls).toEqual([[EventType.SYSTEM_INFO, { foo: 'systemInfo' }]]);
+            expect(debugSpy).toHaveBeenCalledTimes(1);
+            expect(debugSpy).toHaveBeenCalledWith('Unknown platform event received', {
+                name: 'someNewEvent',
+                data: { foo: 'someNewEvent' },
+            });
+        } finally {
+            await events.close();
+        }
+    });
 });
 
 describe('graceful exit handlers', () => {

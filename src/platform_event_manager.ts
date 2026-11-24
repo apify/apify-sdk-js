@@ -23,6 +23,14 @@ const CLEAN_CLOSE_CODES = new Set([1000, 1001]);
 /** How long a connection must stay open to count as healthy, after which a drop reconnects without backoff. */
 const HEALTHY_CONNECTION_MIN_DURATION_MILLIS = 1000;
 
+/** Names of the platform events that are emitted to listeners. Messages with any other name are dropped. */
+const PLATFORM_EVENT_NAMES = new Set<string>([
+    ACTOR_EVENT_NAMES.SYSTEM_INFO,
+    ACTOR_EVENT_NAMES.MIGRATING,
+    ACTOR_EVENT_NAMES.ABORTING,
+    ACTOR_EVENT_NAMES.PERSIST_STATE,
+]);
+
 /**
  * Delays between reconnection attempts, mirroring the Python `websockets` library
  * (see RFC 6455, section 7.2.3): a random initial delay, then exponential growth up to a cap.
@@ -48,16 +56,16 @@ function* backoffDelays(): Generator<number, never> {
  * **Example usage:**
  *
  * ```javascript
- * Actor.on('cpuInfo', (data) => {
+ * Actor.on('systemInfo', (data) => {
  *   if (data.isCpuOverloaded) console.log('Oh no, the CPU is overloaded!');
  * });
  * ```
  *
  * The following events are emitted:
  *
- * - `cpuInfo`: `{ "isCpuOverloaded": Boolean }`
- *   The event is emitted approximately every second
- *   and it indicates whether the Actor is using the maximum of available CPU resources.
+ * - `systemInfo`: `{ "cpuCurrentUsage": Number, "isCpuOverloaded": Boolean, "memCurrentBytes": Number, ... }`
+ *   The event is emitted approximately every second and it describes the CPU and memory usage of the Actor.
+ *   `isCpuOverloaded` indicates whether the Actor is using the maximum of available CPU resources.
  *   If that's the case, the Actor should not add more workload.
  *   For example, this event is used by the {@apilink AutoscaledPool} class.
  * - `migrating`: `void`
@@ -76,6 +84,9 @@ function* backoffDelays(): Generator<number, never> {
  *   in which case the `isMigrating` flag is set to `true`. Otherwise the flag is `false`.
  *   Note that the `persistState` event is provided merely for user convenience,
  *   you can achieve the same effect using `setInterval()` and listening for the `migrating` event.
+ *
+ * Messages with any other name are not emitted. This includes the deprecated `cpuInfo` event, which the platform
+ * sends next to `systemInfo` for backward compatibility. Unknown names are logged at the debug level.
  *
  * The connection to the platform events websocket is re-established after it drops, unless it was closed
  * with a code signalling a permanent condition (e.g. `1008` for an unknown run ID).
@@ -216,6 +227,14 @@ export class PlatformEventManager extends EventManager {
 
         try {
             const { name, data } = JSON.parse(String(message));
+
+            if (name === ACTOR_EVENT_NAMES.CPU_INFO) return;
+
+            if (!PLATFORM_EVENT_NAMES.has(name)) {
+                this.log.debug('Unknown platform event received', { name, data });
+                return;
+            }
+
             this.emit(name, data);
 
             if (name === ACTOR_EVENT_NAMES.MIGRATING) {
