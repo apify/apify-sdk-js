@@ -47,7 +47,34 @@ Resolution order (highest to lowest priority): constructor options → environme
 
 Empty-string environment variables are treated as unset (they fall through to the schema default) rather than being coerced to `0` / `''` / `false`. For example, `ACTOR_MAX_TOTAL_CHARGE_USD=""` now resolves to `undefined` instead of `0`.
 
-`userIsPaying` (both `Configuration.userIsPaying` and `Actor.getEnv().userIsPaying`) is now a `boolean` instead of the raw `APIFY_USER_IS_PAYING` string; `0`, `false`, empty or unset resolve to `false`.
+`Actor.getEnv()` (static and instance) and the `ApifyEnv` interface were removed. Everything it exposed is available as a typed property of `Actor.configuration` (or any `Configuration` instance), with booleans, numbers and dates already parsed and `Configuration` defaults applied instead of `null`.
+
+Before (v3):
+
+```ts
+const { actorId, timeoutAt } = Actor.getEnv();
+```
+
+After (v4):
+
+```ts
+const { actorId, timeoutAt } = Actor.configuration;
+```
+
+Mapping of the old `getEnv()` keys to `Actor.configuration` properties (same name unless noted):
+
+- `actorId`, `actorRunId`, `actorTaskId`, `actorBuildId`, `actorBuildNumber`, `workflowKey`, `startedAt`, `timeoutAt`, `dedicatedCpus`, `token`, `userId`, `userIsPaying`, `metaOrigin`
+- `buildId` → `actorBuildId`, `buildNumber` → `actorBuildNumber`, `buildTags` → `actorBuildTags` (now a `string[]`), `fullName` → `actorFullName`
+- `maxPaidDatasetItems` / `actorMaxPaidDatasetItems` → `maxPaidDatasetItems`, `maxTotalChargeUsd` → `maxTotalChargeUsd`
+- `defaultDatasetId`, `defaultKeyValueStoreId`, `defaultRequestQueueId`, `inputKey`, `storagesJson` → `actorStoragesJson`
+- `eventsWebsocketUrl` / `actorEventsWsUrl` → `actorEventsWsUrl`, `webServerPort` / `containerPort` → `containerPort`, `webServerUrl` / `containerUrl` → `containerUrl`, `standbyPort`, `standbyUrl`
+- `permissionLevel` → `actorPermissionLevel`, `actorPricingInfo`, `chargedActorEventCounts` → `chargedEventCounts`
+- `memoryMbytes`, `headless`, `xvfb`, `isAtHome`, `purgeOnStart`, `chromeExecutablePath`, `persistStateIntervalMillis`, `metamorphAfterSleepMillis`
+- `apiBaseUrl`, `apiPublicBaseUrl`, `proxyHostname`, `proxyPassword`, `proxyPort`, `proxyStatusUrl`, `inputSecretsPrivateKeyFile`, `inputSecretsPrivateKeyPassphrase`
+
+The remaining keys have no `Configuration` counterpart (`fact`, `logFormat`, `logLevel`, `localStorageDir`, `systemInfoIntervalMillis`, `userPricingTier`, `restartOnError`, `mcpProxyUrl`, `mcpConnectorBaseUrl`, `actId`, `actRunId`): read `process.env[APIFY_ENV_VARS.X]` / `process.env[ACTOR_ENV_VARS.X]` directly. Both constant maps are now re-exported from `apify`.
+
+`Configuration.userIsPaying` is now a `boolean` instead of the raw `APIFY_USER_IS_PAYING` string; `0`, `false`, empty or unset resolve to `false`.
 
 When a setting is exposed under several environment variables, the Apify-specific ones take precedence over Crawlee's generic one — i.e. `ACTOR_*` / `APIFY_*` are checked before `CRAWLEE_*`. For example, if both `APIFY_HEADLESS` and `CRAWLEE_HEADLESS` are set, `APIFY_HEADLESS` wins.
 
