@@ -13,7 +13,6 @@ delete process.env.APIFY_IS_AT_HOME;
 delete process.env.ACTOR_MAX_TOTAL_CHARGE_USD;
 
 const actor = new Actor({
-    useChargingLogDataset: true,
     testPayPerEvent: true,
     isAtHome: false,
     // The SDK treats `0`/unset as "no limit" — don't pass `Infinity`, which
@@ -31,7 +30,7 @@ const chargeResult = await actor.charge({
 
 log.info(`Charged: ${JSON.stringify(chargeResult)}`);
 
-const chargingLogDataset = await actor.openDataset('charging_log');
+const chargingLogDataset = await actor.openDataset('charging-log');
 const data = await chargingLogDataset.getData();
 
 // Transfer contents of the local charging log dataset into the default dataset on the platform

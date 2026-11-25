@@ -1,4 +1,4 @@
-import { Dataset } from '@crawlee/core';
+import { Dataset, withDirectStorageAccess } from '@crawlee/core';
 import type { ActorResource, ActorRunPricingInfo, ApifyClient, Run as ClientActorRun } from 'apify-client';
 
 import { META_ORIGINS } from '@apify/consts';
@@ -111,7 +111,7 @@ export interface ActorPricingInfo {
  * Handles pay-per-event charging.
  */
 export class ChargingManager {
-    readonly #LOCAL_CHARGING_LOG_DATASET_NAME = 'charging_log';
+    readonly #LOCAL_CHARGING_LOG_DATASET_NAME = 'charging-log';
 
     #maxTotalChargeUsd: number;
     #isAtHome: boolean;
@@ -120,7 +120,6 @@ export class ChargingManager {
     /** Multi-tenant Server Actor runs carry no pricing snapshot; pricing comes from the Actor and the platform prices per caller. */
     #isMultiTenant = false;
     #purgeChargingLogDataset: boolean;
-    #useChargingLogDataset: boolean;
     #notPpeWarningPrinted = false;
 
     #pricingInfo: Record<string, { price: number; title: string }> = {};
@@ -148,7 +147,6 @@ export class ChargingManager {
         this.#isAtHome = configuration.isAtHome;
         this.#actorRunId = configuration.actorRunId;
         this.#purgeChargingLogDataset = configuration.purgeOnStart;
-        this.#useChargingLogDataset = configuration.useChargingLogDataset;
 
         this.#apifyClient = apifyClient;
         this.#getCurrentRun = getCurrentRun;
@@ -232,12 +230,6 @@ export class ChargingManager {
      */
     async init(): Promise<void> {
         // Validate config - it may have changed since the instantiation
-        if (this.#useChargingLogDataset && this.#isAtHome) {
-            throw new Error(
-                'Using the ACTOR_USE_CHARGING_LOG_DATASET environment variable is only supported in a local development environment',
-            );
-        }
-
         if (this.#configuration.testPayPerEvent) {
             if (this.#isAtHome) {
                 throw new Error(
@@ -278,11 +270,11 @@ export class ChargingManager {
             };
         }
 
-        if (!this.isPayPerEvent || !this.#useChargingLogDataset) {
+        if (this.#isAtHome || !this.isPayPerEvent) {
             return;
         }
 
-        // The charging log dataset is only supported locally; `init()` throws on the platform.
+        // Local pay-per-event runs log every charge into a dataset for debugging.
         if (this.#purgeChargingLogDataset) {
             const dataset = await Dataset.open(this.#LOCAL_CHARGING_LOG_DATASET_NAME);
             await dataset.drop();
@@ -463,16 +455,20 @@ export class ChargingManager {
                 this.setIdempotentCharge(idempotencyKey, { eventName, chargedCount });
             }
 
-            if (this.#chargingLogDataset !== undefined) {
-                await this.#chargingLogDataset.pushData({
-                    eventName,
-                    eventTitle: pricingInfo.title,
-                    eventPriceUsd: pricingInfo.price,
-                    chargedCount,
-                    idempotencyKey,
-                    requestId,
-                    timestamp: new Date().toISOString(),
-                });
+            // The charge is not rolled back with a storage transaction, so neither is its log entry.
+            const chargingLogDataset = this.#chargingLogDataset;
+            if (chargingLogDataset !== undefined) {
+                await withDirectStorageAccess(async () =>
+                    chargingLogDataset.pushData({
+                        eventName,
+                        eventTitle: pricingInfo.title,
+                        eventPriceUsd: pricingInfo.price,
+                        chargedCount,
+                        idempotencyKey,
+                        requestId,
+                        timestamp: new Date().toISOString(),
+                    }),
+                );
             }
 
             if (chargedCount < count) {

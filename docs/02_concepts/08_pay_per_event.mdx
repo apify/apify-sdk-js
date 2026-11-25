@@ -100,15 +100,7 @@ ACTOR_TEST_PAY_PER_EVENT=true npm start
 
 ### View the log
 
-To inspect the results of your tests:
-
-1. In addition to the `ACTOR_TEST_PAY_PER_EVENT` environment variable, pass `ACTOR_USE_CHARGING_LOG_DATASET`:
-
-   ```shell
-   ACTOR_TEST_PAY_PER_EVENT=true ACTOR_USE_CHARGING_LOG_DATASET=true npm start
-   ```
-
-1. Open the `charging_log` dataset. By default, it's stored in the `storage/datasets/charging_log/` directory.
+In local pay-per-event testing, the SDK logs every charge into the `charging-log` dataset. To inspect the results of your tests, open this dataset. By default, it's stored in the `storage/datasets/charging-log/` directory.
 
 The log contains all the events charged throughout the run. Because pricing configuration is stored by the Apify platform, all events have a default price of $1.
 
