@@ -116,7 +116,7 @@ Once connected, a dropped connection is re-established automatically with backof
 
 `PlatformEventManager` emits only the `systemInfo`, `migrating`, `aborting` and `persistState` events from the platform. Messages with any other name are dropped, and unknown names are logged at the debug level.
 
-This includes the deprecated `cpuInfo` event. If a `cpuInfo` listener is registered, the SDK logs a warning once. Listen to `systemInfo` instead, which carries the same `isCpuOverloaded` field:
+This includes the deprecated `cpuInfo` event. Registering a `cpuInfo` listener logs a warning. Listen to `systemInfo` instead, which carries the same `isCpuOverloaded` field:
 
 ```ts
 Actor.on('systemInfo', ({ isCpuOverloaded }) => {

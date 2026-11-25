@@ -181,21 +181,15 @@ describe('events', () => {
         });
     });
 
-    test('warns once when a cpuInfo listener is registered', async () => {
-        await withConnection(async (send) => {
-            const warningSpy = vitest.spyOn(events['log'], 'warning');
-            const cpuInfoListener = vitest.fn();
-            events.on('cpuInfo' as EventTypeName, cpuInfoListener);
-            const received: unknown[] = [];
-            events.on(EventType.SYSTEM_INFO, (data) => received.push(data));
+    test('warns when a cpuInfo listener is registered', () => {
+        const warningSpy = vitest.spyOn(events['log'], 'warning');
 
-            for (const name of ['cpuInfo', 'cpuInfo', EventType.SYSTEM_INFO]) send(name);
-            await vitest.waitFor(() => expect(received).toHaveLength(1));
+        events.on(EventType.SYSTEM_INFO, () => {});
+        expect(warningSpy).not.toHaveBeenCalled();
 
-            expect(cpuInfoListener).not.toHaveBeenCalled();
-            expect(warningSpy).toHaveBeenCalledTimes(1);
-            expect(warningSpy).toHaveBeenCalledWith(expect.stringContaining('"cpuInfo" event is deprecated'));
-        });
+        events.on('cpuInfo' as EventTypeName, () => {});
+        expect(warningSpy).toHaveBeenCalledTimes(1);
+        expect(warningSpy).toHaveBeenCalledWith(expect.stringContaining('"cpuInfo" event is deprecated'));
     });
 });
 

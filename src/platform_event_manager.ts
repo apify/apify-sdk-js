@@ -86,8 +86,8 @@ function* backoffDelays(): Generator<number, never> {
  *   you can achieve the same effect using `setInterval()` and listening for the `migrating` event.
  *
  * Messages with any other name are not emitted. This includes the deprecated `cpuInfo` event, which the platform
- * sends next to `systemInfo` for backward compatibility. If a `cpuInfo` listener is registered, a warning is logged
- * once. Unknown names are logged at the debug level.
+ * sends next to `systemInfo` for backward compatibility. Registering a `cpuInfo` listener logs a warning.
+ * Unknown names are logged at the debug level.
  *
  * The connection to the platform events websocket is re-established after it drops, unless it was closed
  * with a code signalling a permanent condition (e.g. `1008` for an unknown run ID).
@@ -107,9 +107,6 @@ export class PlatformEventManager extends EventManager {
     /** Calls of the internal listeners that are still in progress. */
     readonly #internalListenerCalls = new Set<Promise<unknown>>();
 
-    /** Whether the warning about a registered `cpuInfo` listener was logged. */
-    #cpuInfoWarningLogged = false;
-
     /**
      * @param internalListeners Listeners of the SDK itself, kept apart from the ones registered with `on()`, so that
      *  user code can neither remove them with `off()` nor see them in `listeners()`.
@@ -122,6 +119,17 @@ export class PlatformEventManager extends EventManager {
             persistStateIntervalMillis: configuration.persistStateIntervalMillis,
         });
         this.#internalListeners = internalListeners;
+    }
+
+    override on(event: EventTypeName, listener: (...args: any[]) => any) {
+        if ((event as string) === ACTOR_EVENT_NAMES.CPU_INFO) {
+            this.log.warning(
+                'The "cpuInfo" event is deprecated and never emitted. ' +
+                    'Listen to "systemInfo" instead, which has the same "isCpuOverloaded" field.',
+            );
+        }
+
+        super.on(event, listener);
     }
 
     override emit(event: EventTypeName, ...args: unknown[]) {
@@ -232,16 +240,7 @@ export class PlatformEventManager extends EventManager {
         try {
             const { name, data } = JSON.parse(String(message));
 
-            if (name === ACTOR_EVENT_NAMES.CPU_INFO) {
-                if (!this.#cpuInfoWarningLogged && this.events.listenerCount(name) > 0) {
-                    this.#cpuInfoWarningLogged = true;
-                    this.log.warning(
-                        'The "cpuInfo" event is deprecated and not emitted. ' +
-                            'Listen to "systemInfo" instead, which has the same "isCpuOverloaded" field.',
-                    );
-                }
-                return;
-            }
+            if (name === ACTOR_EVENT_NAMES.CPU_INFO) return;
 
             if (!PLATFORM_EVENT_NAMES.has(name)) {
                 this.log.debug('Unknown platform event received', { name, data });
