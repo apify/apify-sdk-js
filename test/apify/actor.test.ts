@@ -1863,6 +1863,15 @@ describe('Actor', () => {
     });
 
     describe('Actor.useState', () => {
+        test('stores the state under `SDK_GLOBAL_STATE` without a name', async () => {
+            await initIsolatedDefaultActor();
+            const getAutoSavedValueSpy = vitest.spyOn(KeyValueStore.prototype, 'getAutoSavedValue');
+
+            await Actor.useState();
+
+            expect(getAutoSavedValueSpy).toHaveBeenCalledWith('SDK_GLOBAL_STATE', {});
+        });
+
         test('does not purge storages the Actor kept with purgeOnStart disabled', async () => {
             const storageDir = join(process.env.CRAWLEE_STORAGE_DIR!, 'use-state-no-purge');
             const storeDir = join(storageDir, 'key_value_stores', 'default');
