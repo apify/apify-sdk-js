@@ -334,9 +334,13 @@ The original `ZodError` is also kept on `error.cause`.
 
 ## `Actor.useState()` stores its default state under `SDK_GLOBAL_STATE`
 
-Without a `name`, `Actor.useState()` keeps its state in the default key-value store under the `SDK_GLOBAL_STATE` key. In v3, the key was `APIFY_GLOBAL_STATE`. The other internal records of the SDK use the same `SDK_` prefix, such as `SDK_ACTOR_CHILD_RUNS` and `SDK_STORAGE_ALIASES_MAPPING`.
+Without a `name`, `Actor.useState()` keeps its state under the `SDK_GLOBAL_STATE` key. In v3, the key was `APIFY_GLOBAL_STATE`. This applies to the store that `useState()` opens: the default key-value store, or the one given by `keyValueStoreName`. The other internal records of the SDK use the same `SDK_` prefix, such as `SDK_ACTOR_CHILD_RUNS` and `SDK_STORAGE_ALIASES_MAPPING`.
 
-v4 doesn't read the v3 key. Resuming a v3 run on v4 is not supported, so finish or discard in-flight runs before upgrading.
+v4 doesn't read the v3 key. Resuming a v3 run on v4 is not supported, so finish or discard in-flight runs before upgrading. State that you keep across runs, in a named key-value store or in a local store that isn't purged, starts from `defaultValue` after the upgrade. To keep using it, pass the v3 key as the `name`:
+
+```ts
+const state = await Actor.useState('APIFY_GLOBAL_STATE', { processed: [] }, { keyValueStoreName: 'my-state' });
+```
 
 ## Private properties are now native `#` fields
 
