@@ -131,13 +131,25 @@ In addition, `_setPasswordIfToken()` is now `private setPasswordIfToken()` (it w
 
 `PlatformEventManager` now extends Crawlee v4's `EventManager` and integrates with the new service locator. Use `Configuration.getGlobalConfiguration()` (or pass a `Configuration` instance explicitly) when constructing it directly — the constructor no longer accepts a `config` override via the `override` keyword pattern because Crawlee's base class manages the configuration through `serviceLocator` instead of a `config` field.
 
-If you only interact with events through `Actor.on()` / `Actor.off()` / `Actor.events`, no code changes are needed.
+If you only interact with events through `Actor.on()` / `Actor.off()` / `Actor.events`, no code changes are needed, unless you listen to the `cpuInfo` event (see [below](#only-known-platform-events-are-emitted)).
 
 ### Platform events websocket
 
 `Actor.init()` (and `PlatformEventManager.init()`) now waits for the connection to the platform events websocket and rejects if it cannot be established. Previously the failure was only logged and the run continued without any platform events. Locally, where `ACTOR_EVENTS_WEBSOCKET_URL` is not set, nothing changes.
 
 Once connected, a dropped connection is re-established automatically with backoff, so `migrating`, `aborting` and `persistState` keep arriving after a network blip. The connection is not re-established after a close code signalling a permanent condition, such as `1008` for an unknown run ID.
+
+### Only known platform events are emitted
+
+`PlatformEventManager` emits only the `systemInfo`, `migrating`, `aborting` and `persistState` events from the platform. Messages with any other name are dropped, and unknown names are logged at the debug level.
+
+This includes the deprecated `cpuInfo` event. Registering a `cpuInfo` listener logs a warning. Listen to `systemInfo` instead, which carries the same `isCpuOverloaded` field:
+
+```ts
+Actor.on('systemInfo', ({ isCpuOverloaded }) => {
+    if (isCpuOverloaded) console.log('The CPU is overloaded!');
+});
+```
 
 ## StorageBackend
 

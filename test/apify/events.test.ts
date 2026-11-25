@@ -1,3 +1,4 @@
+import type { EventTypeName } from '@crawlee/core';
 import { EventType, MemoryStorageBackend, serviceLocator } from '@crawlee/core';
 import type { Dictionary } from '@crawlee/types';
 import { sleep } from '@crawlee/utils';
@@ -135,6 +136,60 @@ describe('events', () => {
         await vitest.advanceTimersByTimeAsync(1.1 * interval);
         await events.close();
         expect(eventsReceived.length).toBe(5);
+    });
+
+    /** Connects `events` to the test server and runs `body` with the server-side socket and real timers. */
+    const withConnection = async (body: (send: (name: string) => void) => Promise<void>) => {
+        const isWsConnected = new Promise<WebSocket>((resolve) => {
+            wss.on('connection', resolve);
+        });
+        await events.init();
+        const ws = await isWsConnected;
+        vitest.useRealTimers();
+
+        try {
+            await body((name) => ws.send(JSON.stringify({ name, data: { foo: name } })));
+        } finally {
+            await events.close();
+        }
+    };
+
+    test('emits only known platform events', async () => {
+        await withConnection(async (send) => {
+            const emitSpy = vitest.spyOn(events, 'emit');
+            const debugSpy = vitest.spyOn(events['log'], 'debug');
+            const warningSpy = vitest.spyOn(events['log'], 'warning');
+
+            const knownNames = [
+                EventType.SYSTEM_INFO,
+                EventType.MIGRATING,
+                EventType.ABORTING,
+                EventType.PERSIST_STATE,
+            ];
+            for (const name of ['cpuInfo', 'someNewEvent', ...knownNames]) send(name);
+
+            // Messages arrive in order, so the last one being emitted means the earlier ones were handled.
+            await vitest.waitFor(() => expect(emitSpy).toHaveBeenCalledTimes(knownNames.length));
+
+            expect(emitSpy.mock.calls).toEqual(knownNames.map((name) => [name, { foo: name }]));
+            expect(debugSpy).toHaveBeenCalledTimes(1);
+            expect(debugSpy).toHaveBeenCalledWith('Unknown platform event received', {
+                name: 'someNewEvent',
+                data: { foo: 'someNewEvent' },
+            });
+            expect(warningSpy).not.toHaveBeenCalled();
+        });
+    });
+
+    test('warns when a cpuInfo listener is registered', () => {
+        const warningSpy = vitest.spyOn(events['log'], 'warning');
+
+        events.on(EventType.SYSTEM_INFO, () => {});
+        expect(warningSpy).not.toHaveBeenCalled();
+
+        events.on('cpuInfo' as EventTypeName, () => {});
+        expect(warningSpy).toHaveBeenCalledTimes(1);
+        expect(warningSpy).toHaveBeenCalledWith(expect.stringContaining('"cpuInfo" event is deprecated'));
     });
 });
 
