@@ -46,7 +46,8 @@ export class ApifyKeyValueStoreBackend implements KeyValueStoreBackend {
     async getValue(key: string): Promise<KeyValueStoreRecord | undefined> {
         // Storage backends are byte transports — the KeyValueStore frontend parses values
         // according to their content type, so the record must be returned unparsed.
-        return this.#client.getRecord(key, { buffer: true });
+        // The client may type the bytes as a `Uint8Array`; in Node.js they are always a `Buffer`.
+        return this.#client.getRecord(key, { buffer: true }) as Promise<KeyValueStoreRecord | undefined>;
     }
 
     async setValue(record: KeyValueStoreInputRecord): Promise<void> {
