@@ -24,7 +24,7 @@ export type StorageType = 'Dataset' | 'KeyValueStore' | 'RequestQueue';
 export const DEFAULT_STORAGE_ALIAS = '__default__';
 
 /** The key of the default key-value store record holding this run's alias -> storage id mapping. */
-const ALIAS_MAPPING_RECORD_KEY = '__STORAGE_ALIASES_MAPPING';
+const ALIAS_MAPPING_RECORD_KEY = 'APIFY_STORAGE_ALIASES_MAPPING';
 
 /** Alias -> storage id, keyed as `<type>,<alias>,<credentials hash>` — see `resolveAliasId`. */
 type AliasMapping = Record<string, string>;

@@ -994,7 +994,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      *
      * A run started with a custom `token` uses that token, except for a run started before a migration or
      * resurrection, which uses the default client. The tracked runs, including the earlier runs replaced
-     * under the same name, are stored in the default key-value store under the `__ACTOR_CHILD_RUNS` key.
+     * under the same name, are stored in the default key-value store under the `APIFY_ACTOR_CHILD_RUNS` key.
      */
     get childRuns(): Record<string, RunClient> {
         this.ensureActorInit('childRuns');
@@ -1864,7 +1864,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      *
      * Values can be modified by simply using the assignment operator.
      *
-     * @param name The name of the store to use.
+     * @param name The key of the record that holds the state. Defaults to `APIFY_GLOBAL_STATE`.
      * @param defaultValue If the store does not yet have a value in it, the value will be initialized with the `defaultValue` you provide.
      * @param options An optional object parameter where a custom `keyValueStoreName` and `config` can be passed in.
      */
@@ -1886,7 +1886,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      *
      * Values can be modified by simply using the assignment operator.
      *
-     * @param name The name of the store to use.
+     * @param name The key of the record that holds the state. Defaults to `APIFY_GLOBAL_STATE`.
      * @param defaultValue If the store does not yet have a value in it, the value will be initialized with the `defaultValue` you provide.
      * @param options An optional object parameter where a custom `keyValueStoreName` and `config` can be passed in.
      */
@@ -2138,7 +2138,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      *
      * A run started with a custom `token` uses that token, except for a run started before a migration or
      * resurrection, which uses the default client. The tracked runs, including the earlier runs replaced
-     * under the same name, are stored in the default key-value store under the `__ACTOR_CHILD_RUNS` key.
+     * under the same name, are stored in the default key-value store under the `APIFY_ACTOR_CHILD_RUNS` key.
      */
     static get childRuns(): Record<string, RunClient> {
         return Actor.getDefaultInstance().childRuns;

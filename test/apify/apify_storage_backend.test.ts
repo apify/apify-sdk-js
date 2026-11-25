@@ -12,7 +12,7 @@ import { ApifyStorageBackend } from '../../src/apify_storage_backend.js';
 import { Configuration } from '../../src/configuration.js';
 
 /** Spelled out rather than imported: this name is visible in the user's key-value store. */
-const ALIAS_MAPPING_RECORD_KEY = '__STORAGE_ALIASES_MAPPING';
+const ALIAS_MAPPING_RECORD_KEY = 'APIFY_STORAGE_ALIASES_MAPPING';
 
 function createMockApifyClient() {
     let unnamedCounter = 0;
