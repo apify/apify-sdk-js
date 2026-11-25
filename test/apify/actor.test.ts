@@ -1251,6 +1251,34 @@ describe('Actor', () => {
         });
     });
 
+    describe('Actor.exit()', () => {
+        afterEach(() => {
+            vitest.restoreAllMocks();
+        });
+
+        test('exit with an infinite timeout waits for the listeners', async () => {
+            const { events } = await initIsolatedDefaultActor({ storage: new MemoryStorageBackend() });
+
+            let listenerFinished = false;
+            events.on(EventType.EXIT, async () => {
+                await sleep(50);
+                listenerFinished = true;
+            });
+
+            const finishedAtExit: boolean[] = [];
+            vitest.spyOn(process, 'exit').mockImplementation((() => {
+                finishedAtExit.push(listenerFinished);
+            }) as never);
+
+            await Actor.exit({ timeoutSecs: Infinity });
+            // Give a misfiring fallback timer a chance to run.
+            await sleep(10);
+
+            expect(finishedAtExit.length).toBeGreaterThan(0);
+            expect(finishedAtExit.every(Boolean)).toBe(true);
+        });
+    });
+
     describe('Actor.reboot()', () => {
         const { actId, runId } = globalOptions;
         const { run } = runConfigs;
@@ -1327,6 +1355,27 @@ describe('Actor', () => {
             events.on(EventType.MIGRATING, hangingListener);
 
             await Actor.reboot({ timeoutSecs: 0.1, customAfterSleepMillis: 1 });
+
+            expect(rebootMock).toBeCalledTimes(1);
+        });
+
+        test('reboot with an infinite timeout waits for the listeners', async () => {
+            const rebootMock = vitest.fn();
+            vitest.spyOn(ApifyClient.prototype, 'run').mockReturnValueOnce({ reboot: rebootMock } as any);
+
+            let listenerFinished = false;
+            const slowListener = async () => {
+                await sleep(50);
+                listenerFinished = true;
+            };
+            const events = serviceLocator.getEventManager();
+            events.on(EventType.MIGRATING, slowListener);
+
+            rebootMock.mockImplementationOnce(async () => {
+                expect(listenerFinished).toBe(true);
+            });
+            await Actor.reboot({ timeoutSecs: Infinity, customAfterSleepMillis: 1 });
+            events.off(EventType.MIGRATING, slowListener);
 
             expect(rebootMock).toBeCalledTimes(1);
         });
