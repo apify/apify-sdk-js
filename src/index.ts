@@ -4,7 +4,7 @@ export {
     ApifyFileSystemStorageBackend,
     type ApifyFileSystemStorageOptions,
 } from './apify_file_system_storage_backend.js';
-export type { RequestQueueAccessMode } from './apify_request_queue_backend.js';
+export type { ApifyRequestQueueInfo, RequestQueueAccessMode } from './apify_request_queue_backend.js';
 export { ArgumentValidationError } from './utils.js';
 export { ActorInputError, type ActorInputErrorCode } from './errors.js';
 export {

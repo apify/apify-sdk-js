@@ -9,7 +9,7 @@ import type {
     RequestSchema,
     UpdateRequestSchema,
 } from '@crawlee/types';
-import type { RequestQueueClient as ApifyRequestQueueApiClient } from 'apify-client';
+import type { RequestQueueClient as ApifyRequestQueueApiClient, RequestQueueStats } from 'apify-client';
 
 /**
  * Determines how an Apify platform request queue is consumed.
@@ -35,6 +35,14 @@ const REQUEST_ID_LENGTH = 15;
 export function uniqueKeyToRequestId(uniqueKey: string): string {
     const hash = createHash('sha256').update(uniqueKey).digest('base64').replace(/[+/=]/g, '');
     return hash.slice(0, REQUEST_ID_LENGTH);
+}
+
+/** {@link RequestQueueInfo} extended with fields the Apify platform reports. */
+export interface ApifyRequestQueueInfo extends RequestQueueInfo {
+    /** Whether the queue has been accessed by more than one client (unique or empty `clientKey`). */
+    hadMultipleClients: boolean;
+    /** Read, write and delete operation counts. */
+    stats?: RequestQueueStats;
 }
 
 /**
@@ -82,20 +90,16 @@ export abstract class ApifyRequestQueueBackend implements RequestQueueBackend {
         // Only relevant for backends that reserve requests via locking; see the shared backend.
     }
 
-    async getMetadata(): Promise<RequestQueueInfo> {
+    async getMetadata(): Promise<ApifyRequestQueueInfo> {
         const metadata = await this.client.get();
         if (!metadata) {
             throw new Error('Request queue not found or has been deleted.');
         }
         return {
-            id: metadata.id,
+            ...metadata,
             name: metadata.name ?? undefined,
-            createdAt: metadata.createdAt,
-            modifiedAt: metadata.modifiedAt,
-            accessedAt: metadata.accessedAt,
             totalRequestCount: Math.max(metadata.totalRequestCount, this.estimatedTotalRequestCount),
             handledRequestCount: Math.max(metadata.handledRequestCount, this.estimatedHandledRequestCount),
-            pendingRequestCount: metadata.pendingRequestCount,
         };
     }
 
