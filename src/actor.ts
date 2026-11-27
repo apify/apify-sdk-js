@@ -69,6 +69,32 @@ import {
     parseInputValue,
 } from './utils.js';
 
+/** The longest delay `setTimeout` supports. Node clamps any longer delay, `Infinity` included, to 1 ms. */
+const MAX_TIMEOUT_MILLIS = 2 ** 31 - 1;
+
+/**
+ * Converts a `timeoutSecs` option to milliseconds for `setTimeout`, or returns `undefined` when the
+ * timeout is too long for `setTimeout` (e.g. `Infinity`) and the caller should wait without one.
+ */
+function toTimeoutMillis(timeoutSecs: number): number | undefined {
+    const millis = timeoutSecs * 1000;
+    return millis <= MAX_TIMEOUT_MILLIS ? millis : undefined;
+}
+
+/**
+ * Runs `handler` with {@link addTimeoutToPromise}, or without a timeout when `timeoutMillis` is `undefined`.
+ */
+async function withOptionalTimeout(
+    handler: () => Promise<void>,
+    timeoutMillis: number | undefined,
+    errorMessage: string,
+): Promise<void> {
+    if (timeoutMillis === undefined) {
+        return handler();
+    }
+    return addTimeoutToPromise(handler, timeoutMillis, errorMessage);
+}
+
 /**
  * {@link parseInputValue} with the parser error wrapped as an {@apilink ActorInputError}, so a malformed
  * JSON input reports where it came from.
@@ -139,6 +165,7 @@ export interface ExitOptions {
     statusMessage?: string;
     /**
      * Amount of time, in seconds, to wait for all event handlers to finish before exiting the process.
+     * Pass `Infinity` to wait without a timeout.
      * @default 30
      */
     timeoutSecs?: number;
@@ -302,6 +329,7 @@ export interface MetamorphOptions {
 export interface RebootOptions {
     /**
      * Amount of time, in seconds, to wait for the `persistState` and `migrating` event handlers before rebooting.
+     * Pass `Infinity` to wait without a timeout.
      * @default 30
      */
     timeoutSecs?: number;
@@ -681,20 +709,24 @@ export class Actor<Data extends Dictionary = Dictionary> {
         // Emit the exit event
         events.emit(EventType.EXIT, options);
 
+        const timeoutMillis = toTimeoutMillis(options.timeoutSecs);
+
         // Wait for all event listeners to be processed
         log.debug(
-            `Waiting for all event listeners to complete their execution (with ${options.timeoutSecs} seconds timeout)`,
+            timeoutMillis === undefined
+                ? 'Waiting for all event listeners to complete their execution (without a timeout)'
+                : `Waiting for all event listeners to complete their execution (with ${options.timeoutSecs} seconds timeout)`,
         );
 
-        if (options.exit) {
+        if (options.exit && timeoutMillis !== undefined) {
             // `addTimeoutToPromise` is a cooperative timeout. This ensures that the process exits
             // after the timeout, even if the event listeners don't trigger the timeout.
             setTimeout(() => {
                 process.exit(options.exitCode);
-            }, options.timeoutSecs * 1000);
+            }, timeoutMillis);
         }
 
-        await addTimeoutToPromise(
+        await withOptionalTimeout(
             async () => {
                 await events.waitForAllListenersToComplete();
 
@@ -724,7 +756,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
                     await Promise.race([statusMessagePromise, sleep(1)]);
                 }
             },
-            options.timeoutSecs * 1000,
+            timeoutMillis,
             `Waiting for all event listeners to complete their execution timed out after ${options.timeoutSecs} seconds`,
         ).catch(() => {
             if (options.exit) {
@@ -1109,7 +1141,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
                 });
 
         // Waiting for all the listeners to finish, as `.reboot()` kills the container.
-        await addTimeoutToPromise(
+        await withOptionalTimeout(
             async () => {
                 await Promise.all([
                     // `persistState` for individual RequestLists, RequestQueue... instances to be persisted
@@ -1118,7 +1150,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
                     ...callListeners(EventType.MIGRATING, {}),
                 ]);
             },
-            timeoutSecs * 1000,
+            toTimeoutMillis(timeoutSecs),
             `Pre-reboot event listeners did not finish within ${timeoutSecs} seconds, proceeding with the reboot`,
         ).catch((err) => log.warning((err as Error).message));
 
