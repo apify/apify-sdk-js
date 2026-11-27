@@ -284,6 +284,42 @@ await Actor.call('my-actor', input, { maxItems: 100 });
 await Actor.call('my-actor', input, { maxTotalChargeUsd: 5 });
 ```
 
+## Charged `Actor.pushData()` throws inside a request handler
+
+Crawlee v4 runs every request handler in a [storage transaction](https://crawlee.dev/js/docs/next/upgrading/upgrading-to-v4#storage-writes-in-request-handlers-are-transactional): dataset and key-value store writes are applied only when the handler succeeds. A charge is immediate and cannot be rolled back, so `Actor.pushData(item, eventName)` throws inside a request handler. It still type-checks, so the error shows up only at runtime:
+
+```text
+Actor.pushData() with the event name 'result' cannot be used inside a storage transaction: the items are stored when the transaction commits, but the charge happens right away, so a rolled-back request would be billed for items that were never stored. ...
+```
+
+Either store and charge immediately, as in v3, or charge once the item is stored:
+
+```ts
+// v3
+async requestHandler({ request }) {
+    await Actor.pushData({ url: request.url }, 'result');
+}
+
+// v4: stored and charged immediately, not rolled back
+import { withDirectStorageAccess } from 'crawlee';
+
+async requestHandler({ request }) {
+    await withDirectStorageAccess(async () => Actor.pushData({ url: request.url }, 'result'));
+}
+
+// v4: charged after the commit
+async requestHandler({ request, pushData, afterStorageCommit }) {
+    await pushData({ url: request.url });
+    afterStorageCommit(async (error) => {
+        if (!error) await Actor.charge({ eventName: 'result' });
+    });
+}
+```
+
+`Actor.pushData(item, eventName)` pushes only as many items as the remaining budget covers at the price of `eventName`. A push without an event name ignores that price, so the item is stored even when `Actor.charge()` can no longer charge for it.
+
+`Actor.pushData(item)` without an event name takes part in the transaction. `Actor.charge()` on its own is not rejected, but the charge stays when the handler fails, and a retry charges again. `failedRequestHandler` and `errorHandler` run after the rollback, so a charged `Actor.pushData()` works there as before.
+
 ## Local charging log
 
 When the Actor runs locally with the pay-per-event pricing model, for example with `ACTOR_TEST_PAY_PER_EVENT`, the SDK now logs every charge into a dataset named `charging-log`. In v3, the log was opt-in through `ACTOR_USE_CHARGING_LOG_DATASET`, and the dataset was named `charging_log`. The SDK no longer reads `ACTOR_USE_CHARGING_LOG_DATASET`, and the `useChargingLogDataset` configuration option is removed.
