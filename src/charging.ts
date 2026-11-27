@@ -1,5 +1,6 @@
-import { Dataset, withDirectStorageAccess } from '@crawlee/core';
+import { Dataset, RecoverableState, withDirectStorageAccess } from '@crawlee/core';
 import type { ActorResource, ActorRunPricingInfo, ApifyClient, Run as ClientActorRun } from 'apify-client';
+import { z } from 'zod';
 
 import { META_ORIGINS } from '@apify/consts';
 import log from '@apify/log';
@@ -7,10 +8,14 @@ import log from '@apify/log';
 import type { Configuration } from './configuration.js';
 import { ReentrantAsyncLock } from './utils.js';
 
-interface ChargingStateItem {
-    chargeCount: number;
-    totalChargedAmount: number;
-}
+/** Key of the default key-value store record that carries the charged event counts across a container restart. */
+export const CHARGING_STATE_KEY = '__ACTOR_CHARGING_STATE';
+
+const chargingStateSchema = z.object({
+    chargedEventCounts: z.record(z.string(), z.number().int().nonnegative()),
+});
+
+type ChargingState = z.infer<typeof chargingStateSchema>;
 
 interface IdempotentCharge {
     eventName: string;
@@ -123,7 +128,8 @@ export class ChargingManager {
     #notPpeWarningPrinted = false;
 
     #pricingInfo: Record<string, { price: number; title: string }> = {};
-    #chargingState?: Record<string, ChargingStateItem>;
+    /** The charged event counts, persisted to the default key-value store in a pay-per-event run on the platform. */
+    #chargingState?: RecoverableState<ChargingState>;
     #chargingLogDataset?: Dataset;
 
     /** Charges made with an idempotency key, by key, in insertion (and therefore expiry) order. */
@@ -261,13 +267,21 @@ export class ChargingManager {
             this.#maxTotalChargeUsd = maxTotalChargeUsd;
         }
 
-        this.#chargingState = {};
+        // The platform fills the env var with the counts recorded when the run started, so after a reboot, migration
+        // or restart they miss what an earlier container charged. On the platform the counts are therefore also kept
+        // in the default key-value store, and the persisted ones take over where they are higher. A multi-tenant run
+        // has no counts of its own to keep.
+        this.#chargingState = new RecoverableState<ChargingState>({
+            defaultState: { chargedEventCounts: {} },
+            persistStateKey: CHARGING_STATE_KEY,
+            persistenceEnabled: this.#isAtHome && this.isPayPerEvent && !this.#isMultiTenant,
+            deserialize: chargingStateSchema,
+            configuration: this.#configuration,
+        });
+        await this.#chargingState.initialize();
 
         for (const [eventName, chargeCount] of Object.entries(chargedEventCounts ?? {})) {
-            this.#chargingState[eventName] = {
-                chargeCount,
-                totalChargedAmount: chargeCount * (this.#pricingInfo[eventName]?.price ?? 0),
-            };
+            this.#chargedEventCounts[eventName] = Math.max(this.#chargedEventCounts[eventName] ?? 0, chargeCount);
         }
 
         if (this.#isAtHome || !this.isPayPerEvent) {
@@ -284,11 +298,28 @@ export class ChargingManager {
     }
 
     /**
+     * Persist the charged event counts one last time and stop listening for the persist state events.
+     *
+     * @internal
+     */
+    async teardown(): Promise<void> {
+        await this.#chargingState?.teardown();
+    }
+
+    /**
      * Whether {@link ChargingManager.init} has run. All charging operations (including
      * {@link ChargingManager.getPricingInfo}) require an initialized manager.
      */
     get isInitialized(): boolean {
         return this.#chargingState !== undefined;
+    }
+
+    get #chargedEventCounts(): Record<string, number> {
+        if (this.#chargingState === undefined) {
+            throw new Error('ChargingManager is not initialized');
+        }
+
+        return this.#chargingState.currentValue.chargedEventCounts;
     }
 
     /**
@@ -363,9 +394,7 @@ export class ChargingManager {
             };
         }
 
-        const chargingState = this.#chargingState;
-
-        if (chargingState === undefined) {
+        if (this.#chargingState === undefined) {
             throw new Error('ChargingManager is not initialized');
         }
 
@@ -442,12 +471,7 @@ export class ChargingManager {
 
             // Count the charge only after the API call succeeds, so a failed call retried under the same key
             // is counted once.
-            chargingState[eventName] ??= {
-                chargeCount: 0,
-                totalChargedAmount: 0,
-            };
-            chargingState[eventName].chargeCount += chargedCount;
-            chargingState[eventName].totalChargedAmount += chargedCount * pricingInfo.price;
+            this.#chargedEventCounts[eventName] = (this.#chargedEventCounts[eventName] ?? 0) + chargedCount;
 
             // Remember the key for every charge that was counted, including events the API never receives,
             // such as synthetic ones - those are counted locally and a repeat would count them twice.
@@ -559,7 +583,7 @@ export class ChargingManager {
             throw new Error('ChargingManager is not initialized');
         }
 
-        return this.#chargingState[eventName]?.chargeCount ?? 0;
+        return this.#chargedEventCounts[eventName] ?? 0;
     }
 
     /**
@@ -578,8 +602,8 @@ export class ChargingManager {
             throw new Error('ChargingManager is not initialized');
         }
 
-        const result = Object.values(this.#chargingState)
-            .map(({ totalChargedAmount }) => totalChargedAmount)
+        const result = Object.entries(this.#chargedEventCounts)
+            .map(([eventName, count]) => count * (this.calculateEventPrice(eventName) ?? 0))
             .reduce((sum, inc) => sum + inc, 0);
 
         // Keeping float precision issues at bay
