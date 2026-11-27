@@ -29,6 +29,8 @@ function createMockApiClient() {
             totalRequestCount: 0,
             handledRequestCount: 0,
             pendingRequestCount: 0,
+            hadMultipleClients: true,
+            stats: { readCount: 1, writeCount: 2, deleteCount: 3 },
         })),
         delete: vi.fn(async () => {}),
         listHead: vi.fn(async () => ({
@@ -334,5 +336,7 @@ describe('ApifyRequestQueueSharedBackend', () => {
 
         expect(metadata.totalRequestCount).toBe(2);
         expect(metadata.handledRequestCount).toBe(0);
+        expect(metadata.hadMultipleClients).toBe(true);
+        expect(metadata.stats).toEqual({ readCount: 1, writeCount: 2, deleteCount: 3 });
     });
 });
