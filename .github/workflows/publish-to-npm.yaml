@@ -26,22 +26,39 @@ jobs:
     publish_to_npm:
         name: Publish to NPM
         runs-on: ubuntu-latest
+        environment:
+            name: npm
+            deployment: false
         steps:
-            - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+            - uses: actions/checkout@v7.0.1
               with:
                   ref: ${{ inputs.ref }}
                   token: ${{ secrets.APIFY_SERVICE_ACCOUNT_GITHUB_TOKEN }}
                   fetch-depth: 0
                   fetch-tags: true
 
+            - name: Check that the ref is on a release branch
+              env:
+                  GH_TOKEN: ${{ github.token }}
+              run: |
+                  sha=$(git rev-parse HEAD)
+                  branches=$(gh api --paginate "repos/$GITHUB_REPOSITORY/branches" --jq '.[].name' | grep -E '^(master|[0-9]+\.x)$')
+                  for branch in $branches; do
+                      status=$(gh api "repos/$GITHUB_REPOSITORY/compare/$branch...$sha" --jq .status || true)
+                      if [[ "$status" == "identical" || "$status" == "behind" ]]; then exit 0; fi
+                  done
+                  echo "::error::$sha is not on a release branch"
+                  exit 1
+
             - name: Use Node.js
-              uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+              uses: actions/setup-node@v7.1.0
               with:
                   node-version: 26
+                  check-latest: true
                   registry-url: 'https://registry.npmjs.org'
 
             - name: Install pnpm and dependencies
-              uses: apify/actions/pnpm-install@v1.6.2
+              uses: apify/actions/pnpm-install@v1.9.0
 
             - name: Build module
               run: pnpm build
@@ -51,7 +68,7 @@ jobs:
             - name: Resolve pre-release version
               id: prerelease
               if: ${{ inputs.tag != 'latest' }}
-              uses: apify/actions/git-cliff-release@v1.6.2
+              uses: apify/actions/git-cliff-release@v1.9.0
               with:
                   release_type: prerelease
                   prerelease_id: ${{ inputs.tag == 'rc' && 'rc' || 'beta' }}

@@ -61,8 +61,14 @@ export class ChargingDatasetBackend implements DatasetBackend {
     async pushData(items: Dictionary[]): Promise<void> {
         const chargingManager = this.#getChargingManager();
 
-        // `Dataset.pushData()` also works without `Actor.init()`, where there is no charging state yet.
-        if (items.length === 0 || !chargingManager.isInitialized || !chargingManager.isPayPerEvent) {
+        // `Dataset.pushData()` also works without `Actor.init()`, where there is no charging state yet. Multi-tenant
+        // runs charge per request only, so dataset writes charge nothing there.
+        if (
+            items.length === 0 ||
+            !chargingManager.isInitialized ||
+            !chargingManager.isPayPerEvent ||
+            chargingManager.isMultiTenant
+        ) {
             await this.#inner.pushData(items);
             return;
         }

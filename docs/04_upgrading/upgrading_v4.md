@@ -47,9 +47,38 @@ Resolution order (highest to lowest priority): constructor options → environme
 
 Empty-string environment variables are treated as unset (they fall through to the schema default) rather than being coerced to `0` / `''` / `false`. For example, `ACTOR_MAX_TOTAL_CHARGE_USD=""` now resolves to `undefined` instead of `0`.
 
-`userIsPaying` (both `Configuration.userIsPaying` and `Actor.getEnv().userIsPaying`) is now a `boolean` instead of the raw `APIFY_USER_IS_PAYING` string; `0`, `false`, empty or unset resolve to `false`.
+`Actor.getEnv()` (static and instance) and the `ApifyEnv` interface were removed. Everything it exposed is available as a typed property of `Actor.configuration` (or any `Configuration` instance), with booleans, numbers and dates already parsed and `Configuration` defaults applied instead of `null`.
+
+Before (v3):
+
+```ts
+const { actorId, timeoutAt } = Actor.getEnv();
+```
+
+After (v4):
+
+```ts
+const { actorId, timeoutAt } = Actor.configuration;
+```
+
+Mapping of the old `getEnv()` keys to `Actor.configuration` properties (same name unless noted):
+
+- `actorId`, `actorRunId`, `actorTaskId`, `actorBuildId`, `actorBuildNumber`, `workflowKey`, `startedAt`, `timeoutAt`, `dedicatedCpus`, `token`, `userId`, `userIsPaying`, `metaOrigin`
+- `buildId` → `actorBuildId`, `buildNumber` → `actorBuildNumber`, `buildTags` → `actorBuildTags` (now a `string[]`), `fullName` → `actorFullName`
+- `maxPaidDatasetItems` / `actorMaxPaidDatasetItems` → `maxPaidDatasetItems`, `maxTotalChargeUsd` → `maxTotalChargeUsd`
+- `defaultDatasetId`, `defaultKeyValueStoreId`, `defaultRequestQueueId`, `inputKey`, `storagesJson` → `actorStoragesJson`
+- `eventsWebsocketUrl` / `actorEventsWsUrl` → `actorEventsWsUrl`, `webServerPort` / `containerPort` → `containerPort`, `webServerUrl` / `containerUrl` → `containerUrl`, `standbyPort`, `standbyUrl`
+- `permissionLevel` → `actorPermissionLevel`, `actorPricingInfo`, `chargedActorEventCounts` → `chargedEventCounts`
+- `memoryMbytes`, `headless`, `xvfb`, `isAtHome`, `purgeOnStart`, `chromeExecutablePath`, `persistStateIntervalMillis`, `metamorphAfterSleepMillis`
+- `apiBaseUrl`, `apiPublicBaseUrl`, `proxyHostname`, `proxyPassword`, `proxyPort`, `proxyStatusUrl`, `inputSecretsPrivateKeyFile`, `inputSecretsPrivateKeyPassphrase`
+
+The remaining keys have no `Configuration` counterpart (`fact`, `logFormat`, `logLevel`, `localStorageDir`, `systemInfoIntervalMillis`, `userPricingTier`, `restartOnError`, `mcpProxyUrl`, `mcpConnectorBaseUrl`, `actId`, `actRunId`): read `process.env[APIFY_ENV_VARS.X]` / `process.env[ACTOR_ENV_VARS.X]` directly. Both constant maps are now re-exported from `apify`.
+
+`Configuration.userIsPaying` is now a `boolean` instead of the raw `APIFY_USER_IS_PAYING` string; `0`, `false`, empty or unset resolve to `false`.
 
 When a setting is exposed under several environment variables, the Apify-specific ones take precedence over Crawlee's generic one — i.e. `ACTOR_*` / `APIFY_*` are checked before `CRAWLEE_*`. For example, if both `APIFY_HEADLESS` and `CRAWLEE_HEADLESS` are set, `APIFY_HEADLESS` wins.
+
+The SDK does not read `APIFY_LOCAL_STORAGE_DIR`, so `Actor.getEnv()` no longer returns `localStorageDir`. Set the local storage directory with `CRAWLEE_STORAGE_DIR` (`./storage` by default) instead. `apify run` sets both variables, so Actors started with it are not affected.
 
 `new Actor({ configuration })` accepts a pre-built `Configuration`, but it must be the Apify SDK's `Configuration` (imported from `apify`), not a bare Crawlee one — otherwise the `APIFY_*` / `ACTOR_*` environment variables are never resolved, so the SDK now throws if given a non-Apify instance.
 
@@ -102,13 +131,25 @@ In addition, `_setPasswordIfToken()` is now `private setPasswordIfToken()` (it w
 
 `PlatformEventManager` now extends Crawlee v4's `EventManager` and integrates with the new service locator. Use `Configuration.getGlobalConfiguration()` (or pass a `Configuration` instance explicitly) when constructing it directly — the constructor no longer accepts a `config` override via the `override` keyword pattern because Crawlee's base class manages the configuration through `serviceLocator` instead of a `config` field.
 
-If you only interact with events through `Actor.on()` / `Actor.off()` / `Actor.events`, no code changes are needed.
+If you only interact with events through `Actor.on()` / `Actor.off()` / `Actor.events`, no code changes are needed, unless you listen to the `cpuInfo` event (see [below](#only-known-platform-events-are-emitted)).
 
 ### Platform events websocket
 
 `Actor.init()` (and `PlatformEventManager.init()`) now waits for the connection to the platform events websocket and rejects if it cannot be established. Previously the failure was only logged and the run continued without any platform events. Locally, where `ACTOR_EVENTS_WEBSOCKET_URL` is not set, nothing changes.
 
 Once connected, a dropped connection is re-established automatically with backoff, so `migrating`, `aborting` and `persistState` keep arriving after a network blip. The connection is not re-established after a close code signalling a permanent condition, such as `1008` for an unknown run ID.
+
+### Only known platform events are emitted
+
+`PlatformEventManager` emits only the `systemInfo`, `migrating`, `aborting` and `persistState` events from the platform. Messages with any other name are dropped, and unknown names are logged at the debug level.
+
+This includes the deprecated `cpuInfo` event. Registering a `cpuInfo` listener logs a warning. Listen to `systemInfo` instead, which carries the same `isCpuOverloaded` field:
+
+```ts
+Actor.on('systemInfo', ({ isCpuOverloaded }) => {
+    if (isCpuOverloaded) console.log('The CPU is overloaded!');
+});
+```
 
 ## StorageBackend
 
@@ -242,6 +283,46 @@ await Actor.call('my-actor', input, { maxItems: 100 });
 // v4
 await Actor.call('my-actor', input, { maxTotalChargeUsd: 5 });
 ```
+
+## Charged `Actor.pushData()` throws inside a request handler
+
+Crawlee v4 runs every request handler in a [storage transaction](https://crawlee.dev/js/docs/next/upgrading/upgrading-to-v4#storage-writes-in-request-handlers-are-transactional): dataset and key-value store writes are applied only when the handler succeeds. A charge is immediate and cannot be rolled back, so `Actor.pushData(item, eventName)` throws inside a request handler. It still type-checks, so the error shows up only at runtime:
+
+```text
+Actor.pushData() with the event name 'result' cannot be used inside a storage transaction: the items are stored when the transaction commits, but the charge happens right away, so a rolled-back request would be billed for items that were never stored. ...
+```
+
+Either store and charge immediately, as in v3, or charge once the item is stored:
+
+```ts
+// v3
+async requestHandler({ request }) {
+    await Actor.pushData({ url: request.url }, 'result');
+}
+
+// v4: stored and charged immediately, not rolled back
+import { withDirectStorageAccess } from 'crawlee';
+
+async requestHandler({ request }) {
+    await withDirectStorageAccess(async () => Actor.pushData({ url: request.url }, 'result'));
+}
+
+// v4: charged after the commit
+async requestHandler({ request, pushData, afterStorageCommit }) {
+    await pushData({ url: request.url });
+    afterStorageCommit(async (error) => {
+        if (!error) await Actor.charge({ eventName: 'result' });
+    });
+}
+```
+
+`Actor.pushData(item, eventName)` pushes only as many items as the remaining budget covers at the price of `eventName`. A push without an event name ignores that price, so the item is stored even when `Actor.charge()` can no longer charge for it.
+
+`Actor.pushData(item)` without an event name takes part in the transaction. `Actor.charge()` on its own is not rejected, but the charge stays when the handler fails, and a retry charges again. `failedRequestHandler` and `errorHandler` run after the rollback, so a charged `Actor.pushData()` works there as before.
+
+## Local charging log
+
+When the Actor runs locally with the pay-per-event pricing model, for example with `ACTOR_TEST_PAY_PER_EVENT`, the SDK now logs every charge into a dataset named `charging-log`. In v3, the log was opt-in through `ACTOR_USE_CHARGING_LOG_DATASET`, and the dataset was named `charging_log`. The SDK no longer reads `ACTOR_USE_CHARGING_LOG_DATASET`, and the `useChargingLogDataset` configuration option is removed.
 
 ## `Actor.setStatusMessage()` resolves `undefined` when no run was updated
 

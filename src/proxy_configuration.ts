@@ -195,6 +195,7 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
     #hostname: string;
     #port?: number;
     #usesApifyProxy?: boolean;
+    #checkAccess?: boolean;
 
     protected readonly log = defaultLog.child({ prefix: 'ProxyConfiguration' });
 
@@ -222,6 +223,7 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
                     subdivisionCode: z.string().regex(SUBDIVISION_CODE_REGEX).optional(),
                     apifyProxySubdivision: z.string().regex(SUBDIVISION_CODE_REGEX).optional(),
                     password: z.string().optional(),
+                    checkAccess: z.boolean().optional(),
                 })
                 .strict(),
         );
@@ -260,6 +262,7 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
         this.#hostname = hostname!;
         this.#port = port;
         this.#usesApifyProxy = !proxyUrls && !newUrlFunction;
+        this.#checkAccess = options.checkAccess;
 
         if (proxyUrls && proxyUrls.some((url) => url?.includes('apify.com'))) {
             this.log.warning(
@@ -297,10 +300,11 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
                             `You can also provide your Apify token via the "${APIFY_ENV_VARS.TOKEN}" environment variable, ` +
                             `so that the SDK can fetch the proxy password from Apify API, when ${APIFY_ENV_VARS.PROXY_PASSWORD} is not defined`,
                     );
+                    return false;
                 }
             }
 
-            if (options?.checkAccess !== false) {
+            if ((options?.checkAccess ?? this.#checkAccess) !== false) {
                 return this.checkAccess();
             }
         }
@@ -400,7 +404,7 @@ export class ProxyConfiguration extends CoreProxyConfiguration {
         if (!token) return;
         try {
             const user = await Actor.apifyClient.user().get();
-            this.#password = user?.proxy?.password;
+            this.#password = user?.proxy?.password ?? undefined;
         } catch (error) {
             if (Actor.isAtHome()) {
                 throw error;

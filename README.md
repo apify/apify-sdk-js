@@ -66,6 +66,10 @@ For questions, you can ask on [Stack Overflow](https://stackoverflow.com/questio
 
 Visit the [Upgrading Guide](https://docs.apify.com/sdk/js/docs/upgrading/upgrading-to-v3) to find out what changes you might want to make, and, if you encounter any issues, join our [Discord server](https://discord.gg/jyEM2PRvMU) for help!
 
+## Supported versions
+
+New features and bug fixes land in the latest major version. The previous major version keeps receiving fixes for high and critical severity vulnerabilities for 12 months after the next major is released, and reaches end of life after that. See the [security policy](https://github.com/apify/apify-sdk-js/security/policy) for the current status of each version and for how to report a vulnerability.
+
 ## Contributing
 
 Your code contributions are welcome, and you'll be praised to eternity!

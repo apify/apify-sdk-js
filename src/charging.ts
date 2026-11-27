@@ -1,20 +1,16 @@
-import { Dataset, EventType, KeyValueStore, serviceLocator, withDirectStorageAccess } from '@crawlee/core';
-import type { ActorRunPricingInfo, ApifyClient } from 'apify-client';
-import { z } from 'zod';
+import { Dataset, withDirectStorageAccess } from '@crawlee/core';
+import type { ActorResource, ActorRunPricingInfo, ApifyClient, Run as ClientActorRun } from 'apify-client';
 
+import { META_ORIGINS } from '@apify/consts';
 import log from '@apify/log';
 
 import type { Configuration } from './configuration.js';
 import { ReentrantAsyncLock } from './utils.js';
 
-/** Key of the default key-value store record that carries the charged event counts across a container restart. */
-export const CHARGING_STATE_KEY = '__ACTOR_CHARGING_STATE';
-
-const chargingStateSchema = z.object({
-    chargedEventCounts: z.record(z.string(), z.number().int().nonnegative()),
-});
-
-type ChargingState = z.infer<typeof chargingStateSchema>;
+interface ChargingStateItem {
+    chargeCount: number;
+    totalChargedAmount: number;
+}
 
 interface IdempotentCharge {
     eventName: string;
@@ -27,6 +23,20 @@ interface IdempotentCharge {
 const IDEMPOTENCY_KEY_TTL_MILLIS = 3 * 60 * 1000;
 
 export const DEFAULT_DATASET_ITEM_EVENT = 'apify-default-dataset-item';
+
+/**
+ * The pricing history includes scheduled future changes, so the effective entry is the latest one
+ * with `startedAt <= now`, not the last one.
+ *
+ * Resolved once at init on purpose. A change kicking in mid-run only affects local event titles and
+ * "unknown event" warnings; the platform prices each charge from its own current pricing anyway.
+ */
+function getEffectivePricingInfo(pricingInfos: ActorRunPricingInfo[], now = new Date()) {
+    return pricingInfos
+        .filter((info) => new Date(info.startedAt) <= now)
+        .sort((a, b) => new Date(a.startedAt).getTime() - new Date(b.startedAt).getTime())
+        .at(-1);
+}
 
 export interface ChargeOptions {
     /**
@@ -45,8 +55,16 @@ export interface ChargeOptions {
      * A unique key preventing a retried operation from being charged for twice - e.g. a request handler rerun by a retry.
      * A repeat under the same key within three minutes is not sent to the API and reports the `chargedCount` of
      * the original call, or zero if it names a different event. Like the platform, the key is forgotten afterwards.
+     * In a multi-tenant Server Actor run, every call is sent and the platform deduplicates it.
      */
     idempotencyKey?: string;
+
+    /**
+     * ID of the Server Actor request being charged, taken from the `X-Actor-Request-ID` header of the incoming request.
+     * Required for multi-tenant Server Actor runs, where it maps the charge to the caller's account instead of the account that started the run.
+     * Ignored elsewhere.
+     */
+    requestId?: string;
 }
 
 export interface ChargeResult {
@@ -93,24 +111,19 @@ export interface ActorPricingInfo {
  * Handles pay-per-event charging.
  */
 export class ChargingManager {
-    readonly #LOCAL_CHARGING_LOG_DATASET_NAME = 'charging_log';
-    readonly #PLATFORM_CHARGING_LOG_DATASET_ID_KEY = 'CHARGING_LOG_DATASET_ID';
+    readonly #LOCAL_CHARGING_LOG_DATASET_NAME = 'charging-log';
 
     #maxTotalChargeUsd: number;
     #isAtHome: boolean;
     #actorRunId?: string;
     #pricingModel?: ActorRunPricingInfo['pricingModel'];
+    /** Multi-tenant Server Actor runs carry no pricing snapshot; pricing comes from the Actor and the platform prices per caller. */
+    #isMultiTenant = false;
     #purgeChargingLogDataset: boolean;
-    #useChargingLogDataset: boolean;
     #notPpeWarningPrinted = false;
 
     #pricingInfo: Record<string, { price: number; title: string }> = {};
-    /** The charged event counts, persisted to the default key-value store in a pay-per-event run on the platform. */
-    #chargingState?: ChargingState;
-    /** The store the charging state is persisted to, set only while persistence is on. */
-    #chargingStateStore?: KeyValueStore;
-    /** The last write of the charging state, which the next one waits for, so that writes land in order. */
-    #lastChargingStateWrite: Promise<void> = Promise.resolve();
+    #chargingState?: Record<string, ChargingStateItem>;
     #chargingLogDataset?: Dataset;
 
     /** Charges made with an idempotency key, by key, in insertion (and therefore expiry) order. */
@@ -120,21 +133,34 @@ export class ChargingManager {
 
     #apifyClient: ApifyClient;
     #configuration: Configuration;
+    #getCurrentRun: () => Promise<ClientActorRun | undefined>;
+    #getCurrentActor: () => Promise<ActorResource | undefined>;
 
-    constructor(configuration: Configuration, apifyClient: ApifyClient) {
+    constructor(
+        configuration: Configuration,
+        apifyClient: ApifyClient,
+        getCurrentRun: () => Promise<ClientActorRun | undefined>,
+        getCurrentActor: () => Promise<ActorResource | undefined>,
+    ) {
         this.#configuration = configuration;
         this.#maxTotalChargeUsd = configuration.maxTotalChargeUsd || Infinity; // convert `0` to `Infinity` in case the value is an empty string
         this.#isAtHome = configuration.isAtHome;
         this.#actorRunId = configuration.actorRunId;
         this.#purgeChargingLogDataset = configuration.purgeOnStart;
-        this.#useChargingLogDataset = configuration.useChargingLogDataset;
 
         this.#apifyClient = apifyClient;
+        this.#getCurrentRun = getCurrentRun;
+        this.#getCurrentActor = getCurrentActor;
     }
 
     /** A shortcut - true if the Actor runs with the pay-per-event pricing model. */
     get isPayPerEvent(): boolean {
         return this.#pricingModel === 'PAY_PER_EVENT';
+    }
+
+    /** True in a multi-tenant Server Actor run, which charges per request with `requestId` only. */
+    get isMultiTenant(): boolean {
+        return this.#isMultiTenant;
     }
 
     private async fetchPricingInfo(): Promise<{
@@ -143,11 +169,21 @@ export class ChargingManager {
         maxTotalChargeUsd: number;
     }> {
         if (this.#configuration.actorPricingInfo && this.#configuration.chargedEventCounts) {
-            return {
-                pricingInfo: JSON.parse(this.#configuration.actorPricingInfo) as ActorRunPricingInfo,
-                chargedEventCounts: JSON.parse(this.#configuration.chargedEventCounts) as Record<string, number>,
-                maxTotalChargeUsd: this.#configuration.maxTotalChargeUsd || Infinity,
-            };
+            const pricingInfo = JSON.parse(this.#configuration.actorPricingInfo) as ActorRunPricingInfo;
+
+            // Multi-tenant runs get an empty snapshot (`{}`); only the run tells them apart from free Server Actor runs.
+            const isMultiTenantCandidate =
+                pricingInfo.pricingModel === undefined &&
+                this.#isAtHome &&
+                this.#configuration.metaOrigin === META_ORIGINS.STANDBY;
+
+            if (!isMultiTenantCandidate) {
+                return {
+                    pricingInfo,
+                    chargedEventCounts: JSON.parse(this.#configuration.chargedEventCounts) as Record<string, number>,
+                    maxTotalChargeUsd: this.#configuration.maxTotalChargeUsd || Infinity,
+                };
+            }
         }
 
         if (this.#isAtHome) {
@@ -155,9 +191,24 @@ export class ChargingManager {
                 throw new Error('Actor run ID not found even though the Actor is running on Apify');
             }
 
-            const run = await this.#apifyClient.run(this.#actorRunId).get();
+            const run = await this.#getCurrentRun();
             if (run === undefined) {
                 throw new Error('Actor run not found');
+            }
+
+            if (run.standby?.deployment.startsWith('MULTI_TENANT')) {
+                const actor = await this.#getCurrentActor();
+                if (actor === undefined) {
+                    throw new Error('Actor not found');
+                }
+
+                this.#isMultiTenant = true;
+
+                return {
+                    pricingInfo: getEffectivePricingInfo(actor.pricingInfos ?? []),
+                    chargedEventCounts: {}, // the run's counts mix all callers
+                    maxTotalChargeUsd: Infinity, // the platform prices and limits per caller
+                };
             }
 
             return {
@@ -179,12 +230,6 @@ export class ChargingManager {
      */
     async init(): Promise<void> {
         // Validate config - it may have changed since the instantiation
-        if (this.#useChargingLogDataset && this.#isAtHome) {
-            throw new Error(
-                'Using the ACTOR_USE_CHARGING_LOG_DATASET environment variable is only supported in a local development environment',
-            );
-        }
-
         if (this.#configuration.testPayPerEvent) {
             if (this.#isAtHome) {
                 throw new Error(
@@ -216,110 +261,27 @@ export class ChargingManager {
             this.#maxTotalChargeUsd = maxTotalChargeUsd;
         }
 
-        // The platform fills the env var with the counts recorded when the run started, so after a reboot, migration
-        // or restart they miss what an earlier container charged. On the platform the counts are therefore also kept
-        // in the default key-value store, and the persisted ones take over where they are higher.
-        this.#chargingState = { chargedEventCounts: {} };
+        this.#chargingState = {};
 
-        if (this.#isAtHome && this.isPayPerEvent) {
-            this.#chargingStateStore = await KeyValueStore.open();
-            await this.loadChargingState(this.#chargingStateStore);
-            serviceLocator.getEventManager().on(EventType.PERSIST_STATE, this.#persistChargingState);
-        }
-
-        const { chargedEventCounts: counts } = this.#chargingState;
         for (const [eventName, chargeCount] of Object.entries(chargedEventCounts ?? {})) {
-            counts[eventName] = Math.max(counts[eventName] ?? 0, chargeCount);
+            this.#chargingState[eventName] = {
+                chargeCount,
+                totalChargedAmount: chargeCount * (this.#pricingInfo[eventName]?.price ?? 0),
+            };
         }
 
-        if (!this.isPayPerEvent || !this.#useChargingLogDataset) {
+        if (this.#isAtHome || !this.isPayPerEvent) {
             return;
         }
 
-        // Set up charging log dataset
-        if (this.#isAtHome) {
-            const datasetId = await this.ensureChargingLogDatasetOnPlatform();
-
-            this.#chargingLogDataset = await Dataset.open(datasetId);
-        } else {
-            if (this.#purgeChargingLogDataset) {
-                const dataset = await Dataset.open(this.#LOCAL_CHARGING_LOG_DATASET_NAME);
-                await dataset.drop();
-            }
-
-            this.#chargingLogDataset = await Dataset.open(this.#LOCAL_CHARGING_LOG_DATASET_NAME);
+        // Local pay-per-event runs log every charge into a dataset for debugging.
+        if (this.#purgeChargingLogDataset) {
+            const dataset = await Dataset.open(this.#LOCAL_CHARGING_LOG_DATASET_NAME);
+            await dataset.drop();
         }
+
+        this.#chargingLogDataset = await Dataset.open(this.#LOCAL_CHARGING_LOG_DATASET_NAME);
     }
-
-    private async ensureChargingLogDatasetOnPlatform(): Promise<string> {
-        const defaultStore = await KeyValueStore.open();
-
-        const storedDatasetId = await defaultStore.getValue<string>(this.#PLATFORM_CHARGING_LOG_DATASET_ID_KEY);
-        if (storedDatasetId !== null) {
-            return storedDatasetId;
-        }
-
-        const dataset = await this.#apifyClient.datasets().getOrCreate();
-        await defaultStore.setValue(this.#PLATFORM_CHARGING_LOG_DATASET_ID_KEY, dataset.id);
-        return dataset.id;
-    }
-
-    /**
-     * Persist the charged event counts one last time and stop listening for the persist state events.
-     *
-     * @internal
-     */
-    async teardown(): Promise<void> {
-        if (this.#chargingStateStore === undefined) {
-            return;
-        }
-
-        serviceLocator.getEventManager().off(EventType.PERSIST_STATE, this.#persistChargingState);
-        await this.#persistChargingState();
-        this.#chargingStateStore = undefined;
-    }
-
-    /** Reads the counts persisted by an earlier container of this run, if there are any. */
-    private async loadChargingState(store: KeyValueStore): Promise<void> {
-        const stored = await withDirectStorageAccess(async () => store.getValue(CHARGING_STATE_KEY));
-
-        if (stored === null) {
-            return;
-        }
-
-        const parsed = chargingStateSchema.safeParse(stored);
-
-        if (!parsed.success) {
-            throw new Error(
-                `The charging state stored under the "${CHARGING_STATE_KEY}" key in the default key-value store is malformed.`,
-                { cause: parsed.error },
-            );
-        }
-
-        this.#chargingState = parsed.data;
-    }
-
-    /**
-     * Writes the charged event counts to the default key-value store directly, so that a `PERSIST_STATE` dispatched
-     * inside a storage transaction - a reboot from a request handler - is not buffered into a transaction that never
-     * commits. A failed write is logged, since a periodic persist is not meant to stop the run.
-     */
-    readonly #persistChargingState = async (): Promise<void> => {
-        // The counts are serialized when the write starts, so two writes in flight at once - the periodic one and
-        // a reboot's - could land in the wrong order. Each write waits for the previous one.
-        const write = this.#lastChargingStateWrite.then(async () =>
-            withDirectStorageAccess(async () =>
-                this.#chargingStateStore?.setValue(CHARGING_STATE_KEY, this.#chargingState),
-            ),
-        );
-        this.#lastChargingStateWrite = write.catch(() => {});
-
-        try {
-            await write;
-        } catch (error) {
-            log.warning('Failed to persist the charged event counts to the default key-value store.', { error });
-        }
-    };
 
     /**
      * Whether {@link ChargingManager.init} has run. All charging operations (including
@@ -361,9 +323,13 @@ export class ChargingManager {
      * rather than batching via `count` — this gives finer control over budget consumption
      * and avoids situations where more work is requested than the budget allows.
      *
+     * **Note:** `idempotencyKey` is scoped to the whole run, not to `requestId`. In a multi-tenant
+     * Server Actor run, a key reused across requests charges only the first caller, so it must
+     * be globally unique (e.g. derived from `requestId`).
+     *
      * @param options The name of the event to charge for and the number of events to be charged.
      */
-    async charge({ eventName, count = 1, idempotencyKey }: ChargeOptions): Promise<ChargeResult> {
+    async charge({ eventName, count = 1, idempotencyKey, requestId }: ChargeOptions): Promise<ChargeResult> {
         if (idempotencyKey !== undefined && idempotencyKey.trim() === '') {
             throw new Error('idempotencyKey must not be blank');
         }
@@ -383,11 +349,25 @@ export class ChargingManager {
             };
         }
 
-        if (this.#chargingState === undefined) {
-            throw new Error('ChargingManager is not initialized');
+        if (this.#isMultiTenant) {
+            return await this.chargeServerRequest(eventName, count, idempotencyKey, requestId);
         }
 
-        const { chargedEventCounts } = this.#chargingState;
+        // Match the Python SDK: a non-positive count never reaches the platform and never
+        // mutates local charge state (a negative count would otherwise decrement the budget).
+        if (count <= 0) {
+            return {
+                eventChargeLimitReached: false,
+                chargedCount: 0,
+                chargeableWithinLimit: this.calculateChargeableWithinLimit(),
+            };
+        }
+
+        const chargingState = this.#chargingState;
+
+        if (chargingState === undefined) {
+            throw new Error('ChargingManager is not initialized');
+        }
 
         return await this.withChargeLock(async () => {
             // A repeat the platform would discard is resolved here too - counting it would inflate the charging state
@@ -453,6 +433,7 @@ export class ChargingManager {
                         eventName,
                         count: chargedCount,
                         idempotencyKey,
+                        requestId,
                     });
                 } else {
                     log.warning(`Attempting to charge for an unknown event '${eventName}'`);
@@ -461,7 +442,12 @@ export class ChargingManager {
 
             // Count the charge only after the API call succeeds, so a failed call retried under the same key
             // is counted once.
-            chargedEventCounts[eventName] = (chargedEventCounts[eventName] ?? 0) + chargedCount;
+            chargingState[eventName] ??= {
+                chargeCount: 0,
+                totalChargedAmount: 0,
+            };
+            chargingState[eventName].chargeCount += chargedCount;
+            chargingState[eventName].totalChargedAmount += chargedCount * pricingInfo.price;
 
             // Remember the key for every charge that was counted, including events the API never receives,
             // such as synthetic ones - those are counted locally and a repeat would count them twice.
@@ -469,15 +455,20 @@ export class ChargingManager {
                 this.setIdempotentCharge(idempotencyKey, { eventName, chargedCount });
             }
 
-            if (this.#chargingLogDataset !== undefined) {
-                await this.#chargingLogDataset.pushData({
-                    eventName,
-                    eventTitle: pricingInfo.title,
-                    eventPriceUsd: pricingInfo.price,
-                    chargedCount,
-                    idempotencyKey,
-                    timestamp: new Date().toISOString(),
-                });
+            // The charge is not rolled back with a storage transaction, so neither is its log entry.
+            const chargingLogDataset = this.#chargingLogDataset;
+            if (chargingLogDataset !== undefined) {
+                await withDirectStorageAccess(async () =>
+                    chargingLogDataset.pushData({
+                        eventName,
+                        eventTitle: pricingInfo.title,
+                        eventPriceUsd: pricingInfo.price,
+                        chargedCount,
+                        idempotencyKey,
+                        requestId,
+                        timestamp: new Date().toISOString(),
+                    }),
+                );
             }
 
             if (chargedCount < count) {
@@ -493,6 +484,45 @@ export class ChargingManager {
                 chargeableWithinLimit: this.calculateChargeableWithinLimit(),
             };
         });
+    }
+
+    /**
+     * The platform prices, limits and deduplicates each caller's charges itself, so nothing is counted or enforced
+     * locally, and every call is sent - the platform discards a repeat under an idempotency key used earlier in the
+     * run, even by another caller.
+     */
+    private async chargeServerRequest(
+        eventName: string,
+        count: number,
+        idempotencyKey: string | undefined,
+        requestId: string | undefined,
+    ): Promise<ChargeResult> {
+        if (eventName.startsWith('apify-')) {
+            throw new Error(`Cannot charge for synthetic event '${eventName}' in a multi-tenant Server Actor run`);
+        }
+
+        if (!requestId) {
+            throw new Error(
+                `Charging for '${eventName}' in a multi-tenant Server Actor run requires \`requestId\` - pass the value of the incoming request's X-Actor-Request-ID header to Actor.charge().`,
+            );
+        }
+
+        let chargedCount = 0;
+
+        if (count <= 0) {
+            // Nothing to charge.
+        } else if (this.#pricingInfo[eventName] === undefined) {
+            log.warning(`Attempting to charge for an unknown event '${eventName}'`);
+        } else {
+            await this.#apifyClient.run(this.#actorRunId!).charge({ eventName, count, idempotencyKey, requestId });
+            chargedCount = count;
+        }
+
+        return {
+            eventChargeLimitReached: false,
+            chargedCount,
+            chargeableWithinLimit: this.calculateChargeableWithinLimit(),
+        };
     }
 
     private getIdempotentCharge(idempotencyKey: string): IdempotentCharge | undefined {
@@ -529,7 +559,7 @@ export class ChargingManager {
             throw new Error('ChargingManager is not initialized');
         }
 
-        return this.#chargingState.chargedEventCounts[eventName] ?? 0;
+        return this.#chargingState[eventName]?.chargeCount ?? 0;
     }
 
     /**
@@ -548,8 +578,8 @@ export class ChargingManager {
             throw new Error('ChargingManager is not initialized');
         }
 
-        const result = Object.entries(this.#chargingState.chargedEventCounts)
-            .map(([eventName, count]) => count * (this.calculateEventPrice(eventName) ?? 0))
+        const result = Object.values(this.#chargingState)
+            .map(({ totalChargedAmount }) => totalChargedAmount)
             .reduce((sum, inc) => sum + inc, 0);
 
         // Keeping float precision issues at bay

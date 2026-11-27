@@ -49,10 +49,6 @@ test('basic functionality', async () => {
 
     assert.strictEqual(run.status, 'SUCCEEDED');
     assert.deepEqual(run.chargedEventCounts, { foobar: 4 });
-
-    const record = await client.keyValueStore(run.defaultKeyValueStoreId).getRecord('CHARGING_LOG_DATASET_ID');
-    const chargingDatasetId = record?.value ?? null;
-    assert.equal(chargingDatasetId, null, 'Charging dataset ID must not be present');
 });
 
 test('charge limit', async () => {

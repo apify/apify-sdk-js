@@ -32,7 +32,7 @@ interface CachedRequestInfo {
  * number of clients — including other Actor runs — can process the same queue concurrently without
  * handing out a request twice. The lock is held until the request is marked as handled or
  * reclaimed, and its duration follows the consumer's expected processing time
- * (see {@link setExpectedRequestProcessingTimeSecs}). This consistency costs roughly one extra API
+ * (see {@link setExpectedRequestProcessingTime}). This consistency costs roughly one extra API
  * call per processed request compared to the single-consumer backend.
  *
  * @internal
@@ -50,16 +50,16 @@ export class ApifyRequestQueueSharedBackend extends ApifyRequestQueueBackend {
     /** Whether the last head read reported any locked requests left in the queue (any client's). */
     #queueHasLockedRequests?: boolean;
 
-    /** Lock duration applied to fetched requests; raised via `setExpectedRequestProcessingTimeSecs`. */
+    /** Lock duration applied to fetched requests; raised via `setExpectedRequestProcessingTime`. */
     #lockSecs = DEFAULT_REQUEST_LOCK_SECS;
 
     /** Serializes head reads and reclaims — both reorder the shared head state. */
     readonly #headLock = new AsyncLock();
 
-    override async setExpectedRequestProcessingTimeSecs(secs: number): Promise<void> {
+    override async setExpectedRequestProcessingTime(processingTimeSecs: number): Promise<void> {
         // Only ever raise the lock duration — several consumers may share this client, and a
         // short-lived one must not cut the reservation of a long-running one short.
-        this.#lockSecs = Math.max(this.#lockSecs, secs);
+        this.#lockSecs = Math.max(this.#lockSecs, processingTimeSecs);
     }
 
     async addBatchOfRequests(

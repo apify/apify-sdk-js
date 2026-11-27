@@ -45,9 +45,11 @@ export {
     LoggerText,
 } from '@crawlee/core';
 export type { QueueOperationInfo } from '@crawlee/types';
+export { ACTOR_ENV_VARS, APIFY_ENV_VARS } from '@apify/consts';
 export {
     ApifyClient,
     ApifyClientOptions,
+    ApifyClientError,
     ApifyApiError,
     InvalidRequestError,
     UnauthorizedError,

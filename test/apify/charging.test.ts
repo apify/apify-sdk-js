@@ -1,20 +1,19 @@
 import {
     createStorageTransaction,
-    EventType,
-    KeyValueStore,
+    Dataset,
     MemoryStorageBackend,
     withDirectStorageAccess,
     withStorageTransaction,
 } from '@crawlee/core';
 import { Actor } from 'apify';
-import type { KeyValueStoreResource, RunClient } from 'apify-client';
+import type { ActorClient, KeyValueStoreResource, RunClient } from 'apify-client';
 import { KeyValueStoreClient } from 'apify-client';
 import type { MockInstance } from 'vitest';
 import { afterEach, beforeEach, describe, expect, onTestFinished, test } from 'vitest';
 
 import log from '@apify/log';
 
-import { CHARGING_STATE_KEY, DEFAULT_DATASET_ITEM_EVENT } from '../../src/charging.js';
+import { DEFAULT_DATASET_ITEM_EVENT } from '../../src/charging.js';
 import { createIsolatedActor, initIsolatedDefaultActor, useInMemoryStorage } from '../createIsolatedActor.js';
 import { resetGlobalState } from '../resetGlobalState.js';
 
@@ -93,6 +92,8 @@ describe('ChargingManager', () => {
         delete process.env.APIFY_IS_AT_HOME;
         delete process.env.APIFY_TOKEN;
         delete process.env.ACTOR_RUN_ID;
+        delete process.env.ACTOR_ID;
+        delete process.env.APIFY_META_ORIGIN;
     });
 
     describe('charge()', () => {
@@ -114,6 +115,23 @@ describe('ChargingManager', () => {
             });
             expect(zeroResult.eventChargeLimitReached).toBe(false);
             expect(zeroResult.chargedCount).toBe(0);
+        });
+
+        test('should ignore a negative count and leave the local charge state unchanged', async () => {
+            // Local PPE mode (beforeEach): every event costs $1, maxTotalChargeUsd is 10.
+            await initIsolatedDefaultActor();
+
+            const first = await Actor.charge({ eventName: 'test-event', count: 2 });
+            expect(first.chargedCount).toBe(2);
+
+            const chargingManager = Actor.getChargingManager();
+            const before = chargingManager.getChargedEventCount('test-event');
+
+            const negative = await Actor.charge({ eventName: 'test-event', count: -1 });
+            expect(negative.chargedCount).toBe(0);
+            expect(negative.eventChargeLimitReached).toBe(false);
+
+            expect(chargingManager.getChargedEventCount('test-event')).toBe(before);
         });
 
         test('should charge events when ACTOR_MAX_TOTAL_CHARGE_USD is set to "" (cost-unlimited)', async () => {
@@ -282,7 +300,116 @@ describe('ChargingManager', () => {
                 eventName: 'test-event',
                 count: 1,
             });
+
+            await Actor.charge({ eventName: 'test-event', requestId: 'some-request-id' });
+            expect(chargeSpy).toHaveBeenLastCalledWith({
+                eventName: 'test-event',
+                count: 1,
+                requestId: 'some-request-id',
+            });
             expect(result2.chargedCount).toBe(1);
+        });
+
+        /** Starts a multi-tenant Server Actor run whose Actor has the given pricing history. */
+        async function initMultiTenantActor(pricingInfos: unknown[], chargedEventCounts: Record<string, number> = {}) {
+            setUpPlatformEnv();
+            process.env.APIFY_META_ORIGIN = 'STANDBY';
+            process.env.ACTOR_ID = 'test-actor-id';
+            // What the platform sets in multi-tenant runs; detection must not stop at this empty snapshot.
+            process.env.APIFY_ACTOR_PRICING_INFO = '{}';
+
+            const runGetSpy = vitest.fn().mockResolvedValue({
+                standby: { deployment: 'MULTI_TENANT_PAYING_USERS' },
+                options: {},
+                chargedEventCounts,
+            });
+            const actorGetSpy = vitest.fn().mockResolvedValue({ pricingInfos });
+            const chargeSpy = vitest.fn().mockResolvedValue(undefined);
+
+            // Spies must be in place before init(), which preheats both fetches.
+            const isolated = createIsolatedActor();
+            vitest
+                .spyOn(isolated.actor.apifyClient, 'run')
+                .mockReturnValue({ get: runGetSpy, charge: chargeSpy } as unknown as RunClient);
+            vitest
+                .spyOn(isolated.actor.apifyClient, 'actor')
+                .mockReturnValue({ get: actorGetSpy } as unknown as ActorClient);
+            Actor.setDefaultInstance(isolated.actor);
+            onTestFinished(async () => {
+                await isolated.actor.exit({ exit: false }).catch(() => {});
+                Actor.setDefaultInstance();
+            });
+            await isolated.actor.init();
+            useInMemoryStorage(isolated.serviceLocator);
+
+            return { runGetSpy, actorGetSpy, chargeSpy };
+        }
+
+        const ppe = (eventPriceUsd: number, startedAt = new Date('2020-01-01')) => ({
+            pricingModel: 'PAY_PER_EVENT',
+            startedAt,
+            pricingPerEvent: { actorChargeEvents: { 'test-event': { eventTitle: 'Test Event', eventPriceUsd } } },
+        });
+
+        test('should charge via Actor pricing and require requestId in a multi-tenant Server Actor run', async () => {
+            // Shared-pool runs carry no pricing snapshot, so the SDK must fall back to the Actor's pricing history.
+            const { runGetSpy, actorGetSpy, chargeSpy } = await initMultiTenantActor([
+                ppe(1, new Date('2020-01-01')),
+                ppe(2, new Date('2021-01-01')),
+                ppe(3, new Date('2999-01-01')),
+            ]);
+
+            // Latest `startedAt <= now`, not the last entry (a scheduled future change).
+            expect(Actor.getChargingManager().getPricingInfo()).toMatchObject({
+                isPayPerEvent: true,
+                maxTotalChargeUsd: Infinity,
+                perEventPrices: { 'test-event': 2 },
+            });
+
+            for (const requestId of [undefined, '']) {
+                await expect(Actor.charge({ eventName: 'test-event', requestId })).rejects.toThrow(/requestId/);
+            }
+            expect(chargeSpy).not.toHaveBeenCalled();
+
+            await expect(
+                Actor.charge({ eventName: 'apify-default-dataset-item', requestId: 'some-request-id' }),
+            ).rejects.toThrow(/synthetic/);
+
+            const result = await Actor.charge({ eventName: 'test-event', requestId: 'some-request-id' });
+            expect(result.chargedCount).toBe(1);
+            expect(chargeSpy).toHaveBeenCalledWith(expect.objectContaining({ requestId: 'some-request-id' }));
+            // Preheated in init() and cached, so charge() didn't refetch.
+            expect(runGetSpy).toHaveBeenCalledTimes(1);
+            expect(actorGetSpy).toHaveBeenCalledTimes(1);
+        });
+
+        test('leaves counting and deduplication to the platform in a multi-tenant Server Actor run', async () => {
+            // The run-wide counts mix all callers, so they must not show up as this run's counts.
+            const { chargeSpy } = await initMultiTenantActor([ppe(1)], { 'test-event': 7 });
+
+            for (const requestId of ['request-a', 'request-b']) {
+                const result = await Actor.charge({ eventName: 'test-event', idempotencyKey: 'shared-key', requestId });
+                expect(result.chargedCount).toBe(1);
+            }
+
+            expect(chargeSpy).toHaveBeenCalledTimes(2);
+            expect(Actor.getChargingManager().getChargedEventCount('test-event')).toBe(0);
+        });
+
+        test('ignores a charge without requestId in a multi-tenant run without pay-per-event pricing', async () => {
+            const { chargeSpy } = await initMultiTenantActor([]);
+
+            expect((await Actor.charge({ eventName: 'test-event' })).chargedCount).toBe(0);
+            expect(chargeSpy).not.toHaveBeenCalled();
+        });
+
+        test('rejects pushData() with a charged event in a multi-tenant run before pushing anything', async () => {
+            const { chargeSpy } = await initMultiTenantActor([ppe(1)]);
+
+            await expect(Actor.pushData([{ id: 1 }], 'test-event')).rejects.toThrow(/multi-tenant/);
+
+            expect((await (await Actor.openDataset()).getData()).items).toEqual([]);
+            expect(chargeSpy).not.toHaveBeenCalled();
         });
 
         test('forwards the idempotency key the platform deduplicates on', async () => {
@@ -1034,113 +1161,53 @@ describe('ChargingManager', () => {
         });
     });
 
-    describe('charged event counts across container restarts', () => {
-        const pricingInfo = {
-            search: { eventTitle: 'Search', eventPriceUsd: 0.01 },
-            scrape: { eventTitle: 'Scrape', eventPriceUsd: 0.05 },
-        };
+    describe('charging log dataset', () => {
+        test('logs every charge in local pay-per-event testing, with the exact price', async () => {
+            process.env.APIFY_ACTOR_PRICING_INFO = JSON.stringify({
+                pricingModel: 'PAY_PER_EVENT',
+                pricingPerEvent: {
+                    actorChargeEvents: { 'priced-event': { eventTitle: 'Priced event', eventPriceUsd: 0.00005 } },
+                },
+            });
+            process.env.APIFY_CHARGED_ACTOR_EVENT_COUNTS = '{}';
 
-        function mockChargeApi() {
-            vitest.spyOn(Actor.apifyClient, 'run').mockReturnValue({
-                charge: vitest.fn().mockResolvedValue(undefined),
-            } as any);
-        }
-
-        test('are persisted on the persist state event', async () => {
-            setUpPlatformEnv({ maxTotalChargeUsd: '10', pricingInfo, chargedEventCounts: { search: 1, scrape: 2 } });
-            const { events } = await initIsolatedDefaultActor({ storage: new MemoryStorageBackend() });
-            mockChargeApi();
-
-            await Actor.charge({ eventName: 'search', count: 2 });
-            events.emit(EventType.PERSIST_STATE, { isMigrating: true });
-            await events.waitForAllListenersToComplete();
-
-            expect(await Actor.getValue(CHARGING_STATE_KEY)).toEqual({ chargedEventCounts: { search: 3, scrape: 2 } });
-        });
-
-        test('are restored from the default key-value store where higher than the env var counts', async () => {
-            const storage = new MemoryStorageBackend();
-            setUpPlatformEnv({ maxTotalChargeUsd: '10', pricingInfo, chargedEventCounts: { search: 1, scrape: 2 } });
-
-            // The first container charges and exits, which persists the counts.
-            const first = await initIsolatedDefaultActor({ storage });
-            mockChargeApi();
-            await Actor.charge({ eventName: 'search', count: 2 });
-            await first.actor.exit({ exit: false });
-
-            // The second container starts from the env var counts, which the platform recorded when the run started.
-            await initIsolatedDefaultActor({ storage });
-            const chargingManager = Actor.getChargingManager();
-
-            expect(chargingManager.getChargedEventCount('search')).toBe(3);
-            expect(chargingManager.getChargedEventCount('scrape')).toBe(2);
-            expect(chargingManager.calculateMaxEventChargeCountWithinLimit('search')).toBe(987);
-        });
-
-        test('are written directly when a reboot from inside a storage transaction persists them', async () => {
-            setUpPlatformEnv({ maxTotalChargeUsd: '10', pricingInfo, chargedEventCounts: { search: 1, scrape: 2 } });
             await initIsolatedDefaultActor({ storage: new MemoryStorageBackend() });
-            vitest.spyOn(Actor.apifyClient, 'run').mockReturnValue({
-                charge: vitest.fn().mockResolvedValue(undefined),
-                reboot: vitest.fn().mockResolvedValue(undefined),
-            } as any);
-            await Actor.charge({ eventName: 'search' });
+            await Actor.charge({ eventName: 'priced-event', count: 2, idempotencyKey: 'key-1' });
 
-            // A crawler runs its request handler inside a storage transaction, which buffers key-value store
-            // writes until the handler commits. A reboot from the handler never commits.
-            const transaction = createStorageTransaction();
-            try {
-                await transaction.run(async () => Actor.reboot({ customAfterSleepMillis: 0 }));
-                transaction.rollback();
-            } finally {
-                transaction.dispose();
-            }
-
-            expect(await Actor.getValue(CHARGING_STATE_KEY)).toEqual({ chargedEventCounts: { search: 2, scrape: 2 } });
+            const { items } = await (await Actor.openDataset('charging-log')).getData();
+            expect(items).toStrictEqual([
+                {
+                    eventName: 'priced-event',
+                    eventTitle: 'Priced event',
+                    eventPriceUsd: 0.00005,
+                    chargedCount: 2,
+                    idempotencyKey: 'key-1',
+                    timestamp: expect.any(String),
+                },
+            ]);
         });
 
-        test('are written in order when two persists overlap', async () => {
-            setUpPlatformEnv({ maxTotalChargeUsd: '10', pricingInfo, chargedEventCounts: { search: 1, scrape: 2 } });
-            const { events } = await initIsolatedDefaultActor({ storage: new MemoryStorageBackend() });
-            mockChargeApi();
+        test('logs a charge made in a storage transaction that is rolled back', async () => {
+            await initIsolatedDefaultActor({ storage: new MemoryStorageBackend() });
 
-            // The first write snapshots the counts when it starts and is held until the second one is requested,
-            // as a slow write overlapping a reboot's would be.
-            let releaseFirstWrite!: () => void;
-            const firstWriteReleased = new Promise<void>((resolve) => {
-                releaseFirstWrite = resolve;
-            });
-            const { setValue } = KeyValueStore.prototype;
-            vitest.spyOn(KeyValueStore.prototype, 'setValue').mockImplementationOnce(async function (
-                this: KeyValueStore,
-                key,
-                value,
-                options,
-            ) {
-                const snapshot = structuredClone(value);
-                await firstWriteReleased;
-                await setValue.call(this, key, snapshot, options);
-            });
+            await expect(
+                withStorageTransaction(async () => {
+                    await Actor.charge({ eventName: 'test-event', count: 1 });
+                    throw new Error('rollback');
+                }),
+            ).rejects.toThrow('rollback');
 
-            await Actor.charge({ eventName: 'search' });
-            events.emit(EventType.PERSIST_STATE, { isMigrating: false });
-            await Actor.charge({ eventName: 'search' });
-            events.emit(EventType.PERSIST_STATE, { isMigrating: false });
-            releaseFirstWrite();
-            await events.waitForAllListenersToComplete();
-
-            expect(await Actor.getValue(CHARGING_STATE_KEY)).toEqual({ chargedEventCounts: { search: 3, scrape: 2 } });
+            const { items } = await (await Actor.openDataset('charging-log')).getData();
+            expect(items).toMatchObject([{ eventName: 'test-event', chargedCount: 1 }]);
         });
 
-        test('are kept in memory only in a local run', async () => {
-            setUpLocalTestEnv({ maxTotalChargeUsd: '10' });
-            const { events } = await initIsolatedDefaultActor({ storage: new MemoryStorageBackend() });
+        test('is not opened when the Actor is not pay-per-event', async () => {
+            delete process.env.ACTOR_TEST_PAY_PER_EVENT;
+            const openSpy = vitest.spyOn(Dataset, 'open');
 
-            await Actor.charge({ eventName: 'search' });
-            events.emit(EventType.PERSIST_STATE, { isMigrating: true });
-            await events.waitForAllListenersToComplete();
+            await initIsolatedDefaultActor({ storage: new MemoryStorageBackend() });
 
-            expect(await Actor.getValue(CHARGING_STATE_KEY)).toBeNull();
+            expect(openSpy).not.toHaveBeenCalledWith('charging-log');
         });
     });
 });

@@ -6,7 +6,6 @@ import { join } from 'node:path';
 
 import { EventType, MemoryStorageBackend, serviceLocator } from '@crawlee/core';
 import { sleep } from '@crawlee/utils';
-import type { ApifyEnv } from 'apify';
 import { Actor, ActorInputError, Configuration, Dataset, KeyValueStore, ProxyConfiguration, RequestQueue } from 'apify';
 import type { Run, WebhookUpdateData } from 'apify-client';
 import { ActorClient, ApifyClient, RunClient, TaskClient } from 'apify-client';
@@ -21,49 +20,10 @@ import {
 } from '@apify/consts';
 import { encryptInputSecrets } from '@apify/input_secrets';
 import log from '@apify/log';
+import { addTimeoutToPromise, tryCancel } from '@apify/timeout';
 
 import { createIsolatedActor, initIsolatedDefaultActor } from '../createIsolatedActor.js';
 import { resetGlobalState } from '../resetGlobalState.js';
-
-const getEmptyEnv = () => {
-    return {
-        // internalPort: null,
-        actorId: null,
-        actorRunId: null,
-        userId: null,
-        userIsPaying: false,
-        token: null,
-        startedAt: null,
-        timeoutAt: null,
-        defaultKeyValueStoreId: null,
-        defaultDatasetId: null,
-        memoryMbytes: null,
-    } as ApifyEnv;
-};
-
-const setEnv = (env: ApifyEnv) => {
-    delete process.env.ACTOR_ID;
-    delete process.env.ACTOR_RUN_ID;
-    delete process.env.APIFY_USER_ID;
-    delete process.env.APIFY_USER_IS_PAYING;
-    delete process.env.APIFY_TOKEN;
-    delete process.env.ACTOR_STARTED_AT;
-    delete process.env.ACTOR_TIMEOUT_AT;
-    delete process.env.ACTOR_DEFAULT_KEY_VALUE_STORE_ID;
-    delete process.env.ACTOR_DEFAULT_DATASET_ID;
-    delete process.env.ACTOR_MEMORY_MBYTES;
-
-    if (env.actorId) process.env.ACTOR_ID = env.actorId;
-    if (env.actorRunId) process.env.ACTOR_RUN_ID = env.actorRunId;
-    if (env.userId) process.env.APIFY_USER_ID = env.userId;
-    if (env.userIsPaying) process.env.APIFY_USER_IS_PAYING = '1';
-    if (env.token) process.env.APIFY_TOKEN = env.token;
-    if (env.startedAt) process.env.ACTOR_STARTED_AT = env.startedAt.toISOString();
-    if (env.timeoutAt) process.env.ACTOR_TIMEOUT_AT = env.timeoutAt.toISOString();
-    if (env.defaultKeyValueStoreId) process.env.ACTOR_DEFAULT_KEY_VALUE_STORE_ID = env.defaultKeyValueStoreId;
-    if (env.defaultDatasetId) process.env.ACTOR_DEFAULT_DATASET_ID = env.defaultDatasetId;
-    if (env.memoryMbytes) process.env.ACTOR_MEMORY_MBYTES = env.memoryMbytes.toString();
-};
 
 const testingPublicKey = createPublicKey({
     key: Buffer.from(
@@ -85,60 +45,6 @@ describe('Actor', () => {
     });
 
     describe('new Actor({ ... })', () => {
-        describe('getEnv()', () => {
-            let prevEnv: ApifyEnv;
-
-            beforeAll(() => {
-                prevEnv = new Actor().getEnv();
-            });
-            afterAll(() => {
-                setEnv(prevEnv);
-            });
-
-            test('works with null values', () => {
-                const expectedEnv = getEmptyEnv();
-                setEnv(expectedEnv);
-
-                const env = new Actor().getEnv();
-                expect(env).toMatchObject(expectedEnv);
-            });
-
-            test('works with with non-null values', () => {
-                const expectedEnv = {
-                    ...getEmptyEnv(),
-                    // internalPort: 12345,
-                    actorId: 'test actId',
-                    actorRunId: 'test actId',
-                    userId: 'some user',
-                    userIsPaying: true,
-                    token: 'auth token',
-                    startedAt: new Date('2017-01-01'),
-                    timeoutAt: new Date(),
-                    defaultKeyValueStoreId: 'some store',
-                    defaultDatasetId: 'some dataset',
-                    memoryMbytes: 1234,
-                };
-                setEnv(expectedEnv);
-
-                const env = new Actor().getEnv();
-                expect(env).toMatchObject(expectedEnv);
-            });
-
-            test.each([
-                ['1', true],
-                ['true', true],
-                ['0', false],
-                ['false', false],
-                ['', false],
-                [undefined, false],
-            ])('parses APIFY_USER_IS_PAYING=%j as %s', (raw, expected) => {
-                if (raw === undefined) delete process.env.APIFY_USER_IS_PAYING;
-                else process.env.APIFY_USER_IS_PAYING = raw;
-
-                expect(new Actor().getEnv().userIsPaying).toBe(expected);
-            });
-        });
-
         describe('main()', () => {
             test('throws on invalid args', async () => {
                 // @ts-expect-error invalid options
@@ -966,49 +872,6 @@ describe('Actor', () => {
         },
     }.init();
 
-    describe('Actor.getEnv()', () => {
-        let prevEnv: ApifyEnv;
-
-        beforeAll(() => {
-            prevEnv = Actor.getEnv();
-        });
-
-        afterAll(() => {
-            setEnv(prevEnv);
-        });
-
-        test('works with null values', () => {
-            const expectedEnv = getEmptyEnv();
-            setEnv(expectedEnv);
-
-            const env = Actor.getEnv();
-            expect(env).toMatchObject(expectedEnv);
-        });
-
-        test('works with with non-null values', () => {
-            const expectedEnv = {
-                ...getEmptyEnv(),
-                ...{
-                    // internalPort: 12345,
-                    actorId: 'test actId',
-                    actorRunId: 'test actId',
-                    userId: 'some user',
-                    userIsPaying: true,
-                    token: 'auth token',
-                    startedAt: new Date('2017-01-01'),
-                    timeoutAt: new Date(),
-                    defaultKeyValueStoreId: 'some store',
-                    defaultDatasetId: 'some dataset',
-                    memoryMbytes: 1234,
-                },
-            };
-            setEnv(expectedEnv);
-
-            const env = Actor.getEnv();
-            expect(env).toMatchObject(expectedEnv);
-        });
-    });
-
     describe('inherit timeout option', () => {
         const { actId, input } = globalOptions;
         const actorTimeout = 10000;
@@ -1391,6 +1254,7 @@ describe('Actor', () => {
     describe('Actor.reboot()', () => {
         const { actId, runId } = globalOptions;
         const { run } = runConfigs;
+        const hangingListener = () => new Promise<void>(() => {});
 
         beforeEach(() => {
             process.env[APIFY_ENV_VARS.IS_AT_HOME] = '1';
@@ -1433,12 +1297,52 @@ describe('Actor', () => {
             // Do the listeners get called?
             expect(migratingSpy).toBeCalledTimes(1);
             expect(persistStateSpy).toBeCalledTimes(1);
+            expect(persistStateSpy).toBeCalledWith({ isMigrating: true });
 
             // Do the listeners finish?
             expect(persistenceStore.length).toBe(2);
 
             // Did the client's reboot method get called?
             expect(rebootMock).toBeCalledTimes(1);
+        });
+
+        test('reboot can be retried after a failed attempt', async () => {
+            const rebootMock = vitest.fn().mockRejectedValueOnce(new Error('reboot failed'));
+            vitest.spyOn(ApifyClient.prototype, 'run').mockReturnValue({ reboot: rebootMock } as any);
+
+            await expect(Actor.reboot({ customAfterSleepMillis: 1 })).rejects.toThrow('reboot failed');
+            await Actor.reboot({ customAfterSleepMillis: 1 });
+
+            expect(rebootMock).toBeCalledTimes(2);
+        });
+
+        test('reboot proceeds when a listener fails or does not finish in time', async () => {
+            const rebootMock = vitest.fn();
+            vitest.spyOn(ApifyClient.prototype, 'run').mockReturnValueOnce({ reboot: rebootMock } as any);
+
+            const events = serviceLocator.getEventManager();
+            events.on(EventType.PERSIST_STATE, async () => {
+                throw new Error('persist failed');
+            });
+            events.on(EventType.MIGRATING, hangingListener);
+
+            await Actor.reboot({ timeoutSecs: 0.1, customAfterSleepMillis: 1 });
+
+            expect(rebootMock).toBeCalledTimes(1);
+        });
+
+        test('reboot timeout does not cancel the enclosing timeout context', async () => {
+            vitest.spyOn(ApifyClient.prototype, 'run').mockReturnValueOnce({ reboot: vitest.fn() } as any);
+            serviceLocator.getEventManager().on(EventType.MIGRATING, hangingListener);
+
+            await addTimeoutToPromise(
+                async () => {
+                    await Actor.reboot({ timeoutSecs: 0.1, customAfterSleepMillis: 1 });
+                    expect(() => tryCancel()).not.toThrow();
+                },
+                10_000,
+                'enclosing handler timed out',
+            );
         });
     });
 
@@ -1668,7 +1572,7 @@ describe('Actor', () => {
 
             await actor.init();
 
-            const crawler = new BasicCrawler({ eventManager: events, requestHandler: async () => {} });
+            const crawler = new BasicCrawler({ requestHandler: async () => {} });
             crawler.setStatusMessage('Finished! Total 10 requests', { isStatusMessageTerminal: true, level: 'INFO' });
             await events.waitForAllListenersToComplete();
 
@@ -1683,7 +1587,7 @@ describe('Actor', () => {
         test('stops forwarding crawlee status messages once the actor exits', async () => {
             const { actor, events } = createIsolatedActor();
             const updateSpy = vitest.spyOn(RunClient.prototype, 'update').mockResolvedValue(stubRun);
-            const crawler = new BasicCrawler({ eventManager: events, requestHandler: async () => {} });
+            const crawler = new BasicCrawler({ requestHandler: async () => {} });
 
             await actor.init();
             await actor.exit({ exit: false, statusMessage: 'All done' });
@@ -1733,6 +1637,17 @@ describe('Actor', () => {
 
             await actor.setValue('some-value', { hello: 'world' });
             await expect(actor.getInput()).resolves.toEqual({ hello: 'world' });
+        });
+
+        test('replaces Google Sheets sharing links in requestsFromUrl entries with CSV export links', async () => {
+            const { actor } = createIsolatedActor({ storageClient: new MemoryStorageBackend() });
+            await actor.setValue(KEY_VALUE_STORE_KEYS.INPUT, {
+                startUrls: [{ requestsFromUrl: 'https://docs.google.com/spreadsheets/d/abc-123/edit?usp=sharing' }],
+            });
+
+            await expect(actor.getInput()).resolves.toEqual({
+                startUrls: [{ requestsFromUrl: 'https://docs.google.com/spreadsheets/d/abc-123/gviz/tq?tqx=out:csv' }],
+            });
         });
 
         describe('working directory fallback', () => {

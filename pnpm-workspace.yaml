@@ -21,10 +21,6 @@ allowBuilds:
   playwright: true
   puppeteer: true
 
-overrides:
-  qs: ^6.15.2
-  webpack-dev-server: ^6.0.0
-
 nodeLinker: hoisted
 linkWorkspacePackages: true
 preferWorkspacePackages: true

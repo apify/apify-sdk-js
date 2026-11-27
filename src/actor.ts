@@ -10,7 +10,6 @@ import type {
     UseStateOptions,
 } from '@crawlee/core';
 import {
-    coerceBoolean,
     Dataset,
     EventType,
     KeyValueStore,
@@ -35,16 +34,10 @@ import type {
     WebhookResource,
     WebhookEventType,
 } from 'apify-client';
-import { ApifyClient, Run as ClientActorRun } from 'apify-client';
+import { type ActorResource, ApifyClient, Run as ClientActorRun } from 'apify-client';
 import { z } from 'zod';
 
-import {
-    ACTOR_ENV_VARS,
-    ACTOR_EVENT_NAMES,
-    type ACTOR_PERMISSION_LEVEL,
-    APIFY_ENV_VARS,
-    INTEGER_ENV_VARS,
-} from '@apify/consts';
+import { ACTOR_ENV_VARS, ACTOR_EVENT_NAMES, APIFY_ENV_VARS, META_ORIGINS } from '@apify/consts';
 import { decryptInputSecrets } from '@apify/input_secrets';
 import log from '@apify/log';
 import { addTimeoutToPromise } from '@apify/timeout';
@@ -60,6 +53,7 @@ import { ChildRunTracker } from './child_run_tracker.js';
 import type { ConfigurationOptions } from './configuration.js';
 import { Configuration } from './configuration.js';
 import { ActorInputError } from './errors.js';
+import { fixGoogleSheetsUrls } from './google_sheets.js';
 import { getDefaultsFromInputSchema, noActorInputSchemaDefinedMarker, readInputSchema } from './input-schemas.js';
 import { PlatformEventManager } from './platform_event_manager.js';
 import type { ProxyConfigurationOptions } from './proxy_configuration.js';
@@ -73,17 +67,7 @@ import {
     isNonEmptyObject,
     JSON_CONTENT_TYPE,
     parseInputValue,
-    snakeCaseToCamelCase,
 } from './utils.js';
-
-// `@apify/consts` has no boolean counterpart to `INTEGER_ENV_VARS`.
-const BOOLEAN_ENV_VARS: readonly string[] = [APIFY_ENV_VARS.USER_IS_PAYING];
-
-// Still listed in `@apify/consts`, but no longer read by the SDK.
-const IGNORED_ENV_VARS: readonly string[] = [
-    APIFY_ENV_VARS.DISABLE_OUTDATED_WARNING,
-    APIFY_ENV_VARS.SDK_LATEST_VERSION,
-];
 
 /**
  * {@link parseInputValue} with the parser error wrapped as an {@apilink ActorInputError}, so a malformed
@@ -173,150 +157,6 @@ export interface SetStatusMessageOptions {
     level?: 'DEBUG' | 'INFO' | 'WARNING' | 'ERROR';
 }
 
-/**
- * Parsed representation of the Apify environment variables.
- * This object is returned by the {@apilink Actor.getEnv} function.
- */
-export interface ApifyEnv {
-    // TODO: if this interface hasn't been changed for a while, you
-    // are invited to check if there are any new env vars (refer to APIFY_ENV_VARS and ACTOR_ENV_VARS)
-
-    /**
-     * ID of the Actor (ACTOR_ID)
-     */
-    actorId: string | null;
-
-    /**
-     * ID of the Actor run (ACTOR_RUN_ID)
-     */
-    actorRunId: string | null;
-
-    /**
-     * ID of the Actor task (ACTOR_TASK_ID)
-     */
-    actorTaskId: string | null;
-
-    /**
-     * ID of the Actor build used in the run. (ACTOR_BUILD_ID)
-     */
-    actorBuildId: string | null;
-
-    /**
-     * [Permission level](https://docs.apify.com/platform/actors/development/permissions) the Actor is run under. (ACTOR_PERMISSION_LEVEL)
-     */
-    actorPermissionLevel: ACTOR_PERMISSION_LEVEL | null;
-
-    /**
-     * ID of the user who started the Actor - note that it might be
-     * different than the owner of the Actor (APIFY_USER_ID)
-     */
-    userId: string | null;
-
-    /**
-     * Whether the user who started the Actor is a paying user. `false` when not set. (APIFY_USER_IS_PAYING)
-     */
-    userIsPaying: boolean;
-
-    /**
-     * Authentication token representing privileges given to the Actor run,
-     * it can be passed to various Apify APIs (APIFY_TOKEN)
-     */
-    token: string | null;
-
-    /**
-     * Date when the Actor was started (ACTOR_STARTED_AT)
-     */
-    startedAt: Date | null;
-
-    /**
-     * Date when the Actor will time out (ACTOR_TIMEOUT_AT)
-     */
-    timeoutAt: Date | null;
-
-    /**
-     * ID of the key-value store where input and output data of this
-     * Actor is stored (ACTOR_DEFAULT_KEY_VALUE_STORE_ID)
-     */
-    defaultKeyValueStoreId: string | null;
-
-    /**
-     * ID of the dataset where input and output data of this
-     * Actor is stored (ACTOR_DEFAULT_DATASET_ID)
-     */
-    defaultDatasetId: string | null;
-
-    /**
-     * Amount of memory allocated for the Actor,
-     * in megabytes (ACTOR_MEMORY_MBYTES)
-     */
-    memoryMbytes: number | null;
-
-    /**
-     * If set to "1", the web browsers inside the Actor should run in headless
-     * mode because there is no windowing system available. (APIFY_HEADLESS)
-     */
-    headless: string | null;
-
-    /**
-     * Is set to "1" if the Actor is running on Apify servers.
-     * (APIFY_IS_AT_HOME)
-     */
-    isAtHome: string | null;
-
-    /**
-     * The Apify Proxy password of the user who started the Actor. (APIFY_PROXY_PASSWORD)
-     */
-    proxyPassword: string | null;
-    proxyHostname: string | null;
-    proxyPort: string | null;
-
-    /**
-     * You can visit this page to troubleshoot your proxy connection. (APIFY_PROXY_STATUS_URL)
-     */
-    proxyStatusUrl: string | null;
-    apiBaseUrl: string | null;
-    apiPublicBaseUrl: string | null;
-    chromeExecutablePath: string | null;
-    dedicatedCpus: string | null;
-    fact: string | null;
-    inputSecretsPrivateKeyFile: string | null;
-    inputSecretsPrivateKeyPassphrase: string | null;
-
-    /**
-     * Defines the path to a local directory where KeyValueStore, Dataset, and RequestQueue
-     * store their data. Typically, it is set to ./storage. If omitted, you should define the
-     * APIFY_TOKEN environment variable instead. See more info on combination of this and
-     * APIFY_TOKEN [here](https://docs.apify.com/sdk/js/docs/concepts/environment-variables#combinations-of-apify_local_storage_dir-and-apify_token)(CRAWLEE_STORAGE_DIR)
-     */
-    localStorageDir: string | null;
-
-    /**
-     * Specifies the minimum log level, which can be one of the following values (in order of severity): DEBUG, INFO, WARNING and ERROR
-     * (APIFY_LOG_LEVEL)
-     */
-    logLevel: string | null;
-    logFormat: string | null;
-
-    /**
-     * Origin for the Actor run, i.e. how it was started. See [here](https://docs.apify.com/platform/actors/running/runs-and-builds#origin)
-     * for more details. (APIFY_META_ORIGIN)
-     */
-    metaOrigin: string | null;
-
-    /**
-     * The key of the input record in the Actor’s default key-value store (ACTOR_INPUT_KEY)
-     */
-    inputKey: string | null;
-    systemInfoIntervalMillis: string | null;
-    workflowKey: string | null;
-    actorBuildNumber: string | null;
-    actorEventsWsUrl: string | null;
-    actorMaxPaidDatasetItems: number | null;
-    containerPort: number | null;
-    containerUrl: string | null;
-    defaultRequestQueueId: string | null;
-}
-
 export type UserFunc<T = unknown> = () => Awaitable<T>;
 
 export interface Token {
@@ -400,8 +240,7 @@ export interface WebhookOptions {
     /**
      * Idempotency key enables you to ensure that a webhook will not be added multiple times in case of
      * an Actor restart or other situation that would cause the `addWebhook()` function to be called again.
-     * We suggest using the Actor run ID as the idempotency key. You can get the run ID by calling
-     * {@apilink Actor.getEnv} function.
+     * We suggest using the Actor run ID as the idempotency key, available as `Actor.configuration.actorRunId`.
      */
     idempotencyKey?: string;
 
@@ -461,6 +300,12 @@ export interface MetamorphOptions {
 }
 
 export interface RebootOptions {
+    /**
+     * Amount of time, in seconds, to wait for the `persistState` and `migrating` event handlers before rebooting.
+     * @default 30
+     */
+    timeoutSecs?: number;
+
     /** @internal */
     customAfterSleepMillis?: number;
 }
@@ -544,6 +389,10 @@ export class Actor<Data extends Dictionary = Dictionary> {
 
     #chargingManager: ChargingManager;
 
+    #runPromise?: Promise<ClientActorRun | undefined>;
+
+    #actorPromise?: Promise<ActorResource | undefined>;
+
     /** Aborts the child runs started with `abortWithParent` on the `aborting` event. */
     readonly #abortChildRunsWithParent = async () => this.#childRunTracker.abortRunsWithParent(this.apifyClient);
 
@@ -582,7 +431,12 @@ export class Actor<Data extends Dictionary = Dictionary> {
         this.eventManager = new PlatformEventManager(this.configuration, {
             [ACTOR_EVENT_NAMES.ABORTING]: this.#abortChildRunsWithParent,
         });
-        this.#chargingManager = new ChargingManager(this.configuration, this.apifyClient);
+        this.#chargingManager = new ChargingManager(
+            this.configuration,
+            this.apifyClient,
+            async () => this.getCurrentRun(),
+            async () => this.#getCurrentActor(),
+        );
         this.#childRunTracker = new ChildRunTracker();
     }
 
@@ -763,12 +617,24 @@ export class Actor<Data extends Dictionary = Dictionary> {
 
         await this.#childRunTracker.load();
 
+        this.#runPromise = undefined;
+        this.#actorPromise = undefined;
+        if (this.isAtHome() && this.configuration.metaOrigin === META_ORIGINS.STANDBY) {
+            // Server Actor runs live long enough to make the fetches worth it up front; `charge()` needs them anyway.
+            void this.getCurrentRun().catch(() => {});
+            void this.#getCurrentActor().catch(() => {});
+        }
+
         await this.#chargingManager.init();
         log.debug(`ChargingManager initialized`, this.#chargingManager.getPricingInfo());
 
         // Only knowable once the pricing is loaded. Reachable with a caller-supplied backend or one
         // registered with crawlee directly; the storages the Actor installs itself are wrapped.
-        if (this.#chargingManager.isPayPerEvent && !this.#chargesDefaultDatasetItems()) {
+        if (
+            this.#chargingManager.isPayPerEvent &&
+            !this.#chargingManager.isMultiTenant &&
+            !this.#chargesDefaultDatasetItems()
+        ) {
             log.warning(
                 'Items pushed to the default dataset will not be charged for, because this run does not use Apify ' +
                     'storage - the platform only counts items it stores itself.',
@@ -1131,7 +997,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      *
      * A run started with a custom `token` uses that token, except for a run started before a migration or
      * resurrection, which uses the default client. The tracked runs, including the earlier runs replaced
-     * under the same name, are stored in the default key-value store under the `__ACTOR_CHILD_RUNS` key.
+     * under the same name, are stored in the default key-value store under the `APIFY_ACTOR_CHILD_RUNS` key.
      */
     get childRuns(): Record<string, RunClient> {
         this.ensureActorInit('childRuns');
@@ -1231,25 +1097,44 @@ export class Actor<Data extends Dictionary = Dictionary> {
 
         this.#isRebooting = true;
 
+        const { timeoutSecs = 30, customAfterSleepMillis = this.configuration.metamorphAfterSleepMillis } = options;
+
+        const callListeners = (event: EventType, data: Dictionary) =>
+            serviceLocator
+                .getEventManager()
+                .listeners(event)
+                .map(async (listener: (...args: unknown[]) => unknown) => {
+                    try {
+                        await listener(data);
+                    } catch (err) {
+                        log.exception(err as Error, 'A pre-reboot event listener failed');
+                    }
+                });
+
         // Waiting for all the listeners to finish, as `.reboot()` kills the container.
-        await Promise.all([
-            // `persistState` for individual RequestLists, RequestQueue... instances to be persisted
-            ...serviceLocator
-                .getEventManager()
-                .listeners(EventType.PERSIST_STATE)
-                .map(async (x: (...args: unknown[]) => unknown) => x({})),
-            // `migrating` to pause Apify crawlers
-            ...serviceLocator
-                .getEventManager()
-                .listeners(EventType.MIGRATING)
-                .map(async (x: (...args: unknown[]) => unknown) => x({})),
-        ]);
+        await addTimeoutToPromise(
+            async () => {
+                await Promise.all([
+                    // `persistState` for individual RequestLists, RequestQueue... instances to be persisted
+                    ...callListeners(EventType.PERSIST_STATE, { isMigrating: true }),
+                    // `migrating` to pause Apify crawlers
+                    ...callListeners(EventType.MIGRATING, {}),
+                ]);
+            },
+            timeoutSecs * 1000,
+            `Pre-reboot event listeners did not finish within ${timeoutSecs} seconds, proceeding with the reboot`,
+        ).catch((err) => log.warning((err as Error).message));
 
         const runId = this.configuration.actorRunId!;
-        await this.apifyClient.run(runId).reboot();
+        try {
+            await this.apifyClient.run(runId).reboot();
+        } catch (err) {
+            // Reset the flag so that a failed reboot can be retried.
+            this.#isRebooting = false;
+            throw err;
+        }
 
         // Wait some time for container to be stopped.
-        const { customAfterSleepMillis = this.configuration.metamorphAfterSleepMillis } = options;
         await sleep(customAfterSleepMillis);
     }
 
@@ -1393,6 +1278,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @param item Object or array of objects containing data to be stored in the default dataset.
      * The objects must be serializable to JSON and the JSON representation of each object must be smaller than 9MB.
      * @param eventName If provided, the method will attempt to charge for the event for each pushed item.
+     * Not supported in multi-tenant Server Actor runs, which charge per request with `Actor.charge()`.
      * @ignore
      */
     async pushData(item: Data | Data[], eventName?: string | undefined): Promise<ChargeResult> {
@@ -1400,6 +1286,12 @@ export class Actor<Data extends Dictionary = Dictionary> {
 
         if (eventName?.startsWith('apify-')) {
             throw new Error(`Cannot charge for synthetic event '${eventName}' manually`);
+        }
+
+        if (eventName !== undefined && this.#chargingManager.isMultiTenant) {
+            throw new Error(
+                'Charging for pushed items is not supported in a multi-tenant Server Actor run - use Actor.charge() with the `requestId` of the incoming request instead.',
+            );
         }
 
         if (eventName !== undefined) {
@@ -1606,6 +1498,9 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * working directory. A storage backend that doesn't read the default key-value store's directory under
      * the storage directory (e.g. in-memory storage) also gets the file `apify run` writes there.
      *
+     * Google Sheets sharing links in `requestsFromUrl` entries (from the "Link remote text file" option) are
+     * replaced with the links of their CSV exports.
+     *
      * Throws an {@apilink ActorInputError} when no input is found (`code: 'NOT_FOUND'`), when the input is
      * found in more than one place (`'MULTIPLE_FILES'`), when a JSON input does not parse
      * (`'PARSE_FAILED'`) or when its secret fields cannot be decrypted (`'DECRYPTION_FAILED'`). If your
@@ -1684,7 +1579,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
         }
 
         if (isNonEmptyObject(input) && !Buffer.isBuffer(input)) {
-            input = await this.inferDefaultsFromInputSchema(input);
+            input = fixGoogleSheetsUrls(await this.inferDefaultsFromInputSchema(input));
         }
 
         return input;
@@ -1876,6 +1771,10 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * rather than batching via `count` — this gives finer control over budget consumption
      * and avoids situations where more work is requested than the budget allows.
      *
+     * **Note:** `idempotencyKey` is scoped to the whole run, not to `requestId`. In a multi-tenant
+     * Server Actor run, a key reused across requests charges only the first caller, so it must
+     * be globally unique (e.g. derived from `requestId`).
+     *
      * @param options The name of the event to charge for and the number of events to be charged.
      * @ignore
      */
@@ -1894,59 +1793,43 @@ export class Actor<Data extends Dictionary = Dictionary> {
     }
 
     /**
-     * Modifies Actor env vars so parsing respects the structure of {@apilink ApifyEnv} interface.
+     * Fetches the current Actor run from the Apify API. The result is cached for the lifetime of the Actor,
+     * so use `Actor.apifyClient.run(runId).get()` instead when you need fresh data such as the run status.
+     * Resolves to `undefined` when not running on the Apify platform.
      */
-    private getModifiedActorEnvVars() {
-        const modifiedActorEnvVars: Record<string, string> = {};
-
-        Object.entries(ACTOR_ENV_VARS).forEach(([k, v]) => {
-            // Prepend `ACTOR_` to env vars so ApifyEnv structure is preserved
-            if (['ID', 'RUN_ID', 'TASK_ID'].includes(k)) {
-                modifiedActorEnvVars[`ACTOR_${k}`] = v;
-            } else {
-                modifiedActorEnvVars[k] = v;
-            }
-        });
-
-        return modifiedActorEnvVars;
-    }
-
-    /**
-     * Returns a new {@apilink ApifyEnv} object which contains information parsed from all the Apify environment variables.
-     *
-     * For the list of the Apify environment variables, see
-     * [Actor documentation](https://docs.apify.com/platform/actors/development/programming-interface/environment-variables).
-     * If some variables are not defined or are invalid, the corresponding value in the resulting object will be null.
-     * @ignore
-     */
-    getEnv(): ApifyEnv {
-        // NOTE: Don't throw if env vars are invalid to simplify local development and debugging of Actors
-        const env = process.env || {};
-        const envVars = {} as ApifyEnv;
-
-        for (const [shortName, fullName] of Object.entries({
-            ...APIFY_ENV_VARS,
-            ...this.getModifiedActorEnvVars(),
-        })) {
-            if (IGNORED_ENV_VARS.includes(fullName)) continue;
-
-            const camelCaseName = snakeCaseToCamelCase(shortName) as keyof ApifyEnv;
-            let value: string | number | boolean | Date | undefined = env[fullName];
-
-            // Parse booleans, dates and integers.
-            if (BOOLEAN_ENV_VARS.includes(fullName)) {
-                value = !!value && coerceBoolean.parse(value);
-            } else if (value && fullName.endsWith('_AT')) {
-                const unix = Date.parse(value);
-                value = unix > 0 ? new Date(unix) : undefined;
-            } else if ((INTEGER_ENV_VARS as readonly string[]).includes(fullName)) {
-                value = parseInt(value!, 10);
-            }
-
-            Reflect.set(envVars, camelCaseName, value || value === 0 || value === false ? value : null);
+    async getCurrentRun(): Promise<ClientActorRun | undefined> {
+        const runId = this.configuration.actorRunId;
+        if (!runId) {
+            return undefined;
         }
 
-        return envVars;
+        this.#runPromise ??= this.apifyClient
+            .run(runId)
+            .get()
+            .catch((err) => {
+                this.#runPromise = undefined;
+                throw err;
+            });
+
+        return this.#runPromise;
+    }
+
+    /** Cached for the lifetime of the Actor; only the charging manager needs it. */
+    async #getCurrentActor(): Promise<ActorResource | undefined> {
+        const { actorId } = this.configuration;
+        if (!actorId) {
+            return undefined;
+        }
+
+        this.#actorPromise ??= this.apifyClient
+            .actor(actorId)
+            .get()
+            .catch((err) => {
+                this.#actorPromise = undefined;
+                throw err;
+            });
+
+        return this.#actorPromise;
     }
 
     /**
@@ -1984,7 +1867,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      *
      * Values can be modified by simply using the assignment operator.
      *
-     * @param name The name of the store to use.
+     * @param name The key of the record that holds the state. Defaults to `APIFY_GLOBAL_STATE`.
      * @param defaultValue If the store does not yet have a value in it, the value will be initialized with the `defaultValue` you provide.
      * @param options An optional object parameter where a custom `keyValueStoreName` and `config` can be passed in.
      */
@@ -2006,7 +1889,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      *
      * Values can be modified by simply using the assignment operator.
      *
-     * @param name The name of the store to use.
+     * @param name The key of the record that holds the state. Defaults to `APIFY_GLOBAL_STATE`.
      * @param defaultValue If the store does not yet have a value in it, the value will be initialized with the `defaultValue` you provide.
      * @param options An optional object parameter where a custom `keyValueStoreName` and `config` can be passed in.
      */
@@ -2258,7 +2141,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      *
      * A run started with a custom `token` uses that token, except for a run started before a migration or
      * resurrection, which uses the default client. The tracked runs, including the earlier runs replaced
-     * under the same name, are stored in the default key-value store under the `__ACTOR_CHILD_RUNS` key.
+     * under the same name, are stored in the default key-value store under the `APIFY_ACTOR_CHILD_RUNS` key.
      */
     static get childRuns(): Record<string, RunClient> {
         return Actor.getDefaultInstance().childRuns;
@@ -2413,6 +2296,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @param item Object or array of objects containing data to be stored in the default dataset.
      * The objects must be serializable to JSON and the JSON representation of each object must be smaller than 9MB.
      * @param eventName If provided, the method will attempt to charge for the event for each pushed item.
+     * Not supported in multi-tenant Server Actor runs, which charge per request with `Actor.charge()`.
      */
     static async pushData<Data extends Dictionary = Dictionary>(
         item: Data | Data[],
@@ -2442,6 +2326,7 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * @param item Object or array of objects containing data to be stored in the default dataset.
      * The objects must be serializable to JSON and the JSON representation of each object must be smaller than 9MB.
      * @param eventName If provided, the method will attempt to charge for the event for each pushed item.
+     * Not supported in multi-tenant Server Actor runs, which charge per request with `Actor.charge()`.
      */
     static async pushData<Data extends Dictionary = Dictionary>(
         item: Data | Data[],
@@ -2584,6 +2469,9 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * When running locally, the input may instead be a `<inputKey>` or `<inputKey>.json` file in the current
      * working directory.
      *
+     * Google Sheets sharing links in `requestsFromUrl` entries (from the "Link remote text file" option) are
+     * replaced with the links of their CSV exports.
+     *
      * Throws an {@apilink ActorInputError} when no input is found (`code: 'NOT_FOUND'`), when the input is
      * found in more than one place (`'MULTIPLE_FILES'`), when a JSON input does not parse
      * (`'PARSE_FAILED'`) or when its secret fields cannot be decrypted (`'DECRYPTION_FAILED'`). If your
@@ -2719,6 +2607,10 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * rather than batching via `count` — this gives finer control over budget consumption
      * and avoids situations where more work is requested than the budget allows.
      *
+     * **Note:** `idempotencyKey` is scoped to the whole run, not to `requestId`. In a multi-tenant
+     * Server Actor run, a key reused across requests charges only the first caller, so it must
+     * be globally unique (e.g. derived from `requestId`).
+     *
      * @param options The name of the event to charge for and the number of events to be charged.
      */
     static async charge(options: ChargeOptions): Promise<ChargeResult> {
@@ -2730,17 +2622,6 @@ export class Actor<Data extends Dictionary = Dictionary> {
      */
     static getChargingManager(): ChargingManager {
         return Actor.getDefaultInstance().getChargingManager();
-    }
-
-    /**
-     * Returns a new {@apilink ApifyEnv} object which contains information parsed from all the Apify environment variables.
-     *
-     * For the list of the Apify environment variables, see
-     * [Actor documentation](https://docs.apify.com/platform/actors/development/programming-interface/environment-variables).
-     * If some of the variables are not defined or are invalid, the corresponding value in the resulting object will be null.
-     */
-    static getEnv(): ApifyEnv {
-        return Actor.getDefaultInstance().getEnv();
     }
 
     /**
@@ -2759,6 +2640,15 @@ export class Actor<Data extends Dictionary = Dictionary> {
      */
     static isAtHome(): boolean {
         return Actor.getDefaultInstance().isAtHome();
+    }
+
+    /**
+     * Fetches the current Actor run from the Apify API. The result is cached for the lifetime of the Actor,
+     * so use `Actor.apifyClient.run(runId).get()` instead when you need fresh data such as the run status.
+     * Resolves to `undefined` when not running on the Apify platform.
+     */
+    static async getCurrentRun(): Promise<ClientActorRun | undefined> {
+        return Actor.getDefaultInstance().getCurrentRun();
     }
 
     /** Default {@apilink ApifyClient} instance. */
@@ -2886,10 +2776,10 @@ export class Actor<Data extends Dictionary = Dictionary> {
      * Returns `undefined` if not on the Apify platform or the current run was started without a timeout.
      */
     private getRemainingTimeSecs(): number | undefined {
-        const env = this.getEnv();
+        const { timeoutAt } = this.configuration;
         const MINIMUM_API_TIMEOUT_SECS = 1;
-        if (this.isAtHome() && env.timeoutAt !== null) {
-            return Math.max(Math.ceil((env.timeoutAt.getTime() - Date.now()) / 1000), MINIMUM_API_TIMEOUT_SECS);
+        if (this.isAtHome() && timeoutAt !== undefined) {
+            return Math.max(Math.ceil((timeoutAt.getTime() - Date.now()) / 1000), MINIMUM_API_TIMEOUT_SECS);
         }
         log.warning(
             'Using `inherit` argument is only possible when the Actor is running on the Apify platform and when the ' +

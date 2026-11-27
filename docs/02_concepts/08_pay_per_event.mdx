@@ -10,6 +10,7 @@ import ChargeLimitCheckSource from '!!raw-loader!./code/charge_limit_check.ts';
 import PerUnitChargingSource from '!!raw-loader!./code/per_unit_charging.ts';
 import ChargingManagerSource from '!!raw-loader!./code/charging_manager.ts';
 import ChargeInRequestHandlerSource from '!!raw-loader!./code/charge_in_request_handler.ts';
+import MultiTenantChargeSource from '!!raw-loader!./code/multi_tenant_charge.ts';
 import ApiLink from '@site/src/components/ApiLink';
 import CodeBlock from '@theme/CodeBlock';
 
@@ -34,6 +35,12 @@ If you can split your work into individual units, for example scraping one page 
 <CodeBlock language="typescript">{PerUnitChargingSource}</CodeBlock>
 
 If you use the `count` parameter, always check the returned `chargedCount`. It tells you how many events were charged, which may be less than what you requested.
+
+### Charge in multi-tenant Server Actors
+
+A multi-tenant [Server Actor](https://docs.apify.com/platform/actors/development/programming-interface/standby) (formerly Actor Standby) run serves requests from many users. To charge the user who made a request rather than the account that started the run, pass the request's `X-Actor-Request-ID` header value as `requestId`. Multi-tenant runs reject charges without it.
+
+<CodeBlock language="typescript">{MultiTenantChargeSource}</CodeBlock>
 
 ### Retry charges safely
 
@@ -93,15 +100,7 @@ ACTOR_TEST_PAY_PER_EVENT=true npm start
 
 ### View the log
 
-To inspect the results of your tests:
-
-1. In addition to the `ACTOR_TEST_PAY_PER_EVENT` environment variable, pass `ACTOR_USE_CHARGING_LOG_DATASET`:
-
-   ```shell
-   ACTOR_TEST_PAY_PER_EVENT=true ACTOR_USE_CHARGING_LOG_DATASET=true npm start
-   ```
-
-1. Open the `charging_log` dataset. By default, it's stored in the `storage/datasets/charging_log/` directory.
+In local pay-per-event testing, the SDK logs every charge into the `charging-log` dataset. To inspect the results of your tests, open this dataset. By default, it's stored in the `storage/datasets/charging-log/` directory.
 
 The log contains all the events charged throughout the run. Because pricing configuration is stored by the Apify platform, all events have a default price of $1.
 
