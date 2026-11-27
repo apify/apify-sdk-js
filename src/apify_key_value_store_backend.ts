@@ -7,7 +7,11 @@ import type {
     KeyValueStoreListKeysResult,
     KeyValueStoreRecord,
 } from '@crawlee/types';
-import type { KeyValueStoreClient } from 'apify-client';
+import type { KeyValueStoreClient, KeyValueStoreResource } from 'apify-client';
+
+/** {@link KeyValueStoreInfo} extended with the fields the Apify platform reports. */
+export interface ApifyKeyValueStoreInfo
+    extends KeyValueStoreInfo, Omit<KeyValueStoreResource, keyof KeyValueStoreInfo> {}
 
 /**
  * Implements crawlee v4's {@link KeyValueStoreBackend} interface on top of `apify-client`'s
@@ -24,7 +28,7 @@ export class ApifyKeyValueStoreBackend implements KeyValueStoreBackend {
         this.#client = client;
     }
 
-    async getMetadata(): Promise<KeyValueStoreInfo> {
+    async getMetadata(): Promise<ApifyKeyValueStoreInfo> {
         const metadata = await this.#client.get();
         if (!metadata) {
             throw new Error('Key-value store not found or has been deleted.');

@@ -1,5 +1,5 @@
 import type { DatasetBackend, DatasetBackendListOptions, DatasetInfo, Dictionary, PaginatedList } from '@crawlee/types';
-import type { DatasetClient } from 'apify-client';
+import type { DatasetClient, DatasetResource } from 'apify-client';
 import { MAX_PAYLOAD_SIZE_BYTES } from '@apify/consts';
 
 /** Slight reduction of the API's 9MB payload limit, to stay safely below it. */
@@ -8,6 +8,9 @@ const EFFECTIVE_LIMIT_BYTES = MAX_PAYLOAD_SIZE_BYTES - Math.ceil(MAX_PAYLOAD_SIZ
 
 /** Per-item ceiling — 2 bytes under the chunk limit, so even a lone item fits its `[]` wrapper. */
 const MAX_ITEM_BYTES = EFFECTIVE_LIMIT_BYTES - 2;
+
+/** {@link DatasetInfo} extended with the fields the Apify platform reports. */
+export interface ApifyDatasetInfo extends DatasetInfo, Omit<DatasetResource, keyof DatasetInfo> {}
 
 /**
  * Implements crawlee v4's {@link DatasetBackend} interface on top of `apify-client`'s
@@ -24,7 +27,7 @@ export class ApifyDatasetBackend implements DatasetBackend {
         this.#client = client;
     }
 
-    async getMetadata(): Promise<DatasetInfo> {
+    async getMetadata(): Promise<ApifyDatasetInfo> {
         const metadata = await this.#client.get();
         if (!metadata) {
             throw new Error('Dataset not found or has been deleted.');

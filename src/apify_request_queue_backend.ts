@@ -9,7 +9,7 @@ import type {
     RequestSchema,
     UpdateRequestSchema,
 } from '@crawlee/types';
-import type { RequestQueueClient as ApifyRequestQueueApiClient, RequestQueueStats } from 'apify-client';
+import type { RequestQueueClient as ApifyRequestQueueApiClient, RequestQueueResource } from 'apify-client';
 
 /**
  * Determines how an Apify platform request queue is consumed.
@@ -37,13 +37,8 @@ export function uniqueKeyToRequestId(uniqueKey: string): string {
     return hash.slice(0, REQUEST_ID_LENGTH);
 }
 
-/** {@link RequestQueueInfo} extended with fields the Apify platform reports. */
-export interface ApifyRequestQueueInfo extends RequestQueueInfo {
-    /** Whether the queue has been accessed by more than one client (unique or empty `clientKey`). */
-    hadMultipleClients: boolean;
-    /** Read, write and delete operation counts. */
-    stats?: RequestQueueStats;
-}
+/** {@link RequestQueueInfo} extended with the fields the Apify platform reports. */
+export interface ApifyRequestQueueInfo extends RequestQueueInfo, Omit<RequestQueueResource, keyof RequestQueueInfo> {}
 
 /**
  * Common base of the Apify platform implementations of Crawlee v4's stateful, pull-based
