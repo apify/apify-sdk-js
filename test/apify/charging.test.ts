@@ -64,7 +64,7 @@ function setUpPlatformEnv(
 
 /**
  * Sets up environment variables for local pay-per-event testing.
- * In local mode, all events cost 1 USD regardless of pricing info.
+ * In local mode, events missing from the pricing info cost 1 USD.
  */
 function setUpLocalTestEnv(options: { maxTotalChargeUsd?: string } = {}) {
     process.env.ACTOR_TEST_PAY_PER_EVENT = '1';
@@ -653,6 +653,26 @@ describe('ChargingManager', () => {
                     chargeableWithinLimit: {},
                 });
                 expect(loggerWarnSpy).not.toHaveBeenCalled();
+            });
+
+            test('when running locally should price it at $1, while known events keep their loaded price', async () => {
+                setUpLocalTestEnv({ maxTotalChargeUsd: '10' });
+                process.env.APIFY_ACTOR_PRICING_INFO = JSON.stringify({
+                    pricingModel: 'PAY_PER_EVENT',
+                    pricingPerEvent: {
+                        actorChargeEvents: { 'known-event': { eventTitle: 'Known', eventPriceUsd: 5 } },
+                    },
+                });
+                process.env.APIFY_CHARGED_ACTOR_EVENT_COUNTS = '{}';
+
+                await initIsolatedDefaultActor();
+                const chargingManager = Actor.getChargingManager();
+
+                expect(chargingManager.calculateMaxEventChargeCountWithinLimit('known-event')).toBe(2);
+                expect(chargingManager.calculatePushDataLimit(5, { eventName: 'known-event' })).toBe(2);
+
+                const chargeResult = await chargingManager.charge({ eventName: 'unknown-event', count: 4 });
+                expect(chargeResult.chargeableWithinLimit).toStrictEqual({ 'known-event': 1 });
             });
         });
     });

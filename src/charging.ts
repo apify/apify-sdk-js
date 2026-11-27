@@ -629,7 +629,8 @@ export class ChargingManager {
     }
 
     private calculateEventPrice(eventName: string): number | undefined {
-        return this.#isAtHome ? this.#pricingInfo[eventName]?.price : 1; // Use a nonzero price for local development so that the maximum budget can be reached
+        // Unknown events cost $1 in local development so that the maximum budget can be reached.
+        return this.#pricingInfo[eventName]?.price ?? (this.#isAtHome ? undefined : 1);
     }
 
     private calculateMaxChargesByPrice(price: number): number {
